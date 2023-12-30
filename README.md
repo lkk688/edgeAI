@@ -5,6 +5,25 @@ Configure Raspberry Pi to enable SSH, I2C, SPI and others: [RaspiConfig](https:/
 
 Interactive pinout diagram: [pinout](https://pinout.xyz)
 
+Check raspberry pi's IP address via "hostname -I"
+
+Install SMB
+```bash
+sudo apt install samba samba-common-bin smbclient cifs-utils
+lkk@raspberrypi:~ $ chmod 0740 Developer/
+lkk@raspberrypi:~ $ sudo smbpasswd -a lkk
+sudo nano /etc/samba/smb.conf
+```
+At the end of the file, add the following to share the folder, giving the remote user read/write permissions. Replace the <username> placeholder with the username of your primary user account:
+```bash
+[share]
+    path = /home/<username>/Developer
+    read only = no
+    public = yes
+    writable = yes
+```
+Connect to the SMB folder via "smb://192.168.86.174"
+
 Install the following packages (default is already installed)
 ```bash
 $ sudo apt install python3-smbus
