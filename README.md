@@ -13,6 +13,7 @@ sudo apt install samba samba-common-bin smbclient cifs-utils
 lkk@raspberrypi:~ $ chmod 0740 Developer/
 lkk@raspberrypi:~ $ sudo smbpasswd -a lkk
 sudo nano /etc/samba/smb.conf
+sudo service samba restart #restart samba if needed
 ```
 At the end of the file, add the following to share the folder, giving the remote user read/write permissions. Replace the <username> placeholder with the username of your primary user account:
 ```bash
