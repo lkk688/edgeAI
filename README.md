@@ -59,3 +59,5 @@ sudo apt update
 sudo apt install code
 code . #open vscode for one folder
 ```
+
+Enable VSCode remote tunnel to the Raspberry Pi: 1) Click the User icon in the VSCode in Raspberry Pi, turn on "Remote Tunnel Access", login via Github account; 2) Install "Remote Development" extension in the host VSCode. After the extension is installed, you can see the remote tunnel in the host VSCode.
