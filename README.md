@@ -57,4 +57,5 @@ Visual Studio Code on Raspberry Pi: [link](https://code.visualstudio.com/docs/se
 ```bash
 sudo apt update
 sudo apt install code
+code . #open vscode for one folder
 ```
