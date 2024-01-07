@@ -53,7 +53,7 @@ lkk@raspberrypi:~ $ mkdir Developer
 lkk@raspberrypi:~ $ cd Developer && git clone https://github.com/lkk688/edgeAI.git
 ```
 
-Visual Studio Code on Raspberry Pi: [link](https://code.visualstudio.com/docs/setup/raspberry-pi)
+Visual Studio Code on Raspberry Pi: [link](https://code.visualstudio.com/docs/setup/raspberry-pi). You can adjust the zoom level in VS Code with the View > Appearance > Zoom commands. Install language extensions (e.g., Python) in VSCode.
 ```bash
 sudo apt update
 sudo apt install code
