@@ -53,7 +53,7 @@ lkk@raspberrypi:~ $ mkdir Developer
 lkk@raspberrypi:~ $ cd Developer && git clone https://github.com/lkk688/edgeAI.git
 ```
 
-Visual Studio Code on Raspberry Pi: [link](https://code.visualstudio.com/docs/setup/raspberry-pi). You can adjust the zoom level in VS Code with the View > Appearance > Zoom commands. Install language extensions (e.g., Python) in VSCode.
+Visual Studio Code on Raspberry Pi: [link](https://code.visualstudio.com/docs/setup/raspberry-pi). You can adjust the zoom level in VS Code with the View > Appearance > Zoom commands. Install language extensions (e.g., Python) and Jupyter Extension in VSCode.
 ```bash
 sudo apt update
 sudo apt install code
@@ -61,3 +61,14 @@ code . #open vscode for one folder
 ```
 
 Enable VSCode remote tunnel to the Raspberry Pi: 1) Click the User icon in the VSCode in Raspberry Pi, turn on "Remote Tunnel Access", login via Github account; 2) Install "Remote Development" extension in the host VSCode. After the extension is installed, you can see the remote tunnel in the host VSCode.
+
+Serial
+```bash
+pip install pyserial
+(mypyvenv) lkk@raspberrypi:~/Developer/edgeAI $ python -m serial.tools.miniterm
+
+--- Available ports:
+---  1: /dev/ttyUSB0         'USB Serial'
+
+pip install ipywidgets
+```
