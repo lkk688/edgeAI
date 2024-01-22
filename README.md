@@ -62,6 +62,13 @@ code . #open vscode for one folder
 
 Enable VSCode remote tunnel to the Raspberry Pi: 1) Click the User icon in the VSCode in Raspberry Pi, turn on "Remote Tunnel Access", login via Github account; 2) Install "Remote Development" extension in the host VSCode. After the extension is installed, you can see the remote tunnel in the host VSCode.
 
+Enable tunnel as a service (https://code.visualstudio.com/docs/remote/tunnels#_how-can-i-ensure-i-keep-my-tunnel-running)
+```bash
+code tunnel service install
+code tunnel service uninstall
+```
+
+
 Serial
 ```bash
 pip install pyserial
@@ -88,5 +95,8 @@ print(cv2.version)
 4.7.0
 ``` 
 
-
+```bash
 rpicam-hello -t 0
+```
+
+Raspberry Pi picamera2 python: https://github.com/raspberrypi/picamera2/tree/main
