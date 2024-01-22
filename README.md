@@ -72,3 +72,21 @@ pip install pyserial
 
 pip install ipywidgets
 ```
+Numpy error of "Original error was: libopenblas.so.0: cannot open shared object file"
+```bash
+sudo apt install libatlas3-base
+sudo apt-get install libopenblas-dev
+pip3 install numpy
+```
+
+
+Install OpenCV from https://pypi.org/project/opencv-python/#history
+```bash
+pip install opencv-python==4.7.0.72
+import cv2
+print(cv2.version)
+4.7.0
+``` 
+
+
+rpicam-hello -t 0
