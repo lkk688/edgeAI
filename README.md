@@ -7,6 +7,10 @@ Jupyter notebook sample code (also available on Google Colab)
 * [C Review and Memory Layout.ipynb](/cpumemory/C_Review_and_Memory_Layout.ipynb), [colab link](https://colab.research.google.com/drive/1NkU7XPSIwvwlpsXU3p8zBcdBP4XZgNGk?usp=sharing)
 * [CPU System.ipynb](/cpumemory/CPU_System.ipynb), [colab link](https://colab.research.google.com/drive/178iJ4B-Qj8NcRiriNPObpQW3DGDOPSlj?usp=sharing)
 * [Memory Mountain.ipynb](/cpumemory/memorymountainv2.ipynb), [colab link](https://colab.research.google.com/drive/14F7NXa3bzeYqK0cIkikLtlkmEDncP-je?usp=sharing)
+* [matrixmultiple.ipynb](/cpumemory/matrixmultiple.ipynb), [colab link](https://colab.research.google.com/drive/1qQhOGBLSOZJfCGRjo0lNQYMvQMvgujTx?usp=sharing)
+    * different matrix multiple versions, BLAS, Intel OneAPI MKL, Intel OneAPI DPC++, Intel OneAPI basekit
+* [GPU_and_Cuda_C++.ipynb](/cpumemory/GPU_and_Cuda_C++.ipynb), [colab link](https://colab.research.google.com/drive/1yzRjf8_9TIH4TFO48ooMyvLGHZdvN6cs?usp=sharing)
+* [Multiprocess_and_Concurrent.ipynb](/cpumemory/Multiprocess_and_Concurrent.ipynb), [colab link](https://colab.research.google.com/drive/1gA3KjRGxGlFCQtLcZ1IUCvCH1eF9U9g0?usp=sharing)
 
 # Raspberry Pi Setup
 Configure Raspberry Pi to enable SSH, I2C, SPI and others: [RaspiConfig](https://www.raspberrypi.com/documentation/computers/configuration.html#the-raspi-config-tool)
