@@ -15,7 +15,16 @@ Jupyter notebook sample code (also available on Google Colab)
 Jupyter notebook sample code (also available on Google Colab)
 * [GPU_and_Cuda_C++.ipynb](/cpumemory/GPU_and_Cuda_C++.ipynb), [colab link](https://colab.research.google.com/drive/1yzRjf8_9TIH4TFO48ooMyvLGHZdvN6cs?usp=sharing)
 
-# Raspberry Pi Setup
+# Raspberry Pi
+Key links
+* [Raspberry Pi5](https://www.raspberrypi.com/products/raspberry-pi-5/)
+    * Broadcom BCM2712 2.4GHz quad-core 64-bit Arm Cortex-A76 CPU
+    * Dual 4Kp60 HDMI
+    * LPDDR4X-4267 SDRAM (4GB and 8GB)
+    * PCIe 2.0 x1 interface
+* [Documentation](https://www.raspberrypi.com/documentation/)
+
+## Raspberry Pi Setup
 Configure Raspberry Pi to enable SSH, I2C, SPI and others: [RaspiConfig](https://www.raspberrypi.com/documentation/computers/configuration.html#the-raspi-config-tool)
 
 Interactive pinout diagram: [pinout](https://pinout.xyz)
