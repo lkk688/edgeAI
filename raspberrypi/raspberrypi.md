@@ -86,6 +86,19 @@ dpkg --remove-architecture armhf
 dpkg --remove-architecture aarch64
 ```
 
+If you face problems in `apt install` of "E: Unable to locate package", you need to force an apt refresh via:
+```bash
+sudo rm /var/lib/apt/lists/*_*
+sudo apt-get update
+sudo apt full-upgrade
+```
+
+Common packages:
+```bash
+$ sudo apt install nmap
+$ sudo apt install tcpdump
+```
+
 ## Raspberry Pi Network
 Check raspberry pi's IP address via `hostname -I`
 
