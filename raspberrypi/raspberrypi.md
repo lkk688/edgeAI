@@ -11,7 +11,13 @@ Key links
 * [Canakit Raspberry Pi 5 8GB RAM Starter kit](https://www.canakit.com/canakit-raspberry-pi-5-starter-kit-turbine-black.html)
     * Samsung EVO+ 128GB MicroSD Card pre-loaded with Raspberry Pi OS
     * Set of 2 Micro HDMI to HDMI Cables (6-foot each)
-
+* [Raspberry Pi OS](https://www.raspberrypi.com/documentation/computers/os.html)
+    * Raspberry Pi OS is a free, Debian-based operating system optimised for the Raspberry Pi hardware. The latest version of Raspberry Pi OS is based on Debian Bookworm. The previous version was based on Debian Bullseye.
+    * apt stores a list of software sources in a file at /etc/apt/sources.list. Before installing software, run the following command `sudo apt update` to update your local list of packages using /etc/apt/sources.list.
+    * Run the following command `sudo apt full-upgrade` to upgrade all your installed packages to their latest versions. Unlike Debian, Raspberry Pi OS is under continual development. As a result, package dependencies sometimes change, so you should always use full-upgrade instead of the standard upgrade.
+    * To search the archives for a package, pass a search keyword to `apt-cache search <keyword>`, Use the following command to view detailed information about a package: `apt-cache show <package-name>`
+    * Install a package: `sudo apt install <package-name>`, Uninstall a package: `sudo apt remove <package-name>`
+    * To update the firmware on your Raspberry Pi to the latest version, use `rpi-update`.
 
 ## Raspberry Pi Setup
 Configure Raspberry Pi to enable SSH, I2C, SPI and others: [RaspiConfig](https://www.raspberrypi.com/documentation/computers/configuration.html#the-raspi-config-tool)
@@ -96,6 +102,16 @@ Enable the SSH server
     * UI based solution: from the Preferences menu, launch Raspberry Pi Configuration. Navigate to the Interfaces tab. Select Enabled next to SSH.
     * Terminal based solution: enter `sudo raspi-config` in a terminal window. Select Interfacing Options, navigate to and select SSH. Choose Yes. Select Ok. Choose Finish.
     * Manually, Create an empty file named ssh in the boot partition: `sudo touch /boot/firmware/ssh`, `sudo reboot`
+
+Remote access with [Raspberry Pi Connect](https://www.raspberrypi.com/documentation/services/connect.html): 
+```bash
+sudo apt update
+sudo apt upgrade
+sudo apt install rpi-connect
+sudo reboot
+rpi-connect signin
+```
+Visit `connect.raspberrypi.com`, sign in to Connect using your Raspberry Pi ID.
 
 Install SMB
 ```bash
