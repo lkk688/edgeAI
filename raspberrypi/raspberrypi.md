@@ -19,12 +19,39 @@ Key links
     * Install a package: `sudo apt install <package-name>`, Uninstall a package: `sudo apt remove <package-name>`
     * To update the firmware on your Raspberry Pi to the latest version, use `rpi-update`.
 
+## Raspberry Pi Images
+
+Use the `dd` command in Mac to copy the SD card into one image file, Open the Terminal app in Mac OS.
+```bash
+% diskutil list #Get disk list
+#To create the disk image:
+% sudo dd if=/dev/disk4 of=image.dd bs=512
+Password:
+250347520+0 records in
+250347520+0 records out
+128177930240 bytes transferred in 6050.379384 secs (21185106 bytes/sec)
+#To write the disk image: 
+% sudo dd if=image.dd of=/dev/DISK
+
+```
+The `dd` process takes a long time, if you want to see the progress, ref to this [link](https://davejansen.com/dd-with-progress-indication-on-macos/)
+
+Another option is Download [Etcher](https://etcher.balena.io/#download-etcher), and run the disk clone to clone one sd card to another sd card (clone to image file option is not available).
+
+To erase a disk in Mac:
+```bash
+% diskutil list
+% diskutil unmountDisk /dev/disk5
+Unmount of all volumes on disk5 was successful
+% diskutil eraseDisk FAT32 SUMSUNG /dev/disk5
+```
+
 ## Raspberry Pi Setup
 Configure Raspberry Pi to enable SSH, I2C, SPI and others: [RaspiConfig](https://www.raspberrypi.com/documentation/computers/configuration.html#the-raspi-config-tool)
 
 Interactive pinout diagram: [pinout](https://pinout.xyz)
 
-Change the screen scale for high resolution monitors: click Menu > Preferences > Appearance Settings > Defaults tab, then pick a screen size default
+Change the screen scale for high resolution monitors: click Menu > Preferences > Appearance Settings > Defaults tab, then pick a screen size default.
 
 Check OS version and know which version of Raspberry Pi OS is running
 ```bash
@@ -126,6 +153,64 @@ rpi-connect signin
 ```
 Visit `connect.raspberrypi.com`, sign in to Connect using your Raspberry Pi ID.
 
+## Raspberry Pi Install Docker
+Ref the [Docker installation for debian](https://docs.docker.com/engine/install/debian/)
+```bash
+lkkpi5@raspberrypi:~/Documents $ curl -fsSL https://get.docker.com -o get-docker.sh
+lkkpi5@raspberrypi:~/Documents $ sudo sh get-docker.sh
+$ sudo docker --version
+Docker version 27.1.1, build 6312585
+#Manage Docker as a non-root user
+$ sudo groupadd docker
+$ sudo usermod -aG docker $USER
+$ newgrp docker
+$ docker --version
+Docker version 27.1.1, build 6312585
+$ docker ps
+```
+
+## Python in Raspberry Pi
+Run the following command to create a virtual environment configuration folder, replacing <env-name> with the name you would like to use for the virtual environment (e.g. env): `python -m venv <env-name>`. Pass the `--system-site-packages` flag before the folder name to preload all of the currently installed packages in your system Python installation into the virtual environment. Then, execute the bin/activate script in the virtual environment configuration folder to enter the virtual environment: `source <env-name>/bin/activate`. To leave a virtual environment, run the following command: `deactivate`
+
+```bash
+$ python -V
+Python 3.11.2
+lkkpi5@raspberrypi:~ $ python -m venv mypy311
+lkkpi5@raspberrypi:~ $ source mypy311/bin/activate
+(mypy311) lkkpi5@raspberrypi:~ $ pip list
+$ deactivate
+```
+
+Install Jupyternotebook
+```bash
+(mypy311) lkkpi5@raspberrypi:~ $ pip install jupyterlab
+(mypy311) lkkpi5@raspberrypi:~ $ jupyter kernelspec list
+Available kernels:
+  python3    /home/lkkpi5/mypy311/share/jupyter/kernels/python3
+(mypy311) lkkpi5@raspberrypi:~ $ ipython kernel install --user --name=mypy311
+Installed kernelspec mypy311 in /home/lkkpi5/.local/share/jupyter/kernels/mypy311
+#start jupyter notebook
+$ jupyter lab --ip='192.168.86.174' --port=8080 --no-browser
+```
+
+Install Visual Studio Code via [link](https://code.visualstudio.com/docs/setup/raspberry-pi)
+```bash
+sudo apt update
+sudo apt install code
+#upgrade
+sudo apt upgrade code
+```
+
+The [Visual Studio Code Remote - Tunnels extension](https://code.visualstudio.com/docs/remote/tunnels) lets you connect to a remote machine, like a desktop PC or virtual machine (VM), via a secure tunnel. You can connect to that machine from a VS Code client anywhere, without the requirement of SSH. 
+* Create a secure tunnel with the tunnel command: `code tunnel`. 
+    * This command downloads and starts the VS Code Server on this machine and then creates a tunnel to it. This CLI will output a URL such as `https://github.com/login/device`, go to this web link, then enter the code displayed on your device.
+* It will show "Creating tunnel with the name: raspberrypi2", open this link in your browser `https://vscode.dev/tunnel/raspberrypi2` and login via `Github`. 
+* It will open the VSCode web version. You can also see the tunnels running in your local Visual Studio Code Remotes section.
+* If you `Ctrl+C` the terminal of the code tunnel, the tunnel will offline. If you want to open the tunnel again, you can just enter `code tunnel` without login. 
+* If you want to keep the tunnel running, use the service command to run as a service. You can run `code tunnel service install` and `code tunnel service uninstall` to install and remove them.
+Use the no-sleep option, `code tunnel --no-sleep`, to prevent your remote machine from going to sleep.
+
+## Raspberry Pi Shared Folder
 Install SMB
 ```bash
 sudo apt install samba samba-common-bin smbclient cifs-utils
