@@ -127,6 +127,28 @@ $ sudo apt install tcpdump
 ```
 
 ## Raspberry Pi Network
+[configuring-networking](https://github.com/raspberrypi/documentation/blob/develop/documentation/asciidoc/computers/configuration/configuring-networking.adoc)
+
+Raspberry Pi OS comes bundled with a tool that makes connecting to Wi-Fi networks from the terminal a really easy process: `sudo nmtui`. With nmtui now open on your Pi, you will want to navigate down and select the “Activate a connection” option.
+
+If your Raspberry Pi's WiFi icon shows you need to setup the wifi country, you can use `sudo raspi-config`, select `Localisation Options` to Choose the WLAN country option.
+
+Run the following command to check if your Wi-Fi radio is enabled:
+```bash
+$ nmcli radio wifi
+# If this command returns the text "enabled", you’re ready to configure a connection. If this command returns "disabled", try enabling Wi-Fi with the following command:
+$ nmcli radio wifi on
+# scan for wireless networks
+$ nmcli dev wifi list
+# connect a wifi network
+$ sudo nmcli --ask dev wifi connect <example_ssid> #Enter your network password when prompted.
+# If the network you are connecting to does not use a password, run the following command:
+$ sudo nmcli dev wifi connect <example_ssid>
+# To check if you’re connected to a network, run the following command:
+$ nmcli dev wifi list
+```
+Secure your raspberry pi: [link](https://github.com/raspberrypi/documentation/blob/develop/documentation/asciidoc/computers/configuration/securing-the-raspberry-pi.adoc)
+
 Check raspberry pi's IP address via `hostname -I`
 
 You can use the built-in Network Manager CLI (nmcli) to access details about your network. Run the following command: `nmcli device show`
