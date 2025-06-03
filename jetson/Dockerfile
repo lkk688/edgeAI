@@ -24,8 +24,6 @@ apt-get update && apt-get install -y \
     tmux nano htop \
     openssh-client \
     libgl1-mesa-glx libglib2.0-0 \
-    python3-colcon-common-extensions \
-    python3-vcstool \
     && apt-get clean' > /workspace/install_packages.sh && \
     chmod +x /workspace/install_packages.sh
 

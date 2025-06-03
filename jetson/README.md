@@ -5,6 +5,14 @@ This Docker image sets up a complete AI, Cybersecurity, and Robotics development
 ## 🔧 Build the Image
 
 Base container image: https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch
+```bash
+sudo docker pull nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+sudo docker run -it --rm --runtime nvidia --network host nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+```
+To mount scripts, data, ect. from your Jetson's filesystem to run inside the container, use Docker's -v flag when starting your Docker instance:
+```bash
+sudo docker run -it --rm --runtime nvidia --network host -v /home/user/project:/location/in/container nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+```
 
 ```bash
 git clone https://github.com/lkk688/edgeAI.git

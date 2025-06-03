@@ -15,4 +15,3 @@ ipywidgets
 jupyterlab
 pyttsx3
 SpeechRecognition
-pyaudio
