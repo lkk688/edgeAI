@@ -4,8 +4,12 @@ This Docker image sets up a complete AI, Cybersecurity, and Robotics development
 
 ## 🔧 Build the Image
 
+Base container image: https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-pytorch
+
 ```bash
-sudo docker build -t jetsoncamp:latest .
+git clone https://github.com/lkk688/edgeAI.git
+cd edgeAI/jetson
+sudo docker build -t sjsucyberai_jetson:latest .
 ```
 
 ## 🚀 Run the Container
