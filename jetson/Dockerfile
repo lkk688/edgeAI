@@ -4,11 +4,6 @@ LABEL maintainer="kaikai.liu@sjsu.edu"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy requirements first for better caching
-COPY requirements.txt /workspace/requirements.txt
-RUN pip3 install --upgrade pip setuptools wheel && \
-    pip3 install -r /workspace/requirements.txt
-
 # Set up workspace
 WORKDIR /workspace
 
