@@ -1,5 +1,169 @@
 # edgeAI
 
+
+# 🚀 Jetson Lab Automation: Central Gateway & Scalable Provisioning
+
+This repository documents how to set up and manage a lab of NVIDIA Jetson Orin Nano devices using:
+
+- ✅ A **central Ubuntu gateway** (NAT + DHCP + NFS + Dashboard)
+- ✅ Automated **Jetson client setup**
+- ✅ Centralized **status monitoring**, **remote access**, and **reset hooks**
+- ✅ Fully automated using **Ansible**
+
+## 🖥️ 1. Gateway Server Setup (Ubuntu 22.04)
+
+The gateway:
+- Shares Wi-Fi internet to Jetsons over Ethernet
+- Provides DHCP & DNS
+- Shares NFS storage (`/srv/jetson-share`)
+- Hosts Cockpit (web UI), SSH, and optional VNC
+
+
+This guide configures a Ubuntu server to act as the central **gateway and controller** for all Jetson Orin Nano lab devices.
+
+🧱 System Requirements
+
+- Ubuntu 22.04 LTS
+- 2 Network Interfaces:
+  - Wi-Fi (internet uplink)
+  - Ethernet (Jetson LAN via switch)
+
+🔧 Setup Script
+
+Save and run this script as `jetson_gateway_setup.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+WIFI_IFACE="wlp0s20f3"       # Wi-Fi (change if needed)
+LAN_IFACE="enp0s25"          # Ethernet (connected to Jetsons)
+GATEWAY_IP="192.168.100.1"
+DHCP_RANGE_START="192.168.100.50"
+DHCP_RANGE_END="192.168.100.150"
+NFS_SHARE="/srv/jetson-share"
+COCKPIT_PORT=9090
+
+# System Update
+sudo apt update && sudo apt upgrade -y
+
+# Enable IP Forwarding
+echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/99-ip-forward.conf
+sudo sysctl -p /etc/sysctl.d/99-ip-forward.conf
+
+# NAT Configuration
+sudo iptables -t nat -A POSTROUTING -o "$WIFI_IFACE" -j MASQUERADE
+sudo iptables -A FORWARD -i "$LAN_IFACE" -j ACCEPT
+sudo apt install -y iptables-persistent
+sudo netfilter-persistent save
+
+# Static IP and dnsmasq
+sudo apt install -y dnsmasq net-tools
+sudo nmcli con mod "$LAN_IFACE" ipv4.addresses $GATEWAY_IP/24
+sudo nmcli con mod "$LAN_IFACE" ipv4.method manual
+sudo systemctl restart NetworkManager
+sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.bak
+
+cat <<EOF | sudo tee /etc/dnsmasq.conf
+interface=$LAN_IFACE
+dhcp-range=$DHCP_RANGE_START,$DHCP_RANGE_END,12h
+domain-needed
+bogus-priv
+EOF
+
+sudo systemctl restart dnsmasq
+
+# NFS Server
+sudo apt install -y nfs-kernel-server
+sudo mkdir -p $NFS_SHARE/models $NFS_SHARE/docker $NFS_SHARE/logs
+sudo chown nobody:nogroup $NFS_SHARE
+echo "$NFS_SHARE 192.168.100.0/24(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports
+sudo exportfs -a
+sudo systemctl restart nfs-kernel-server
+
+# Cockpit Dashboard
+sudo apt install -y cockpit cockpit-dashboard cockpit-machines
+sudo systemctl enable --now cockpit.socket
+
+# SSH and Wake-on-LAN
+sudo apt install -y openssh-server wakeonlan
+sudo systemctl enable ssh --now
+
+# VNC (Optional)
+sudo apt install -y tigervnc-standalone-server xfce4 xfce4-goodies
+mkdir -p ~/.vnc
+echo -e "#!/bin/sh\nstartxfce4 &" > ~/.vnc/xstartup
+chmod +x ~/.vnc/xstartup
+
+echo "✅ Gateway setup complete!"
+echo "🌐 Cockpit: https://$GATEWAY_IP:$COCKPIT_PORT"
+```
+
+---
+
+## 🤖 Jetson Device Setup (Each Jetson)
+Each Jetson automatically:
+	•	Mounts shared NFS folders
+	•	Sets AI model cache to NFS
+	•	Installs Docker and a PyTorch container
+	•	Configures SSH remote access from gateway
+	•	Enables Wake-on-LAN
+
+Save and run this as `jetson_lab_client_setup.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+GATEWAY_IP="192.168.100.1"
+NFS_MOUNT="/mnt/shared"
+MODEL_CACHE="$NFS_MOUNT/models"
+DOCKER_IMAGE_PATH="$NFS_MOUNT/docker"
+PYTORCH_IMAGE="nvcr.io/nvidia/pytorch:24.02-py3"
+GATEWAY_SSH_PUBKEY="ssh-rsa AAAAB3...replace_this_key..."
+
+# Essentials
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y nfs-common docker.io curl
+
+# Mount NFS
+sudo mkdir -p $NFS_MOUNT
+echo "$GATEWAY_IP:/srv/jetson-share $NFS_MOUNT nfs defaults 0 0" | sudo tee -a /etc/fstab
+sudo mount -a
+
+# Model cache to NFS
+echo "export TORCH_HOME=$MODEL_CACHE/torch" >> ~/.bashrc
+echo "export TRANSFORMERS_CACHE=$MODEL_CACHE/hf" >> ~/.bashrc
+source ~/.bashrc
+
+# Docker config
+sudo usermod -aG docker $USER
+newgrp docker
+
+if [ -f "$DOCKER_IMAGE_PATH/pytorch_container.tar" ]; then
+  echo "Loading PyTorch container from local share..."
+  sudo docker load -i "$DOCKER_IMAGE_PATH/pytorch_container.tar"
+else
+  echo "Pulling PyTorch container from NGC..."
+  sudo docker pull $PYTORCH_IMAGE
+fi
+
+echo "alias lab='docker run --rm -it --runtime nvidia --network host -v \$HOME:/workspace -v $MODEL_CACHE:/models $PYTORCH_IMAGE'" >> ~/.bashrc
+
+# Enable SSH and copy admin key
+sudo systemctl enable ssh --now
+mkdir -p ~/.ssh
+echo "$GATEWAY_SSH_PUBKEY" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# Enable Wake-on-LAN
+sudo apt install -y ethtool
+IFACE=$(ip route | grep default | awk '{print $5}')
+sudo ethtool -s "$IFACE" wol g
+
+echo "✅ Jetson setup complete. Please reboot."
+```
+
 # CPU and Memory
 
 Jupyter notebook sample code (also available on Google Colab)
