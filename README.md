@@ -1,5 +1,247 @@
 # edgeAI
 
+# 🚀 Jetson Orin Nano Setup Guide with SSD
+
+This guide walks you through preparing a **Jetson Orin Nano Super Dev Kit** with:
+
+- M.2 NVMe SSD installation
+- JetPack OS installation **on SSD**
+- System boot
+- Auto-run of lab provisioning script
+
+---
+
+## 🧰 Prerequisites
+
+| Item | Notes |
+|------|-------|
+| ✅ Jetson Orin Nano Super Dev Kit | Includes power supply, heatsink, and case |
+| ✅ M.2 NVMe SSD (e.g., Crucial P310, Kingston NV2) | 128GB–1TB recommended |
+| ✅ Linux host with internet access | Ubuntu 18.04–22.04 for flashing JetPack |
+| ✅ USB-C cable | For flashing from host |
+| ✅ Keyboard + HDMI monitor (optional) | For first boot (can be headless later) |
+| ✅ JetPack SDK Manager (on host PC) | [Install from NVIDIA](https://developer.nvidia.com/nvidia-sdk-manager) |
+| ✅ `jetson_lab_client_setup.sh` | Your automated post-flash setup script |
+
+---
+
+## 🔧 Step 1: Install the SSD
+
+1. Unbox the Jetson and place it on an anti-static surface.
+2. Flip the board to expose the M.2 2280 slot on the **underside**.
+3. Insert the **NVMe SSD** diagonally into the M.2 socket.
+4. Secure with the included screw and standoff.
+5. (Optional but recommended) Install a **low-profile SSD heatsink** for thermal control.
+
+---
+
+## 💻 Step 2: Flash JetPack to SSD (Not SD Card)
+
+Jetson Orin Nano supports **native boot from SSD**.
+
+### On your Ubuntu host:
+
+1. Launch SDK Manager:
+   ```bash
+   sdkmanager
+   ```
+
+2. Login with your NVIDIA developer account.
+
+3. Select:
+   - **Jetson Orin Nano**
+   - Latest **JetPack version** (e.g., JetPack 6.x)
+
+4. Under **Target Operating System**:
+   - Choose **NVMe** as rootfs install target (important!).
+
+5. Connect Jetson to host PC via **USB-C** and put into **Force Recovery Mode**:
+   - Hold **RECOVERY** button
+   - Press and release **RESET** button
+   - Then release RECOVERY
+
+6. SDK Manager will detect the device and start flashing:
+   - Base image → SSD
+   - BSP + CUDA + developer tools
+
+---
+
+## 🧪 Step 3: First Boot on SSD
+
+1. Connect:
+   - Monitor via HDMI
+   - Keyboard/mouse via USB
+   - Ethernet to lab network or gateway
+
+2. Power up Jetson — it will boot from SSD automatically.
+
+3. Complete **initial Ubuntu setup wizard** (username, password, time zone).
+
+4. Verify SSD is rootfs:
+   ```bash
+   df -h /
+   # Output should show something like: /dev/nvme0n1p1
+   ```
+
+---
+
+## 📁 Step 4: Copy and Run Setup Script
+
+1. From your gateway or a USB drive, copy your lab setup script:
+   ```bash
+   scp jetson_lab_client_setup.sh student@<jetson-ip>:~/setup.sh
+   ```
+
+2. SSH or login and run:
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+This script:
+- Mounts shared NFS
+- Sets up Docker
+- Pulls PyTorch container
+- Configures model cache
+- Installs SSH keys and remote tools
+
+---
+
+## 🔄 Step 5: Optional Auto-Run Script on First Boot
+
+To automate script execution after flash:
+
+1. Copy `jetson_lab_client_setup.sh` into `/etc/systemd/system/lab-setup.service` like:
+
+```bash
+[Unit]
+Description=Jetson Lab First-Time Setup
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /home/student/jetson_lab_client_setup.sh
+Type=oneshot
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+```
+
+2. Enable service:
+```bash
+sudo systemctl enable lab-setup
+```
+## Clone SSDs
+### Step 1: Clone the Master SSD to an Image File. 
+Insert the master Jetson SSD using a USB M.2 enclosure and Identify the disk and use dd to clone:
+```bash
+lsblk
+# Example: /dev/sdX (DO NOT use your system drive!)
+sudo dd if=/dev/sdX of=jetson_lab_master.img bs=4M status=progress
+sync
+```
+This creates a raw image (.img) of the entire SSD, including bootloader, rootfs, user data.
+Repeat the following for each SSD you want to clone:
+	1.	Insert a new SSD using the same USB enclosure.
+	2.	Identify the device (e.g., /dev/sdY), then:
+
+```bash
+sudo dd if=jetson_lab_master.img of=/dev/sdY bs=4M status=progress
+sync
+```
+
+Make Each Jetson Unique, Add a first-boot script (e.g., in jetson_lab_client_setup.sh) detect first boot and:
+```bash
+hostnamectl set-hostname jetsonXX
+# or use MAC to auto-set hostname
+```
+Option of Post-clone script (manual or Ansible):
+```bash
+sudo hostnamectl set-hostname jetsonXX
+sudo rm -f /etc/ssh/ssh_host_*
+sudo dpkg-reconfigure openssh-server
+```
+Boot up each Jetson:
+	•	Verify SSD is used: `df -h /`
+Run hostname, docker, and test containers
+	•	Check that shared NFS mounts and SSH keys work
+
+### Step 1: if using Etcher
+Step 1: Prepare the “Golden” Jetson SSD
+On one Jetson Orin Nano:
+	1.	Flash JetPack to the SSD using SDK Manager with rootfs on NVMe
+	2.	Boot into Ubuntu and complete:
+	•	User setup
+	•	Script installs (e.g. jetson_lab_client_setup.sh)
+	•	NFS mounts, hostname auto script, etc.
+
+Identify the Device, On the host machine: lsblk
+Create the Image Using dd
+```bash
+sudo dd if=/dev/sdX of=jetson_lab_master.img bs=4M status=progress
+sync
+```
+This creates a raw disk image of the entire SSD.
+	•	File size will equal the size of the SSD (e.g. 64GB, 128GB, etc.) You can compress it afterward: `gzip jetson_lab_master.img`
+
+### Step 2: Write the Image to Target SSDs
+Download from balena.io/etcher, Plug the M.2 NVMe SSD into a USB enclosure or multi-dock
+Click “Flash from file”
+	•	Choose your .img or .img.gz file (e.g., jetson_lab_master.img)
+    Click “Select target”
+	•	Choose the connected SSD (double-check to avoid overwriting your system drive!)
+
+or run the dd command:
+```bash
+sudo dd if=jetson_lab_master.img of=/dev/sdY bs=4M status=progress
+```
+### Step 3: Boot device and Assign Unique Hostname
+If set-unique-hostname.sh is present, it will:
+	•	Detect the MAC address
+	•	Rename the device (e.g., jetson14)
+	•	Regenerate SSH host keys
+	•	Log the name to /var/log/hostname-configured
+
+🔹 Method B: Manual (for admin/debugging)
+```bash
+# View MAC address
+cat /sys/class/net/eth0/address
+
+# Set a new hostname (e.g., jetson22)
+sudo hostnamectl set-hostname jetson22
+
+# Update /etc/hosts
+sudo sed -i 's/127.0.1.1.*/127.0.1.1\tjetson22/' /etc/hosts
+
+# Regenerate SSH host keys
+sudo rm /etc/ssh/ssh_host_*
+sudo dpkg-reconfigure openssh-server
+```
+Verify Configuration
+```bash
+# Check hostname
+hostname
+
+# Check root filesystem is on SSD
+df -h /
+
+# Check IP and MAC
+ip addr show eth0
+
+# Check NFS mount
+df -h | grep /mnt/shared
+
+# Check Docker container alias
+type lab
+
+# Launch container
+lab   # should start PyTorch container with shared volume
+```
+Notify Instructor or Log Status
+```bash
+echo "jetson22 OK" | curl -X POST -d @- http://192.168.100.1:5000/log
+```
+Or confirm visually via Cockpit or dashboard.
 
 # 🚀 Jetson Lab Automation: Central Gateway & Scalable Provisioning
 
@@ -98,6 +340,19 @@ chmod +x ~/.vnc/xstartup
 echo "✅ Gateway setup complete!"
 echo "🌐 Cockpit: https://$GATEWAY_IP:$COCKPIT_PORT"
 ```
+Make executable and run it:
+```bash
+chmod +x jetson_gateway_setup.
+sudo ./jetson_gateway_setup.sh
+```
+Jetsons connected to the switch should get DHCP IPs in the 192.168.100.x range.
+Run on Jetson to mount shared models:
+```bash
+sudo apt install nfs-common
+sudo mkdir -p /mnt/shared
+sudo mount $GATEWAY_IP:/srv/jetson-share /mnt/shared
+```
+SSH and VNC into Jetsons via the gateway. Access Cockpit at https://192.168.100.1:9090 from your browser.
 
 ---
 
@@ -110,6 +365,11 @@ Each Jetson automatically:
 	•	Enables Wake-on-LAN
 
 Save and run this as `jetson_lab_client_setup.sh`:
+Replace the value of GATEWAY_SSH_PUBKEY with your actual gateway public SSH key (~/.ssh/id_rsa.pub). Save the file as jetson_lab_client_setup.sh on each Jetson. Make executable and run:
+```bash
+chmod +x jetson_lab_client_setup.sh
+./jetson_lab_client_setup.sh
+```
 
 ```bash
 #!/bin/bash
@@ -163,7 +423,58 @@ sudo ethtool -s "$IFACE" wol g
 
 echo "✅ Jetson setup complete. Please reboot."
 ```
+To automate on first boot, you can:
+	•	Preload this script onto SD/SSD image
+	•	Use rc.local or systemd service to run it once
+	•	Or trigger it remotely using sshpass:
+```bash
+sshpass -p student123 ssh student@jetson01.local 'bash -s' < jetson_lab_client_setup.sh
+```
 
+## Ansible-based solution
+Ansible-based solution to push and run the Jetson setup script across all devices from your Ubuntu gateway. This enables parallel provisioning, SSH-based control, and repeatability.
+
+Ansible Project Structure:
+jetson-lab-ansible/
+├── inventory.ini
+├── playbook.yml
+├── reset.yml
+├── status.yml
+├── monitor.yml
+├── files/
+│   └── jetson_lab_client_setup.sh
+│   └── student_env_cleanup.sh
+├── roles/
+│   ├── jetson_setup/
+│   │   └── tasks/main.yml
+│   ├── status_report/
+│   │   └── tasks/main.yml
+│   ├── grafana_monitor/
+│   │   └── tasks/main.yml
+│   └── reset_env/
+│       └── tasks/main.yml
+
+Install Ansible on your Ubuntu gateway and copy your private/public SSH key pair to the Jetson devices. Run the playbook:
+```bash
+sudo apt install ansible
+ssh-copy-id student@jetson01.local
+cd jetson-lab-ansible
+ansible-playbook -i inventory.ini playbook.yml
+```
+
+status.yml: Gather Jetson Status, run it:
+```bash
+ansible-playbook -i inventory.ini status.yml
+```
+
+monitor.yml: Setup Grafana Monitoring on Gateway, This sets up: node_exporter on Jetsons, prometheus and grafana on the gateway.
+- roles/grafana_monitor/tasks/main.yml (gateway-only)
+- Jetson-side: Install node_exporter (extend jetson_setup role)
+reset.yml: Auto-reset Student Lab Environment
+```bash
+ansible-playbook -i inventory.ini monitor.yml
+ansible-playbook -i inventory.ini reset.yml
+```
 # CPU and Memory
 
 Jupyter notebook sample code (also available on Google Colab)

@@ -1,0 +1,23 @@
+- name: Collect status from all Jetsons
+  hosts: jetsons
+  gather_facts: yes
+  tasks:
+    - name: Get uptime
+      command: uptime -p
+      register: uptime_out
+
+    - name: Get free disk space
+      command: df -h /
+      register: disk_out
+
+    - name: Get IP address
+      command: hostname -I | awk '{print $1}'
+      register: ip_out
+
+    - name: Show status
+      debug:
+        msg: |
+          [{{ inventory_hostname }}]
+          IP: {{ ip_out.stdout }}
+          Uptime: {{ uptime_out.stdout }}
+          Disk: {{ disk_out.stdout_lines[1] }}

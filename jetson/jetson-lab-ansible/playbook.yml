@@ -1,0 +1,5 @@
+- name: Provision Jetson lab devices
+  hosts: jetsons
+  become: yes
+  roles:
+    - jetson_setup
