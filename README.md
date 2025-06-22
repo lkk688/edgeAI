@@ -1,41 +1,88 @@
 # edgeAI
 
 # 🚀 Jetson Orin Nano Setup Guide with SSD
+## Jetson Orin Nano Super Developer Kit
+The [Jetson Orin Nano Super Developer Kit] (https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](./docs/figures/jetson-nano-dev-kit.png)
 
-This guide walks you through preparing a **Jetson Orin Nano Super Dev Kit** with:
+| Mark. | Name                                  | Note                     |
+|-------|---------------------------------------|--------------------------|
+| 1     | microSD card slot                     |                          |
+| 2     | 40-pin Expansion Header               |                          |
+| 3     | Power Indicator LED                   |                          |
+| 4     | USB-C port                            | For data only            |
+| 5     | Gigabit Ethernet Port                 |                          |
+| 6     | USB 3.2 Type-A ports (x4)             | 10Gbps                   |
+| 7     | DisplayPort Output Connector          |                          |
+| 8     | DC Power Jack                         | 5.5mm x 2.5mm            |
+| 9     | MIPI CSI Camera Connectors (x2)       | 22pin, 0.5mm pitch       |
+| 10    | M.2 Slot (Key-M, Type 2280)           | PCIe 3.0 x4              |
+| 11    | M.2 Slot (Key-M, Type 2230)           | PCIe 3.0 x2              |
+| 12    | M.2 Slot (Key-E, Type 2230) (populated) |                          |
 
+The Jetson Orin Nano 8GB Module has NVIDIA Ampere architecture with 1024 CUDA cores and 32 tensor cores, delivers up to 67 INT8 TOPS of AI performance, 8GB 128-bit LPDDR5 (102GB/s memory bandwidth), and 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 (1.7GHz CPU Frequency). The power range is 7W–25W. You can flash the base L4T BSP on any of these storage medium using SDK Manager: SD card slot (1), external NVMe (2280-size on 10, 2230-size on 11), and USB drive on any USB port (4 or 6). 
+
+Key components of the Carrier Board include: 
+ - 2x MIPI CSI-2 camera
+connectors (0.5mm pitch 22-pin flex connectors to connect CSI camera modules)
+   - 15-pin connector like Raspberry Pi Camera Module v2, a 15-pin to 22-pin conversion cable is required.
+   - supports the following: CAM0: CSI 1 x2 lane, CAM1: CSI 1 x2 lane or 1 x4 lane
+ - 2x M.2 Key M, M.2 Key E 
+   - M.2 Key M slot with x4 PCIe Gen3
+   - M.2 Key M slot with x2 PCIe Gen3
+   - M.2 Key E slot
+ - 4x USB 3.2 Gen2 Type-A
+ - USB Type-C for UFP (supports Host, Device and USB Recovery mode), can NOT be used to output display signal. 
+   - *In host mode*: You can use this port as a downstream-facing port (DFP), just like the 4 Type-A ports.
+   - *Device mode*: You can connect your Jetson to a PC and expose three logical USB device: USB Mass Storage Device (mount L4T-README drive), USB Serial, USB Ethernet (RNDIS) device to form a local area network in between your PC and Jetson (your Jetson being 192.168.55.1)
+   - *USB Recovery mode*: use the PC to flash Jetson
+ - Gigabit Ethernet
+ - DisplayPort (8): 1x DP 1.2 (+MST) connector
+ - 40-pin expansion header (UART, SPI, I2S, I2C, GPIO), 12-pin button header, and 4-pin fan header
+ - DC power jack for 19V power input
+ - Mechanical: 103mm x 90.5mm x 34.77mm
+
+The ![40-pin Expansion Header](docs/figures/jetsonnano40pin.png)
+
+> Reference: 
+ - [Jetson Orin Nano Developer Kit User Guide - Hardware Specs](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
+ - [Jetson datasheet](https://nvdam.widen.net/s/zkfqjmtds2/jetson-orin-datasheet-nano-developer-kit-3575392-r2).
+ - [Jetson Orin Nano Developer Kit User Guide - Software Setup](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/software_setup.html) 
+ - [Jetson Orin Nano Developer Kit Getting Started Guide](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit)
+ - [Jetson Orin Nano Developer Kit Carrier Board Specification](https://developer.download.nvidia.com/assets/embedded/secure/jetson/orin_nano/docs/Jetson-Orin-Nano-DevKit-Carrier-Board-Specification_SP-11324-001_v1.3.pdf?__token__=exp=1750620110~hmac=a78678cf11fa4e52be5ec5dc4e403f4575431a0cf9a56fffe709f85327f8c267&t=eyJscyI6ImdzZW8iLCJsc2QiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyJ9)
+ - [Jetson Orin Nano Initial Setup using SDK Manager](https://www.jetson-ai-lab.com/initial_setup_jon_sdkm.html)
+
+## Setup Guide
+This guide walks you through preparing a **Jetson Orin Nano Super Dev Kit** with SSD. If NVMe SSD is used for the OS and data, we need to use SDK Manager to flash the latest JetPack on the NVMe SSD. If you are flashing OS to the SD card, you may choose a different [guide](https://www.jetson-ai-lab.com/initial_setup_jon.html), that does not need a host X86 PC. 
+
+
+The host x86 PC running Ubuntu 22.04 or Ubuntu 20.04 is required for NVIDIA SDK Manager. We also have the following processes:
+- Install NVIDIA SDK Manager on host PC: [Documentation](https://docs.nvidia.com/sdk-manager/), [Download SDK Manager](https://docs.nvidia.com/sdk-manager/download-run-sdkm/index.html)
 - M.2 NVMe SSD installation
 - JetPack OS installation **on SSD**
 - System boot
 - Auto-run of lab provisioning script
 
----
-
-## 🧰 Prerequisites
+🧰 Prerequisites
 
 | Item | Notes |
 |------|-------|
 | ✅ Jetson Orin Nano Super Dev Kit | Includes power supply, heatsink, and case |
-| ✅ M.2 NVMe SSD (e.g., Crucial P310, Kingston NV2) | 128GB–1TB recommended |
+| ✅ M.2 NVMe SSD (e.g., Crucial P310) | 128GB–1TB recommended |
 | ✅ Linux host with internet access | Ubuntu 18.04–22.04 for flashing JetPack |
 | ✅ USB-C cable | For flashing from host |
 | ✅ Keyboard + HDMI monitor (optional) | For first boot (can be headless later) |
 | ✅ JetPack SDK Manager (on host PC) | [Install from NVIDIA](https://developer.nvidia.com/nvidia-sdk-manager) |
 | ✅ `jetson_lab_client_setup.sh` | Your automated post-flash setup script |
 
----
-
-## 🔧 Step 1: Install the SSD
+### 🔧 Step 1: Install the SSD
 
 1. Unbox the Jetson and place it on an anti-static surface.
 2. Flip the board to expose the M.2 2280 slot on the **underside**.
-3. Insert the **NVMe SSD** diagonally into the M.2 socket.
+3. Insert the **NVMe SSD** into the M.2 socket.
 4. Secure with the included screw and standoff.
 5. (Optional but recommended) Install a **low-profile SSD heatsink** for thermal control.
 
----
-
-## 💻 Step 2: Flash JetPack to SSD (Not SD Card)
+### 💻 Step 2: Flash JetPack to SSD (Not SD Card)
 
 Jetson Orin Nano supports **native boot from SSD**.
 
@@ -46,32 +93,33 @@ Jetson Orin Nano supports **native boot from SSD**.
    sdkmanager
    ```
 
-2. Login with your NVIDIA developer account.
+2. Login with your NVIDIA developer account. Connect your Jetson developer kit to your Ubuntu PC (via the USB-C port) and power it on in Forced Recovery mode.
+   - *Forced Recovery mode*: While shorting pin 9 and pin 10 of J14 header (labeled with FC REC and GND) located below the Jetson module using a jumper pin, insert the DC power supply plug into the DC jack of the carrier board to power it on.
+   - You can use `lsusb` command in the host machine to check the Forced Recovery mode of jetson. Look for a device from NVIDIA, such as: "Bus 001 Device 005: ID 0955:7f21 NVIDIA Corp." If you see the USB ID "0955:7f21", your Jetson is in Forced Recovery Mode.
 
-3. Select:
-   - **Jetson Orin Nano**
-   - Latest **JetPack version** (e.g., JetPack 6.x)
+3. In the popup window, select " Jetson Orin Nano [8GB developer kit version] " and hit " OK ":
+   - Uncheck " Host Machine "
+   - Target Hardware is selected and show "Jetson Orin Nano modules"
+   - SDK Version: Latest **JetPack version** (e.g., JetPack 6.x)
+   - Click " Continue " button to proceed to the next step.
 
-4. Under **Target Operating System**:
-   - Choose **NVMe** as rootfs install target (important!).
+4. Select Software Components to Install. Leave the only " Jetson Linux " component checked, and uncheck everything. Click " Continue " button to proceed to the next step. It will prompt for the sudo command password.
 
-5. Connect Jetson to host PC via **USB-C** and put into **Force Recovery Mode**:
-   - Hold **RECOVERY** button
-   - Press and release **RESET** button
-   - Then release RECOVERY
-
-6. SDK Manager will detect the device and start flashing:
-   - Base image → SSD
-   - BSP + CUDA + developer tools
+5. SDK Manager will start downloading the "BSP" package and "RootFS" package. Once downloads are complete, it will untar the package and start generating the images to flash in the background. Once images are ready, SDK it will open the prompt for flashing.
+   - On the flashing prompt, select " Runtime " for "OEM Configuration".
+   - On the flashing prompt, select " NVMe "
+   - Click "Flash" and the prompt popup will change like this.
+   - Wait Flash successfully completes.
 
 ---
 
-## 🧪 Step 3: First Boot on SSD
+### 🧪 Step 3: First Boot on SSD
 
-1. Connect:
-   - Monitor via HDMI
-   - Keyboard/mouse via USB
-   - Ethernet to lab network or gateway
+1. Connect Jetson to the Monitor:
+   - If still plugged, *remove the jumper* from header (that was used to put it in Forced Recovery mode)
+   - Connect the DisplayPort cable or adapter and USB keyboard and mouse to Jetson Orin Nano Developer Kit, or hook up the USB to TTL Serial cable.
+   - *Unplug the power supply and put back in to power cycle*.
+   - Jetson should now boot into the Jetson Linux (BSP) of your selected JetPack version from the storage of your choice.
 
 2. Power up Jetson — it will boot from SSD automatically.
 
