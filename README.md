@@ -95,7 +95,7 @@ Jetson Orin Nano supports **native boot from SSD**.
 
 2. Login with your NVIDIA developer account. Connect your Jetson developer kit to your Ubuntu PC (via the USB-C port) and power it on in Forced Recovery mode.
    - *Forced Recovery mode*: While shorting pin 9 and pin 10 of J14 header (labeled with FC REC and GND) located below the Jetson module using a jumper pin, insert the DC power supply plug into the DC jack of the carrier board to power it on.
-   - You can use `lsusb` command in the host machine to check the Forced Recovery mode of jetson. Look for a device from NVIDIA, such as: "Bus 001 Device 005: ID 0955:7f21 NVIDIA Corp." If you see the USB ID "0955:7f21", your Jetson is in Forced Recovery Mode.
+   - You can use `lsusb` command in the host machine to check the jetson device.
 
 3. In the popup window, select " Jetson Orin Nano [8GB developer kit version] " and hit " OK ":
    - Uncheck " Host Machine "
@@ -127,10 +127,68 @@ Jetson Orin Nano supports **native boot from SSD**.
 
 4. Verify SSD is rootfs:
    ```bash
+   
    df -h /
    # Output should show something like: /dev/nvme0n1p1
    ```
+5. Check JetPack version
+   ```bash
+   sjsujetson@sjsujetson-01:~$ dpkg-query --show nvidia-l4t-core
+   nvidia-l4t-core	36.4.3-20250107174145
+   sjsujetson@sjsujetson-01:~$ dpkg -l | grep nvidia*
+   ```
+It shows L4T 36.4.3, which corresponds to JetPack 6.2 [Official mapping reference](https://developer.nvidia.com/embedded/jetpack-archive). JetPack 6.2 is the latest production release of JetPack 6. This release includes Jetson Linux 36.4.3, featuring the Linux Kernel 5.15 and an Ubuntu 22.04-based root file system. The Jetson AI stack packaged with JetPack 6.2 includes CUDA 12.6, TensorRT 10.3, cuDNN 9.3, VPI 3.2, DLA 3.1, and DLFW 24.0.
 
+6. Install CUDA nvcc
+Even though JetPack 6.2 (L4T 36.4.3) includes CUDA 12.6, the nvcc command is not installed by default on Jetson devices starting from JetPack 6.x. CUDA is split into host and device components. On Jetson, only the runtime components of CUDA are installed by default (for deploying and running models). The full CUDA toolkit (including nvcc, compiler, samples, etc.) is now optional.
+To get nvcc and other development tools, install the CUDA Toolkit manually:
+```bash
+sjsujetson@sjsujetson-01:~$ sudo apt update
+sjsujetson@sjsujetson-01:~$ sudo apt install cuda-toolkit-12-6
+sjsujetson@sjsujetson-01:~$ nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2024 NVIDIA Corporation
+Built on Wed_Aug_14_10:14:07_PDT_2024
+Cuda compilation tools, release 12.6, V12.6.68
+Build cuda_12.6.r12.6/compiler.34714021_0
+```
+Add CUDA 12.6 to your path (optional, already set automatically) or add these lines to ~/.bashrc
+```bash
+export PATH=/usr/local/cuda-12.6/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH
+```
+
+```bash
+#sudo apt install cmake #sudo apt purge cmake
+wget https://github.com/Kitware/CMake/releases/download/v3.28.3/cmake-3.28.3-linux-aarch64.tar.gz
+tar -xf cmake-3.28.3-linux-aarch64.tar.gz
+sjsujetson@sjsujetson-01:~/Developer$ export PATH=$HOME/Developer/cmake-3.28.3-linux-aarch64/bin:$PATH
+sjsujetson@sjsujetson-01:~/Developer$ cmake --version
+cmake version 3.28.3
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+```
+
+```bash
+git clone https://github.com/NVIDIA/cuda-samples.git
+cd cuda-samples
+#Disable All target_compile_features(...) for CUDA
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ find ../Samples -name CMakeLists.txt -exec sed -i '/target_compile_features.*cuda/d' {} +
+#Skip Building nvJPEG Samples
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/4_CUDA_Libraries/nvJPEG ../Samples/4_CUDA_Libraries/nvJPEG.skip
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/4_CUDA_Libraries/nvJPEG_encoder ../Samples/4_CUDA_Libraries/nvJPEG_encoder.skip
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(nvJPEG)|# add_subdirectory(nvJPEG)|' ../Samples/4_CUDA_Libraries/CMakeLists.txt
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(nvJPEG_encoder)|# add_subdirectory(nvJPEG_encoder)|' ../Samples/4_CUDA_Libraries/CMakeLists.txt
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ cmake ../Samples/
+-- Configuring done (14.4s)
+-- Generating done (0.7s)
+-- Build files have been written to: /home/sjsujetson/Developer/cuda-samples/build
+```
+
+```bash
+sudo apt update
+sudo apt install nano
+```
 ---
 
 ## 📁 Step 4: Copy and Run Setup Script
