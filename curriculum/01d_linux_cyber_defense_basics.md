@@ -1,3 +1,0 @@
-# Linux Cyber Defense Basics
-
-Content goes here...

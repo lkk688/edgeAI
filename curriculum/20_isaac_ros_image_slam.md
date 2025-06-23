@@ -1,3 +1,0 @@
-# Isaac ROS Image + SLAM
-
-Content goes here...

@@ -1,3 +1,0 @@
-# Simulated Attacks & Detection
-
-Content goes here...

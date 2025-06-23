@@ -1,3 +1,0 @@
-# Packet Sniffing & Monitoring
-
-Content goes here...

@@ -1,3 +1,0 @@
-# Motor Control & Navigation
-
-Content goes here...

@@ -1,3 +1,0 @@
-# RAG Applications
-
-Content goes here...

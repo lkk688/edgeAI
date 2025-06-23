@@ -1,3 +1,0 @@
-# ROS 2 + GPIO/Sensors
-
-Content goes here...

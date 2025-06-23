@@ -1,3 +1,0 @@
-# Linux & Jetson Setup
-
-Content goes here...

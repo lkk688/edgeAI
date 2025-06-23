@@ -1,3 +1,0 @@
-# CNN & Image Processing
-
-Content goes here...

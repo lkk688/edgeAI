@@ -1,3 +1,0 @@
-# LLM-Powered Robot Assistant
-
-Content goes here...

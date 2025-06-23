@@ -1,3 +1,0 @@
-# GPIO and Sensors
-
-Content goes here...

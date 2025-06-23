@@ -1,3 +1,0 @@
-# Isaac ROS Open Source Demos
-
-Content goes here...

@@ -1,3 +1,0 @@
-# Final Hackathon Challenges
-
-Content goes here...

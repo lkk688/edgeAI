@@ -1,3 +1,0 @@
-# Introduction to ROS 2
-
-Content goes here...
