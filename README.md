@@ -130,8 +130,30 @@ Jetson Orin Nano supports **native boot from SSD**.
    
    df -h /
    # Output should show something like: /dev/nvme0n1p1
+   #Identify your NVMe SSD
+   sjsujetson@sjsujetson-01:~$ lsblk
+   sjsujetson@sjsujetson-01:~$ sudo nvme list
+   sjsujetson@sjsujetson-01:~$ sudo nvme smart-log /dev/nvme0
    ```
-5. Check JetPack version
+5. Check SSD speed:
+```bash
+#Sequential write:
+sjsujetson@sjsujetson-01:~$ sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
+dd if=/dev/zero of=testfile bs=1G count=1 oflag=direct
+3
+1+0 records in
+1+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.542918 s, 2.0 GB/s
+#Sequential read:
+sjsujetson@sjsujetson-01:~$ sync; echo 3 | sudo tee /proc/sys/vm/drop_caches
+dd if=testfile of=/dev/null bs=1G iflag=direct
+3
+1+0 records in
+1+0 records out
+1073741824 bytes (1.1 GB, 1.0 GiB) copied, 0.337109 s, 3.2 GB/s
+```
+
+6. Check JetPack version
    ```bash
    sjsujetson@sjsujetson-01:~$ dpkg-query --show nvidia-l4t-core
    nvidia-l4t-core	36.4.3-20250107174145
@@ -139,8 +161,24 @@ Jetson Orin Nano supports **native boot from SSD**.
    ```
 It shows L4T 36.4.3, which corresponds to JetPack 6.2 [Official mapping reference](https://developer.nvidia.com/embedded/jetpack-archive). JetPack 6.2 is the latest production release of JetPack 6. This release includes Jetson Linux 36.4.3, featuring the Linux Kernel 5.15 and an Ubuntu 22.04-based root file system. The Jetson AI stack packaged with JetPack 6.2 includes CUDA 12.6, TensorRT 10.3, cuDNN 9.3, VPI 3.2, DLA 3.1, and DLFW 24.0.
 
-6. Install CUDA nvcc
-Even though JetPack 6.2 (L4T 36.4.3) includes CUDA 12.6, the nvcc command is not installed by default on Jetson devices starting from JetPack 6.x. CUDA is split into host and device components. On Jetson, only the runtime components of CUDA are installed by default (for deploying and running models). The full CUDA toolkit (including nvcc, compiler, samples, etc.) is now optional.
+7. Connect to Wifi:
+```bash
+sudo nmcli device wifi connect ${WIFI_SSID} password ${WIFI_PASSWORD}
+#check what IP address your Jetson got assigned
+ip addr
+```
+
+8. Install common packages
+```bash
+sudo apt update
+sudo apt install nano
+sudo apt install python3-pip
+pip3 install --upgrade pip
+sudo apt install htop iotop iftop nvtop sysstat
+```
+
+## 📁 Step 4: CUDA Installation and Samples
+**Install CUDA nvcc:** Even though JetPack 6.2 (L4T 36.4.3) includes CUDA 12.6, the nvcc command is not installed by default on Jetson devices starting from JetPack 6.x. CUDA is split into host and device components. On Jetson, only the runtime components of CUDA are installed by default (for deploying and running models). The full CUDA toolkit (including nvcc, compiler, samples, etc.) is now optional.
 To get nvcc and other development tools, install the CUDA Toolkit manually:
 ```bash
 sjsujetson@sjsujetson-01:~$ sudo apt update
@@ -179,20 +217,162 @@ sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/4_CUDA_Li
 sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/4_CUDA_Libraries/nvJPEG_encoder ../Samples/4_CUDA_Libraries/nvJPEG_encoder.skip
 sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(nvJPEG)|# add_subdirectory(nvJPEG)|' ../Samples/4_CUDA_Libraries/CMakeLists.txt
 sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(nvJPEG_encoder)|# add_subdirectory(nvJPEG_encoder)|' ../Samples/4_CUDA_Libraries/CMakeLists.txt
-sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ cmake ../Samples/
+#skip fp16ScalarProduct sample (__hfma2 is not supported on Jetson)
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/0_Introduction/fp16ScalarProduct/ ../Samples/0_Introduction/fp16ScalarProduct.skip
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(fp16ScalarProduct)|# add_subdirectory(fp16ScalarProduct)|' ../Samples/0_Introduction/CMakeLists.txt
+#
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/3_CUDA_Features/graphConditionalNodes/ ../Samples/3_CUDA_Features/graphConditionalNodes.skip
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(graphConditionalNodes)|# add_subdirectory(graphConditionalNodes)|' ../Samples/3_CUDA_Features/CMakeLists.txt
+#
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ mv ../Samples/4_CUDA_Libraries/watershedSegmentationNPP/ ../Samples/4_CUDA_Libraries/watershedSegmentationNPP.skip
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ sed -i 's|add_subdirectory(watershedSegmentationNPP)|# add_subdirectory(watershedSegmentationNPP)|' ../Samples/4_CUDA_Libraries/CMakeLists.txt
+#Set Jetson Architecture, Removes any existing set(CMAKE_CUDA_ARCHITECTURES ...), Appends set(CMAKE_CUDA_ARCHITECTURES 72 87) (Jetson Xavier NX and Orin) to the bottom of each CMakeLists.txt 
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/$ find Samples -type f -name "CMakeLists.txt" -exec sed -i \
+  -e '/set(CMAKE_CUDA_ARCHITECTURES/d' \
+  -e '$a\set(CMAKE_CUDA_ARCHITECTURES 72 87)' {} +
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ cmake ../Samples -DCMAKE_CUDA_ARCHITECTURES="72;87"
 -- Configuring done (14.4s)
 -- Generating done (0.7s)
 -- Build files have been written to: /home/sjsujetson/Developer/cuda-samples/build
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ make -j$(nproc)
+#Run samples
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./0_Introduction/vectorAdd/vectorAdd
+[Vector addition of 50000 elements]
+Copy input data from the host memory to the CUDA device
+CUDA kernel launch with 196 blocks of 256 threads
+Copy output data from the CUDA device to the host memory
+Test PASSED
+Done
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./1_Utilities/deviceQuery/deviceQuery
+...
+Result = PASS
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./0_Introduction/matrixMul/matrixMul
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./0_Introduction/asyncAPI/asyncAPI #Demonstrates overlapping data transfers and kernel execution using CUDA streams. 
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./0_Introduction/UnifiedMemoryStreams/UnifiedMemoryStreams #Demonstrates using Unified Memory with async memory prefetching
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./2_Concepts_and_Techniques/convolutionTexture/convolutionTexture #Demonstrates using CUDA’s texture memory to do efficient image convolution.
+sjsujetson@sjsujetson-01:~/Developer/cuda-samples/build$ ./2_Concepts_and_Techniques/histogram/histogram #Computes histograms with/without shared memory. 
 ```
 
-```bash
-sudo apt update
-sudo apt install nano
-```
 ---
 
-## 📁 Step 4: Copy and Run Setup Script
+## 📁 Step 5: Docker Setup
+Docker is already installed in Jetpack. Check the docker version and nvidia runtime:
+```bash
+sjsujetson@sjsujetson-01:~$ docker --version
+Docker version 28.2.2, build e6534b4
+sjsujetson@sjsujetson-01:~$ sudo docker info | grep -i runtime
+ Runtimes: io.containerd.runc.v2 nvidia runc
+ Default Runtime: runc
+#test container
+sjsujetson@sjsujetson-01:~$ sudo docker run --rm --runtime=nvidia --network=host   -v /usr/bin/tegrastats:/usr/bin/tegrastats   nvcr.io/nvidia/l4t-base:r36.2.0   bash -c "echo CUDA_VISIBLE_DEVICES=\$CUDA_VISIBLE_DEVICES && tegrastats"
+```
+Jetson often works best when Docker containers share the host network directly, `--network=host` bypasses Docker’s internal bridge networking and avoids the iptables dependency.
 
+Enable docker without sudo:
+```bash
+sudo usermod -aG docker $USER
+sudo reboot
+#After logging back in, run:
+sjsujetson@sjsujetson-01:~$ docker run --network=host hello-world #t works without sudo
+```
+
+NVIDIA now recommends using the standard pytorch container with the iGPU tag for Jetson devices on JetPack 6.x. This image includes CUDA, cuDNN, TensorRT, and PyTorch — no separate l4t-pytorch needed.
+```bash
+sjsujetson@sjsujetson-01:~$ docker pull nvcr.io/nvidia/pytorch:24.12-py3-igpu
+sjsujetson@sjsujetson-01:~$ docker run --rm -it --runtime=nvidia --network=host nvcr.io/nvidia/pytorch:24.12-py3-igpu
+root@sjsujetson-01:/workspace# python
+Python 3.12.3 (main, Nov  6 2024, 18:32:19) [GCC 13.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import torch
+>>> print(torch.__version__, torch.cuda.is_available())
+2.6.0a0+df5bbc09d1.nv24.12 True
+```
+
+Run the container with GPU, port, and storage mounts:
+```bash
+docker run -it --rm \
+  --runtime nvidia \
+  --network host \
+  -v ~/Developer:/workspace \
+  --name jetson-pytorch \
+  nvcr.io/nvidia/pytorch:24.12-py3-igpu
+root@sjsujetson-01:/workspace# apt install -y python3-pip
+root@sjsujetson-01:/workspace# pip install jupyterlab
+root@sjsujetson-01:/workspace# jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+#On your Jetson browser (or remote PC via IP):
+```
+
+In another terminal (while container is running), or click "control+P+Q" to exit the container without stopping it. Check the container status and commit the new changes, run:
+```bash
+sjsujetson@sjsujetson-01:~$ docker ps
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED          STATUS          PORTS     NAMES
+5247e031b6af   nvcr.io/nvidia/pytorch:24.12-py3-igpu   "/opt/nvidia/nvidia_…"   39 minutes ago   Up 39 minutes             jetson-pytorch
+sjsujetson@sjsujetson-01:~$ docker commit jetson-pytorch jetson-pytorch-v1
+sha256:da28af1b9eede5a3ef5ff7a1a9473fef1cfa2cbdd749aec411b43010837d6e60
+sjsujetson@sjsujetson-01:~$ docker images
+REPOSITORY                TAG              IMAGE ID       CREATED         SIZE
+jetson-pytorch-v1         latest           da28af1b9eed   4 seconds ago   9.71GB
+```
+Then next time you can run:
+```bash
+docker run -it --rm \
+  --runtime nvidia \
+  --network host \
+  -v ~/Developer:/workspace \
+  jetson-pytorch-v1
+```
+Stop a running container, if it’s running in the foreground, press: "Ctrl+C". If it’s running in the background (detached mode), find the container name or ID, then stop it:
+```bash
+docker ps
+#docker stop <container_id_or_name>
+sjsujetson@sjsujetson-01:~$ docker ps
+CONTAINER ID   IMAGE                                   COMMAND                  CREATED          STATUS          PORTS     NAMES
+5247e031b6af   nvcr.io/nvidia/pytorch:24.12-py3-igpu   "/opt/nvidia/nvidia_…"   43 minutes ago   Up 43 minutes             jetson-pytorch
+sjsujetson@sjsujetson-01:~$ docker stop jetson-pytorch
+```
+
+## Step 6: Jetson Monitoring
+Check CPU, GPU, memory, and power usage (Jetson-specific)
+```bash
+sjsujetson@sjsujetson-01:~$ sudo tegrastats
+#View GPU usage with tegrastats summary
+watch -n 1 sudo tegrastats
+```
+
+htop – CPU & memory usage monitor (like top but better)
+```bash
+#Show CPU load and memory usage
+sudo apt install htop
+htop
+```
+
+Shows per-disk read/write rates (not per-process)
+```bash
+sudo apt install sysstat
+iostat -xz 1
+```
+
+Use btop or bpytop for modern terminal dashboard
+```bash
+sudo apt install btop
+btop
+```
+
+
+Power Management:
+```bash
+#Check current power mode
+sjsujetson@sjsujetson-01:~$ sudo nvpmodel -q
+NV Power Mode: MAXN_SUPER
+2
+#To list available modes:
+sudo nvpmodel -q --verbose
+#Set power mode: sudo nvpmodel -m 1
+#check temperature
+watch -n 1 'cat /sys/class/thermal/thermal_zone*/temp'
+```
+
+## 📁 Step6: All-in-one script
 1. From your gateway or a USB drive, copy your lab setup script:
    ```bash
    scp jetson_lab_client_setup.sh student@<jetson-ip>:~/setup.sh
@@ -213,7 +393,7 @@ This script:
 
 ---
 
-## 🔄 Step 5: Optional Auto-Run Script on First Boot
+## 🔄 Optional Auto-Run Script on First Boot
 
 To automate script execution after flash:
 
@@ -581,6 +761,7 @@ reset.yml: Auto-reset Student Lab Environment
 ansible-playbook -i inventory.ini monitor.yml
 ansible-playbook -i inventory.ini reset.yml
 ```
+
 # CPU and Memory
 
 Jupyter notebook sample code (also available on Google Colab)
