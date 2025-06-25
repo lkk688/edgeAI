@@ -331,6 +331,12 @@ CONTAINER ID   IMAGE                                   COMMAND                  
 sjsujetson@sjsujetson-01:~$ docker stop jetson-pytorch
 ```
 
+If you want to delete a specific image:
+```bash 
+docker image ls
+docker rmi jetson-pytorch #You can append -f to force removal
+```
+
 ## Step 6: Jetson Monitoring
 Check CPU, GPU, memory, and power usage (Jetson-specific)
 ```bash
