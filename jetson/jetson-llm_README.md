@@ -214,3 +214,47 @@ docker run --rm -it --runtime nvidia \
   jetson-llama-cpp \
   ./bin/server -m /app/models/mistral.gguf --host 0.0.0.0 --port 8080
 ```
+
+# llama cpp Python
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python) is a Python library that provides bindings for llama.cpp. It provides 
+- Low-level access to C API via ctypes interface.
+- High-level Python API for text completion
+    - OpenAI-like API
+    - LangChain compatibility
+    - LlamaIndex compatibility
+- OpenAI compatible web server
+    - Local Copilot replacement
+    - Function Calling support
+    - Vision API support
+    - Multiple Models
+
+All llama.cpp cmake build options can be set via the CMAKE_ARGS environment variable or via the --config-settings / -C cli flag during installation. The following command enables general CUDA backend: 
+```bash
+root@sjsujetson-01:/workspace# CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
+```
+
+Run the test llama cpp python code:
+```bash
+root@sjsujetson-01:/workspace# python llama_cpp_pythontest.py 
+....
+Available chat formats from metadata: chat_template.default
+Guessed chat format: mistral-instruct
+llama_perf_context_print:        load time =    1874.08 ms
+llama_perf_context_print: prompt eval time =    1873.02 ms /    11 tokens (  170.27 ms per token,     5.87 tokens per second)
+llama_perf_context_print:        eval time =   25315.11 ms /   127 runs   (  199.33 ms per token,     5.02 tokens per second)
+llama_perf_context_print:       total time =   27284.54 ms /   138 tokens
+🕒 Inference time: 27.29 seconds
+🔢 Tokens generated: 128
+⚡ Tokens/sec: 4.69
+```
+
+Another option (LLAMA_CUBLAS suggested by ChatGPT is outdated):
+```bash
+root@sjsujetson-01:/workspace# pip uninstall llama_cpp_python
+root@sjsujetson-01:/workspace# CMAKE_ARGS="-DGGML_CUDA=on" FORCE_CMAKE=1 pip install --no-binary llama-cpp-python llama-cpp-python
+root@sjsujetson-01:/workspace# python llama_cpp_pythontest.py
+🕒 Inference time: 38.02 seconds
+🔢 Tokens generated: 128
+⚡ Tokens/sec: 3.37
+```
+
