@@ -337,6 +337,11 @@ docker image ls
 docker rmi jetson-pytorch #You can append -f to force removal
 ```
 
+ROS Container:
+```bash
+sudo docker pull nvcr.io/nvidia/isaac/ros:aarch64-ros2_humble_1c5650affa65caa30889ccf92f639896
+```
+
 ## Step 6: Jetson Monitoring
 Check CPU, GPU, memory, and power usage (Jetson-specific)
 ```bash
