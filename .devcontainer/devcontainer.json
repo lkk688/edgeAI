@@ -6,7 +6,7 @@
     "--runtime=nvidia",
     "--network=host",
     "-v", "${localWorkspaceFolder}:/workspace",
-    "-v", "~/Developer/models:/models"
+    "-v", "/home/sjsujetson/Developer/models:/models"
   ],
   "settings": {
     "python.defaultInterpreterPath": "/usr/bin/python3",
