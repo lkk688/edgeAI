@@ -1,0 +1,20 @@
+{
+  "name": "Jetson LLM Dev",
+  "image": "jetson-llm-v1",  // Your prebuilt Docker image name
+  "workspaceFolder": "/workspace",
+  "runArgs": [
+    "--runtime=nvidia",
+    "--network=host",
+    "-v", "${localWorkspaceFolder}:/workspace",
+    "-v", "/home/sjsujetson/Developer/models:/models"
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "/usr/bin/python3",
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  "extensions": [
+    "ms-python.python",
+    "ms-toolsai.jupyter",
+    "ms-vscode.remote-containers"
+  ]
+}
