@@ -42,3 +42,14 @@ student@sjsujetson-01:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edg
 ```bash
 ssh-copy-id student@sjsujetson-01.local
 ```
+
+## NFS Shared folder
+```bash
+sudo apt update
+sudo apt install nfs-common
+sudo apt install avahi-daemon libnss-mdns
+sjsujetson@sjsujetson-01:/$ sudo mkdir -p /mnt/nfs/shared
+sudo chown -R student:docker /mnt/nfs/shared
+sudo chmod -R 775 /mnt/nfs/shared
+sjsujetsontool mount-nfs #Mounts nfs-server.local:/srv/nfs/shared to /mnt/nfs/shared
+```

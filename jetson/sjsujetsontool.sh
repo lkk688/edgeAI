@@ -30,6 +30,7 @@ show_help() {
   echo "  update            - Update this script from GitHub"
   echo "  build             - Rebuild Docker image"
   echo "  status            - Show container and service status"
+  echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
   echo "  list              - Show all available commands"
   echo "  stop              - Stop container"
   echo "  help              - Show this help message"
@@ -73,6 +74,9 @@ show_list() {
   echo
   echo "  build        → Rebuild the Docker image"
   echo "     ▶ sjsujetsontool build"
+  echo
+  echo "  mount-nfs    → Mount an NFS share from .local hostname"
+  echo "     ▶ sjsujetsontool mount-nfs nfs-server.local /srv/nfs/shared /mnt/nfs/shared"
   echo
   echo "  status       → Show container and service status"
   echo "     ▶ sjsujetsontool status"
@@ -125,6 +129,24 @@ case "$1" in
     else
       echo "🐍 Running Python script: $1"
       eval "$CONTAINER_CMD python3 $1"
+    fi
+    ;;
+  mount-nfs)
+    shift
+    REMOTE_HOST=${1:-nfs-server.local}
+    REMOTE_PATH=${2:-/srv/nfs/shared}
+    MOUNT_POINT=${3:-/mnt/nfs/shared}
+
+    echo "📡 Mounting NFS share from $REMOTE_HOST:$REMOTE_PATH to $MOUNT_POINT"
+
+    sudo mkdir -p "$MOUNT_POINT"
+
+    sudo mount -t nfs "$REMOTE_HOST:$REMOTE_PATH" "$MOUNT_POINT"
+
+    if mountpoint -q "$MOUNT_POINT"; then
+      echo "✅ Mounted successfully."
+    else
+      echo "❌ Failed to mount. Check NFS server or network."
     fi
     ;;
   build)
