@@ -62,3 +62,7 @@ sudo dd if=/dev/rdisk4 of=/Users/john/Desktop/jetson.img bs=4m status=progress
 ```
 
 ##New Device setup
+```bash
+sjsujetsontool set-hostname sjsujetson-01
+passwd <username>
+```
