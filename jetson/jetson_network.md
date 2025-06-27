@@ -53,3 +53,12 @@ sudo chown -R student:docker /mnt/nfs/shared
 sudo chmod -R 775 /mnt/nfs/shared
 sjsujetsontool mount-nfs #Mounts nfs-server.local:/srv/nfs/shared to /mnt/nfs/shared
 ```
+
+## SSD Duplicate
+```bash
+diskutil list              # Confirm disk4 is your Jetson SSD
+diskutil unmountDisk /dev/disk4
+sudo dd if=/dev/rdisk4 of=/Users/john/Desktop/jetson.img bs=4m status=progress
+```
+
+##New Device setup

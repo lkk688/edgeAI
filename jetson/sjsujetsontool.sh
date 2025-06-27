@@ -185,13 +185,24 @@ case "$1" in
   set-hostname)
     shift
     if [ -z "$1" ]; then
-      echo "❌ Missing hostname. Usage: jetson-devtool set-hostname <new-hostname>"
+      echo "❌ Missing hostname. Usage: sjsujetsontool set-hostname <new-hostname> [github_user]"
     else
       NEW_NAME="$1"
+      GITHUB_USER="${2:-}"
+
       echo "🔧 Setting hostname to: $NEW_NAME"
       echo "$NEW_NAME" | sudo tee /etc/hostname > /dev/null
-      sudo sed -i "s/127.0.1.1\\s.*/127.0.1.1\t$NEW_NAME/" /etc/hosts
-      echo "✅ Hostname updated to '$NEW_NAME'"
+
+      echo "📝 Updating /etc/hosts..."
+      sudo sed -i "s/127.0.1.1\s.*/127.0.1.1\t$NEW_NAME/" /etc/hosts
+
+      echo "🔄 Resetting machine-id..."
+      sudo truncate -s 0 /etc/machine-id
+      sudo rm -f /var/lib/dbus/machine-id
+      sudo ln -s /etc/machine-id /var/lib/dbus/machine-id
+
+      echo "🆔 Writing device ID to /etc/device-id"
+      echo "$NEW_NAME" | sudo tee /etc/device-id > /dev/null
       echo "🔁 Please reboot for changes to fully apply."
     fi
     ;;
