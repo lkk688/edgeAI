@@ -5,8 +5,8 @@
 
 IMAGE_NAME="jetson-llm-v1"
 WORKSPACE_DIR="$(pwd)/workspace"
-DEV_DIR="/home/sjsujetson/Developer"
-MODELS_DIR="/home/sjsujetson/Developer/models"
+DEV_DIR="/Developer"
+MODELS_DIR="/Developer/models"
 CONTAINER_NAME="jetson-dev"
 CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
   -v $WORKSPACE_DIR:/workspace \
@@ -148,14 +148,14 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "⬇️  Updating jetson-devtool from GitHub..."
+    echo "⬇️  Updating sjsujetsontool from GitHub..."
     SCRIPT_PATH=$(realpath "$0")
     BACKUP_PATH="${SCRIPT_PATH}.bak"
 
     echo "🔁 Backing up current script to $BACKUP_PATH"
     cp "$SCRIPT_PATH" "$BACKUP_PATH"
 
-    curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/jetson-devtool.sh -o "$SCRIPT_PATH"
+    curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$SCRIPT_PATH"
     chmod +x "$SCRIPT_PATH"
 
     echo "✅ Update complete. Backup saved at $BACKUP_PATH"
