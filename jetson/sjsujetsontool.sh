@@ -365,9 +365,6 @@ case "$1" in
     echo "🛑 Stopping container..."
     docker stop $CONTAINER_NAME
     ;;
-  help|*)
-    show_help
-    ;;
   version)
     echo "🧾 sjsujetsontool Script Version: $SCRIPT_VERSION"
     echo "🧊 Docker Image: $LOCAL_IMAGE"
@@ -412,5 +409,8 @@ case "$1" in
     echo "📤 Pushing to Docker Hub..."
     docker push "$REMOTE_TAGGED"
     echo "✅ Committed and pushed image: $REMOTE_TAGGED"
+    ;;
+  help|*)
+    show_help
     ;;
 esac
