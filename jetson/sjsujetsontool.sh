@@ -2,24 +2,60 @@
 
 # === sjsujetsontool ===
 # Custom dev CLI for Jetson Orin Nano
+SCRIPT_VERSION="v0.9.0"
 
-IMAGE_NAME="jetson-llm-v1"
+#IMAGE_NAME="jetson-llm-v1"
+DOCKERHUB_USER="cmpelkk"
+IMAGE_NAME="jetson-llm"
+IMAGE_TAG="v1"
+LOCAL_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
+#DEFAULT_REMOTE_TAG="latest"
+#REMOTE_IMAGE="sjsujetson/jetson-llm:latest"
+REMOTE_IMAGE="$DOCKERHUB_USER/$IMAGE_NAME:latest"
+
 WORKSPACE_DIR="$(pwd)/workspace"
 DEV_DIR="/Developer"
 MODELS_DIR="/Developer/models"
 CONTAINER_NAME="jetson-dev"
-CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
-  -v $WORKSPACE_DIR:/workspace \
-  -v $MODELS_DIR:/models \
-  -v $DEV_DIR:/Developer \
-  --name $CONTAINER_NAME $IMAGE_NAME"
+# CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
+#   -v $WORKSPACE_DIR:/workspace \
+#   -v $MODELS_DIR:/models \
+#   -v $DEV_DIR:/Developer \
+#   --name $CONTAINER_NAME $IMAGE_NAME"
+
+# CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
+#   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
+#   -v $WORKSPACE_DIR:/workspace \
+#   -v $MODELS_DIR:/models \
+#   -v $DEV_DIR:/Developer \
+#   --name $CONTAINER_NAME $IMAGE_NAME"
+VOLUME_FLAGS="-v $WORKSPACE_DIR:/workspace -v $MODELS_DIR:/models -v $DEV_DIR:/Developer"
+CREATE_CMD="docker create -it --runtime=nvidia --network host \
+  --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
+  --name $CONTAINER_NAME $VOLUME_FLAGS $LOCAL_IMAGE"
+EXEC_CMD="docker exec -it $CONTAINER_NAME"
+
+ensure_container_started() {
+  if ! docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+    echo "🛠️  Creating persistent container '$CONTAINER_NAME'..."
+    eval "$CREATE_CMD"
+  fi
+  docker start $CONTAINER_NAME >/dev/null
+}
 
 show_help() {
-  echo "Usage: jetson-devtool [option] [args]"
+  echo "Usage: sjsujetsontool [option] [args]"
   echo "Options:"
   echo "  shell             - Open a shell inside the LLM container"
   echo "  jupyter           - Start JupyterLab inside the container"
-  echo "  ollama            - Run Ollama server (port 11434)"
+  echo "  ollama <subcmd>    - Manage Ollama in container"
+  echo "      serve                - Start Ollama REST API server"
+  echo "      run <model>          - Run model interactively"
+  echo "      list                 - List installed models"
+  echo "      pull <model>         - Pull model from registry"
+  echo "      delete <model>       - Delete model from disk"
+  echo "      status               - Check if REST server is running"
+  echo "      ask [--model xxx]    - Ask model with auto pull/cache"
   echo "  llama             - Start llama.cpp server (port 8000)"
   echo "  fastapi           - Start a FastAPI app on port 8001"
   echo "  rag               - Launch LangChain-based RAG server"
@@ -27,13 +63,15 @@ show_help() {
   echo "  run <file.py>     - Run a Python file inside the container"
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
-  echo "  update            - Update this script from GitHub"
+  echo "  update            - Update this script and container image"
   echo "  build             - Rebuild Docker image"
   echo "  status            - Show container and service status"
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
   echo "  list              - Show all available commands"
   echo "  stop              - Stop container"
   echo "  help              - Show this help message"
+  echo "  version           - Show script version and image version"
+  echo "  publish [--tag tag] - Push local image to Docker Hub"
 }
 
 show_list() {
@@ -45,8 +83,11 @@ show_list() {
   echo "  jupyter      → Start JupyterLab (port 8888)"
   echo "     ▶ sjsujetsontool jupyter"
   echo
-  echo "  ollama       → Start Ollama API server (port 11434)"
-  echo "     ▶ sjsujetsontool ollama"
+  echo "  ollama       → Ollama model management CLI"
+  echo "     ▶ sjsujetsontool ollama serve"
+  echo "     ▶ sjsujetsontool ollama run mistral"
+  echo "     ▶ sjsujetsontool ollama ask --model phi3 \"Explain LLMs\""
+  echo "     ▶ sjsujetsontool ollama pull llama3"
   echo
   echo "  llama        → Start llama.cpp REST server (port 8000)"
   echo "     ▶ sjsujetsontool llama"
@@ -97,14 +138,106 @@ check_service() {
 
 case "$1" in
   shell)
-    eval "$CONTAINER_CMD"
+    ensure_container_started
+    $EXEC_CMD bash
     ;;
   jupyter)
-    eval "$CONTAINER_CMD jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+    ensure_container_started
+    $EXEC_CMD jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
     ;;
   ollama)
-    echo "🧠 Launching Ollama server inside container (port 11434)..."
-    eval "$CONTAINER_CMD ollama serve"
+    shift
+    SUBCMD="$1"
+    shift
+
+    ensure_container_started
+
+    case "$SUBCMD" in
+      serve)
+        echo "🧠 Starting Ollama server on port 11434..."
+        $EXEC_CMD ollama serve
+        ;;
+
+      run)
+        if [ -z "$1" ]; then
+          echo "❌ Usage: sjsujetsontool ollama run <model>"
+          exit 1
+        fi
+        MODEL="$1"
+        echo "💬 Launching model '$MODEL' in CLI..."
+        $EXEC_CMD ollama run "$MODEL"
+        ;;
+
+      list)
+        echo "📃 Installed models:"
+        $EXEC_CMD ollama list
+        ;;
+
+      pull)
+        if [ -z "$1" ]; then
+          echo "❌ Usage: sjsujetsontool ollama pull <model>"
+          exit 1
+        fi
+        echo "⬇️ Pulling model: $1"
+        $EXEC_CMD ollama pull "$1"
+        ;;
+
+      delete)
+        if [ -z "$1" ]; then
+          echo "❌ Usage: sjsujetsontool ollama delete <model>"
+          exit 1
+        fi
+        echo "🗑️ Deleting model: $1"
+        $EXEC_CMD ollama delete "$1"
+        ;;
+
+      status)
+        echo "🔍 Checking Ollama port (11434)..."
+        if docker exec "$CONTAINER_NAME" ss -tuln | grep -q ':11434'; then
+          echo "✅ Ollama server is running."
+        else
+          echo "❌ Ollama server not running."
+        fi
+        ;;
+
+      ask)
+        CACHE_FILE="$WORKSPACE_DIR/.last_ollama_model"
+        MODEL="phi3"
+
+        if [[ "$1" == --model ]]; then
+          shift
+          MODEL="$1"
+          shift
+          echo "$MODEL" > "$CACHE_FILE"
+        elif [ -f "$CACHE_FILE" ]; then
+          MODEL=$(cat "$CACHE_FILE")
+        fi
+
+        PROMPT="$*"
+        if [ -z "$PROMPT" ]; then
+          echo "❌ Usage: sjsujetsontool ollama ask [--model model-name] \"your prompt\""
+          exit 1
+        fi
+
+        echo "💬 Using model: $MODEL"
+        echo "📦 Checking if model '$MODEL' is available..."
+        if ! $EXEC_CMD ollama list | grep -q "^$MODEL "; then
+          echo "⬇️ Pulling model '$MODEL'..."
+          $EXEC_CMD ollama pull "$MODEL"
+        fi
+
+        echo "💬 Asking: $PROMPT"
+        $EXEC_CMD curl -s http://localhost:11434/api/generate -d "{
+          \"model\": \"$MODEL\",
+          \"prompt\": \"$PROMPT\",
+          \"stream\": false
+        }" | jq -r .response
+        ;;
+
+      *)
+        echo "❓ Unknown Ollama subcommand. Try: serve | run | list | pull | delete | ask"
+        ;;
+    esac
     ;;
   llama)
     echo "🧠 Launching llama.cpp server inside container (port 8000)..."
@@ -126,10 +259,11 @@ case "$1" in
     shift
     if [ -z "$1" ]; then
       echo "❌ Missing script path. Usage: sjsujetsontool run <path/to/script.py>"
-    else
-      echo "🐍 Running Python script: $1"
-      eval "$CONTAINER_CMD python3 $1"
+      exit 1
     fi
+    ensure_container_started
+    echo "🐍 Running Python script: $@"
+    $EXEC_CMD python3 "$@"
     ;;
   mount-nfs)
     shift
@@ -170,17 +304,24 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "⬇️  Updating sjsujetsontool from GitHub..."
+    echo "⬇️ Updating sjsujetsontool script..."
     SCRIPT_PATH=$(realpath "$0")
     BACKUP_PATH="${SCRIPT_PATH}.bak"
-
-    echo "🔁 Backing up current script to $BACKUP_PATH"
     cp "$SCRIPT_PATH" "$BACKUP_PATH"
-
     curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$SCRIPT_PATH"
     chmod +x "$SCRIPT_PATH"
-
-    echo "✅ Update complete. Backup saved at $BACKUP_PATH"
+    echo "✅ Script updated."
+    echo "🔍 Checking Docker image update..."
+    LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
+    docker pull $REMOTE_IMAGE > /dev/null
+    REMOTE_ID=$(docker image inspect $REMOTE_IMAGE --format '{{.Id}}' 2>/dev/null)
+    if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
+      echo "📦 New version detected. Updating local image..."
+      docker tag $REMOTE_IMAGE $LOCAL_IMAGE
+      echo "✅ Local image updated from Docker Hub."
+    else
+      echo "✅ Local container is up-to-date."
+    fi
     ;;
   set-hostname)
     shift
@@ -225,5 +366,33 @@ case "$1" in
     ;;
   help|*)
     show_help
+    ;;
+  version)
+    echo "🧾 sjsujetsontool Script Version: $SCRIPT_VERSION"
+    echo "🧊 Docker Image: $LOCAL_IMAGE"
+    IMAGE_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
+    if [ -n "$IMAGE_ID" ]; then
+      echo "🔍 Image ID: $IMAGE_ID"
+    else
+      echo "⚠️  Image not found locally."
+    fi
+    ;;
+  publish)
+    shift
+    TAG="$DEFAULT_REMOTE_TAG"
+    if [[ "$1" == "--tag" ]]; then
+      shift
+      TAG="$1"
+    fi
+    REMOTE_TAGGED="$DOCKERHUB_USER/$IMAGE_NAME:$TAG"
+    echo "📤 Preparing to push local image '$LOCAL_IMAGE' as '$REMOTE_TAGGED'"
+    if ! docker image inspect $LOCAL_IMAGE >/dev/null 2>&1; then
+      echo "❌ Local image '$LOCAL_IMAGE' not found. Build it first."
+      exit 1
+    fi
+    docker tag $LOCAL_IMAGE $REMOTE_TAGGED
+    docker login || exit 1
+    docker push $REMOTE_TAGGED
+    echo "✅ Pushed image to Docker Hub: $REMOTE_TAGGED"
     ;;
 esac

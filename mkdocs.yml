@@ -22,11 +22,16 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Introduction:
+      - sjsujetsontool Guide: curriculum/sjsujetsontool_guide.md
+      - Introduction to NVIDIA Jetson: curriculum/01a_nvidia_jetson.md
+      - Introduction to Linux and Networking: curriculum/01b_linux_networking_tools.md
   - Core Systems:
-      - Jetson + Linux Setup: curriculum/01_linux_jetson_intro.md
       - Programming Environment (Python/C++/CUDA): curriculum/02_programming_env_python_cpp_cuda.md
       - Accelerated Python + CUDA: curriculum/03_accelerated_computing_python_cuda.md
-      - Numpy + PyTorch: curriculum/04_numpy_pytorch_intro.md
+      - Numpy: curriculum/04a_numpy_pytorch_intro.md
+      - PyTorch: curriculum/04b_pytorch_intro.md
+  - Cyber Systems:
       - Linux Networking Tools: curriculum/01b_linux_networking_tools.md
       - Packet Sniffing & Monitoring: curriculum/01c_packet_sniffing_monitoring.md
       - Linux Cyber Defense Tools: curriculum/01d_linux_cyber_defense_basics.md
@@ -38,19 +43,5 @@ nav:
       - Prompt Engineering: curriculum/08_prompt_engineering_langchain_jetson.md
       - RAG Apps: curriculum/09_rag_app_langchain_jetson.md
       - Local AI Agents: curriculum/10_local_ai_agents_jetson.md
-  - Robotics:
-      - GPIO & Sensors: curriculum/12_jetson_gpio_sensors.md
-      - Vision with OpenCV: curriculum/13_jetson_opencv_robotics.md
-      - Motor Control & Nav: curriculum/14_jetson_autonomous_navigation.md
-      - Object Detection & Response: curriculum/15_robot_object_detection_yolo.md
-      - LLM-Powered Robot Assistant: curriculum/16_robot_llm_multimodal_agent.md
-  - ROS 2 + Isaac ROS:
-      - Intro to ROS 2: curriculum/17_ros2_intro_jetson.md
-      - ROS 2 + GPIO & Sensors: curriculum/18_ros2_gpio_sensor_integration.md
-      - Isaac ROS Setup: curriculum/19_isaac_ros_setup_overview.md
-      - Isaac Image & SLAM: curriculum/20_isaac_ros_image_slam.md
-      - Isaac + Nav2 Perception: curriculum/21_isaac_ros_nav2_perception.md
-      - Isaac ROS Demos: curriculum/22_isaac_ros_open_source_projects.md
   - Final Project:
       - Hackathon & Challenges: curriculum/11_final_challenges_hackathon.md
-  - Slides: slides.md
