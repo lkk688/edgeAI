@@ -72,6 +72,7 @@ show_help() {
   echo "  help              - Show this help message"
   echo "  version           - Show script version and image version"
   echo "  publish [--tag tag] - Push local image to Docker Hub"
+  echo "  commit-and-publish  - Commit container and push as image"
 }
 
 show_list() {
@@ -394,5 +395,22 @@ case "$1" in
     docker login || exit 1
     docker push $REMOTE_TAGGED
     echo "✅ Pushed image to Docker Hub: $REMOTE_TAGGED"
+    ;;
+  commit-and-publish)
+    shift
+    TAG="$DEFAULT_REMOTE_TAG"
+    if [[ "$1" == "--tag" ]]; then
+      shift
+      TAG="$1"
+    fi
+    REMOTE_TAGGED="$DOCKERHUB_USER/$IMAGE_NAME:$TAG"
+    echo "📝 Committing running container '$CONTAINER_NAME' to image '$LOCAL_IMAGE'..."
+    docker commit "$CONTAINER_NAME" "$LOCAL_IMAGE"
+    echo "🔖 Tagging image as '$REMOTE_TAGGED'..."
+    docker tag "$LOCAL_IMAGE" "$REMOTE_TAGGED"
+    docker login || exit 1
+    echo "📤 Pushing to Docker Hub..."
+    docker push "$REMOTE_TAGGED"
+    echo "✅ Committed and pushed image: $REMOTE_TAGGED"
     ;;
 esac
