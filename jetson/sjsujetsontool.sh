@@ -227,11 +227,11 @@ case "$1" in
         fi
 
         echo "💬 Asking: $PROMPT"
-        $EXEC_CMD curl -s http://localhost:11434/api/generate -d "{
-          \"model\": \"$MODEL\",
-          \"prompt\": \"$PROMPT\",
-          \"stream\": false
-        }" | jq -r .response
+        $EXEC_CMD curl -s http://localhost:11434/api/generate -d '{
+          "model": "'"$MODEL"'",
+          "prompt": "'"$PROMPT"'",
+          "stream": false
+        }' | jq -r .response
         ;;
 
       *)
