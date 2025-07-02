@@ -4,6 +4,44 @@
 # Custom dev CLI for Jetson Orin Nano
 SCRIPT_VERSION="v0.9.0"
 
+# ❗ Warn if run incorrectly via `bash sjsujetsontool version`
+if [[ "$0" == "bash" && "$1" == "${BASH_SOURCE[0]}" ]]; then
+  echo "⚠️  Please run this script directly, not via 'bash'."
+  echo "✅ Correct: ./sjsujetsontool version"
+  echo "❌ Wrong: bash sjsujetsontool version"
+  exit 1
+fi
+
+# 📟 Detect Jetson hardware model (Orin, Xavier, Nano, etc.)
+JETSON_MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)
+if [[ -n "$JETSON_MODEL" ]]; then
+  echo "🧠 Detected Jetson Model: $JETSON_MODEL"
+fi
+
+# 🧰 Detect JetPack and CUDA version
+JETPACK_VERSION=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
+CUDA_VERSION=$(nvcc --version 2>/dev/null | grep release | sed -E 's/.*release ([0-9.]+),.*/\1/')
+
+if [[ -n "$JETPACK_VERSION" ]]; then
+  echo "📦 JetPack Version: $JETPACK_VERSION"
+fi
+if [[ -n "$CUDA_VERSION" ]]; then
+  echo "⚙️  CUDA Version: $CUDA_VERSION"
+fi
+
+# 🧠 Detect cuDNN version
+CUDNN_VERSION=$(cat /usr/include/cudnn_version.h 2>/dev/null | grep CUDNN_MAJOR -A 2 | awk '{print $3}' | paste -sd.)
+if [[ -n "$CUDNN_VERSION" ]]; then
+  echo "🧬 cuDNN Version: $CUDNN_VERSION"
+fi
+
+# 🤖 Detect TensorRT version
+TENSORRT_VERSION=$(dpkg-query --show libnvinfer8 2>/dev/null | awk '{print $2}')
+if [[ -n "$TENSORRT_VERSION" ]]; then
+  echo "🧠 TensorRT Version: $TENSORRT_VERSION"
+fi
+
+
 #IMAGE_NAME="jetson-llm-v1"
 DOCKERHUB_USER="cmpelkk"
 IMAGE_NAME="jetson-llm"
