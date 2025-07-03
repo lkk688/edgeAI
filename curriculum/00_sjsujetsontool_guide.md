@@ -127,13 +127,34 @@ Starts the Ollama REST server inside the container, listening on http://localhos
 
 2. Run a Model in CLI Mode
 ```bash
-sjsujetsontool ollama run mistral
+$ sjsujetsontool ollama run mistral
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+💬 Launching model 'mistral' in CLI...
+pulling manifest 
+pulling ff82381e2bea: 100% ▕██████████████████▏ 4.1 GB                         
+pulling 43070e2d4e53: 100% ▕██████████████████▏  11 KB                         
+pulling 1ff5b64b61b9: 100% ▕██████████████████▏  799 B                         
+pulling ed11eda7790d: 100% ▕██████████████████▏   30 B                         
+pulling 42347cd80dc8: 100% ▕██████████████████▏  485 B                         
+verifying sha256 digest 
+writing manifest 
+success 
+>>> Send a message (/? for help)
 ```
-Launches interactive terminal mode using the mistral model.
+Launches interactive terminal mode using the mistral model. Enter `\exit` to exit.
 
 3. List Installed Models
 ```bash
-sjsujetsontool ollama list
+$ sjsujetsontool ollama list
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+📃 Installed models:
+NAME               ID              SIZE      MODIFIED           
+mistral:latest     3944fe81ec14    4.1 GB    About a minute ago    
+llama3.2:latest    a80c4f17acd5    2.0 GB    2 hours ago           
+qwen2:latest       dd314f039b9d    4.4 GB    9 days ago            
+llama3.2:3b        a80c4f17acd5    2.0 GB    9 days ago 
 ```
 Shows a table of downloaded models and their sizes.
 
@@ -162,9 +183,9 @@ Checks if the REST API is running on port 11434.
 
 7. Ask a Prompt (with auto-pull + caching)
 ```bash
-sjsujetsontool ollama ask "What is quantum entanglement?"
+sjsujetsontool ollama ask "What is nvidia jetson orin?"
 ```
-Uses the last used model (default is phi3), or you can specify one:
+Uses the last used model, or you can specify one:
 ```bash
 sjsujetsontool ollama ask --model mistral "Explain transformers in simple terms."
 ```
