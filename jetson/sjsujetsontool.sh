@@ -47,7 +47,7 @@ DOCKERHUB_USER="cmpelkk"
 IMAGE_NAME="jetson-llm"
 IMAGE_TAG="v1"
 LOCAL_IMAGE="$IMAGE_NAME:$IMAGE_TAG"
-#DEFAULT_REMOTE_TAG="latest"
+DEFAULT_REMOTE_TAG="latest"
 #REMOTE_IMAGE="sjsujetson/jetson-llm:latest"
 REMOTE_IMAGE="$DOCKERHUB_USER/$IMAGE_NAME:latest"
 
