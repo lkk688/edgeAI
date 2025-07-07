@@ -62,6 +62,16 @@ Verify:
 sjsujetsontool list
 ```
 
+You can check the script versions:
+```bash
+sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool version
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🧾 sjsujetsontool Script Version: v0.9.0
+🧊 Docker Image: jetson-llm:v1
+🔍 Image ID: sha256:9868985d80e4d1d43309d72ba85b700f3ac064233fcbf58c8ec22555d85f8c2f
+```
+
 The `sjsujetsontool` wraps python apps running via container and makes running code inside the container easy to use. `docker` without sudo is already setup in the jetson device. Check existing containers available in the Jetson:
 ```bash
 sjsujetson@sjsujetson-01:~$ docker images
@@ -84,6 +94,26 @@ sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool shell
 🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
 ⚙️  CUDA Version: 12.6
 root@sjsujetson-01:/workspace#
+```
+
+Exit the container via `exit`, and the container is still running
+```bash
+root@sjsujetson-01:/workspace# exit
+exit
+sjsujetson@sjsujetson-01:/Developer/edgeAI$ docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED      STATUS      PORTS     NAMES
+c4010b14e9c0   8236678f7ef1   "/opt/nvidia/nvidia_…"   4 days ago   Up 4 days             jetson-dev
+```
+
+If you want to stop the container, you can use `sjsujetsontool stop`
+```bash
+sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool stop
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🛑 Stopping container...
+jetson-dev
+sjsujetson@sjsujetson-01:/Developer/edgeAI$ docker ps
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
 ---
@@ -113,6 +143,10 @@ sjsujetson@sjsujetson-01:~$ sjsujetsontool jupyter
         http://127.0.0.1:8888/lab?token=3bbbf2fbea22e917bdbace45cb414bbaeb52f1251163adcf
 ```
 you can access the jupyter server via the the provided url. If you want to remote access the jupyter server from another computer, you can replace the hostname with the IP address of the device. 
+
+### 🐍 `sjsujetsontool run <script.py>`
+
+Runs any Python script inside the preconfigured container. Ensures all ML/AI libraries and GPU drivers are properly set up.
 
 ### 🧠 `sjsujetsontool ollama`
 
@@ -236,9 +270,7 @@ sjsujetsontool ollama ask --model mistral "Give me a Jetson-themed poem."
 
 Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Loads a `.gguf` model and serves an HTTP API for tokenized prompt completion.
 
-### 🐍 `sjsujetsontool run <script.py>`
 
-Runs any Python script inside the preconfigured container. Ensures all ML/AI libraries and GPU drivers are properly set up.
 
 ### 🚀 `sjsujetsontool fastapi`
 
