@@ -284,6 +284,11 @@ case "$1" in
     echo "🧠 Launching llama.cpp server inside container (port 8000)..."
     eval "$CONTAINER_CMD /Developer/llama.cpp/build_cuda/bin/llama-server -m /models/mistral.gguf --host 0.0.0.0 --port 8000"
     ;;
+  gradio)
+    ensure_container_started
+    echo "🌐 Launching Gradio Ollama UI on port 7860..."
+    $EXEC_CMD bash -c "ollama serve & sleep 2 && python3 /Developer/edgeAI/jetson/ollama_gradio_ui.py"
+    ;;
   fastapi)
     echo "🚀 Launching FastAPI server on port 8001..."
     eval "$CONTAINER_CMD uvicorn app.main:app --host 0.0.0.0 --port 8001"

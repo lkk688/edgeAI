@@ -93,7 +93,7 @@ Run the `sjsujetsontool shell` command line to enter into the shell of the conta
 sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool shell
 🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
 ⚙️  CUDA Version: 12.6
-root@sjsujetson-01:/workspace# pip install transformers #install transformer package
+root@sjsujetson-01:/workspace# pip install transformers==4.37.0 #install transformer package
 ```
 
 Exit the container via `exit`, and the container is still running
@@ -146,7 +146,21 @@ you can access the jupyter server via the the provided url. If you want to remot
 
 ### 🐍 `sjsujetsontool run <script.py>`
 
-Runs any Python script inside the preconfigured container. Ensures all ML/AI libraries and GPU drivers are properly set up.
+Runs any Python script inside the preconfigured container. Ensures all ML/AI libraries and GPU drivers are properly set up. The path of `script.py` should be accessible by the container, for example, the `\Developer` path:
+```bash
+sjsujetson@sjsujetson-01:/Developer/models$ sjsujetsontool run /Developer/edgeAI/jetson/test.py 
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🐍 Running Python script: /Developer/edgeAI/jetson/test.py
+📦 Python: 3.12.3 (main, Nov  6 2024, 18:32:19) [GCC 13.2.0]
+🧠 Torch: 2.6.0a0+df5bbc09d1.nv24.12
+⚙️  CUDA available: True
+🖥️  CUDA version: Cuda compilation tools, release 12.6, V12.6.85
+📚 Transformers: 4.37.0
+🧬 HuggingFace hub: Version: 0.33.2
+💡 Platform: Linux-5.15.148-tegra-aarch64-with-glibc2.39
+🔍 Ollama: ✅ Ollama installed: ollama version is 0.9.2
+```
 
 ### 🧠 `sjsujetsontool ollama`
 
