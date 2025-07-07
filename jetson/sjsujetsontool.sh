@@ -450,8 +450,8 @@ case "$1" in
     docker push "$REMOTE_TAGGED"
     echo "✅ Committed and pushed image: $REMOTE_TAGGED"
     ;;
-  #help|*)
   help)
     show_help
     ;;
 esac
+#help|*)
