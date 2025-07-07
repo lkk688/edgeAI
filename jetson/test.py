@@ -12,42 +12,38 @@ def run_cmd(cmd):
         return f"Error: {e}"
 
 def check_ollama():
-    try:
-        import requests
-        r = requests.post("http://localhost:11434/api/generate", json={
-            "model": "phi3",
-            "prompt": "Hello",
-            "stream": False
-        }, timeout=5)
-        if r.ok:
-            return f"Ollama OK: {r.json().get('response', '')}"
-        return f"Ollama error: {r.text}"
-    except Exception as e:
-        return f"Ollama not available: {e}"
+    path = run_cmd("which ollama")
+    if "ollama" not in path:
+        return "❌ Ollama not installed (binary not found in PATH)"
+    version = run_cmd("ollama --version")
+    return f"✅ Ollama installed: {version}"
+    # try:
+    #     import requests
+    #     r = requests.post("http://localhost:11434/api/generate", json={
+    #         "model": "phi3",
+    #         "prompt": "Hello",
+    #         "stream": False
+    #     }, timeout=5)
+    #     if r.ok:
+    #         return f"Ollama OK: {r.json().get('response', '')}"
+    #     return f"Ollama error: {r.text}"
+    # except Exception as e:
+    #     return f"Ollama not available: {e}"
 
 def check_llama_cpp():
     llama_bin = "/Developer/llama.cpp/build_cuda/bin/llama-server"
     return "Found" if os.path.exists(llama_bin) else "Not found"
 
 def test_torch_cnn():
-    import torch.nn as nn
+    from torchvision import models
     import torch.nn.functional as F
-    class Net(nn.Module):
-        def __init__(self):
-            super().__init__()
-            self.conv1 = nn.Conv2d(1, 10, kernel_size=3)
-            self.fc1 = nn.Linear(1440, 10)
 
-        def forward(self, x):
-            x = F.relu(self.conv1(x))
-            x = x.view(-1, 1440)
-            x = self.fc1(x)
-            return F.log_softmax(x, dim=1)
-
-    model = Net()
-    x = torch.randn(1, 1, 12, 12)
-    y = model(x)
-    return f"CNN output: {y.shape}"
+    model = models.resnet18(pretrained=False)
+    model.eval()
+    x = torch.randn(1, 3, 224, 224)
+    with torch.no_grad():
+        y = model(x)
+    return f"ResNet18 output shape: {y.shape}, top-5 logits: {y[0].topk(5).values.tolist()}"
 
 def test_llm():
     tokenizer = transformers.AutoTokenizer.from_pretrained("openai-community/gpt2")

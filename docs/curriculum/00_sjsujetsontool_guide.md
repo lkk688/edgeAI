@@ -93,7 +93,7 @@ Run the `sjsujetsontool shell` command line to enter into the shell of the conta
 sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool shell
 🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
 ⚙️  CUDA Version: 12.6
-root@sjsujetson-01:/workspace#
+root@sjsujetson-01:/workspace# pip install transformers #install transformer package
 ```
 
 Exit the container via `exit`, and the container is still running
