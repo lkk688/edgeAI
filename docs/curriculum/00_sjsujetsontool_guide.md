@@ -77,9 +77,27 @@ root@sjsujetson-01:/workspace#
 
 The `\Developer` and `\Developer\models` folders in the jetson host are mounted to the container in the path of `\Developer` and `\models`
 
+### ✅ Exter the Container Shell
+Run the `sjsujetsontool shell` command line to enter into the shell of the container
+```bash
+sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool shell
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+root@sjsujetson-01:/workspace#
+```
+
 ---
 
 ## 🧪 Common Usage Examples
+
+
+### 🧾 `sjsujetsontool update`
+
+Downloads the latest version of `sjsujetsontool` from GitHub and replaces the local version, keeping a backup.
+
+### 📋 `sjsujetsontool list`
+
+Displays all available commands with usage examples.
 
 ### 🟢 `sjsujetsontool jupyter`
 
@@ -258,13 +276,6 @@ Rebuilds the base development Docker image with CUDA, Python, PyTorch, and other
 
 Stops the running Docker container started by previous commands.
 
-### 🧾 `sjsujetsontool update`
-
-Downloads the latest version of `sjsujetsontool` from GitHub and replaces the local version, keeping a backup.
-
-### 📋 `sjsujetsontool list`
-
-Displays all available commands with usage examples.
 
 ---
 
