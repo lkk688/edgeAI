@@ -351,13 +351,6 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "⬇️ Updating sjsujetsontool script..."
-    SCRIPT_PATH=$(realpath "$0")
-    BACKUP_PATH="${SCRIPT_PATH}.bak"
-    cp "$SCRIPT_PATH" "$BACKUP_PATH"
-    curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$SCRIPT_PATH"
-    chmod +x "$SCRIPT_PATH"
-    echo "✅ Script updated."
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
     docker pull $REMOTE_IMAGE > /dev/null
@@ -369,6 +362,20 @@ case "$1" in
     else
       echo "✅ Local container is up-to-date."
     fi
+    echo "⬇️ Updating sjsujetsontool script..."
+    SCRIPT_PATH=$(realpath "$0")
+    BACKUP_PATH="${SCRIPT_PATH}.bak"
+    TMP_PATH="${SCRIPT_PATH}.tmp"
+
+    cp "$SCRIPT_PATH" "$BACKUP_PATH"
+    curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$TMP_PATH"
+    chmod +x "$TMP_PATH"
+
+    echo "✅ Script downloaded. Replacing current script..."
+    mv "$TMP_PATH" "$SCRIPT_PATH"
+
+    echo "✅ Script updated. Please rerun your command."
+    exit 0
     ;;
   set-hostname)
     shift
@@ -460,4 +467,5 @@ case "$1" in
     show_help
     ;;
 esac
+
 #help|*)
