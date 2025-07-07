@@ -8,7 +8,7 @@ theme:
 
 plugins:
   - search
-  - revealjs
+  # - revealjs
 
 markdown_extensions:
   - admonition
@@ -23,7 +23,7 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Introduction:
-      - sjsujetsontool Guide: curriculum/sjsujetsontool_guide.md
+      - sjsujetsontool Guide: curriculum/00_sjsujetsontool_guide.md
       - Introduction to NVIDIA Jetson: curriculum/01a_nvidia_jetson.md
       - Introduction to Linux and Networking: curriculum/01b_linux_networking_tools.md
   - Core Systems:

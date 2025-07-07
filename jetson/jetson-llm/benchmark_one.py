@@ -14,19 +14,19 @@ RESULTS_FILE = "benchmark_results.json"
 # Model info
 MODEL_MAP = {
     "mistral": {
-        "path": "./models/mistral.gguf",
+        "path": "/models/mistral.gguf",
         "ollama": "mistral"
     },
     "qwen": {
-        "path": "./models/qwen.gguf",
+        "path": "/models/qwen.gguf",
         "ollama": "qwen"
     },
     "llama3": {
-        "path": "./models/llama3.gguf",
+        "path": "/models/llama3.gguf",
         "ollama": "llama3"
     },
     "deepseek": {
-        "path": "./models/deepseek.gguf",
+        "path": "/models/deepseek.gguf",
         "ollama": "deepseek"
     }
 }

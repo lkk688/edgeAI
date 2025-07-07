@@ -152,12 +152,4 @@ sudo useradd -m labstudent
 sudo passwd labstudent
 ```
 
----
 
-## 🧠 Takeaway
-
-Understanding Linux is key to unleashing Jetson's full potential. L4T provides a powerful bridge between embedded hardware and AI software.
-
-> “Linux is the foundation. L4T builds the AI skyscraper on top of it.”
-
-Next up: Networking tools and cyber monitoring!

@@ -134,6 +134,4 @@ Refers to running AI models directly on devices like Jetson at the edge of the n
 * [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit)
 * [TensorRT Documentation](https://docs.nvidia.com/deeplearning/tensorrt/)
 
----
 
-Next: [Linux and Networking Tools](01b_linux_networking_tools.md) →

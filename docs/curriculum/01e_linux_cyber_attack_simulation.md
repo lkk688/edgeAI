@@ -120,6 +120,3 @@ fail2ban-client status sshd
 	•	Never attack real systems without permission
 	•	These skills are for learning defense and securing your own systems
 
-⸻
-
-Next: CNN + Image Processing on Jetson →

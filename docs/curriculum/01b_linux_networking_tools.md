@@ -232,17 +232,3 @@ Use Linux tools to explore Jetson's network environment, Wi-Fi/Bluetooth devices
 * Screenshot or output logs of each step
 * Submit speedtest and nmap scan results
 
----
-
-## 🧠 Summary
-
-Understanding computer networking through both theory and hands-on Linux tools enables students to:
-
-* Configure secure remote access
-* Monitor and debug edge AI system connectivity
-* Integrate Wi-Fi/Bluetooth peripherals
-* Measure performance under real-world conditions
-
----
-
-Next: [Packet Sniffing & Monitoring](01c_packet_sniffing_monitoring.md) →

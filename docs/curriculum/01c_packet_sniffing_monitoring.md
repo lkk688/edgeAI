@@ -162,15 +162,3 @@ sudo nethogs wlan0
 * List at least 3 types of protocols you observed
 * Short write-up: What did you learn about your traffic?
 
----
-
-## 🧠 Summary
-
-Packet sniffing tools allow students to:
-
-* Understand network protocol behavior
-* Debug real-world communication issues
-* Analyze traffic for optimization or intrusion detection
-* Explore traffic visually with Wireshark
-
-Next: [Linux Cyber Defense Tools](01d_linux_cyber_defense_basics.md) →
