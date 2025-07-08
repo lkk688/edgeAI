@@ -127,10 +127,12 @@ with gr.Blocks(title="Ollama Chat UI") as demo:
     refresh_btn.click(fn=update_model_list, inputs=[backend_select], outputs=[model_dropdown])
     export_btn.click(fn=export_trigger, inputs=[state], outputs=[dashboard])
 
-    # Dashboard updater
-    #gr.Textbox.update(value=system_info["text"])
+    # System info display
     gr.Textbox(label="System Info", lines=10, value=system_info["text"], interactive=False, show_label=True)
-    gr.Timer(2.0, refresh_dashboard, every=2).output(dashboard)
+
+    # Real-time dashboard refresh every 2 seconds
+    timer = gr.Timer(interval=2.0)
+    timer.run(fn=refresh_dashboard, outputs=[dashboard])
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
