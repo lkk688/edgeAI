@@ -132,7 +132,7 @@ with gr.Blocks(title="Ollama Chat UI") as demo:
 
     # Real-time dashboard refresh every 2 seconds
     timer = gr.Timer(2)
-    timer.run(fn=refresh_dashboard, outputs=[dashboard])
+    timer.tick(fn=refresh_dashboard, outputs=[dashboard])
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
