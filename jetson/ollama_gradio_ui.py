@@ -72,7 +72,9 @@ def chat_with_backend_stream(prompt, model, backend, history=[]):
     elapsed = time.time() - start
     tps = f"{tokens / elapsed:.2f} tokens/sec" if tokens > 0 else "N/A"
 
-    history.append((prompt, response))
+    #history.append((prompt, response))
+    history.append({"role": "user", "content": prompt})
+    history.append({"role": "assistant", "content": response})
     return history, history, tps
 
 # Export chat history
@@ -86,6 +88,9 @@ def export_chat(history):
     with open(json_path, "w") as json_file:
         json.dump(history, json_file, indent=2)
     return f"✅ Exported:\n- {md_path}\n- {json_path}"
+
+# def get_dashboard_text():
+#     return system_info["text"]
 
 # UI
 with gr.Blocks(title="Ollama Chat UI") as demo:
@@ -101,7 +106,7 @@ with gr.Blocks(title="Ollama Chat UI") as demo:
         dashboard = gr.Textbox(label="Live System Info", lines=10, interactive=False, value=system_info["text"])
         token_speed = gr.Textbox(label="Token Speed", interactive=False)
 
-    chatbot = gr.Chatbot(label="Chat History")
+    chatbot = gr.Chatbot(label="Chat History",type="messages")
     prompt = gr.Textbox(label="Prompt", placeholder="Ask something...")
     send = gr.Button("Send")
     state = gr.State([])
@@ -123,7 +128,8 @@ with gr.Blocks(title="Ollama Chat UI") as demo:
     export_btn.click(fn=export_trigger, inputs=[state], outputs=[dashboard])
 
     # Dashboard updater
-    gr.Textbox.update(value=system_info["text"])
+    #gr.Textbox.update(value=system_info["text"])
+    gr.Textbox(label="System Info", lines=10, value=system_info["text"], interactive=False, show_label=True)
     gr.Timer(2.0, refresh_dashboard, every=2).output(dashboard)
 
 if __name__ == "__main__":
