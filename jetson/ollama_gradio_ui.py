@@ -131,7 +131,7 @@ with gr.Blocks(title="Ollama Chat UI") as demo:
     gr.Textbox(label="System Info", lines=10, value=system_info["text"], interactive=False, show_label=True)
 
     # Real-time dashboard refresh every 2 seconds
-    timer = gr.Timer(interval=2.0)
+    timer = gr.Timer(2)
     timer.run(fn=refresh_dashboard, outputs=[dashboard])
 
 if __name__ == "__main__":
