@@ -302,13 +302,10 @@ Displays:
 * GPU stats from `tegrastats`
 * Port listening status for key services
 
-### 🔧 `sjsujetsontool set-hostname <name> [github_user]`
+### 🔧 `sjsujetsontool set-hostname <name>`
 
-Changes device hostname, regenerates system identity, writes `/etc/device-id`, and adds GitHub SSH keys.
+Changes device hostname, regenerates system identity, writes `/etc/device-id`.
 
-### 🔐 `sjsujetsontool setup-ssh <github_user>`
-
-Fetches the GitHub user's public SSH keys and adds them to `~/.ssh/authorized_keys` for passwordless SSH login.
 
 ### 📁 `sjsujetsontool mount-nfs <host> <remote_path> <mount_point>`
 
@@ -340,7 +337,7 @@ Stops the running Docker container started by previous commands.
 You're now equipped to:
 
 * Run AI models (LLaMA, Mistral, DeepSeek, etc.)
-* Build and test FastAPI/LLM applications
+* Build and test LLM applications
 * Access Jetson remotely with SSH or VS Code
 * Run real-time cyber/AI experiments on the edge!
 

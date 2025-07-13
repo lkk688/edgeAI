@@ -12,7 +12,11 @@ from gradio.themes.soft import Soft  # Explicit and clean
 
 
 # Import our modularized system monitoring utilities
-from utils import system_monitor
+# Import system monitoring utilities from local directory
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import system_monitor # pylint: disable=import-error
 
 # Settings
 BACKENDS = ["ollama", "llama.cpp"]

@@ -1,0 +1,49 @@
+# Base requirements from original requirements.txt
+numpy
+opencv-python
+matplotlib
+torch
+torchvision
+torchaudio
+transformers
+langchain
+sentence-transformers
+scikit-learn
+pandas
+accelerate
+pyyaml
+ipywidgets
+jupyterlab
+pyttsx3
+SpeechRecognition
+
+# Additional requirements for MCP Gradio Client
+gradio>=4.0.0
+requests
+mcp>=1.0.0
+gradio-client
+
+# Networking and cybersecurity dependencies
+requests>=2.31.0
+scapy>=2.5.0  # For advanced packet manipulation (optional)
+urllib3>=2.0.0
+
+# Optional dependencies for enhanced functionality
+# Uncomment as needed:
+# opencv-python>=4.8.0
+# matplotlib>=3.7.0
+# torch>=2.0.0
+# torchvision>=0.15.0
+# torchaudio>=2.0.0
+# transformers>=4.30.0
+# langchain>=0.0.200
+# sentence-transformers>=2.2.0
+# scikit-learn>=1.3.0
+# accelerate>=0.20.0
+# pyttsx3>=2.90
+# SpeechRecognition>=3.10.0
+
+# System tools (install via package manager)
+# Ubuntu/Debian: sudo apt install nmap tcpdump wireshark-common dnsutils iputils-ping traceroute
+# macOS: brew install nmap tcpdump wireshark
+# Note: Some tools require root privileges
