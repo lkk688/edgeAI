@@ -697,53 +697,6 @@ if __name__ == "__main__":
     print(json.dumps(devices, indent=2))
 ```
 
-### 🎯 Lab Deliverables
-
-1. **Network Analysis Report**:
-   - Packet capture analysis (tcpdump output)
-   - Layer-by-layer protocol inspection
-   - Network topology diagram
-
-2. **Performance Benchmark Results**:
-   - iperf3 bandwidth measurements
-   - Latency and jitter analysis
-   - Network optimization recommendations
-
-3. **Security Assessment**:
-   - Port scan results
-   - Firewall configuration
-   - Vulnerability assessment report
-
-4. **Wireless Network Analysis**:
-   - Wi-Fi scanner output
-   - Bluetooth device discovery
-   - Signal strength measurements
-
-5. **Custom Network Tools**:
-   - Working Python scripts
-   - Network monitoring data
-   - Performance graphs (optional)
-
-### 🏆 Bonus Challenges
-
-1. **Network Automation**: Create a script that automatically configures network settings
-2. **Custom Protocol**: Implement a simple client-server application
-3. **Network Visualization**: Create a real-time network traffic visualizer
-4. **IoT Integration**: Connect Jetson to IoT devices via different protocols
-5. **Network Security**: Implement a simple intrusion detection system
-
-### 📊 Lab Assessment Criteria
-
-| Criteria | Weight | Description |
-|----------|--------|-------------|
-| **Technical Accuracy** | 30% | Correct use of networking tools and commands |
-| **Analysis Quality** | 25% | Depth of network protocol understanding |
-| **Performance Testing** | 20% | Comprehensive benchmarking and optimization |
-| **Security Implementation** | 15% | Proper security configuration and assessment |
-| **Documentation** | 10% | Clear reporting and code documentation |
-
----
-
 ## 📚 Summary and Next Steps
 
 ### 🎯 Key Takeaways
