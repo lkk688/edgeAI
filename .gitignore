@@ -160,4 +160,5 @@ cython_debug/
 #.idea/
 models/*
 */my_*
+*/*/my_*
 my_*

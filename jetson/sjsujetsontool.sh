@@ -110,6 +110,7 @@ show_help() {
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
   echo "  list              - Show all available commands"
   echo "  stop              - Stop container"
+  echo "  delete            - Delete container without saving"
   echo "  help              - Show this help message"
   echo "  version           - Show script version and image version"
   echo "  publish [--tag tag] - Push local image to Docker Hub"
@@ -166,6 +167,9 @@ show_list() {
   echo
   echo "  stop         → Stop container"
   echo "     ▶ sjsujetsontool stop"
+  echo
+  echo "  delete       → Delete container without saving"
+  echo "     ▶ sjsujetsontool delete"
 }
 
 check_service() {
@@ -417,6 +421,12 @@ case "$1" in
   stop)
     echo "🛑 Stopping container..."
     docker stop $CONTAINER_NAME
+    ;;
+  delete)
+    echo "🗑️ Deleting container without saving..."
+    docker stop $CONTAINER_NAME 2>/dev/null || true
+    docker rm $CONTAINER_NAME 2>/dev/null || true
+    echo "✅ Container '$CONTAINER_NAME' deleted."
     ;;
   version)
     echo "🧾 sjsujetsontool Script Version: $SCRIPT_VERSION"

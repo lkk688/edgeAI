@@ -325,6 +325,553 @@ Students can simply SSH into their assigned Jetson device and begin testing func
 ✅ Access Jetson remotely via `.local` hostname or static IP.
 ✅ Custom designed `sjsujetsontool` to update, launch shell/JupyterLab, run Python scripts, llm models, and monitor system.
 
+
+## 🔌 Jetson Orin Nano Hardware Deep Dive
+
+### 🏗️ System-on-Module (SOM) Architecture
+
+The Jetson Orin Nano consists of two main components:
+1. **Jetson Orin Nano Module** - The compute module containing CPU, GPU, memory
+2. **Developer Kit Carrier Board** - Provides I/O, power, and expansion interfaces
+
+#### Module Specifications:
+```
+┌─────────────────────────────────────────────────────────┐
+│                 Jetson Orin Nano Module                │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐ │
+│  │   6-core    │  │   512-core   │  │    8GB LPDDR5   │ │
+│  │ Cortex-A78AE│  │ Ampere GPU   │  │   102 GB/s BW   │ │
+│  │  @ 1.7GHz   │  │ 16 Tensor    │  │                 │ │
+│  │             │  │    Cores     │  │                 │ │
+│  └─────────────┘  └──────────────┘  └─────────────────┘ │
+│                                                         │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │              Tegra Orin SoC                         │ │
+│  │  • Video Encoders: 2x 4K30 H.264/H.265             │ │
+│  │  • Video Decoders: 2x 4K60 H.264/H.265             │ │
+│  │  • ISP: 2x 12MP cameras                             │ │
+│  │  • PCIe: 3.0 x8 + 3.0 x4                           │ │
+│  │  • USB: 4x USB 3.2 Gen2                             │ │
+│  └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 🔌 Comprehensive Connector Analysis
+
+#### **Power System**
+- **DC Jack (19V)**: Primary power input, 5.5mm x 2.5mm barrel connector
+- **Power Modes**: 
+  - **5W Mode**: CPU @ 1.2GHz, GPU @ 510MHz (fanless operation)
+  - **15W Mode**: CPU @ 1.7GHz, GPU @ 918MHz (active cooling)
+  - **25W Mode**: Maximum performance (requires adequate cooling)
+
+```bash
+# Check current power mode
+sudo nvpmodel -q
+
+# Set to maximum performance
+sudo nvpmodel -m 0
+
+# Set to power-efficient mode
+sudo nvpmodel -m 1
+```
+
+#### **Display and Video**
+- **DisplayPort 1.2**: Supports up to 4K@60Hz with Multi-Stream Transport (MST)
+- **Video Encoding**: 2x 4K30 H.264/H.265 hardware encoders
+- **Video Decoding**: 2x 4K60 H.264/H.265 hardware decoders
+
+#### **Camera Interfaces (MIPI CSI-2)**
+```
+Camera Connector Pinout (22-pin, 0.5mm pitch):
+┌─────────────────────────────────────────┐
+│ Pin │ Signal    │ Pin │ Signal          │
+├─────┼───────────┼─────┼─────────────────┤
+│  1  │ GND       │ 12  │ CSI_D1_N        │
+│  2  │ CSI_CLK_P │ 13  │ GND             │
+│  3  │ CSI_CLK_N │ 14  │ CSI_D0_P        │
+│  4  │ GND       │ 15  │ CSI_D0_N        │
+│  5  │ CSI_D3_P  │ 16  │ GND             │
+│  6  │ CSI_D3_N  │ 17  │ CAM_I2C_SCL     │
+│  7  │ GND       │ 18  │ CAM_I2C_SDA     │
+│  8  │ CSI_D2_P  │ 19  │ GND             │
+│  9  │ CSI_D2_N  │ 20  │ CAM_PWDN        │
+│ 10  │ GND       │ 21  │ CAM_RST_N       │
+│ 11  │ CSI_D1_P  │ 22  │ +3.3V           │
+└─────┴───────────┴─────┴─────────────────┘
+```
+
+**Supported Camera Configurations:**
+- **CAM0**: 1x2 lane or 1x4 lane MIPI CSI-2
+- **CAM1**: 1x2 lane MIPI CSI-2
+- **Maximum Resolution**: 12MP per camera
+- **Compatible Cameras**: IMX219, IMX477, OV5693, and many others
+
+#### **Storage Expansion (M.2 Slots)**
+
+**M.2 Key-M Slot (2280 size) - PCIe 3.0 x4:**
+- **Use Cases**: High-performance NVMe SSDs
+- **Max Speed**: ~3.5 GB/s sequential read
+- **Recommended**: Samsung 980, WD SN570, Crucial P3
+
+**M.2 Key-M Slot (2230 size) - PCIe 3.0 x2:**
+- **Use Cases**: Compact SSDs, additional storage
+- **Max Speed**: ~1.7 GB/s sequential read
+
+**M.2 Key-E Slot (2230 size) - PCIe 3.0 x1 + USB 2.0:**
+- **Use Cases**: WiFi/Bluetooth modules, cellular modems
+- **Pre-populated**: Intel AX201 WiFi 6 + Bluetooth 5.2
+- **Alternatives**: Quectel EM05-G (4G LTE), Sierra Wireless modules
+
+### 🔧 40-Pin GPIO Expansion Header
+
+The 40-pin header provides extensive I/O capabilities compatible with Raspberry Pi HATs:
+
+```
+     3.3V  (1) (2)  5V
+ GPIO2/SDA  (3) (4)  5V
+ GPIO3/SCL  (5) (6)  GND
+    GPIO4  (7) (8)  GPIO14/TXD
+      GND  (9) (10) GPIO15/RXD
+   GPIO17 (11) (12) GPIO18/PWM
+   GPIO27 (13) (14) GND
+   GPIO22 (15) (16) GPIO23
+     3.3V (17) (18) GPIO24
+ GPIO10/MOSI(19) (20) GND
+ GPIO9/MISO (21) (22) GPIO25
+ GPIO11/SCLK(23) (24) GPIO8/CE0
+      GND (25) (26) GPIO7/CE1
+   ID_SD  (27) (28) ID_SC
+    GPIO5 (29) (30) GND
+    GPIO6 (31) (32) GPIO12/PWM
+   GPIO13 (33) (34) GND
+   GPIO19 (35) (36) GPIO16
+   GPIO26 (37) (38) GPIO20
+      GND (39) (40) GPIO21
+```
+
+#### **Available Interfaces:**
+- **I2C**: 2 channels (I2C-1: pins 3,5; I2C-0: pins 27,28)
+- **SPI**: 2 channels (SPI0: pins 19,21,23,24,26; SPI1: pins 12,35,38,40)
+- **UART**: 1 channel (pins 8,10)
+- **PWM**: 4 channels (pins 12,32,33,35)
+- **GPIO**: 26 digital I/O pins
+- **Power**: 3.3V, 5V, and multiple GND pins
+
+## 🚀 Hardware Extension Possibilities
+
+### 🎯 AI and Vision Extensions
+
+#### **1. Multi-Camera Arrays**
+```python
+# Example: Stereo vision setup
+import cv2
+import numpy as np
+
+# Initialize dual cameras
+cap_left = cv2.VideoCapture(0)   # CAM0
+cap_right = cv2.VideoCapture(1)  # CAM1
+
+# Configure for synchronized capture
+cap_left.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap_left.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap_right.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap_right.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
+# Stereo vision processing
+stereo = cv2.StereoBM_create(numDisparities=16, blockSize=15)
+```
+
+#### **2. LiDAR Integration**
+**Compatible LiDAR Sensors:**
+- **RPLIDAR A1/A2**: USB connection, 360° scanning
+- **Velodyne VLP-16**: Ethernet connection, 3D point clouds
+- **Ouster OS1**: High-resolution 3D LiDAR
+
+```python
+# Example: RPLIDAR integration
+import rplidar
+
+lidar = rplidar.RPLidar('/dev/ttyUSB0')
+for scan in lidar.iter_scans():
+    for point in scan:
+        angle, distance = point[1], point[2]
+        # Process LiDAR data
+```
+
+### 🤖 Robotics Extensions
+
+#### **1. Motor Control via GPIO**
+```python
+# Example: Servo control using PWM
+import Jetson.GPIO as GPIO
+import time
+
+# Setup PWM on pin 32
+servo_pin = 32
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(servo_pin, GPIO.OUT)
+pwm = GPIO.PWM(servo_pin, 50)  # 50Hz frequency
+pwm.start(0)
+
+def set_servo_angle(angle):
+    duty_cycle = 2 + (angle / 18)
+    pwm.ChangeDutyCycle(duty_cycle)
+    time.sleep(0.5)
+    pwm.ChangeDutyCycle(0)
+
+# Move servo to 90 degrees
+set_servo_angle(90)
+```
+
+#### **2. CAN Bus Communication**
+**Hardware**: MCP2515 CAN controller via SPI
+```python
+# Example: CAN bus setup
+import can
+
+# Configure CAN interface
+bus = can.interface.Bus(channel='can0', bustype='socketcan')
+
+# Send CAN message
+message = can.Message(arbitration_id=0x123, data=[0x11, 0x22, 0x33])
+bus.send(message)
+
+# Receive CAN messages
+for message in bus:
+    print(f"ID: {message.arbitration_id:x}, Data: {message.data}")
+```
+
+### 🌐 Connectivity Extensions
+
+#### **1. 4G/5G Cellular Modules**
+**Recommended Modules:**
+- **Quectel EM05-G**: 4G LTE Cat 4
+- **Quectel RM500Q-GL**: 5G Sub-6GHz
+- **Sierra Wireless EM9191**: 5G mmWave
+
+```bash
+# Configure cellular connection
+sudo nmcli connection add type gsm ifname '*' con-name cellular apn internet
+sudo nmcli connection up cellular
+```
+
+#### **2. LoRaWAN Integration**
+```python
+# Example: LoRaWAN sensor node
+import serial
+import time
+
+# RAK3172 LoRaWAN module via UART
+lora = serial.Serial('/dev/ttyTHS0', 115200)
+
+def send_lora_data(data):
+    command = f"AT+SEND=1:{data.hex()}\r\n"
+    lora.write(command.encode())
+    response = lora.readline().decode()
+    return response
+
+# Send sensor data
+sensor_data = b"\x01\x23\x45\x67"  # Example payload
+response = send_lora_data(sensor_data)
+print(f"LoRa response: {response}")
+```
+
+### ⚡ Power and Environmental Extensions
+
+#### **1. UPS and Battery Management**
+```python
+# Example: Battery monitoring via I2C
+import smbus
+import time
+
+bus = smbus.SMBus(1)  # I2C bus 1
+battery_addr = 0x36   # MAX17048 fuel gauge
+
+def read_battery_voltage():
+    # Read voltage register
+    data = bus.read_word_data(battery_addr, 0x02)
+    voltage = ((data & 0xFF) << 8) | (data >> 8)
+    return voltage * 78.125 / 1000000  # Convert to volts
+
+def read_battery_soc():
+    # Read state of charge
+    data = bus.read_word_data(battery_addr, 0x04)
+    soc = ((data & 0xFF) << 8) | (data >> 8)
+    return soc / 256  # Convert to percentage
+
+print(f"Battery: {read_battery_voltage():.2f}V, {read_battery_soc():.1f}%")
+```
+
+#### **2. Environmental Sensors**
+```python
+# Example: BME280 sensor (temperature, humidity, pressure)
+import board
+import adafruit_bme280
+
+i2c = board.I2C()
+bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
+
+while True:
+    print(f"Temperature: {bme280.temperature:.1f}°C")
+    print(f"Humidity: {bme280.relative_humidity:.1f}%")
+    print(f"Pressure: {bme280.pressure:.1f} hPa")
+    time.sleep(1)
+```
+
+### 🔧 Development and Debugging Extensions
+
+#### **1. JTAG Debugging**
+**Hardware**: Segger J-Link or similar JTAG debugger
+- Connect to 12-pin debug header
+- Enable kernel debugging and bootloader analysis
+- Real-time system profiling
+
+#### **2. Logic Analyzer Integration**
+```python
+# Example: Protocol analysis with Saleae Logic
+import saleae
+
+# Connect to Logic analyzer
+s = saleae.Saleae()
+s.set_active_channels([0, 1, 2, 3])  # Monitor I2C, SPI signals
+s.capture_to_file('/tmp/capture.logicdata')
+```
+
+### 📊 Performance Monitoring Extensions
+
+#### **1. Real-time System Monitoring**
+```python
+# Advanced system monitoring
+import psutil
+import subprocess
+import json
+
+def get_jetson_stats():
+    stats = {}
+    
+    # GPU utilization
+    gpu_stats = subprocess.check_output(['tegrastats', '--interval', '100']).decode()
+    
+    # CPU usage
+    stats['cpu_percent'] = psutil.cpu_percent(interval=1)
+    stats['cpu_freq'] = psutil.cpu_freq().current
+    
+    # Memory usage
+    memory = psutil.virtual_memory()
+    stats['memory_percent'] = memory.percent
+    stats['memory_available'] = memory.available // (1024**2)  # MB
+    
+    # Temperature
+    temps = psutil.sensors_temperatures()
+    if 'thermal-fan-est' in temps:
+        stats['temperature'] = temps['thermal-fan-est'][0].current
+    
+    return stats
+
+# Monitor system continuously
+while True:
+    stats = get_jetson_stats()
+    print(json.dumps(stats, indent=2))
+    time.sleep(5)
+```
+
+## 🎓 Hands-on Lab: Jetson Hardware Exploration
+
+### **Lab Objectives:**
+1. Query and understand Jetson hardware capabilities
+2. Test GPIO, I2C, and camera interfaces
+3. Monitor system performance and power consumption
+4. Implement a simple CUDA application
+
+### **Lab Setup:**
+```bash
+# Install required packages
+sudo apt update
+sudo apt install -y python3-pip i2c-tools v4l-utils
+pip3 install Jetson.GPIO opencv-python numpy matplotlib
+
+# Enable I2C and SPI
+sudo usermod -a -G i2c $USER
+sudo usermod -a -G spi $USER
+```
+
+### **Exercise 1: Hardware Discovery**
+```python
+#!/usr/bin/env python3
+# hardware_discovery.py
+
+import subprocess
+import json
+
+def get_jetson_info():
+    info = {}
+    
+    # Get CUDA device info
+    try:
+        result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,driver_version', 
+                               '--format=csv,noheader,nounits'], 
+                               capture_output=True, text=True)
+        gpu_info = result.stdout.strip().split(', ')
+        info['gpu_name'] = gpu_info[0]
+        info['gpu_memory'] = f"{gpu_info[1]} MB"
+        info['driver_version'] = gpu_info[2]
+    except:
+        info['gpu'] = "CUDA not available"
+    
+    # Get CPU info
+    with open('/proc/cpuinfo', 'r') as f:
+        cpu_lines = f.readlines()
+        for line in cpu_lines:
+            if 'model name' in line:
+                info['cpu'] = line.split(':')[1].strip()
+                break
+    
+    # Get memory info
+    with open('/proc/meminfo', 'r') as f:
+        for line in f:
+            if 'MemTotal' in line:
+                mem_kb = int(line.split()[1])
+                info['memory_total'] = f"{mem_kb // 1024} MB"
+                break
+    
+    return info
+
+if __name__ == "__main__":
+    info = get_jetson_info()
+    print(json.dumps(info, indent=2))
+```
+
+### **Exercise 2: GPIO LED Control**
+```python
+#!/usr/bin/env python3
+# gpio_led_test.py
+
+import Jetson.GPIO as GPIO
+import time
+
+# Setup
+led_pin = 18  # GPIO18 (pin 12)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(led_pin, GPIO.OUT)
+
+try:
+    print("Blinking LED on GPIO18...")
+    for i in range(10):
+        GPIO.output(led_pin, GPIO.HIGH)
+        time.sleep(0.5)
+        GPIO.output(led_pin, GPIO.LOW)
+        time.sleep(0.5)
+        print(f"Blink {i+1}/10")
+finally:
+    GPIO.cleanup()
+    print("GPIO cleanup complete")
+```
+
+### **Exercise 3: Camera Test**
+```python
+#!/usr/bin/env python3
+# camera_test.py
+
+import cv2
+import numpy as np
+
+def test_camera():
+    # Try to open camera
+    cap = cv2.VideoCapture(0)
+    
+    if not cap.isOpened():
+        print("Error: Could not open camera")
+        return
+    
+    # Set resolution
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    
+    print("Camera opened successfully")
+    print(f"Resolution: {cap.get(cv2.CAP_PROP_FRAME_WIDTH)}x{cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
+    print(f"FPS: {cap.get(cv2.CAP_PROP_FPS)}")
+    
+    # Capture a few frames
+    for i in range(5):
+        ret, frame = cap.read()
+        if ret:
+            cv2.imwrite(f'test_frame_{i}.jpg', frame)
+            print(f"Captured frame {i+1}: {frame.shape}")
+        else:
+            print(f"Failed to capture frame {i+1}")
+    
+    cap.release()
+    print("Camera test complete")
+
+if __name__ == "__main__":
+    test_camera()
+```
+
+### **Exercise 4: Simple CUDA Vector Addition**
+```python
+#!/usr/bin/env python3
+# cuda_vector_add.py
+
+import numpy as np
+import cupy as cp
+import time
+
+def vector_add_cpu(a, b):
+    """CPU vector addition"""
+    return a + b
+
+def vector_add_gpu(a, b):
+    """GPU vector addition using CuPy"""
+    a_gpu = cp.asarray(a)
+    b_gpu = cp.asarray(b)
+    c_gpu = a_gpu + b_gpu
+    return cp.asnumpy(c_gpu)
+
+def benchmark_vector_add():
+    # Create test vectors
+    n = 1000000
+    a = np.random.random(n).astype(np.float32)
+    b = np.random.random(n).astype(np.float32)
+    
+    print(f"Vector size: {n:,} elements")
+    
+    # CPU benchmark
+    start_time = time.time()
+    c_cpu = vector_add_cpu(a, b)
+    cpu_time = time.time() - start_time
+    print(f"CPU time: {cpu_time:.4f} seconds")
+    
+    # GPU benchmark
+    start_time = time.time()
+    c_gpu = vector_add_gpu(a, b)
+    gpu_time = time.time() - start_time
+    print(f"GPU time: {gpu_time:.4f} seconds")
+    
+    # Verify results
+    if np.allclose(c_cpu, c_gpu):
+        print("✓ Results match!")
+        speedup = cpu_time / gpu_time
+        print(f"Speedup: {speedup:.2f}x")
+    else:
+        print("✗ Results don't match!")
+
+if __name__ == "__main__":
+    try:
+        benchmark_vector_add()
+    except ImportError:
+        print("CuPy not installed. Install with: pip3 install cupy")
+    except Exception as e:
+        print(f"Error: {e}")
+```
+
+### **Lab Deliverables:**
+1. **Hardware Report**: Document your Jetson's specifications and capabilities
+2. **GPIO Demo**: Working LED blink program with timing measurements
+3. **Camera Validation**: Captured test images with resolution verification
+4. **CUDA Performance**: Vector addition benchmark results and analysis
+5. **Extension Proposal**: Design for one hardware extension project
+
 ## 🔗 Resources
 
 * [NVIDIA Jetson Developer Site](https://developer.nvidia.com/embedded-computing)
@@ -332,5 +879,10 @@ Students can simply SSH into their assigned Jetson device and begin testing func
 * [Jetson Orin Nano Datasheet](https://developer.nvidia.com/jetson-orin)
 * [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit)
 * [TensorRT Documentation](https://docs.nvidia.com/deeplearning/tensorrt/)
+* [Jetson GPIO Library](https://github.com/NVIDIA/jetson-gpio)
+* [NVIDIA Nsight Systems](https://developer.nvidia.com/nsight-systems)
+* [Jetson Community Projects](https://developer.nvidia.com/embedded/community/jetson-projects)
+* [JetPack SDK Components](https://docs.nvidia.com/jetpack/)
+* [Jetson Hardware Design Guidelines](https://developer.nvidia.com/embedded/develop/hardware)
 
 

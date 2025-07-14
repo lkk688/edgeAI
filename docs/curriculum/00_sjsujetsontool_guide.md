@@ -38,6 +38,11 @@ ssh sjsujetson@sjsujetson-01.local
 
 > If this doesn't work, make sure `avahi-daemon` is running on Jetson and that your network supports mDNS.
 
+If you want to enable X11-forwarding, you can use 
+```bash
+% ssh -X sjsujetson@sjsujetson-01.local
+sjsujetson@sjsujetson-01:~$ xclock #test x11
+```
 ---
 
 ## ⚙️ Installing `sjsujetsontool`
