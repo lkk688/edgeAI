@@ -143,7 +143,7 @@ sjsujetson@sjsujetson-01:~$ tegrastats
 07-14-2025 10:29:36 RAM 2147/7620MB (lfb 2x4MB) SWAP 1476/3810MB (cached 1MB) CPU [0%@729,0%@729,0%@729,0%@729,0%@729,0%@729] GR3D_FREQ 0% cpu@47.687C soc2@46.718C soc0@47.468C gpu@48.625C tj@48.625C soc1@48.25C VDD_IN 4556mW/4556mW VDD_CPU_GPU_CV 483mW/483mW VDD_SOC 1451mW/1451mW
 ```
 
-### Step 5: Create a Custom Script
+<!-- ### Step 5: Create a Custom Script
 
 ```bash
 mkdir -p ~/jetson_labs
@@ -151,9 +151,9 @@ cd ~/jetson_labs
 echo -e "#!/bin/bash\necho Welcome to Jetson L4T!\nuname -a\ntegrastats --interval 1000" > check_system.sh
 chmod +x check_system.sh
 ./check_system.sh
-```
+``` -->
 
-### Step 6: Modify System Settings (SAFE)
+<!-- ### Step 6: Modify System Settings (SAFE)
 
 ```bash
 # Change hostname (do not reboot in lab)
@@ -161,7 +161,7 @@ echo "jetson-labtest" | sudo tee /etc/hostname
 # Create a new non-sudo user for labs
 sudo useradd -m labstudent
 sudo passwd labstudent
-```
+``` -->
 
 ---
 
@@ -1675,14 +1675,4 @@ This comprehensive tutorial has covered:
 - Understanding system architecture is crucial for performance optimization
 - Security hardening is essential for production deployments
 - Practical experience with hardware interfaces enables IoT integration
-
-**Future Learning Paths:**
-- Advanced kernel programming and driver development
-- Real-time systems and deterministic computing
-- Container orchestration and edge deployment
-- Custom Linux distribution creation
-- Performance tuning and optimization techniques
-
-This foundation prepares you for advanced topics in edge AI, embedded systems, and high-performance computing on Jetson platforms.
-
 
