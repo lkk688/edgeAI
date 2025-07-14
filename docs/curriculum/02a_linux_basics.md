@@ -71,7 +71,8 @@ L4T (Linux for Tegra) is NVIDIA’s embedded Linux distribution tailored for Jet
 ### 🔍 L4T Version Check:
 
 ```bash
-head -n 1 /etc/nv_tegra_release
+sjsujetson@sjsujetson-01:~$ head -n 1 /etc/nv_tegra_release
+# R36 (release), REVISION: 4.3, GCID: 38968081, BOARD: generic, EABI: aarch64, DATE: Wed Jan  8 01:49:37 UTC 2025
 ```
 
 This shows JetPack version and internal driver details.
@@ -111,25 +112,35 @@ ls -lh /dev /proc /sys /boot /media
 
 ```bash
 top
-htop  # If not installed: sudo apt install htop
+htop  # Already installed, If not installed: sudo apt install htop
 ps aux | grep python
 ```
 
 ### Step 3: Examine Kernel and Drivers
 
 ```bash
-uname -r
-lsmod | grep nvgpu
-cat /proc/device-tree/model
+sjsujetson@sjsujetson-01:~$ uname -r
+5.15.148-tegra
+sjsujetson@sjsujetson-01:~$ lsmod | grep nvgpu
+nvgpu                2654208  23
+host1x                180224  6 host1x_nvhost,host1x_fence,nvgpu,tegra_drm,nvidia_drm,nvidia_modeset
+mc_utils               16384  3 nvidia,nvgpu,tegra_camera_platform
+nvmap                 204800  79 nvgpu
+sjsujetson@sjsujetson-01:~$ cat /proc/device-tree/model
+NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
 ```
 
 ### Step 4: Explore L4T Features
 
 ```bash
-head -n 1 /etc/nv_tegra_release
-ls /usr/lib/aarch64-linux-gnu/tegra
-nvpmodel -q
-tegrastats
+sjsujetson@sjsujetson-01:~$ head -n 1 /etc/nv_tegra_release
+# R36 (release), REVISION: 4.3, GCID: 38968081, BOARD: generic, EABI: aarch64, DATE: Wed Jan  8 01:49:37 UTC 2025
+sjsujetson@sjsujetson-01:~$ ls /usr/lib/aarch64-linux-gnu/tegra
+sjsujetson@sjsujetson-01:~$ nvpmodel -q
+NV Power Mode: MAXN_SUPER
+2
+sjsujetson@sjsujetson-01:~$ tegrastats
+07-14-2025 10:29:36 RAM 2147/7620MB (lfb 2x4MB) SWAP 1476/3810MB (cached 1MB) CPU [0%@729,0%@729,0%@729,0%@729,0%@729,0%@729] GR3D_FREQ 0% cpu@47.687C soc2@46.718C soc0@47.468C gpu@48.625C tj@48.625C soc1@48.25C VDD_IN 4556mW/4556mW VDD_CPU_GPU_CV 483mW/483mW VDD_SOC 1451mW/1451mW
 ```
 
 ### Step 5: Create a Custom Script
