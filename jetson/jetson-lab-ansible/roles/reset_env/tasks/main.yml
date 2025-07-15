@@ -1,8 +1,0 @@
-- name: Copy cleanup script
-  copy:
-    src: student_env_cleanup.sh
-    dest: /home/{{ ansible_user }}/cleanup.sh
-    mode: '0755'
-
-- name: Run environment cleanup
-  shell: bash /home/{{ ansible_user }}/cleanup.sh

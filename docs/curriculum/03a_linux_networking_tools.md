@@ -315,7 +315,7 @@ sudo iptables -L -n -v
 sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 ```
 
-### 🛠️ Lab Setup
+<!-- ### 🛠️ Lab Setup
 
 ```bash
 # Install required tools
@@ -326,28 +326,30 @@ sudo apt install -y tcpdump wireshark nmap mtr-tiny iperf3 \
 
 # Add user to wireshark group
 sudo usermod -a -G wireshark $USER
-```
+``` -->
 
-### 📋 Exercise 1: Network Layer Analysis
+### 📋 Network Layer Analysis
 
 #### Task 1.1: Packet Capture and Analysis
 ```bash
-# Terminal 1: Start packet capture
-sudo tcpdump -i any -w network_capture.pcap
+# Terminal 1 (inside the container): Start packet capture
+root@sjsujetson-01:/Developer# tcpdump -i any -w network_capture.pcap
+tcpdump: data link type LINUX_SLL2
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
 
-# Terminal 2: Generate traffic
-ping -c 10 google.com
-curl -I https://www.google.com
+# Terminal 2 (inside the container): Generate traffic
+root@sjsujetson-01:/workspace# ping -c 10 google.com
+root@sjsujetson-01:/workspace# curl -I https://www.google.com
 
 # Stop capture (Ctrl+C in Terminal 1)
 # Analyze captured packets
-tcpdump -r network_capture.pcap -n
+root@sjsujetson-01:/Developer# tcpdump -r network_capture.pcap -n
 ```
 
 #### Task 1.2: Layer-by-Layer Inspection
 ```bash
-# Physical layer - Wi-Fi signal
-iw dev wlan0 scan | grep -A 5 -B 5 "signal:"
+# Physical layer - Wi-Fi signal (not permitted in Jetson)
+# iw dev wlP1p1s0 scan | grep -A 5 -B 5 "signal:"
 
 # Data link layer - MAC addresses
 ip link show
@@ -355,11 +357,11 @@ arp -a
 
 # Network layer - IP routing
 ip route show
-traceroute 8.8.8.8
+traceroute 8.8.8.8 # apt install traceroute
 
 # Transport layer - TCP/UDP ports
 ss -tuln
-lsof -i
+lsof -i #run `sudo lsof -i ` in host shows more data
 
 # Application layer - HTTP headers
 curl -v http://httpbin.org/get
