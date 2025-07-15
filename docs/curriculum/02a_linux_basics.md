@@ -210,15 +210,11 @@ The Linux kernel is a monolithic kernel with modular design:
 
 **1. Process Scheduler (CFS - Completely Fair Scheduler)**
 ```bash
-# View scheduler information
-cat /proc/sched_debug
-cat /sys/kernel/debug/sched_features
-
 # Check process scheduling policy
 chrt -p $$
 
 # Set real-time priority (requires sudo)
-sudo chrt -f -p 50 $$
+#sudo chrt -f -p 50 $$
 ```
 
 **2. Memory Management Unit (MMU)**
@@ -251,43 +247,59 @@ cat /proc/net/dev
 cat /proc/net/netstat
 
 # Socket information
-ss -tuln  # TCP/UDP listening sockets
+ss -tuln  # TCP/UDP listening sockets, need apt install iproute2
 cat /proc/net/tcp
 ```
 
 ### 🔧 System Calls and Kernel Interface
 
-System calls are the primary interface between user space and kernel space:
+#### 🧠 What Are System Calls?
 
-#### Common System Call Categories:
+A **system call** is how a user-space program requests a service from the operating system's **kernel** (the core part of the OS with full control over hardware).
 
+Think of it like this:
+- **User space** = your app or code
+- **Kernel space** = the powerful, protected core of the OS
+- **System call** = a formal way to knock on the kernel’s door and ask it to do something only it can do (like read a file, allocate memory, or send data).
+
+
+#### 🧰 Common System Call Categories (with Use Cases)
+
+| Category              | System Calls                              | What They Do                                                                 |
+|-----------------------|-------------------------------------------|------------------------------------------------------------------------------|
+| **Process Control**   | `fork()`, `exec()`, `wait()`, `exit()`     | Manage how processes are created, replaced, and terminated.                 |
+| **File Operations**   | `open()`, `read()`, `write()`, `close()`   | Interact with files – similar to opening, reading from, and saving documents. |
+| **Memory Management** | `mmap()`, `brk()`, `munmap()`              | Request and manage memory for applications.                                 |
+| **IPC**               | `pipe()`, `socket()`, `shmget()`           | Allow processes to talk to each other or share memory.                      |
+
+📦 **Example**: When you run a C program that reads a file:
 ```c
-// Process control
-fork()    // Create new process
-exec()    // Execute program
-wait()    // Wait for child process
-exit()    // Terminate process
-
-// File operations
-open()    // Open file
-read()    // Read from file
-write()   // Write to file
-close()   // Close file
-
-// Memory management
-mmap()    // Map memory
-munmap()  // Unmap memory
-brk()     // Change data segment size
-
-// Inter-process communication
-pipe()    // Create pipe
-socket()  // Create socket
-shmget()  // Get shared memory
+int fd = open("data.txt", O_RDONLY); // file open
+read(fd, buffer, 100);               // file read
+close(fd);                           // file close
 ```
+This actually causes the kernel to get involved three times!
+
+User App
+   |
+   |  open("file.txt")
+   |
+======== System Call Boundary ========
+   |
+   |---> Kernel handles VFS (Virtual File System)
+              |
+              |---> Filesystem driver
+                        |
+                        |---> Disk I/O
+
 
 #### Tracing System Calls:
+`strace` lets you watch how programs talk to the kernel.
 
 ```bash
+# Install strace
+apt install strace
+
 # Trace system calls of a command
 strace ls -la
 
@@ -337,15 +349,30 @@ L4T (Linux for Tegra) is NVIDIA's comprehensive embedded Linux solution:
 
 ```bash
 # Check bootloader information
-sudo cat /proc/device-tree/chosen/bootargs
-sudo dmesg | grep -i boot
+sjsujetson@sjsujetson-01:~$ cat /proc
+root=PARTUUID=2eea7ca9-2b58-4100-80a1-ba1b97bdc52b rw rootwait rootfstype=ext4 mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb video=efifb:off console=tty0 bl_prof_dataptr=2031616@0x271E10000 bl_prof_ro_ptr=65536@0x271E00000
 
 # View boot configuration
-ls -la /boot/extlinux/
-cat /boot/extlinux/extlinux.conf
+sjsujetson@sjsujetson-01:~$ ls -la /boot/extlinux/
+total 24
+drwxr-xr-x 2 root root  4096 Jun 22 14:24 .
+drwxr-xr-x 5 root root 12288 Jun 22 15:19 ..
+-rw-r--r-- 1 root root   938 Jun 22 14:24 extlinux.conf
+-rw-r--r-- 1 root root   727 Apr 21 10:59 extlinux.conf.nv-update-extlinux-backup
+
+sjsujetson@sjsujetson-01:~$ cat /boot/extlinux/extlinux.conf
+TIMEOUT 30
+DEFAULT primary
+
+MENU TITLE L4T boot options
+
+LABEL primary
+      MENU LABEL primary kernel
+      LINUX /boot/Image
+      INITRD /boot/initrd
+      APPEND ${cbootargs} root=PARTUUID=2eea7ca9-2b58-4100-80a1-ba1b97bdc52b rw rootwait rootfstype=ext4 mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb video=efifb:off console=tty0
 
 # Check boot partition
-sudo fdisk -l | grep boot
 lsblk -f
 ```
 
@@ -359,44 +386,61 @@ lsblk -f
 
 ```bash
 # View device tree information
-ls /proc/device-tree/
-cat /proc/device-tree/model
-cat /proc/device-tree/compatible
+sjsujetson@sjsujetson-01:~$ ls /proc/device-tree/
+'#address-cells'       dsu-pmu2             regulator-vdd-1v1-hub    soc1-throttle-alert
+ aliases               firmware             regulator-vdd-1v8-ao     soc2-throttle-alert
+ bpmp                  gpio-keys            regulator-vdd-1v8-hs     soctherm-oc-event
+ bus@0                 gpu-throttle-alert   regulator-vdd-1v8-sys    sound
+ camera-ivc-channels   hot-surface-alert    regulator-vdd-3v3-ao     sram@40000000
+ chosen                interrupt-parent     regulator-vdd-3v3-pcie   __symbols__
+ compatible            mgbe-vm-irq-config   regulator-vdd-3v3-sd     tegra-capture-vi
+ cpus                  model                regulator-vdd-3v3-sys    tegra-carveouts
+ cpu-throttle-alert    name                 regulator-vdd-5v0-sys    tegra-hsp@b950000
+ cv0-throttle-alert    nvpmodel             reserved-memory          tegra_mce@e100000
+ cv1-throttle-alert    opp-table-cluster0   rtcpu@bc00000            tegra-rtcpu-trace
+ cv2-throttle-alert    opp-table-cluster1   scf-pmu                  thermal-zones
+ dce@d800000           opp-table-cluster2   serial                   timer
+ display@13800000      pmu                  serial-number            tsc_sig_gen@c6a0000
+ dsu-pmu0              psci                '#size-cells'             vm-irq-config
+ dsu-pmu1              pwm-fan              soc0-throttle-alert
 
-# Check specific hardware nodes
-find /proc/device-tree -name "*gpu*" -type d
-find /proc/device-tree -name "*camera*" -type d
+sjsujetson@sjsujetson-01:~$ cat /proc/device-tree/model
+NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
 
-# Decode device tree binary
-sudo dtc -I fs -O dts /proc/device-tree > current_dt.dts
-head -50 current_dt.dts
+sjsujetson@sjsujetson-01:~$ cat /proc/device-tree/compatible
+nvidia,p3768-0000+p3767-0005-supernvidia,p3767-0005nvidia,tegra234
+
 ```
 
 #### 3. **NVIDIA GPU Driver Architecture**
 
 ```bash
 # Check GPU driver version
-cat /proc/driver/nvidia/version
-nvidia-smi  # If available
+sjsujetson@sjsujetson-01:~$ cat /proc/driver/nvidia/version
+NVRM version: NVIDIA UNIX Open Kernel Module for aarch64  540.4.0  Release Build  (buildbrain@mobile-u64-6336-d8000)  Tue Jan  7 17:35:12 PST 2025
+GCC version:  collect2: error: ld returned 1 exit status
 
 # View GPU device information
-ls -la /dev/nvidia*
-cat /proc/driver/nvidia/gpus/*/information
+sjsujetson@sjsujetson-01:~$ ls -la /dev/nvidia*
+crw-rw-rw- 1 root root 195,   0 Dec 31  1969 /dev/nvidia0
+crw-rw-rw- 1 root root 195, 255 Dec 31  1969 /dev/nvidiactl
+crw-rw-rw- 1 root root 195, 254 Dec 31  1969 /dev/nvidia-modeset
 
-# Check GPU memory usage
-cat /proc/driver/nvidia/gpus/*/used_memory
-
-# CUDA device query
-/usr/local/cuda/samples/1_Utilities/deviceQuery/deviceQuery
 ```
 
 #### 4. **Tegra-Specific Drivers and Services**
 
 ```bash
 # List Tegra-specific kernel modules
-lsmod | grep tegra
-lsmod | grep nvgpu
-lsmod | grep nvhost
+sjsujetson@sjsujetson-01:~$ lsmod | grep tegra
+
+sjsujetson@sjsujetson-01:~$ lsmod | grep nvgpu
+nvgpu                2654208  23
+host1x                180224  6 host1x_nvhost,host1x_fence,nvgpu,tegra_drm,nvidia_drm,nvidia_modeset
+mc_utils               16384  3 nvidia,nvgpu,tegra_camera_platform
+nvmap                 204800  79 nvgpu
+
+sjsujetson@sjsujetson-01:~$ lsmod | grep nvhost
 
 # Check Tegra driver information
 modinfo tegra_xudc
@@ -408,155 +452,94 @@ ls -la /dev/nvhost*
 ```
 
 ### 🔌 Hardware Access and Driver Interface
+`/opt/nvidia/jetson-io/jetson-io.py` is a tool to configure 40-pin header from Nvidia.
 
 #### 1. **GPIO (General Purpose Input/Output)**
+GPIO (General Purpose Input/Output) pins allow the Jetson board to interface with external hardware such as LEDs, buttons, sensors, and relays. Each pin can be configured as either:
+    - Input – to read digital signals (e.g. button press)
+    - Output – to send digital signals (e.g. turn on an LED)
+
+On modern Jetson platforms, using libgpiod is generally better and more future-proof than using the older sysfs (/sys/class/gpio) GPIO interface.
+
 
 ```bash
-# List available GPIO chips
-ls /sys/class/gpio/
-cat /sys/kernel/debug/gpio
+# Install gpiod via sudo apt install gpiod (already installed)
+#Discover GPIO chips:
+sjsujetson@sjsujetson-01:~$ gpiodetect
+gpiochip0 [tegra234-gpio] (164 lines)
+gpiochip1 [tegra234-gpio-aon] (32 lines)
+#List lines on a chip:
+sjsujetson@sjsujetson-01:~$ gpioinfo gpiochip0
+gpiochip0 - 164 lines:
+	line   0:      "PA.00" "regulator-vdd-3v3-sd" output active-high [used]
+	line   1:      "PA.01"       unused   input  active-high
+    ....
+```
+gpiochip0 → 164 lines (main Tegra GPIO); gpiochip1 → 32 lines (AON = always-on GPIO, often used for wake, power buttons, etc.)
 
-# Export GPIO pin (example: pin 18)
-echo 18 | sudo tee /sys/class/gpio/export
-ls /sys/class/gpio/gpio18/
+Physical Pin 7 on the 40-pin header is connected to GPIO3_PBB.00. That corresponds to GPIO line 84 on gpiochip0 (according to NVIDIA’s Orin Nano mapping).
+```bash
+sjsujetson@sjsujetson-01:~$ gpioinfo gpiochip0 | grep -i 84
+	line  84:      "PN.00"       unused   input  active-high
+```
+tells us that:
+	•	GPIO line 84 maps to PN.00 (port N, pin 0)
+	•	It’s currently configured as an input
+	•	It is unused, so safe to control
 
-# Configure GPIO as output
-echo out | sudo tee /sys/class/gpio/gpio18/direction
-
-# Set GPIO value
-echo 1 | sudo tee /sys/class/gpio/gpio18/value
-echo 0 | sudo tee /sys/class/gpio/gpio18/value
-
-# Read GPIO value
-cat /sys/class/gpio/gpio18/value
-
-# Unexport GPIO
-echo 18 | sudo tee /sys/class/gpio/unexport
+```bash
+#Temporarily Set Line 84 to Output & Drive High:
+gpioset gpiochip0 84=1 #automatically requests the line as output, sets it HIGH, and releases it after execution.
+#To hold the output state (e.g., keep LED on), use the --mode=wait flag
+gpioset --mode=wait gpiochip0 84=1
 ```
 
-**Python GPIO Example:**
-```python
-#!/usr/bin/env python3
-import Jetson.GPIO as GPIO
-import time
+if use Python (with libgpiod): `sudo apt install python3-libgpiod`
 
-# Set GPIO mode
-GPIO.setmode(GPIO.BOARD)
-
-# Setup GPIO pin 18 as output
-GPIO.setup(18, GPIO.OUT)
-
-try:
-    while True:
-        GPIO.output(18, GPIO.HIGH)
-        time.sleep(1)
-        GPIO.output(18, GPIO.LOW)
-        time.sleep(1)
-except KeyboardInterrupt:
-    pass
-finally:
-    GPIO.cleanup()
-```
+`Jetson.GPIO` is another popular GPIO python library developed by Nvidia, but it uses sysfs (deprecated), which is deprecated in the Linux kernel since 4.8, and removed in Linux 5.10+.
 
 #### 2. **I2C (Inter-Integrated Circuit)**
 
 ```bash
 # List I2C buses
-ls /dev/i2c-*
-i2cdetect -l
+sjsujetson@sjsujetson-01:~$ ls /dev/i2c-*
+/dev/i2c-0  /dev/i2c-1  /dev/i2c-2  /dev/i2c-4  /dev/i2c-5  /dev/i2c-7  /dev/i2c-9
+
+sjsujetson@sjsujetson-01:~$ i2cdetect -l
+i2c-0	i2c       	3160000.i2c                     	I2C adapter
+i2c-1	i2c       	c240000.i2c                     	I2C adapter
+i2c-2	i2c       	3180000.i2c                     	I2C adapter
+i2c-4	i2c       	Tegra BPMP I2C adapter          	I2C adapter
+i2c-5	i2c       	31b0000.i2c                     	I2C adapter
+i2c-7	i2c       	c250000.i2c                     	I2C adapter
+i2c-9	i2c       	NVIDIA SOC i2c adapter 0        	I2C adapter
 
 # Scan I2C bus for devices (bus 1)
 i2cdetect -y 1
 
-# Read from I2C device (address 0x48)
-i2cget -y 1 0x48 0x00
-
-# Write to I2C device
-i2cset -y 1 0x48 0x00 0xFF
 ```
+You can use the `smbus2` library to use Python for I2C.
 
-**Python I2C Example:**
-```python
-#!/usr/bin/env python3
-import smbus
-import time
-
-# Create I2C bus object
-bus = smbus.SMBus(1)  # I2C bus 1
-
-# Device address
-device_addr = 0x48
-
-try:
-    # Read byte from register 0x00
-    data = bus.read_byte_data(device_addr, 0x00)
-    print(f"Read data: 0x{data:02X}")
-    
-    # Write byte to register 0x01
-    bus.write_byte_data(device_addr, 0x01, 0xFF)
-    print("Data written successfully")
-    
-except Exception as e:
-    print(f"I2C Error: {e}")
-finally:
-    bus.close()
-```
 
 #### 3. **SPI (Serial Peripheral Interface)**
 
 ```bash
 # Check SPI devices
-ls /dev/spidev*
+sjsujetson@sjsujetson-01:~$ ls /dev/spidev*
+/dev/spidev0.0  /dev/spidev0.1  /dev/spidev1.0  /dev/spidev1.1
 
-# SPI configuration in device tree
-cat /proc/device-tree/spi*/status
 ```
-
-**Python SPI Example:**
-```python
-#!/usr/bin/env python3
-import spidev
-import time
-
-# Create SPI object
-spi = spidev.SpiDev()
-spi.open(0, 0)  # Bus 0, Device 0
-
-# Configure SPI
-spi.max_speed_hz = 1000000  # 1 MHz
-spi.mode = 0
-
-try:
-    # Send data
-    data_to_send = [0x01, 0x02, 0x03, 0x04]
-    response = spi.xfer2(data_to_send)
-    print(f"Sent: {data_to_send}")
-    print(f"Received: {response}")
-    
-except Exception as e:
-    print(f"SPI Error: {e}")
-finally:
-    spi.close()
-```
+To read from an SPI device on your Jetson Orin Nano using Python, you typically use the spidev module, which provides access to the SPI bus via /dev/spidev*.
 
 #### 4. **PWM (Pulse Width Modulation)**
 
 ```bash
 # Check PWM chips
-ls /sys/class/pwm/
-
-# Export PWM channel 0
-echo 0 | sudo tee /sys/class/pwm/pwmchip0/export
-
-# Configure PWM
-echo 1000000 | sudo tee /sys/class/pwm/pwmchip0/pwm0/period    # 1ms period
-echo 500000 | sudo tee /sys/class/pwm/pwmchip0/pwm0/duty_cycle # 50% duty cycle
-echo 1 | sudo tee /sys/class/pwm/pwmchip0/pwm0/enable          # Enable PWM
-
-# Disable PWM
-echo 0 | sudo tee /sys/class/pwm/pwmchip0/pwm0/enable
-echo 0 | sudo tee /sys/class/pwm/pwmchip0/unexport
+sjsujetson@sjsujetson-01:~$ ls /sys/class/pwm/
+pwmchip0  pwmchip1  pwmchip2  pwmchip3  pwmchip4
 ```
+
+Controlling PWM (Pulse Width Modulation) on NVIDIA Jetson (e.g., Orin Nano, Xavier NX, Nano) in Python requires configuring the correct pins and using the Linux PWM sysfs interface or pwmchip character devices.
 
 ### 📹 Camera and Multimedia Subsystem
 
@@ -565,6 +548,7 @@ echo 0 | sudo tee /sys/class/pwm/pwmchip0/unexport
 ```bash
 # List video devices
 ls /dev/video*
+#sudo apt install v4l-utils
 v4l2-ctl --list-devices
 
 # Get camera capabilities
@@ -643,7 +627,9 @@ finally:
 
 ```bash
 # Check current power model
-nvpmodel -q
+sjsujetson@sjsujetson-01:~$ nvpmodel -q
+NV Power Mode: MAXN_SUPER
+2
 
 # List available power models
 nvpmodel -q --verbose
@@ -661,8 +647,9 @@ cat /etc/nvpmodel.conf
 
 ```bash
 # Check CPU frequency information
-cat /proc/cpuinfo | grep MHz
-lscpu | grep MHz
+sjsujetson@sjsujetson-01:~$ lscpu | grep MHz
+CPU max MHz:                        1728.0000
+CPU min MHz:                        115.2000
 
 # View CPU frequency scaling governors
 cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
@@ -689,70 +676,6 @@ sudo tegrastats --interval 1000
 # Check thermal zones
 cat /sys/class/thermal/thermal_zone*/type
 cat /sys/class/thermal/thermal_zone*/temp
-```
-
-**Python System Monitor Example:**
-```python
-#!/usr/bin/env python3
-import psutil
-import time
-import subprocess
-
-def get_gpu_temp():
-    """Get GPU temperature from thermal zone"""
-    try:
-        with open('/sys/class/thermal/thermal_zone1/temp', 'r') as f:
-            temp = int(f.read().strip()) / 1000.0
-        return temp
-    except:
-        return None
-
-def get_cpu_freq():
-    """Get current CPU frequencies"""
-    freqs = []
-    for i in range(psutil.cpu_count()):
-        try:
-            with open(f'/sys/devices/system/cpu/cpu{i}/cpufreq/scaling_cur_freq', 'r') as f:
-                freq = int(f.read().strip()) / 1000  # Convert to MHz
-                freqs.append(freq)
-        except:
-            freqs.append(0)
-    return freqs
-
-def monitor_system():
-    """Monitor system performance"""
-    print("System Performance Monitor")
-    print("=" * 50)
-    
-    while True:
-        try:
-            # CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1, percpu=True)
-            cpu_freqs = get_cpu_freq()
-            
-            # Memory usage
-            memory = psutil.virtual_memory()
-            
-            # GPU temperature
-            gpu_temp = get_gpu_temp()
-            
-            # Display information
-            print(f"\rCPU Usage: {[f'{p:5.1f}%' for p in cpu_percent]}")
-            print(f"CPU Freqs: {[f'{f:6.0f}' for f in cpu_freqs]} MHz")
-            print(f"Memory: {memory.percent:5.1f}% ({memory.used//1024//1024:,} MB / {memory.total//1024//1024:,} MB)")
-            if gpu_temp:
-                print(f"GPU Temp: {gpu_temp:5.1f}°C")
-            print("\033[4A", end='')  # Move cursor up 4 lines
-            
-            time.sleep(1)
-            
-        except KeyboardInterrupt:
-            print("\n" * 4)
-            print("Monitoring stopped.")
-            break
-
-if __name__ == "__main__":
-    monitor_system()
 ```
 
 ---
@@ -1005,674 +928,4 @@ sudo apt install unattended-upgrades
 sudo dpkg-reconfigure unattended-upgrades
 ```
 
----
-
-## 🧪 Comprehensive Lab: Linux System Mastery
-
-### Lab Objectives
-
-By completing this lab, you will:
-
-1. **Master System Architecture**: Understand kernel subsystems and hardware interfaces
-2. **Implement Driver Access**: Work with GPIO, I2C, SPI, and camera interfaces
-3. **Optimize Performance**: Configure power management and monitoring
-4. **Secure the System**: Implement security best practices
-5. **Debug and Monitor**: Use advanced troubleshooting techniques
-
-### Lab Setup
-
-```bash
-# Create lab directory
-mkdir -p ~/linux_mastery_lab
-cd ~/linux_mastery_lab
-
-# Install required packages
-sudo apt update
-sudo apt install -y htop iotop iftop strace tcpdump i2c-tools \
-    python3-pip python3-dev build-essential cmake git
-
-# Install Python packages
-pip3 install psutil smbus2 spidev opencv-python
-```
-
-### Exercise 1: System Architecture Analysis
-
-```bash
-#!/bin/bash
-# Create system_analysis.sh
-cat > system_analysis.sh << 'EOF'
-#!/bin/bash
-
-echo "=== Jetson System Architecture Analysis ==="
-echo
-
-echo "1. Hardware Information:"
-echo "Model: $(cat /proc/device-tree/model)"
-echo "CPU: $(lscpu | grep 'Model name' | cut -d: -f2 | xargs)"
-echo "Architecture: $(uname -m)"
-echo "Kernel: $(uname -r)"
-echo "L4T Version: $(head -n 1 /etc/nv_tegra_release 2>/dev/null || echo 'Not available')"
-echo
-
-echo "2. Memory Information:"
-free -h
-echo
-
-echo "3. Storage Information:"
-df -h
-echo
-
-echo "4. GPU Information:"
-if [ -f /proc/driver/nvidia/version ]; then
-    cat /proc/driver/nvidia/version
-else
-    echo "NVIDIA driver not found"
-fi
-echo
-
-echo "5. Loaded Kernel Modules (Tegra-specific):"
-lsmod | grep -E "(tegra|nvgpu|nvhost)" | head -10
-echo
-
-echo "6. Device Tree Information:"
-echo "Compatible: $(cat /proc/device-tree/compatible 2>/dev/null | tr '\0' ' ')"
-echo
-
-echo "7. Power Model:"
-nvpmodel -q 2>/dev/null || echo "nvpmodel not available"
-echo
-
-echo "8. Thermal Information:"
-for zone in /sys/class/thermal/thermal_zone*/; do
-    if [ -f "$zone/type" ] && [ -f "$zone/temp" ]; then
-        type=$(cat "$zone/type")
-        temp=$(cat "$zone/temp")
-        temp_c=$((temp / 1000))
-        echo "$type: ${temp_c}°C"
-    fi
-done
-EOF
-
-chmod +x system_analysis.sh
-./system_analysis.sh
-```
-
-### Exercise 2: Hardware Interface Programming
-
-**GPIO Control Script:**
-```python
-#!/usr/bin/env python3
-# gpio_control.py
-import time
-import sys
-import os
-
-class GPIOController:
-    def __init__(self, pin):
-        self.pin = pin
-        self.gpio_path = f"/sys/class/gpio/gpio{pin}"
-        self.exported = False
-        
-    def export(self):
-        """Export GPIO pin"""
-        if not os.path.exists(self.gpio_path):
-            with open("/sys/class/gpio/export", "w") as f:
-                f.write(str(self.pin))
-            self.exported = True
-            time.sleep(0.1)  # Wait for export
-            
-    def unexport(self):
-        """Unexport GPIO pin"""
-        if self.exported and os.path.exists(self.gpio_path):
-            with open("/sys/class/gpio/unexport", "w") as f:
-                f.write(str(self.pin))
-            self.exported = False
-            
-    def set_direction(self, direction):
-        """Set GPIO direction (in/out)"""
-        with open(f"{self.gpio_path}/direction", "w") as f:
-            f.write(direction)
-            
-    def set_value(self, value):
-        """Set GPIO value (0/1)"""
-        with open(f"{self.gpio_path}/value", "w") as f:
-            f.write(str(value))
-            
-    def get_value(self):
-        """Get GPIO value"""
-        with open(f"{self.gpio_path}/value", "r") as f:
-            return int(f.read().strip())
-            
-    def __enter__(self):
-        self.export()
-        return self
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.unexport()
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 gpio_control.py <pin_number>")
-        sys.exit(1)
-        
-    pin = int(sys.argv[1])
-    
-    try:
-        with GPIOController(pin) as gpio:
-            # Configure as output
-            gpio.set_direction("out")
-            
-            print(f"Blinking GPIO pin {pin}. Press Ctrl+C to stop.")
-            
-            while True:
-                gpio.set_value(1)
-                print(f"GPIO {pin}: HIGH")
-                time.sleep(1)
-                
-                gpio.set_value(0)
-                print(f"GPIO {pin}: LOW")
-                time.sleep(1)
-                
-    except KeyboardInterrupt:
-        print("\nStopping GPIO control.")
-    except Exception as e:
-        print(f"Error: {e}")
-
-if __name__ == "__main__":
-    main()
-```
-
-**I2C Scanner:**
-```python
-#!/usr/bin/env python3
-# i2c_scanner.py
-import smbus
-import sys
-
-def scan_i2c_bus(bus_number):
-    """Scan I2C bus for devices"""
-    try:
-        bus = smbus.SMBus(bus_number)
-        devices = []
-        
-        print(f"Scanning I2C bus {bus_number}...")
-        print("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f")
-        
-        for row in range(0, 8):
-            print(f"{row*16:02x}: ", end="")
-            
-            for col in range(0, 16):
-                addr = row * 16 + col
-                
-                if addr < 0x03 or addr > 0x77:
-                    print("   ", end="")
-                    continue
-                    
-                try:
-                    bus.read_byte(addr)
-                    print(f"{addr:02x} ", end="")
-                    devices.append(addr)
-                except:
-                    print("-- ", end="")
-                    
-            print()
-            
-        bus.close()
-        return devices
-        
-    except Exception as e:
-        print(f"Error scanning I2C bus {bus_number}: {e}")
-        return []
-
-def main():
-    # Scan common I2C buses
-    buses = [0, 1, 2]
-    
-    for bus_num in buses:
-        try:
-            devices = scan_i2c_bus(bus_num)
-            if devices:
-                print(f"\nDevices found on bus {bus_num}: {[hex(d) for d in devices]}")
-            else:
-                print(f"\nNo devices found on bus {bus_num}")
-            print("-" * 50)
-        except:
-            print(f"Bus {bus_num} not available")
-
-if __name__ == "__main__":
-    main()
-```
-
-### Exercise 3: System Performance Monitor
-
-```python
-#!/usr/bin/env python3
-# performance_monitor.py
-import psutil
-import time
-import json
-import argparse
-from datetime import datetime
-
-class JetsonMonitor:
-    def __init__(self):
-        self.data = []
-        
-    def get_cpu_info(self):
-        """Get CPU information"""
-        cpu_percent = psutil.cpu_percent(interval=1, percpu=True)
-        cpu_freq = psutil.cpu_freq(percpu=True)
-        
-        cpu_info = {
-            'usage_percent': cpu_percent,
-            'frequencies': [f.current for f in cpu_freq] if cpu_freq else [],
-            'load_average': psutil.getloadavg()
-        }
-        
-        return cpu_info
-        
-    def get_memory_info(self):
-        """Get memory information"""
-        memory = psutil.virtual_memory()
-        swap = psutil.swap_memory()
-        
-        return {
-            'total': memory.total,
-            'available': memory.available,
-            'used': memory.used,
-            'percent': memory.percent,
-            'swap_total': swap.total,
-            'swap_used': swap.used,
-            'swap_percent': swap.percent
-        }
-        
-    def get_disk_info(self):
-        """Get disk information"""
-        disk_usage = psutil.disk_usage('/')
-        disk_io = psutil.disk_io_counters()
-        
-        return {
-            'total': disk_usage.total,
-            'used': disk_usage.used,
-            'free': disk_usage.free,
-            'percent': (disk_usage.used / disk_usage.total) * 100,
-            'read_bytes': disk_io.read_bytes if disk_io else 0,
-            'write_bytes': disk_io.write_bytes if disk_io else 0
-        }
-        
-    def get_network_info(self):
-        """Get network information"""
-        net_io = psutil.net_io_counters()
-        
-        return {
-            'bytes_sent': net_io.bytes_sent,
-            'bytes_recv': net_io.bytes_recv,
-            'packets_sent': net_io.packets_sent,
-            'packets_recv': net_io.packets_recv
-        }
-        
-    def get_thermal_info(self):
-        """Get thermal information"""
-        thermal_info = {}
-        
-        try:
-            # Read thermal zones
-            import glob
-            for zone_path in glob.glob('/sys/class/thermal/thermal_zone*/temp'):
-                zone_name = zone_path.split('/')[-2]
-                with open(zone_path, 'r') as f:
-                    temp = int(f.read().strip()) / 1000.0
-                    thermal_info[zone_name] = temp
-        except:
-            pass
-            
-        return thermal_info
-        
-    def get_gpu_info(self):
-        """Get GPU information (if available)"""
-        gpu_info = {}
-        
-        try:
-            # Try to read GPU memory usage
-            with open('/proc/driver/nvidia/gpus/0000:00:00.0/used_memory', 'r') as f:
-                gpu_info['memory_used'] = int(f.read().strip())
-        except:
-            pass
-            
-        return gpu_info
-        
-    def collect_data(self):
-        """Collect all system data"""
-        timestamp = datetime.now().isoformat()
-        
-        data_point = {
-            'timestamp': timestamp,
-            'cpu': self.get_cpu_info(),
-            'memory': self.get_memory_info(),
-            'disk': self.get_disk_info(),
-            'network': self.get_network_info(),
-            'thermal': self.get_thermal_info(),
-            'gpu': self.get_gpu_info()
-        }
-        
-        self.data.append(data_point)
-        return data_point
-        
-    def display_data(self, data_point):
-        """Display data in human-readable format"""
-        print(f"\n=== System Monitor - {data_point['timestamp']} ===")
-        
-        # CPU
-        cpu = data_point['cpu']
-        print(f"CPU Usage: {[f'{p:5.1f}%' for p in cpu['usage_percent']]}")
-        if cpu['frequencies']:
-            print(f"CPU Freq:  {[f'{f:6.0f}' for f in cpu['frequencies']]} MHz")
-        print(f"Load Avg:  {cpu['load_average']}")
-        
-        # Memory
-        mem = data_point['memory']
-        print(f"Memory:    {mem['percent']:5.1f}% ({mem['used']//1024//1024:,} MB / {mem['total']//1024//1024:,} MB)")
-        if mem['swap_total'] > 0:
-            print(f"Swap:      {mem['swap_percent']:5.1f}% ({mem['swap_used']//1024//1024:,} MB / {mem['swap_total']//1024//1024:,} MB)")
-        
-        # Disk
-        disk = data_point['disk']
-        print(f"Disk:      {disk['percent']:5.1f}% ({disk['used']//1024//1024//1024:,} GB / {disk['total']//1024//1024//1024:,} GB)")
-        
-        # Thermal
-        thermal = data_point['thermal']
-        if thermal:
-            temps = [f"{zone}: {temp:.1f}°C" for zone, temp in thermal.items()]
-            print(f"Thermal:   {', '.join(temps)}")
-        
-        # GPU
-        gpu = data_point['gpu']
-        if gpu:
-            if 'memory_used' in gpu:
-                print(f"GPU Mem:   {gpu['memory_used']} bytes")
-                
-    def save_data(self, filename):
-        """Save collected data to JSON file"""
-        with open(filename, 'w') as f:
-            json.dump(self.data, f, indent=2)
-        print(f"Data saved to {filename}")
-        
-    def monitor(self, duration=60, interval=1, save_file=None):
-        """Monitor system for specified duration"""
-        print(f"Starting system monitoring for {duration} seconds...")
-        print("Press Ctrl+C to stop early")
-        
-        start_time = time.time()
-        
-        try:
-            while time.time() - start_time < duration:
-                data_point = self.collect_data()
-                self.display_data(data_point)
-                time.sleep(interval)
-                
-        except KeyboardInterrupt:
-            print("\nMonitoring stopped by user.")
-            
-        if save_file:
-            self.save_data(save_file)
-
-def main():
-    parser = argparse.ArgumentParser(description='Jetson System Performance Monitor')
-    parser.add_argument('-d', '--duration', type=int, default=60, help='Monitoring duration in seconds')
-    parser.add_argument('-i', '--interval', type=int, default=1, help='Sampling interval in seconds')
-    parser.add_argument('-s', '--save', type=str, help='Save data to JSON file')
-    
-    args = parser.parse_args()
-    
-    monitor = JetsonMonitor()
-    monitor.monitor(duration=args.duration, interval=args.interval, save_file=args.save)
-
-if __name__ == "__main__":
-    main()
-```
-
-### Exercise 4: Security Hardening Script
-
-```bash
-#!/bin/bash
-# security_hardening.sh
-
-echo "=== Jetson Security Hardening Script ==="
-echo
-
-# Function to check if running as root
-check_root() {
-    if [ "$EUID" -ne 0 ]; then
-        echo "Please run as root (use sudo)"
-        exit 1
-    fi
-}
-
-# Function to backup configuration files
-backup_config() {
-    local file=$1
-    if [ -f "$file" ]; then
-        cp "$file" "${file}.backup.$(date +%Y%m%d_%H%M%S)"
-        echo "Backed up $file"
-    fi
-}
-
-# Update system
-update_system() {
-    echo "1. Updating system packages..."
-    apt update && apt upgrade -y
-    apt autoremove -y
-    echo "System updated."
-    echo
-}
-
-# Configure SSH security
-secure_ssh() {
-    echo "2. Securing SSH configuration..."
-    backup_config "/etc/ssh/sshd_config"
-    
-    # SSH hardening
-    sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
-    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
-    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-    sed -i 's/#Protocol 2/Protocol 2/' /etc/ssh/sshd_config
-    
-    # Add additional security settings
-    echo "" >> /etc/ssh/sshd_config
-    echo "# Security hardening" >> /etc/ssh/sshd_config
-    echo "MaxAuthTries 3" >> /etc/ssh/sshd_config
-    echo "ClientAliveInterval 300" >> /etc/ssh/sshd_config
-    echo "ClientAliveCountMax 2" >> /etc/ssh/sshd_config
-    echo "X11Forwarding no" >> /etc/ssh/sshd_config
-    
-    systemctl restart ssh
-    echo "SSH secured and restarted."
-    echo
-}
-
-# Configure firewall
-setup_firewall() {
-    echo "3. Setting up UFW firewall..."
-    
-    # Install UFW if not present
-    apt install -y ufw
-    
-    # Reset UFW to defaults
-    ufw --force reset
-    
-    # Set default policies
-    ufw default deny incoming
-    ufw default allow outgoing
-    
-    # Allow SSH
-    ufw allow 22/tcp
-    
-    # Allow common services (uncomment as needed)
-    # ufw allow 80/tcp   # HTTP
-    # ufw allow 443/tcp  # HTTPS
-    # ufw allow 8080/tcp # Alternative HTTP
-    
-    # Enable firewall
-    ufw --force enable
-    
-    echo "Firewall configured and enabled."
-    echo
-}
-
-# Set up automatic security updates
-setup_auto_updates() {
-    echo "4. Setting up automatic security updates..."
-    
-    apt install -y unattended-upgrades
-    
-    # Configure unattended upgrades
-    cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
-Unattended-Upgrade::Allowed-Origins {
-    "\${distro_id}:\${distro_codename}-security";
-    "\${distro_id}ESMApps:\${distro_codename}-apps-security";
-    "\${distro_id}ESM:\${distro_codename}-infra-security";
-};
-
-Unattended-Upgrade::AutoFixInterruptedDpkg "true";
-Unattended-Upgrade::MinimalSteps "true";
-Unattended-Upgrade::Remove-Unused-Dependencies "true";
-Unattended-Upgrade::Automatic-Reboot "false";
-EOF
-
-    # Enable automatic updates
-    cat > /etc/apt/apt.conf.d/20auto-upgrades << EOF
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
-EOF
-
-    echo "Automatic security updates configured."
-    echo
-}
-
-# Secure shared memory
-secure_shared_memory() {
-    echo "5. Securing shared memory..."
-    
-    backup_config "/etc/fstab"
-    
-    # Add tmpfs mount for /tmp if not present
-    if ! grep -q "/tmp" /etc/fstab; then
-        echo "tmpfs /tmp tmpfs defaults,noexec,nosuid,nodev,size=1G 0 0" >> /etc/fstab
-    fi
-    
-    # Secure /dev/shm
-    if ! grep -q "/dev/shm" /etc/fstab; then
-        echo "tmpfs /dev/shm tmpfs defaults,noexec,nosuid,nodev 0 0" >> /etc/fstab
-    fi
-    
-    echo "Shared memory secured."
-    echo
-}
-
-# Set up fail2ban
-setup_fail2ban() {
-    echo "6. Setting up fail2ban..."
-    
-    apt install -y fail2ban
-    
-    # Configure fail2ban for SSH
-    cat > /etc/fail2ban/jail.local << EOF
-[DEFAULT]
-bantime = 3600
-findtime = 600
-maxretry = 3
-
-[sshd]
-enabled = true
-port = ssh
-logpath = /var/log/auth.log
-maxretry = 3
-bantime = 3600
-EOF
-
-    systemctl enable fail2ban
-    systemctl restart fail2ban
-    
-    echo "fail2ban configured and started."
-    echo
-}
-
-# Main execution
-main() {
-    check_root
-    
-    echo "Starting security hardening process..."
-    echo "This script will:"
-    echo "1. Update system packages"
-    echo "2. Secure SSH configuration"
-    echo "3. Set up UFW firewall"
-    echo "4. Configure automatic security updates"
-    echo "5. Secure shared memory"
-    echo "6. Set up fail2ban"
-    echo
-    
-    read -p "Do you want to continue? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Aborted."
-        exit 1
-    fi
-    
-    update_system
-    secure_ssh
-    setup_firewall
-    setup_auto_updates
-    secure_shared_memory
-    setup_fail2ban
-    
-    echo "=== Security Hardening Complete ==="
-    echo "Please review the changes and reboot the system."
-    echo "Backup files have been created with timestamps."
-    echo
-    echo "Important notes:"
-    echo "- SSH root login has been disabled"
-    echo "- Password authentication has been disabled"
-    echo "- Make sure you have SSH key access before rebooting"
-    echo "- UFW firewall is now active"
-    echo "- fail2ban is monitoring SSH attempts"
-}
-
-# Run main function
-main "$@"
-```
-
-### Lab Deliverables
-
-1. **System Analysis Report**: Complete output from system_analysis.sh
-2. **Hardware Interface Demos**: Working GPIO and I2C examples
-3. **Performance Data**: JSON output from performance monitor
-4. **Security Configuration**: Documentation of applied security measures
-5. **Custom Scripts**: All developed Python and Bash scripts
-
-### Assessment Criteria
-
-- **Technical Implementation** (40%): Correct execution of all exercises
-- **System Understanding** (30%): Demonstration of Linux architecture knowledge
-- **Security Awareness** (20%): Proper implementation of security measures
-- **Documentation** (10%): Clear documentation and code comments
-
----
-
-## 📚 Summary and Next Steps
-
-This comprehensive tutorial has covered:
-
-✅ **Operating System Fundamentals**: Core concepts, kernel architecture, and system calls
-✅ **Linux Architecture**: Deep dive into kernel subsystems and hardware abstraction
-✅ **Jetson L4T Analysis**: Detailed exploration of NVIDIA's embedded Linux distribution
-✅ **Hardware Interfaces**: Practical examples for GPIO, I2C, SPI, and camera access
-✅ **System Administration**: Advanced monitoring, debugging, and security techniques
-✅ **Hands-on Labs**: Comprehensive exercises with real-world applications
-
-**Key Takeaways:**
-- Linux provides a robust foundation for embedded AI applications
-- Jetson L4T extends standard Linux with specialized drivers and optimizations
-- Understanding system architecture is crucial for performance optimization
-- Security hardening is essential for production deployments
-- Practical experience with hardware interfaces enables IoT integration
 

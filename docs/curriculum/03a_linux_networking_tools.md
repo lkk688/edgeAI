@@ -50,29 +50,24 @@ Computer networking is typically divided into 5 abstract layers, each with speci
 
 ---
 
-## 📶 Wi-Fi and Bluetooth Networking
-
-Jetson supports both Wi-Fi and Bluetooth, often via M.2 cards or USB dongles.
-
-### 📡 Wi-Fi Management Tools
-
-```bash
-nmcli device wifi list      # Scan for Wi-Fi networks
-nmcli device wifi connect <SSID> password <password>
-iwconfig                   # View wireless settings (deprecated)
-```
-
-### 🔵 Bluetooth Tools
-
-```bash
-bluetoothctl               # Interactive Bluetooth manager
-rfkill list                # Check if Bluetooth/Wi-Fi are blocked
-hciconfig                  # View Bluetooth device configuration
-```
-
----
 
 ## 🧪 Network Discovery and Performance Testing
+
+**Check Interfaces and IP Address**
+
+Install net-tools (Debian/Ubuntu-based)
+```bash
+#apt install -y net-tools #already installed in the container, This will install: ifconfig, netstat, route, arp, etc.
+ifconfig
+```
+
+Modern Linux systems prefer ip command from iproute2:
+```bash
+#apt install -y iproute2 #already installed in the container
+ip a
+ip addr
+ip link
+```
 
 ### 🌐 Discover Devices on LAN
 
@@ -95,19 +90,18 @@ iperf3 -c <server-ip>
 #### `ping` — Latency Test
 
 ```bash
+#apt install -y iputils-ping
 ping google.com
 ```
 
 #### `speedtest-cli` — Internet Speed Test
 
 ```bash
-sudo apt install speedtest-cli
-speedtest-cli
+#sudo apt install speedtest-cli #already installed in the container
+root@sjsujetson-01:/Developer# speedtest-cli
 ```
 
----
-
-## 🧰 Part 3: Linux Networking Tools Summary
+🧰 Part 3: Linux Networking Tools Summary
 
 | Tool            | Purpose                                |
 | --------------- | -------------------------------------- |
@@ -123,116 +117,29 @@ speedtest-cli
 | `speedtest-cli` | Measure Internet bandwidth and latency |
 
 ---
+## 📶 Wi-Fi and Bluetooth Networking
 
-## 🛡️ Practical Examples for Jetson
+Jetson supports both Wi-Fi and Bluetooth, often via M.2 cards or USB dongles.
 
-* ✅ Check Jetson’s IP on the LAN:
+### 📡 Wi-Fi Management Tools
 
-  ```bash
-  ip a
-  ```
+```bash
+nmcli device wifi list      # Scan for Wi-Fi networks
+nmcli device wifi connect <SSID> password <password>
+iwconfig                   # View wireless settings (deprecated)
+```
 
-* ✅ Enable SSH server:
+### 🔵 Bluetooth Tools
 
-  ```bash
-  sudo systemctl enable ssh
-  sudo systemctl start ssh
-  ```
-
-* ✅ Scan for all Jetson devices:
-
-  ```bash
-  nmap -sn 192.168.1.0/24
-  ```
-
-* ✅ Test `.local` hostname mDNS resolution:
-
-  ```bash
-  ping jetson-name.local
-  ```
-
-* ✅ Scan Wi-Fi access points:
-
-  ```bash
-  nmcli device wifi list
-  ```
-
-* ✅ Scan nearby Bluetooth devices:
-
-  ```bash
-  bluetoothctl
-  scan on
-  ```
+```bash
+bluetoothctl               # Interactive Bluetooth manager
+rfkill list                # Check if Bluetooth/Wi-Fi are blocked
+hciconfig                  # View Bluetooth device configuration
+```
 
 ---
 
-## 🧪 Lab Session: Networking with Your Jetson
 
-### 🎯 Objective
-
-Use Linux tools to explore Jetson's network environment, Wi-Fi/Bluetooth devices, and run speed tests.
-
-### 🛠️ Step-by-Step Tutorial
-
-1. **Check Interfaces and IP Address**
-
-   ```bash
-   ip a
-   ```
-
-2. **Connect to Wi-Fi**
-
-   ```bash
-   nmcli device wifi list
-   nmcli device wifi connect "<yourSSID>" password "<yourPassword>"
-   ```
-
-3. **Ping Your Gateway**
-
-   ```bash
-   ping 192.168.1.1
-   ```
-
-4. **Scan Nearby Bluetooth Devices**
-
-   ```bash
-   bluetoothctl
-   scan on
-   # Wait and observe
-   ```
-
-5. **Measure Internet Speed**
-
-   ```bash
-   speedtest-cli
-   ```
-
-6. **Discover Other Devices on LAN**
-
-   ```bash
-   nmap -sn 192.168.1.0/24
-   ```
-
-7. **(Optional) Test Bandwidth with iperf3**
-
-   * Install on 2 devices (Jetson + another PC)
-   * Run on Jetson:
-
-     ```bash
-     iperf3 -s
-     ```
-   * On another device:
-
-     ```bash
-     iperf3 -c <Jetson-IP>
-     ```
-
-### ✅ Deliverables
-
-* Screenshot or output logs of each step
-* Submit speedtest and nmap scan results
-
----
 
 ## 🔬 Part 4: Advanced Network Protocol Analysis
 
@@ -244,16 +151,25 @@ Each layer adds its own header to the data packet. Let's examine how to inspect 
 
 ```bash
 # Install tcpdump if not available
-sudo apt update && sudo apt install tcpdump
+#root@sjsujetson-01:/Developer# apt install tcpdump #already installed inside the container
 
 # Capture packets on specific interface
-sudo tcpdump -i wlan0 -n -c 10
+root@sjsujetson-01:/Developer# tcpdump -i wlP1p1s0 -n -c 10
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on wlP1p1s0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+.....
 
 # Capture HTTP traffic
-sudo tcpdump -i any port 80 -A
+root@sjsujetson-01:/Developer# tcpdump -i any port 80 -A
+tcpdump: data link type LINUX_SLL2
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
+.....
 
 # Capture with detailed headers
-sudo tcpdump -i any -v -n icmp
+root@sjsujetson-01:/Developer# tcpdump -i any -v -n icmp
+tcpdump: data link type LINUX_SLL2
+tcpdump: listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
 ```
 
 #### 🌐 Layer-by-Layer Analysis
@@ -270,6 +186,13 @@ sudo tcpdump -i any -v -n icmp
 
 #### DNS Analysis
 ```bash
+#These are already installed inside the container
+# apt update
+# # Install dig and nslookup (part of dnsutils)
+# apt install -y dnsutils
+# # Install 'time' command (optional, usually pre-installed)
+# apt install -y time
+
 # Query DNS records
 dig google.com
 nslookup google.com
@@ -299,180 +222,98 @@ ss -i
 
 ### 🔍 Network Troubleshooting Arsenal
 
-| Tool | Purpose | Jetson Example |
-|------|---------|----------------|
-| `traceroute` | Trace packet path | `traceroute google.com` |
-| `mtr` | Continuous traceroute | `mtr google.com` |
-| `netstat` | Network statistics | `netstat -rn` (routing table) |
-| `lsof` | List open files/sockets | `lsof -i :22` (SSH connections) |
-| `tcpdump` | Packet capture | `sudo tcpdump -i wlan0` |
-| `wireshark` | GUI packet analyzer | `sudo wireshark` |
-| `ethtool` | Ethernet tool | `ethtool eth0` |
-| `iw` | Wireless tools | `iw dev wlan0 info` |
+| Tool        | Purpose                  | Example                   | Installation                                  |
+|-------------|--------------------------|----------------------------------|-----------------------------------------------|
+| `traceroute`| Trace packet path        | `traceroute google.com`          | `sudo apt install traceroute`                 |
+| `mtr`       | Continuous traceroute    | `mtr google.com`                 | `sudo apt install mtr`                        |
+| `netstat`   | Network statistics       | `netstat -rn` (routing table)    | `sudo apt install net-tools`                  |
+| `lsof`      | List open files/sockets  | `lsof -i :22` (SSH connections)  | `sudo apt install lsof`                       |
+| `tcpdump`   | Packet capture           | `sudo tcpdump -i wlan0`          | `sudo apt install tcpdump`                    |
+| `wireshark` | GUI packet analyzer      | `sudo wireshark`                 | `sudo apt install wireshark`<br>**+ Add user to group**: `sudo usermod -aG wireshark $USER` |
+| `ethtool`   | Ethernet tool            | `ethtool eth0`                   | `sudo apt install ethtool`                    |
+| `iw`        | Wireless tools           | `iw dev wlan0 info`              | `sudo apt install iw`                         |
 
+> All these tools are already installed inside the container, run `sjsujetsontool shell` to enter into the container.
+
+Packet Capture and Basic Analysis
+```bash
+# Terminal 1: Capture all packets across interfaces
+root@sjsujetson-01:/Developer# tcpdump -i any -w network_capture.pcap
+
+# Terminal 2: Generate some traffic
+ping -c 10 google.com
+curl -I https://www.google.com
+
+# Terminal 1: Ctrl+C to stop capture
+
+#CLI analysis
+root@sjsujetson-01:/Developer# tcpdump -r network_capture.pcap -n
+```
 ### 📡 Wireless Network Deep Dive
 
 #### Wi-Fi Interface Management
 ```bash
-# Detailed wireless info
-iw dev wlan0 info
+iw dev
 
-# Scan with detailed output
-iw dev wlan0 scan | grep -E "SSID|signal|freq"
+# Detailed wireless info
+iw dev wlP1p1s0 info
 
 # Check wireless statistics
 cat /proc/net/wireless
-
-# Monitor wireless events
-iw event
 ```
 
 #### Bluetooth Low Energy (BLE) on Jetson
 ```bash
-# Install Bluetooth tools
-sudo apt install bluez bluez-tools
+# Install Bluetooth tools, already in container
+#apt install bluez bluez-tools
 
 # Scan for BLE devices
-sudo hcitool lescan
+hcitool lescan
 
 # Get device info
 hciconfig hci0
 
 # Monitor Bluetooth traffic
-sudo btmon
+btmon
 ```
 
 ### 🔒 Network Security Tools
 
 #### Port Scanning and Security
 ```bash
+#apt install -y nmap
+
+#Check Open Ports on Jetson
+root@sjsujetson-01:/Developer# nmap -sS localhost
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-15 01:49 UTC
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000014s latency).
+Not shown: 997 closed tcp ports (reset)
+PORT    STATE SERVICE
+22/tcp  open  ssh
+111/tcp open  rpcbind
+631/tcp open  ipp
+
 # Comprehensive port scan
 nmap -sS -O -sV 192.168.1.1
 
 # Scan for vulnerabilities
 nmap --script vuln 192.168.1.1
 
-# Check open ports on Jetson
-sudo nmap -sS localhost
 ```
 
-#### Firewall Management
+#### Firewall Management (need host sudo)
 ```bash
 # UFW (Uncomplicated Firewall)
+sudo apt install -y ufw
 sudo ufw enable
 sudo ufw allow ssh
 sudo ufw allow 8080/tcp
 sudo ufw status verbose
-
 # iptables (advanced)
 sudo iptables -L -n -v
 sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 ```
-
----
-
-## 🌐 Part 6: Jetson-Specific Networking
-
-### 🔌 Hardware Network Interfaces
-
-#### Ethernet Configuration
-```bash
-# Check Ethernet link status
-ethtool eth0
-
-# Set Ethernet speed (if supported)
-sudo ethtool -s eth0 speed 1000 duplex full
-
-# View Ethernet statistics
-ethtool -S eth0
-```
-
-#### USB Network Adapters
-```bash
-# List USB devices
-lsusb
-
-# Check USB network adapters
-lsusb | grep -i network
-
-# Monitor USB events
-dmesg | grep -i usb
-```
-
-### 📶 Wi-Fi Module Management
-
-#### Intel Wi-Fi Cards (common on Jetson)
-```bash
-# Check Wi-Fi module
-lspci | grep -i wireless
-
-# View Wi-Fi driver info
-modinfo iwlwifi
-
-# Restart Wi-Fi module
-sudo modprobe -r iwlwifi
-sudo modprobe iwlwifi
-```
-
-#### Network Manager Configuration
-```bash
-# NetworkManager status
-sudo systemctl status NetworkManager
-
-# List connections
-nmcli connection show
-
-# Create static IP connection
-nmcli connection add type ethernet con-name static-eth ifname eth0 ip4 192.168.1.100/24 gw4 192.168.1.1
-```
-
----
-
-## 🚀 Part 7: Performance Optimization
-
-### 📈 Network Performance Tuning
-
-#### TCP Buffer Optimization
-```bash
-# Check current TCP settings
-sysctl net.core.rmem_max
-sysctl net.core.wmem_max
-
-# Optimize for high-bandwidth networks
-echo 'net.core.rmem_max = 134217728' | sudo tee -a /etc/sysctl.conf
-echo 'net.core.wmem_max = 134217728' | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-```
-
-#### Network Interface Optimization
-```bash
-# Check interrupt distribution
-cat /proc/interrupts | grep eth0
-
-# Enable/disable network features
-sudo ethtool -K eth0 gso off
-sudo ethtool -K eth0 tso off
-```
-
-### 🔄 Load Balancing and Bonding
-
-```bash
-# Create bonded interface (if multiple NICs)
-sudo modprobe bonding
-echo 'alias bond0 bonding' | sudo tee -a /etc/modprobe.d/bonding.conf
-```
-
----
-
-## 🧪 Comprehensive Lab: Network Mastery on Jetson
-
-### 🎯 Lab Objectives
-
-1. **Protocol Analysis**: Capture and analyze network packets
-2. **Performance Testing**: Measure and optimize network performance
-3. **Security Assessment**: Scan and secure network interfaces
-4. **Wireless Management**: Configure and troubleshoot Wi-Fi/Bluetooth
-5. **Network Programming**: Create simple network applications
 
 ### 🛠️ Lab Setup
 
@@ -524,199 +365,6 @@ lsof -i
 curl -v http://httpbin.org/get
 ```
 
-### 📋 Exercise 2: Performance Benchmarking
-
-#### Task 2.1: Bandwidth Testing
-```bash
-# Install iperf3 on two devices
-# Device 1 (Jetson):
-iperf3 -s -p 5001
-
-# Device 2:
-iperf3 -c <jetson-ip> -p 5001 -t 30 -i 1
-
-# Test UDP performance
-iperf3 -c <jetson-ip> -u -b 100M
-```
-
-#### Task 2.2: Latency Analysis
-```bash
-# Basic ping test
-ping -c 100 8.8.8.8 | tail -1
-
-# Continuous monitoring
-mtr --report --report-cycles 100 8.8.8.8
-
-# Jitter measurement
-ping -c 100 -i 0.1 8.8.8.8 | awk '/time=/ {print $7}' | cut -d'=' -f2
-```
-
-### 📋 Exercise 3: Security Assessment
-
-#### Task 3.1: Port Scanning
-```bash
-# Scan local network
-nmap -sn 192.168.1.0/24
-
-# Detailed scan of Jetson
-nmap -sS -sV -O localhost
-
-# Check for common vulnerabilities
-nmap --script vuln localhost
-```
-
-#### Task 3.2: Firewall Configuration
-```bash
-# Configure UFW
-sudo ufw --force reset
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-sudo ufw allow ssh
-sudo ufw allow 8080/tcp
-sudo ufw enable
-sudo ufw status verbose
-```
-
-### 📋 Exercise 4: Wireless Network Programming
-
-#### Task 4.1: Wi-Fi Scanner Script
-```python
-#!/usr/bin/env python3
-# wifi_scanner.py
-import subprocess
-import json
-import re
-
-def scan_wifi():
-    """Scan for Wi-Fi networks and return structured data"""
-    try:
-        result = subprocess.run(['nmcli', '-t', '-f', 'SSID,SIGNAL,SECURITY', 
-                               'dev', 'wifi'], capture_output=True, text=True)
-        networks = []
-        for line in result.stdout.strip().split('\n'):
-            if line:
-                parts = line.split(':')
-                if len(parts) >= 3:
-                    networks.append({
-                        'ssid': parts[0],
-                        'signal': parts[1],
-                        'security': parts[2]
-                    })
-        return networks
-    except Exception as e:
-        print(f"Error scanning Wi-Fi: {e}")
-        return []
-
-if __name__ == "__main__":
-    networks = scan_wifi()
-    print(json.dumps(networks, indent=2))
-```
-
-#### Task 4.2: Network Monitor Script
-```python
-#!/usr/bin/env python3
-# network_monitor.py
-import psutil
-import time
-import json
-
-def get_network_stats():
-    """Get current network statistics"""
-    stats = psutil.net_io_counters(pernic=True)
-    return {
-        interface: {
-            'bytes_sent': stat.bytes_sent,
-            'bytes_recv': stat.bytes_recv,
-            'packets_sent': stat.packets_sent,
-            'packets_recv': stat.packets_recv
-        }
-        for interface, stat in stats.items()
-    }
-
-def monitor_network(duration=60, interval=5):
-    """Monitor network usage over time"""
-    print(f"Monitoring network for {duration} seconds...")
-    start_stats = get_network_stats()
-    time.sleep(duration)
-    end_stats = get_network_stats()
-    
-    for interface in start_stats:
-        if interface in end_stats:
-            sent_diff = end_stats[interface]['bytes_sent'] - start_stats[interface]['bytes_sent']
-            recv_diff = end_stats[interface]['bytes_recv'] - start_stats[interface]['bytes_recv']
-            
-            print(f"\n{interface}:")
-            print(f"  Sent: {sent_diff / 1024 / 1024:.2f} MB")
-            print(f"  Received: {recv_diff / 1024 / 1024:.2f} MB")
-            print(f"  Total: {(sent_diff + recv_diff) / 1024 / 1024:.2f} MB")
-
-if __name__ == "__main__":
-    monitor_network()
-```
-
-### 📋 Exercise 5: Bluetooth Device Discovery
-
-```python
-#!/usr/bin/env python3
-# bluetooth_scanner.py
-import subprocess
-import json
-import time
-
-def scan_bluetooth_devices():
-    """Scan for Bluetooth devices"""
-    try:
-        # Start scanning
-        subprocess.run(['bluetoothctl', 'scan', 'on'], 
-                      input='\n', text=True, timeout=2)
-        
-        # Wait for scan
-        time.sleep(10)
-        
-        # Get devices
-        result = subprocess.run(['bluetoothctl', 'devices'], 
-                               capture_output=True, text=True)
-        
-        devices = []
-        for line in result.stdout.strip().split('\n'):
-            if line.startswith('Device'):
-                parts = line.split(' ', 2)
-                if len(parts) >= 3:
-                    devices.append({
-                        'address': parts[1],
-                        'name': parts[2]
-                    })
-        
-        return devices
-    except Exception as e:
-        print(f"Error scanning Bluetooth: {e}")
-        return []
-
-if __name__ == "__main__":
-    devices = scan_bluetooth_devices()
-    print(json.dumps(devices, indent=2))
-```
-
-## 📚 Summary and Next Steps
-
-### 🎯 Key Takeaways
-
-1. **Five-Layer Model**: Understanding how data flows through network layers
-2. **Linux Network Stack**: Comprehensive knowledge of Linux networking tools
-3. **Jetson Networking**: Platform-specific network configuration and optimization
-4. **Protocol Analysis**: Ability to capture and analyze network traffic
-5. **Performance Optimization**: Techniques for improving network performance
-6. **Security Best Practices**: Network security assessment and hardening
-
-### 🚀 Advanced Topics for Further Learning
-
-- **Software-Defined Networking (SDN)**
-- **Network Function Virtualization (NFV)**
-- **Container Networking (Docker, Kubernetes)**
-- **Edge Computing Network Architectures**
-- **5G and IoT Networking Protocols**
-- **Network Programming with Python/C++**
-- **Real-time Network Monitoring and Analytics**
 
 ### 🔗 Additional Resources
 
