@@ -1,0 +1,127 @@
+{
+  "device_configs": {
+    "cuda": {
+      "description": "NVIDIA CUDA GPU configuration",
+      "optimizations": ["half_precision", "int8", "cuda", "onnx"]
+    },
+    "jetson": {
+      "description": "NVIDIA Jetson device configuration",
+      "optimizations": ["half_precision", "int8", "cuda", "onnx"]
+    },
+    "apple_silicon": {
+      "description": "Apple Silicon (M1/M2/M3) configuration",
+      "optimizations": ["mps"]
+    },
+    "cpu": {
+      "description": "CPU-only configuration",
+      "optimizations": ["onnx"]
+    }
+  },
+  "model_configs": {
+    "llama_cpp": {
+      "models": [
+        {
+          "name": "Llama 2 7B Chat",
+          "path": "models/llama-2-7b-chat.q4_K_M.gguf",
+          "description": "Llama 2 7B Chat model quantized with Q4_K_M",
+          "settings": {
+            "n_gpu_layers": 35,
+            "n_threads": 8,
+            "n_batch": 512,
+            "n_ctx": 2048
+          }
+        },
+        {
+          "name": "Mistral 7B Instruct",
+          "path": "models/mistral-7b-instruct-v0.1.Q4_K_M.gguf",
+          "description": "Mistral 7B Instruct model quantized with Q4_K_M",
+          "settings": {
+            "n_gpu_layers": 35,
+            "n_threads": 8,
+            "n_batch": 512,
+            "n_ctx": 2048
+          }
+        }
+      ]
+    },
+    "ollama": {
+      "models": [
+        {
+          "name": "llama2:7b-chat",
+          "description": "Llama 2 7B Chat model via Ollama",
+          "settings": {
+            "url": "http://localhost:11434/api/generate"
+          }
+        },
+        {
+          "name": "mistral:7b-instruct",
+          "description": "Mistral 7B Instruct model via Ollama",
+          "settings": {
+            "url": "http://localhost:11434/api/generate"
+          }
+        }
+      ]
+    },
+    "transformers": {
+      "models": [
+        {
+          "name": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+          "description": "TinyLlama 1.1B Chat model from HuggingFace",
+          "settings": {
+            "device_map": "auto",
+            "torch_dtype": "float16",
+            "load_in_8bit": true,
+            "use_cache": true
+          }
+        },
+        {
+          "name": "facebook/opt-350m",
+          "description": "OPT 350M model from HuggingFace",
+          "settings": {
+            "device_map": "auto",
+            "torch_dtype": "float16",
+            "use_cache": true
+          }
+        }
+      ]
+    },
+    "onnx": {
+      "models": [
+        {
+          "name": "distilbert-base-uncased-finetuned-sst-2-english",
+          "path": "models/distilbert-base-uncased-finetuned-sst-2-english.onnx",
+          "description": "DistilBERT model for sentiment analysis in ONNX format",
+          "settings": {
+            "provider": "CUDAExecutionProvider",
+            "optimization_level": 99
+          }
+        }
+      ]
+    }
+  },
+  "benchmark_configs": {
+    "quick_test": {
+      "description": "Quick benchmark with minimal runs",
+      "num_runs": 2,
+      "max_tokens": 30,
+      "prompts": [
+        "Explain edge AI in one sentence."
+      ]
+    },
+    "standard": {
+      "description": "Standard benchmark with multiple prompts",
+      "num_runs": 3,
+      "max_tokens": 100,
+      "prompts": [
+        "Explain the benefits of edge AI computing",
+        "What are the advantages of running LLMs on edge devices?"
+      ]
+    },
+    "comprehensive": {
+      "description": "Comprehensive benchmark with many prompts and runs",
+      "num_runs": 5,
+      "max_tokens": 200,
+      "prompts_file": "sample_prompts.txt"
+    }
+  }
+}

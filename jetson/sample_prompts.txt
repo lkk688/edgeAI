@@ -1,0 +1,10 @@
+Explain the benefits of edge AI computing in 3 sentences.
+What are the key differences between cloud computing and edge computing for AI applications?
+How can LLMs be optimized to run efficiently on edge devices like NVIDIA Jetson?
+What are the privacy advantages of running AI models on edge devices?
+Explain the concept of model quantization and how it helps with edge deployment.
+What are the main challenges of deploying large language models to edge devices?
+How does latency compare between cloud-based and edge-based AI inference?
+What types of applications benefit most from edge AI deployment?
+Explain how TensorRT can accelerate AI models on NVIDIA devices.
+What future developments do you expect in the field of edge AI in the next 5 years?
