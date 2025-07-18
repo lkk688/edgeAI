@@ -89,6 +89,44 @@ latest: Pulling from cmpelkk/jetson-llm
 ✅ Script updated. Please rerun your command.
 ```
 
+Another option is just run the update command for **two** times:
+```bash
+student@sjsujetson-02:~$ hostname
+sjsujetson-02
+student@sjsujetson-02:~$ sjsujetsontool update
+⬇️  Updating sjsujetsontool from GitHub...
+🔁 Backing up current script to /home/student/.local/bin/sjsujetsontool.bak
+✅ Update complete. Backup saved at /home/student/.local/bin/sjsujetsontool.bak
+/home/student/.local/bin/sjsujetsontool: line 228: syntax error near unexpected token `('
+/home/student/.local/bin/sjsujetsontool: line 228: `    echo "❌ $name not running (port $port closed)"'
+student@sjsujetson-02:~$ sjsujetsontool update
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+ℹ️ The 'update' command has been split into two separate commands:
+  - 'update-container': Updates only the Docker container
+  - 'update-script': Updates only this script
+\nRunning both updates sequentially...
+\n🔄 Running container update...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🔍 Checking Docker image update...
+⬇️ Pulling latest image (this may take a while)...
+latest: Pulling from cmpelkk/jetson-llm
+Digest: sha256:8021643930669290377d9fc19741cd8c012dbfb7d5f25c7189651ec875b03a78
+Status: Image is up to date for cmpelkk/jetson-llm:latest
+docker.io/cmpelkk/jetson-llm:latest
+✓ Pull complete.
+✅ Local container is already up-to-date.
+\n🔄 Running script update...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+⬇️ Updating sjsujetsontool script...
+⬇️ Downloading latest script...
+#################################################################################################### 100.0%
+✅ Script downloaded. Replacing current script...
+✅ Script updated. Please rerun your command.
+```
+
 <!-- Then reload shell:
 
 ```bash
@@ -147,6 +185,15 @@ You will need to use the new hostname to ssh into the device
 sjsujetson@sjsujetson-02:~$ hostname
 sjsujetson-02
 ```
+
+For TA, run this additional steps:
+```bash
+sudo chfn -f "Student" student
+sudo passwd student
+sjsujetson@sjsujetson-02:/Developer/edgeAI$ sjsujetsontool force_git_pull
+```
+If you’re logged in as student and want to change your own password: `passwd`. You’ll be prompted to enter your current password, then the new password twice.
+
 
 ### ✅ Exter the Container Shell
 Run the `sjsujetsontool shell` command line to enter into the shell of the container
