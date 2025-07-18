@@ -104,7 +104,9 @@ show_help() {
   echo "  run <file.py>     - Run a Python file inside the container"
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
-  echo "  update            - Update this script and container image"
+  echo "  update            - Update both script and container image"
+  echo "  update-container   - Update only the Docker container image"
+  echo "  update-script      - Update only this script from GitHub"
   echo "  build             - Rebuild Docker image"
   echo "  status            - Show container and service status"
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
@@ -153,8 +155,14 @@ show_list() {
   echo "  setup-ssh    → Add GitHub SSH public key to Jetson"
   echo "     ▶ sjsujetsontool setup-ssh your_github_username"
   echo
-  echo "  update       → Pull latest jetson-devtool script"
+  echo "  update       → Update both script and container image"
   echo "     ▶ sjsujetsontool update"
+  echo
+  echo "  update-container → Update only the Docker container image"
+  echo "     ▶ sjsujetsontool update-container"
+  echo
+  echo "  update-script → Update only this script from GitHub"
+  echo "     ▶ sjsujetsontool update-script"
   echo
   echo "  build        → Rebuild the Docker image"
   echo "     ▶ sjsujetsontool build"
@@ -355,6 +363,22 @@ case "$1" in
     show_list
     ;;
   update)
+    echo "ℹ️ The 'update' command has been split into two separate commands:"
+    echo "  - 'update-container': Updates only the Docker container"
+    echo "  - 'update-script': Updates only this script"
+    echo "\nRunning both updates sequentially..."
+    
+    # First update container
+    echo "\n🔄 Running container update..."
+    $0 update-container
+    
+    # Then update script (will exit after completion)
+    echo "\n🔄 Running script update..."
+    $0 update-script
+    exit 0
+    ;;
+    
+  update-container)
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
     echo "⬇️ Pulling latest image (this may take a while)..."
@@ -364,10 +388,13 @@ case "$1" in
     if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
       echo "📦 New version detected. Updating local image..."
       docker tag $REMOTE_IMAGE $LOCAL_IMAGE
-      echo "✅ Local image updated from Docker Hub."
+      echo "✅ Local container updated from Docker Hub."
     else
-      echo "✅ Local container is up-to-date."
+      echo "✅ Local container is already up-to-date."
     fi
+    ;;
+    
+  update-script)
     echo "⬇️ Updating sjsujetsontool script..."
     SCRIPT_PATH=$(realpath "$0")
     BACKUP_PATH="${SCRIPT_PATH}.bak"
