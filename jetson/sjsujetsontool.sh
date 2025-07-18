@@ -503,6 +503,30 @@ case "$1" in
     docker push "$REMOTE_TAGGED"
     echo "✅ Committed and pushed image: $REMOTE_TAGGED"
     ;;
+  force_git_pull)
+    # Set to your local repo path
+    REPO_PATH="/Developer/edgeAI"
+    # Confirm directory exists
+    if [ ! -d "$REPO_PATH/.git" ]; then
+        echo "Error: $REPO_PATH is not a valid Git repository."
+        exit 1
+    fi
+
+    echo "Navigating to $REPO_PATH"
+    cd "$REPO_PATH" || exit 1
+
+    echo "Discarding all local changes and untracked files..."
+    git reset --hard HEAD
+    git clean -fd
+
+    echo "Fetching latest changes from origin..."
+    git fetch origin
+
+    echo "Resetting local branch to match origin/main..."
+    git reset --hard origin/main
+
+    echo "Update complete. Local repository is now synced with origin/main."
+    ;;
   help)
     show_help
     ;;

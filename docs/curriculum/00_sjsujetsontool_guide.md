@@ -55,11 +55,45 @@ A command-line tool for Jetson-based workflows: container management, model serv
 curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
 ```
 
-Then reload shell:
+After the script installation, run `sjsujetsontool update` to update the local container and script. The container update takes long time.
+```bash
+sjsujetson@sjsujetson-01:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
+⬇️ Downloading sjsujetsontool from GitHub...
+✅ Downloaded script.
+📦 Installing to /home/sjsujetson/.local/bin/sjsujetsontool
+✅ Installed successfully. You can now run: sjsujetsontool
+sjsujetson@sjsujetson-01:~$ sjsujetsontool update
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+ℹ️ The 'update' command has been split into two separate commands:
+  - 'update-container': Updates only the Docker container
+  - 'update-script': Updates only this script
+\nRunning both updates sequentially...
+\n🔄 Running container update...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🔍 Checking Docker image update...
+⬇️ Pulling latest image (this may take a while)...
+latest: Pulling from cmpelkk/jetson-llm
+....
+✓ Pull complete.
+📦 New version detected. Updating local image...
+✅ Local container updated from Docker Hub.
+\n🔄 Running script update...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+⬇️ Updating sjsujetsontool script...
+⬇️ Downloading latest script...
+#################################################################################################### 100.0%
+✅ Script downloaded. Replacing current script...
+✅ Script updated. Please rerun your command.
+```
+
+<!-- Then reload shell:
 
 ```bash
 source ~/.bashrc  # or ~/.zshrc
-```
+``` -->
 
 Verify:
 
@@ -91,6 +125,28 @@ root@sjsujetson-01:/workspace#
 ```
 
 The `\Developer` and `\Developer\models` folders in the jetson host are mounted to the container in the path of `\Developer` and `\models`
+
+### ✅ Hostname changes (sudo required)
+```bash
+sjsujetson@sjsujetson-01:~$ hostname
+sjsujetson-01
+sjsujetson@sjsujetson-01:~$ sjsujetsontool set-hostname sjsujetson-02
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+🔧 Setting hostname to: sjsujetson-02
+[sudo] password for sjsujetson: 
+📝 Updating /etc/hosts...
+🔄 Resetting machine-id...
+🆔 Writing device ID to /etc/device-id
+🔁 Please reboot for changes to fully apply.
+sjsujetson@sjsujetson-01:~$ sudo reboot
+```
+You will need to use the new hostname to ssh into the device
+```bash
+% ssh -X sjsujetson@sjsujetson-02.local
+sjsujetson@sjsujetson-02:~$ hostname
+sjsujetson-02
+```
 
 ### ✅ Exter the Container Shell
 Run the `sjsujetsontool shell` command line to enter into the shell of the container
