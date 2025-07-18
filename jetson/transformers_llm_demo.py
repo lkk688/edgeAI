@@ -42,11 +42,18 @@ from transformers import (
 
 # Optional imports for advanced features
 try:
-    from optimum.onnxruntime import ORTModelForSequenceClassification
+    import onnxruntime as ort
     ONNX_AVAILABLE = True
 except ImportError:
     ONNX_AVAILABLE = False
     print("Warning: ONNX Runtime not available. Some optimizations will be skipped.")
+
+try:
+    import tensorrt as trt
+    TENSORRT_AVAILABLE = True
+except ImportError:
+    TENSORRT_AVAILABLE = False
+    print("Warning: TensorRT not available. Some optimizations will be skipped.")
 
 try:
     import GPUtil

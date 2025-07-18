@@ -1,5 +1,7 @@
 # 🧠 Advanced Prompt Engineering with LangChain on Jetson
 
+> **Note:** All code examples in this tutorial have been consolidated into a unified Python script called `jetson_prompt_toolkit.py`. See the [Unified Python Script](#-unified-python-script) section at the end of this document for installation and usage instructions.
+
 ## 🎯 What is Prompt Engineering?
 
 Prompt engineering is the art and science of crafting effective inputs to guide large language models (LLMs) toward desired outputs. It's the bridge between human intent and AI understanding.
@@ -46,9 +48,9 @@ import os
 from typing import List, Dict
 
 class OpenAIPrompter:
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, model: str = "gpt-4o-mini"):
         self.client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
-        self.model = "gpt-4o-mini"  # Cost-effective for learning
+        self.model = model  # Cost-effective for learning
     
     def prompt(self, messages: List[Dict[str, str]], **kwargs) -> str:
         """Send prompt to OpenAI API"""
@@ -76,6 +78,16 @@ response = openai_prompter.simple_prompt(
 )
 print(response)
 ```
+
+> **Note:** This class is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --backends openai
+> ```
+>
+> The LangChain integration is also available:
+> ```bash
+> python jetson_prompt_toolkit.py --mode compare --backends openai
+> ```
 
 ### 🔹 2. Local Ollama Setup
 
@@ -157,6 +169,11 @@ else:
     print("Ollama not available. Start with: ollama serve")
 ```
 
+> **Note:** This class is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --backends ollama
+> ```
+
 ### 🔹 3. Local llama-cpp-python Setup
 
 ```python
@@ -212,6 +229,11 @@ class LlamaCppPrompter:
 # )
 # print(response)
 ```
+
+> **Note:** This class is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --backends llamacpp --model_path /path/to/your/model.gguf
+> ```
 
 ---
 
@@ -289,6 +311,11 @@ def test_cot_across_models():
 # test_cot_across_models()
 ```
 
+> **Note:** These Chain-of-Thought examples are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --technique cot
+> ```
+
 ### 🎯 2. Few-Shot Learning
 
 Provide examples to guide the model's behavior.
@@ -365,6 +392,11 @@ def test_few_shot_learning():
 # test_few_shot_learning()
 ```
 
+> **Note:** These Few-Shot Learning examples are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --technique few_shot
+> ```
+
 ### 🔄 3. Think Step by Step vs Think Hard
 
 Compare different reasoning triggers.
@@ -430,6 +462,11 @@ def test_reasoning_triggers():
 
 # test_reasoning_triggers()
 ```
+
+> **Note:** These Reasoning Trigger examples are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --technique reasoning
+> ```
 
 ### 🎭 4. Role-Based Prompting
 
@@ -511,6 +548,11 @@ def test_role_based_prompting():
 
 # test_role_based_prompting()
 ```
+
+> **Note:** These Role-Based Prompting examples are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --technique roles
+> ```
 
 ### 🔄 5. In-Context Learning
 
@@ -613,6 +655,11 @@ def test_in_context_learning():
 
 # test_in_context_learning()
 ```
+
+> **Note:** These In-Context Learning examples are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode basic --technique in_context
+> ```
 
 ---
 
@@ -783,6 +830,11 @@ if langchain_ollama.is_available():
         print(f"A: {a[:100]}...\n")
 ```
 
+> **Note:** This LangChain Ollama integration is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode compare --backends ollama
+> ```
+
 ### 🔹 LangChain with llama-cpp-python
 
 ```python
@@ -857,6 +909,11 @@ class LangChainLlamaCppPrompter:
 # print(response)
 ```
 
+> **Note:** This LangChain LlamaCpp integration is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode compare --backends llamacpp --model_path /path/to/your/model.gguf
+> ```
+
 ### 🔄 Comparing LangChain Approaches
 
 ```python
@@ -904,6 +961,11 @@ Provide practical examples for each.
 
 # compare_langchain_backends()
 ```
+
+> **Note:** This LangChain backend comparison is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode compare
+> ```
 
 ---
 
@@ -1034,6 +1096,11 @@ for device in device_comparisons:
     print(f"  Power: {device.power_consumption}")
     print(f"  Use Cases: {', '.join(device.best_use_cases[:2])}")
 ```
+
+> **Note:** This Structured Output example is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode structured
+> ```
 
 ### 🛠️ Tool Calling with Structured Output
 
@@ -1284,6 +1351,11 @@ for i, request in enumerate(test_requests[:2], 1):  # Test first 2 requests
     response = tool_prompter.process_request_with_tools(request)
     print(f"Response: {response[:300]}...")
 ```
+
+> **Note:** This Tool Calling example is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode tools
+> ```
 
 ---
 
@@ -1552,6 +1624,11 @@ for i, request in enumerate(function_test_requests[:2], 1):
     response = function_prompter.process_with_functions(request)
     print(f"Response: {response[:300]}...")
 ```
+
+> **Note:** This Function Calling example is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode functions
+> ```
 
 ### 🌐 Model Context Protocol (MCP)
 
@@ -1832,6 +1909,11 @@ for i, request in enumerate(mcp_test_requests[:2], 1):
     response = mcp_prompter.process_with_mcp(request)
     print(f"Response: {response[:300]}...")
 ```
+
+> **Note:** This MCP integration example is included in the unified `jetson_prompt_toolkit.py` script. You can run it with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode mcp
+> ```
 
 ---
 
@@ -2518,6 +2600,11 @@ print("\n🏭 Production MCP Application Ready")
 print("Available workflows: model_deployment, performance_optimization, production_validation")
 ```
 
+> **Note:** These lab exercises are included in the unified `jetson_prompt_toolkit.py` script. You can run them with:
+> ```bash
+> python jetson_prompt_toolkit.py --mode lab
+> ```
+
 ### 📊 Lab Results and Analysis
 
 After completing all exercises, analyze your results:
@@ -2579,4 +2666,106 @@ Test and compare prompt engineering on three backends:
 * Move to API-based or structured LangChain interfaces
 * Use LangChain to modularize prompt types and switch LLM backends (OpenAI, Ollama, or llama-cpp)
 * Jetson Orin Nano supports local inference with quantized models using llama.cpp or Ollama
+
+---
+
+## 🚀 Unified Python Script
+
+All the Python code examples from this tutorial have been consolidated into a single, unified script called `jetson_prompt_toolkit.py`. This script provides a command-line interface to experiment with different prompt engineering techniques, backends, and advanced features.
+
+### 📥 Installation
+
+```bash
+# Clone the repository if you haven't already
+git clone https://github.com/yourusername/edgeAI.git
+cd edgeAI
+
+# Install dependencies
+pip install openai langchain langchain-openai langchain-community pydantic
+
+# Optional: Install Ollama for local inference
+# Follow instructions at https://ollama.ai/
+
+# Optional: Install llama-cpp-python for local inference
+pip install llama-cpp-python
+```
+
+### 🔧 Usage Examples
+
+#### Basic Prompt Engineering Techniques
+
+```bash
+# Test Chain-of-Thought reasoning with OpenAI
+python jetson_prompt_toolkit.py --mode basic --technique cot --backends openai
+
+# Compare all techniques across multiple backends
+python jetson_prompt_toolkit.py --mode basic --technique all --backends openai,ollama
+```
+
+#### Compare Different Backends
+
+```bash
+# Compare responses from different backends
+python jetson_prompt_toolkit.py --mode compare --backends openai,ollama,llamacpp --llamacpp-model /path/to/model.gguf
+```
+
+#### Structured Output Generation
+
+```bash
+# Generate a YOLOv8 optimization plan
+python jetson_prompt_toolkit.py --mode structured --output optimization_plan --backends openai
+
+# Compare Jetson devices
+python jetson_prompt_toolkit.py --mode structured --output device_comparison --backends openai
+```
+
+#### Tool Calling Demonstrations
+
+```bash
+# Process a request using tool calling
+python jetson_prompt_toolkit.py --mode tools --request "What's the current system status of my Jetson device?"
+```
+
+#### Function Calling Demonstrations
+
+```bash
+# Process a request using function calling
+python jetson_prompt_toolkit.py --mode functions --request "I need to optimize my YOLOv8 model for Jetson Nano"
+```
+
+#### MCP Protocol Demonstrations
+
+```bash
+# Process a request using MCP
+python jetson_prompt_toolkit.py --mode mcp --request "Create a deployment checklist for my YOLOv8 model on Jetson Xavier NX"
+```
+
+#### Advanced Assistant Demonstrations
+
+```bash
+# Process a complex request with the Jetson AI Assistant
+python jetson_prompt_toolkit.py --mode assistant --request "I need to deploy multiple AI models on my Jetson AGX Orin for a smart retail application"
+```
+
+#### Production MCP Application
+
+```bash
+# Run a production workflow
+python jetson_prompt_toolkit.py --mode production
+```
+
+### 🔄 Switching Models
+
+You can specify which models to use with each backend:
+
+```bash
+# Use a specific OpenAI model
+python jetson_prompt_toolkit.py --mode basic --technique cot --backends openai --openai-model gpt-4o
+
+# Use a specific Ollama model
+python jetson_prompt_toolkit.py --mode basic --technique cot --backends ollama --ollama-model llama3.1:8b
+
+# Use a specific llama-cpp-python model
+python jetson_prompt_toolkit.py --mode basic --technique cot --backends llamacpp --llamacpp-model /path/to/model.gguf
+```
 

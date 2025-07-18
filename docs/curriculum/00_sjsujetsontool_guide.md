@@ -291,13 +291,13 @@ Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Load
 
 
 
-### 🚀 `sjsujetsontool fastapi`
+<!-- ### 🚀 `sjsujetsontool fastapi`
 
 Launches a FastAPI backend on port 8001, useful for serving AI endpoints for real-time apps.
 
 ### 📚 `sjsujetsontool rag`
 
-Runs a LangChain Retrieval-Augmented Generation demo server with local documents and vector search.
+Runs a LangChain Retrieval-Augmented Generation demo server with local documents and vector search. -->
 
 ### 📦 `sjsujetsontool status`
 
@@ -316,9 +316,9 @@ Changes device hostname, regenerates system identity, writes `/etc/device-id`.
 
 Mounts a shared folder from a remote NFS server. Useful for accessing centralized data or logging remotely.
 
-### 🛠️ `sjsujetsontool build`
+<!-- ### 🛠️ `sjsujetsontool build`
 
-Rebuilds the base development Docker image with CUDA, Python, PyTorch, and other libraries pre-installed.
+Rebuilds the base development Docker image with CUDA, Python, PyTorch, and other libraries pre-installed. -->
 
 ### 🛑 `sjsujetsontool stop`
 
