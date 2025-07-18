@@ -357,7 +357,9 @@ case "$1" in
   update)
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
-    docker pull $REMOTE_IMAGE > /dev/null
+    echo "⬇️ Pulling latest image (this may take a while)..."
+    docker pull $REMOTE_IMAGE
+    echo "✓ Pull complete."
     REMOTE_ID=$(docker image inspect $REMOTE_IMAGE --format '{{.Id}}' 2>/dev/null)
     if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
       echo "📦 New version detected. Updating local image..."
@@ -372,7 +374,8 @@ case "$1" in
     TMP_PATH="${SCRIPT_PATH}.tmp"
 
     cp "$SCRIPT_PATH" "$BACKUP_PATH"
-    curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$TMP_PATH"
+    echo "⬇️ Downloading latest script..."
+    curl -f#L https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$TMP_PATH"
     chmod +x "$TMP_PATH"
 
     echo "✅ Script downloaded. Replacing current script..."
