@@ -458,7 +458,7 @@ The 40-pin header provides extensive I/O capabilities compatible with Raspberry 
 - **GPIO**: 26 digital I/O pins
 - **Power**: 3.3V, 5V, and multiple GND pins
 
-## 🚀 Hardware Extension Possibilities
+<!-- ## 🚀 Hardware Extension Possibilities
 
 ### 🎯 AI and Vision Extensions
 
@@ -870,7 +870,7 @@ if __name__ == "__main__":
 2. **GPIO Demo**: Working LED blink program with timing measurements
 3. **Camera Validation**: Captured test images with resolution verification
 4. **CUDA Performance**: Vector addition benchmark results and analysis
-5. **Extension Proposal**: Design for one hardware extension project
+5. **Extension Proposal**: Design for one hardware extension project -->
 
 ## 🔗 Resources
 

@@ -161,6 +161,11 @@ nvcr.io/nvidia/l4t-base   r36.2.0          46b8e6a6a6a7   19 months ago   750MB
 sjsujetson@sjsujetson-01:~$ sjsujetsontool shell #enter into the container
 root@sjsujetson-01:/workspace#
 ```
+if you face errors like "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?", restart the docker:
+```bash
+sudo systemctl start docker
+sudo systemctl status docker
+```
 
 The `\Developer` and `\Developer\models` folders in the jetson host are mounted to the container in the path of `\Developer` and `\models`
 
@@ -273,6 +278,7 @@ sjsujetson@sjsujetson-01:/Developer/models$ sjsujetsontool run /Developer/edgeAI
 ### 🧠 `sjsujetsontool ollama`
 
 This section introduces its integrated `ollama` command group, which allows you to manage, run, and query large language models inside a Docker container on your Jetson.
+
 
 `sjsujetsontool ollama <subcommand>` enables local management and interaction with Ollama models from inside a persistent Jetson container.
 
@@ -392,7 +398,28 @@ sjsujetsontool ollama ask --model mistral "Give me a Jetson-themed poem."
 
 Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Loads a `.gguf` model and serves an HTTP API for tokenized prompt completion.
 
+After entering into the container, you can run a local downloaded model ('build_cuda' folder is the cuda build):
+```bash
+root@sjsujetson-01:/Developer/llama.cpp# ./build_cuda/bin/llama-cli -m /models/mistral.gguf -p "Explain what is Nvidia jetson"
+....
+llama_perf_sampler_print:    sampling time =      34.98 ms /   532 runs   (    0.07 ms per token, 15210.86 tokens per second)
+llama_perf_context_print:        load time =    3498.72 ms
+llama_perf_context_print: prompt eval time =    2193.93 ms /    17 tokens (  129.05 ms per token,     7.75 tokens per second)
+llama_perf_context_print:        eval time =   84805.65 ms /   514 runs   (  164.99 ms per token,     6.06 tokens per second)
+llama_perf_context_print:       total time =   92930.78 ms /   531 tokens
+```
 
+`llama-server` is a lightweight, OpenAI API compatible, HTTP server for serving LLMs. Start a local HTTP server with default configuration on port 8080: `llama-server -m model.gguf --port 8080`, Basic web UI can be accessed via browser: `http://localhost:8080`. Chat completion endpoint: `http://localhost:8080/v1/chat/completions`
+```bash
+root@sjsujetson-01:/Developer/llama.cpp# ./build_cuda/bin/llama-server -m /models/mistral.gguf --port 8080
+```
+
+Send request via curl in another terminal (in the host machine or container):
+```bash
+sjsujetson@sjsujetson-01:~$ curl http://localhost:8080/completion -d '{
+  "prompt": "Explain what is Nvidia jetson?",
+  "n_predict": 100
+}'
 
 <!-- ### 🚀 `sjsujetsontool fastapi`
 
