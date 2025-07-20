@@ -408,7 +408,7 @@ case "$1" in
     echo "✅ Script downloaded. Replacing current script..."
     mv "$TMP_PATH" "$SCRIPT_PATH"
 
-    echo "✅ Script updated. Please rerun your command."
+    echo "✅ Script updated."
     exit 0
     ;;
   set-hostname)
