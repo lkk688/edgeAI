@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../01b_jetson_cuda/">
+      
+      
+        <link rel="next" href="../03a_linux_networking_tools/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -16,7 +20,7 @@
     
     
       
-        <title>🧠 Introduction to Linux Basics on Jetson - Jetson Cyber & AI Summer Camp</title>
+        <title>💡 Linux OS Basics - Jetson Cyber & AI Summer Camp</title>
       
     
     
@@ -102,7 +106,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              🧠 Introduction to Linux Basics on Jetson
+              💡 Linux OS Basics
             
           </span>
         </div>
@@ -230,7 +234,7 @@
             
   
   <span class="md-ellipsis">
-    Introduction
+    🔰 Getting Started with Jetson
     
   </span>
   
@@ -241,7 +245,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Introduction
+            🔰 Getting Started with Jetson
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -256,7 +260,29 @@
         
   
   <span class="md-ellipsis">
-    sjsujetsontool Guide
+    ✅ sjsujetsontool Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    📋 sjsujetsontool Cheatsheet
     
   </span>
   
@@ -278,7 +304,7 @@
         
   
   <span class="md-ellipsis">
-    Introduction to NVIDIA Jetson
+    🔧 Introduction to NVIDIA Jetson
     
   </span>
   
@@ -296,11 +322,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Introduction to Linux and Networking
+    🚀 CUDA Programming on Jetson
     
   </span>
   
@@ -322,24 +348,26 @@
       
   
   
+    
   
   
+  
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Core Systems
+    🐧 Linux Fundamentals
     
   </span>
   
@@ -347,10 +375,10 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            Core Systems
+            🐧 Linux Fundamentals
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -358,19 +386,570 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../02_programming_env_python_cpp_cuda.md" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    💡 Linux OS Basics
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Programming Environment (Python/C++/CUDA)
+    💡 Linux OS Basics
     
   </span>
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 What is Linux?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#linux-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ Linux System Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Linux System Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Kernel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Shell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-file-system-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. File System Hierarchy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-user-space-and-daemons" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. User Space and Daemons
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-jetson-l4t" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 What is Jetson L4T?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧩 What is Jetson L4T?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Components:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧬 Architecture:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l4t-version-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 L4T Version Check:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popular-linux-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      💻 Popular Linux Commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-exercise-advanced-linux-practice-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Lab Exercise: Advanced Linux Practice on Jetson
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab Exercise: Advanced Linux Practice on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-file-system-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: File System Exploration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-system-monitoring-and-processes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: System Monitoring and Processes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-examine-kernel-and-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Examine Kernel and Drivers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-explore-l4t-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Explore L4T Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Explore L4T Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tracing-system-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracing System Calls:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-l4t-in-depth-technical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Jetson L4T: In-Depth Technical Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Jetson L4T: In-Depth Technical Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#l4t-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ L4T Architecture Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l4t-components-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 L4T Components Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 L4T Components Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-bootloader-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Bootloader Chain
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-device-tree-and-hardware-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Device Tree and Hardware Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-nvidia-gpu-driver-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. NVIDIA GPU Driver Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-tegra-specific-drivers-and-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Tegra-Specific Drivers and Services
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-access-and-driver-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Hardware Access and Driver Interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Hardware Access and Driver Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-gpio-general-purpose-inputoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. GPIO (General Purpose Input/Output)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-i2c-inter-integrated-circuit" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. I2C (Inter-Integrated Circuit)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spi-serial-peripheral-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. SPI (Serial Peripheral Interface)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pwm-pulse-width-modulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. PWM (Pulse Width Modulation)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-and-multimedia-subsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      📹 Camera and Multimedia Subsystem
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📹 Camera and Multimedia Subsystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-camera-interface-csi" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Camera Interface (CSI)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-management-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚡ Power Management and Performance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Power Management and Performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-power-models-nvpmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Power Models (nvpmodel)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-cpu-frequency-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. CPU Frequency Scaling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-gpu-frequency-and-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. GPU Frequency and Power
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-system-administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Advanced System Administration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Advanced System Administration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-monitoring-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 System Monitoring and Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 System Monitoring and Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-process-and-resource-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Process and Resource Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-system-logs-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. System Logs and Debugging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-network-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Network Diagnostics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#package-management-and-software-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Package Management and Software Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Package Management and Software Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-apt-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. APT Package Manager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-snap-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Snap Package Manager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-building-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Building from Source
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-user-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Security and User Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Security and User Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-and-group-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      👥 User and Group Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-permissions-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔒 File Permissions and Security
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛡️ System Security
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -383,55 +962,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../03_accelerated_computing_python_cuda.md" class="md-nav__link">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Accelerated Python + CUDA
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../04a_numpy_pytorch_intro.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Numpy
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../04b_pytorch_intro.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    PyTorch
+    🌐 Linux Networking Tools
     
   </span>
   
@@ -470,7 +1005,7 @@
             
   
   <span class="md-ellipsis">
-    Cyber Systems
+    🤖 AI & LLM
     
   </span>
   
@@ -481,7 +1016,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Cyber Systems
+            🤖 AI & LLM
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -492,11 +1027,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Linux Networking Tools
+    🧠 Transformers & NLP Applications
     
   </span>
   
@@ -514,142 +1049,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../01c_packet_sniffing_monitoring.md" class="md-nav__link">
+      <a href="../06_llms_jetson/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Packet Sniffing & Monitoring
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../01d_linux_cyber_defense_basics.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Linux Cyber Defense Tools
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../01e_linux_cyber_attack_simulation.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Simulated Attacks & Detection
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    AI & LLM
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            AI & LLM
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../05_cnn_image_processing_jetson.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    CNNs + Image Processing
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../06_transformers_llms_jetson.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Transformers & LLMs
+    🚀 Large Language Models on Jetson
     
   </span>
   
@@ -671,7 +1075,7 @@
         
   
   <span class="md-ellipsis">
-    NLP + Inference Optimization
+    📚 NLP Applications & LLM Optimization
     
   </span>
   
@@ -693,7 +1097,7 @@
         
   
   <span class="md-ellipsis">
-    Prompt Engineering
+    ✍️ Prompt Engineering & LangChain
     
   </span>
   
@@ -715,94 +1119,7 @@
         
   
   <span class="md-ellipsis">
-    RAG Apps
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../10_local_ai_agents_jetson.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Local AI Agents
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Final Project
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            Final Project
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../11_final_challenges_hackathon.md" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Hackathon & Challenges
+    🔎 RAG Applications with LangChain
     
   </span>
   
