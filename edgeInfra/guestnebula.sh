@@ -1,0 +1,261 @@
+#!/bin/bash
+set -e
+
+# Default client ID
+DEFAULT_CLIENT_ID="guest01"
+
+# Use command line argument if provided, otherwise use default
+CLIENT_ID="${2:-$DEFAULT_CLIENT_ID}"
+
+API_SERVER="http://lkk688.duckdns.org:8000"
+NEBULA_DIR="/etc/nebula"
+NEBULA_BIN="./nebula" # Local binary in current directory
+
+# Default token and platform settings
+DEFAULT_TOKEN="guest-secure-token-2025"
+DEFAULT_PLATFORM="linux-arm64"
+
+# Try to load client-specific token if available
+TOKEN_FILE="/etc/nebula/token.txt"
+if [ -f "$TOKEN_FILE" ]; then
+  TOKEN=$(cat "$TOKEN_FILE")
+else
+  TOKEN="$DEFAULT_TOKEN"
+fi
+
+PLATFORM="$DEFAULT_PLATFORM"
+
+# === Function: download config ===
+download_config() {
+  echo "[INFO] Downloading bundle for $CLIENT_ID from $API_SERVER..."
+  
+  # Create a temporary directory for downloads
+  TMP_DIR=$(mktemp -d)
+  cd "$TMP_DIR"
+  
+  # Download the client bundle
+  echo "[INFO] Downloading client bundle..."
+  if ! curl -f -O -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
+    echo "[ERROR] Failed to download client bundle. Check your token and network connection."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Download CA certificate
+  echo "[INFO] Downloading CA certificate..."
+  if ! curl -f -O -G -d "token=jetsonsupertoken" "$API_SERVER/public/downloads/ca.zip"; then
+    echo "[WARNING] Failed to download CA certificate. Will try to use existing one if available."
+  fi
+  
+  # Extract the downloaded files
+  echo "[INFO] Extracting files..."
+  if ! unzip -o "$CLIENT_ID.zip"; then
+    echo "[ERROR] Failed to extract client bundle."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Extract CA certificate if downloaded successfully
+  if [ -f "ca.zip" ]; then
+    if ! unzip -o "ca.zip" -d ca_temp; then
+      echo "[WARNING] Failed to extract CA certificate."
+    fi
+  fi
+  
+  # Create Nebula directory and copy files
+  sudo mkdir -p "$NEBULA_DIR"
+  
+  # Copy client files
+  if [ -f "$CLIENT_ID.crt" ] && [ -f "$CLIENT_ID.key" ] && [ -f "config.yml" ]; then
+    sudo cp "$CLIENT_ID.crt" "$CLIENT_ID.key" "config.yml" "$NEBULA_DIR/"
+  else
+    echo "[ERROR] Required client files not found in the downloaded bundle."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Copy CA certificate if available
+  if [ -d "ca_temp" ] && [ -f "ca_temp/ca.crt" ]; then
+    sudo cp "ca_temp/ca.crt" "$NEBULA_DIR/"
+  elif [ ! -f "$NEBULA_DIR/ca.crt" ]; then
+    echo "[ERROR] CA certificate not found and not available in $NEBULA_DIR."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  else
+    echo "[INFO] Using existing CA certificate in $NEBULA_DIR."
+  fi
+  
+  # Clean up
+  cd - > /dev/null
+  rm -rf "$TMP_DIR"
+  
+  echo "[INFO] Configuration files successfully installed to $NEBULA_DIR."
+}
+
+# === Function: install nebula ===
+install_nebula() {
+  echo "[INFO] Installing Nebula locally..."
+  # Create a temporary directory for downloads
+  TMP_DIR=$(mktemp -d)
+  cd "$TMP_DIR"
+  
+  # Download the client bundle which includes the nebula binary
+  echo "[INFO] Downloading client bundle with Nebula binary..."
+  if ! curl -f -O -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
+    echo "[ERROR] Failed to download client bundle. Check your token and network connection."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Extract the downloaded files
+  if ! unzip -o "$CLIENT_ID.zip"; then
+    echo "[ERROR] Failed to extract client bundle."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Check if nebula binary exists in the bundle
+  if [ ! -f "nebula" ]; then
+    echo "[ERROR] Nebula binary not found in the downloaded bundle."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Copy the nebula binary to the current directory
+  if ! cp "nebula" "../nebula"; then
+    echo "[ERROR] Failed to copy nebula binary to current directory."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  cd - > /dev/null
+  chmod +x "$NEBULA_BIN"
+  
+  # Verify the binary works
+  if ! "$NEBULA_BIN" -version >/dev/null 2>&1; then
+    echo "[WARNING] Nebula binary installed but may not be working correctly."
+  else
+    echo "[INFO] Nebula binary installed successfully: $($NEBULA_BIN -version 2>&1 | head -n 1)"
+  fi
+  
+  # Clean up
+  rm -rf "$TMP_DIR"
+  return 0
+}
+
+# === Function: run nebula ===
+run_nebula() {
+  echo "[INFO] Running Nebula VPN client..."
+  
+  # Check if required files exist
+  if [ ! -f "$NEBULA_BIN" ]; then
+    echo "[ERROR] Nebula binary not found at $NEBULA_BIN. Please install it first."
+    return 1
+  fi
+  
+  if [ ! -f "$NEBULA_DIR/config.yml" ]; then
+    echo "[ERROR] Configuration file not found at $NEBULA_DIR/config.yml. Please download it first."
+    return 1
+  fi
+  
+  echo "[INFO] Starting Nebula VPN in foreground mode..."
+  echo "[INFO] Press Ctrl+C to stop the VPN connection"
+  echo "-------------------------------------------"
+  
+  # Run nebula in foreground
+  sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+  
+  return $?
+}
+
+# === Function: check nebula status ===
+check_status() {
+  echo "[INFO] Checking nebula status..."
+  
+  # Check if nebula interface exists
+  if ip addr show nebula1 >/dev/null 2>&1; then
+    NEBULA_IP=$(ip -4 addr show nebula1 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+    echo "[STATUS] Nebula interface is UP with IP: $NEBULA_IP ✅"
+  else
+    echo "[STATUS] Nebula interface is NOT UP ❌"
+  fi
+  
+  # Check if nebula process is running
+  if pgrep -f "$NEBULA_BIN" >/dev/null; then
+    echo "[STATUS] Nebula process is running ✅"
+  else
+    echo "[STATUS] Nebula process is NOT running ❌"
+  fi
+  
+  # Try to ping the lighthouse if interface is up
+  if ip addr show nebula1 >/dev/null 2>&1; then
+    echo "\n[CONNECTIVITY] Testing connection to lighthouse (192.168.100.1):"
+    if ping -c 1 -W 2 192.168.100.1 >/dev/null 2>&1; then
+      echo "[STATUS] Lighthouse is reachable ✅"
+    else
+      echo "[STATUS] Lighthouse is NOT reachable ❌"
+    fi
+  fi
+}
+
+# === Function: set token ===
+set_token() {
+  if [ -z "$1" ]; then
+    echo "[ERROR] Please provide a token value"
+    return 1
+  fi
+  
+  echo "[INFO] Setting client token to: $1"
+  sudo mkdir -p "$(dirname "$TOKEN_FILE")"
+  echo "$1" | sudo tee "$TOKEN_FILE" > /dev/null
+  echo "[INFO] Token saved to $TOKEN_FILE"
+}
+
+# === Main CLI logic ===
+case "$1" in
+  download)
+    echo "[INFO] Downloading configuration for guest user ($CLIENT_ID)..."
+    if download_config; then
+      echo "[SUCCESS] Nebula VPN configuration downloaded successfully!"
+    else
+      echo "[ERROR] Nebula VPN configuration download failed. Please check the errors above."
+      exit 1
+    fi
+    ;;
+  install)
+    echo "[INFO] Installing Nebula binary for guest user ($CLIENT_ID)..."
+    if install_nebula; then
+      echo "[SUCCESS] Nebula binary installed successfully!"
+    else
+      echo "[ERROR] Nebula binary installation failed. Please check the errors above."
+      exit 1
+    fi
+    ;;
+  run)
+    echo "[INFO] Running Nebula VPN for guest user ($CLIENT_ID)..."
+    run_nebula
+    ;;
+  status)
+    check_status
+    ;;
+  set-token)
+    set_token "$3"
+    ;;
+  *)
+    echo "Usage: guestnebula download [client_id]  # download configuration files"
+    echo "       guestnebula install [client_id]   # install nebula binary"
+    echo "       guestnebula run [client_id]       # run nebula in foreground"
+    echo "       guestnebula status [client_id]    # check status"
+    echo "       guestnebula set-token [client_id] <token>  # set client-specific token"
+    echo ""
+    echo "Note: If [client_id] is not provided, 'guest01' will be used as default"
+    ;;
+esac
