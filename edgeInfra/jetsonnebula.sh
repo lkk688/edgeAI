@@ -311,3 +311,18 @@ case "$1" in
     echo "       jetsonnebula restart              # restart Nebula service"
     ;;
 esac
+
+# Set token Get your specific token from the system administrator
+#sudo ./jetsonnebula.sh set-token "your-secure-token-here"
+#Second option:
+# Create the nebula directory if it doesn't exist
+# sudo mkdir -p /etc/nebula
+
+# # Create the token file
+# sudo bash -c 'echo "your-secure-token-here" > /etc/nebula/token.txt'
+
+# # Set proper permissions
+# sudo chmod 600 /etc/nebula/token.txt
+
+# - Install Nebula: sudo ./jetsonnebula.sh install
+# - Verify it's working: sudo ./jetsonnebula.sh status
