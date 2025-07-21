@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+# Debug function
+debug_paths() {
+  echo "[DEBUG] Current working directory: $(pwd)"
+  echo "[DEBUG] Script directory: $(dirname "$0")"
+  echo "[DEBUG] Absolute script path: $(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+  echo "[DEBUG] NEBULA_DIR: $NEBULA_DIR"
+  echo "[DEBUG] NEBULA_BIN: $NEBULA_BIN"
+  echo "[DEBUG] TOKEN_FILE: $TOKEN_FILE"
+}
+
 # Default client ID
 DEFAULT_CLIENT_ID="guest01"
 
@@ -29,12 +39,15 @@ PLATFORM="$DEFAULT_PLATFORM"
 download_config() {
   echo "[INFO] Downloading bundle for $CLIENT_ID from $API_SERVER..."
   
+  # Get absolute path for NEBULA_DIR
+  ABSOLUTE_NEBULA_DIR="$(pwd)/$NEBULA_DIR"
+  
   # Check if NEBULA_DIR is writable or can be created
-  if [ -d "$NEBULA_DIR" ] && [ ! -w "$NEBULA_DIR" ]; then
-    echo "[ERROR] $NEBULA_DIR exists but is not writable. Please run with sudo or fix permissions."
+  if [ -d "$ABSOLUTE_NEBULA_DIR" ] && [ ! -w "$ABSOLUTE_NEBULA_DIR" ]; then
+    echo "[ERROR] $ABSOLUTE_NEBULA_DIR exists but is not writable. Please run with sudo or fix permissions."
     return 1
-  elif [ ! -d "$NEBULA_DIR" ] && [ ! -w "$(dirname "$NEBULA_DIR")" ]; then
-    echo "[ERROR] Cannot create $NEBULA_DIR. Parent directory is not writable."
+  elif [ ! -d "$ABSOLUTE_NEBULA_DIR" ] && [ ! -w "$(dirname "$ABSOLUTE_NEBULA_DIR")" ]; then
+    echo "[ERROR] Cannot create $ABSOLUTE_NEBULA_DIR. Parent directory is not writable."
     return 1
   fi
   
@@ -85,12 +98,30 @@ download_config() {
     fi
   fi
   
-  # Create Nebula directory and copy files
-  mkdir -p "$NEBULA_DIR"
+  # Save current directory and get the original working directory
+  CURRENT_DIR=$(pwd)
+  ORIGINAL_DIR=$(cd - > /dev/null && pwd)
+  
+  # Create Nebula directory with absolute path
+  ABSOLUTE_NEBULA_DIR="$ORIGINAL_DIR/$NEBULA_DIR"
+  echo "[DEBUG] Creating directory at: $ABSOLUTE_NEBULA_DIR"
+  mkdir -p "$ABSOLUTE_NEBULA_DIR"
+  
+  # Verify directory was created
+  if [ ! -d "$ABSOLUTE_NEBULA_DIR" ]; then
+    echo "[ERROR] Failed to create directory: $ABSOLUTE_NEBULA_DIR"
+    ls -la "$ORIGINAL_DIR"
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Go back to temp directory
+  cd "$CURRENT_DIR"
   
   # Copy client files
   if [ -f "$CLIENT_ID.crt" ] && [ -f "$CLIENT_ID.key" ] && [ -f "config.yml" ]; then
-    cp "$CLIENT_ID.crt" "$CLIENT_ID.key" "config.yml" "$NEBULA_DIR/"
+    cp "$CLIENT_ID.crt" "$CLIENT_ID.key" "config.yml" "$ABSOLUTE_NEBULA_DIR/"
   else
     echo "[ERROR] Required client files not found in the downloaded bundle."
     cd - > /dev/null
@@ -100,21 +131,22 @@ download_config() {
   
   # Copy CA certificate if available
   if [ -d "ca_temp" ] && [ -f "ca_temp/ca.crt" ]; then
-    cp "ca_temp/ca.crt" "$NEBULA_DIR/"
-  elif [ ! -f "$NEBULA_DIR/ca.crt" ]; then
-    echo "[ERROR] CA certificate not found and not available in $NEBULA_DIR."
+    cp "ca_temp/ca.crt" "$ABSOLUTE_NEBULA_DIR/"
+  elif [ ! -f "$ABSOLUTE_NEBULA_DIR/ca.crt" ]; then
+    echo "[ERROR] CA certificate not found and not available in $ABSOLUTE_NEBULA_DIR."
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   else
-    echo "[INFO] Using existing CA certificate in $NEBULA_DIR."
+    echo "[INFO] Using existing CA certificate in $ABSOLUTE_NEBULA_DIR."
   fi
   
   # Clean up
   cd - > /dev/null
   rm -rf "$TMP_DIR"
   
-  echo "[INFO] Configuration files successfully installed to $NEBULA_DIR."
+  echo "[INFO] Configuration files successfully installed to $ABSOLUTE_NEBULA_DIR."
+  echo "[DEBUG] To verify, run: ls -la $ABSOLUTE_NEBULA_DIR"
 }
 
 # === Function: install nebula ===
@@ -166,22 +198,29 @@ install_nebula() {
     return 1
   fi
   
+  # Get absolute path for nebula binary
+  ORIGINAL_DIR=$(cd - > /dev/null && pwd)
+  ABSOLUTE_NEBULA_BIN="$ORIGINAL_DIR/$NEBULA_BIN"
+  
+  echo "[DEBUG] Copying nebula binary to: $ABSOLUTE_NEBULA_BIN"
+  
   # Copy the nebula binary to the current directory
-  if ! cp "nebula" "../nebula"; then
-    echo "[ERROR] Failed to copy nebula binary to current directory."
+  if ! cp "nebula" "$ABSOLUTE_NEBULA_BIN"; then
+    echo "[ERROR] Failed to copy nebula binary to: $ABSOLUTE_NEBULA_BIN"
+    ls -la "$ORIGINAL_DIR"
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
   
   cd - > /dev/null
-  chmod +x "$NEBULA_BIN"
+  chmod +x "$ABSOLUTE_NEBULA_BIN"
   
   # Verify the binary works
-  if ! "$NEBULA_BIN" -version >/dev/null 2>&1; then
+  if ! "$ABSOLUTE_NEBULA_BIN" -version >/dev/null 2>&1; then
     echo "[WARNING] Nebula binary installed but may not be working correctly."
   else
-    echo "[INFO] Nebula binary installed successfully: $($NEBULA_BIN -version 2>&1 | head -n 1)"
+    echo "[INFO] Nebula binary installed successfully: $($ABSOLUTE_NEBULA_BIN -version 2>&1 | head -n 1)"
   fi
   
   # Clean up
@@ -193,14 +232,22 @@ install_nebula() {
 run_nebula() {
   echo "[INFO] Running Nebula VPN client..."
   
+  # Get absolute paths
+  ABSOLUTE_NEBULA_DIR="$(pwd)/$NEBULA_DIR"
+  ABSOLUTE_NEBULA_BIN="$(pwd)/$NEBULA_BIN"
+  
+  echo "[DEBUG] Using config directory: $ABSOLUTE_NEBULA_DIR"
+  echo "[DEBUG] Using nebula binary: $ABSOLUTE_NEBULA_BIN"
+  
   # Check if required files exist
-  if [ ! -f "$NEBULA_BIN" ]; then
-    echo "[ERROR] Nebula binary not found at $NEBULA_BIN. Please install it first."
+  if [ ! -f "$ABSOLUTE_NEBULA_BIN" ]; then
+    echo "[ERROR] Nebula binary not found at $ABSOLUTE_NEBULA_BIN. Please install it first."
     return 1
   fi
   
-  if [ ! -f "$NEBULA_DIR/config.yml" ]; then
-    echo "[ERROR] Configuration file not found at $NEBULA_DIR/config.yml. Please download it first."
+  if [ ! -f "$ABSOLUTE_NEBULA_DIR/config.yml" ]; then
+    echo "[ERROR] Configuration file not found at $ABSOLUTE_NEBULA_DIR/config.yml. Please download it first."
+    echo "[DEBUG] To verify directory contents, run: ls -la $ABSOLUTE_NEBULA_DIR"
     return 1
   fi
   
@@ -212,10 +259,10 @@ run_nebula() {
   # Check if we're running as root
   if [ "$(id -u)" -ne 0 ]; then
     echo "[WARNING] Not running as root. Using sudo to run Nebula..."
-    sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+    sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml"
   else
     # Run nebula in foreground
-    "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+    "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml"
   fi
   
   return $?
@@ -224,6 +271,11 @@ run_nebula() {
 # === Function: check nebula status ===
 check_status() {
   echo "[INFO] Checking nebula status..."
+  
+  # Get absolute path
+  ABSOLUTE_NEBULA_BIN="$(pwd)/$NEBULA_BIN"
+  
+  echo "[DEBUG] Using nebula binary: $ABSOLUTE_NEBULA_BIN"
   
   # Check if nebula interface exists
   if ip addr show nebula1 >/dev/null 2>&1; then
@@ -234,7 +286,7 @@ check_status() {
   fi
   
   # Check if nebula process is running
-  if pgrep -f "$NEBULA_BIN" >/dev/null; then
+  if pgrep -f "$ABSOLUTE_NEBULA_BIN" >/dev/null; then
     echo "[STATUS] Nebula process is running ✅"
   else
     echo "[STATUS] Nebula process is NOT running ❌"
@@ -258,18 +310,26 @@ set_token() {
     return 1
   fi
   
+  # Get absolute path for token file
+  ABSOLUTE_TOKEN_FILE="$(pwd)/$TOKEN_FILE"
+  echo "[DEBUG] Using token file: $ABSOLUTE_TOKEN_FILE"
+  
   echo "[INFO] Setting client token to: $1"
-  mkdir -p "$(dirname "$TOKEN_FILE")"
-  echo "$1" > "$TOKEN_FILE"
-  echo "[INFO] Token saved to $TOKEN_FILE"
+  mkdir -p "$(dirname "$ABSOLUTE_TOKEN_FILE")"
+  echo "$1" > "$ABSOLUTE_TOKEN_FILE"
+  echo "[INFO] Token saved to $ABSOLUTE_TOKEN_FILE"
 }
 
 # === Main CLI logic ===
+# Print debug information
+debug_paths
+
 case "$1" in
   download)
     echo "[INFO] Downloading configuration for guest user ($CLIENT_ID)..."
     if download_config; then
       echo "[SUCCESS] Nebula VPN configuration downloaded successfully!"
+      echo "[DEBUG] To verify, run: ls -la $(pwd)/$NEBULA_DIR"
     else
       echo "[ERROR] Nebula VPN configuration download failed. Please check the errors above."
       exit 1
@@ -294,12 +354,30 @@ case "$1" in
   set-token)
     set_token "$3"
     ;;
+  debug)
+    echo "[DEBUG] Running diagnostics..."
+    debug_paths
+    echo "[DEBUG] Checking for nebula-config directory..."
+    ls -la "$(pwd)/$NEBULA_DIR" 2>/dev/null || echo "[ERROR] Directory not found: $(pwd)/$NEBULA_DIR"
+    echo "[DEBUG] Checking for nebula binary..."
+    ls -la "$(pwd)/$NEBULA_BIN" 2>/dev/null || echo "[ERROR] Binary not found: $(pwd)/$NEBULA_BIN"
+    echo "[DEBUG] Checking for token file..."
+    ls -la "$(pwd)/$TOKEN_FILE" 2>/dev/null || echo "[WARNING] Token file not found: $(pwd)/$TOKEN_FILE"
+    ;;
+
   *)
     echo "Usage: guestnebula download [client_id]  # download configuration files"
     echo "       guestnebula install [client_id]   # install nebula binary"
     echo "       guestnebula run [client_id]       # run nebula in foreground"
     echo "       guestnebula status [client_id]    # check status"
     echo "       guestnebula set-token [client_id] <token>  # set client-specific token"
+    echo "       guestnebula debug                 # run diagnostics to troubleshoot issues"
+    echo ""
+    echo "Notes:"
+    echo "  - Configuration files are stored in ./nebula-config (relative to current directory)"
+    echo "  - Nebula binary is stored in ./nebula (relative to current directory)"
+    echo "  - All paths are resolved to absolute paths at runtime"
+    echo "  - Run commands from the same directory each time for consistency"
     echo ""
     echo "Note: If [client_id] is not provided, 'guest01' will be used as default"
     echo ""
