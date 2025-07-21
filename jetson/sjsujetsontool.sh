@@ -185,16 +185,17 @@ juiceshop() {
   IMAGE_NAME="bkimminich/juice-shop"
   PORT=3000
 
-  if ! docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
-    echo "[INFO] Pulling Juice Shop image..."
-    docker pull $IMAGE_NAME
-
-    echo "[INFO] Creating Juice Shop container..."
-    docker create -d --name $CONTAINER_NAME -p $PORT:3000 $IMAGE_NAME
+  # Stop and remove any existing container (prevent conflict)
+  if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+    echo "[INFO] Removing existing container: $CONTAINER_NAME"
+    docker rm -f $CONTAINER_NAME
   fi
 
-  echo "[INFO] Starting Juice Shop at http://localhost:$PORT"
-  docker start $CONTAINER_NAME
+  echo "[INFO] Pulling Juice Shop image..."
+  docker pull $IMAGE_NAME
+
+  echo "[INFO] Starting Juice Shop with --rm at http://localhost:$PORT"
+  docker run --rm --name $CONTAINER_NAME -p $PORT:3000 $IMAGE_NAME
 }
 
 check_service() {
