@@ -180,6 +180,23 @@ show_list() {
   echo "     ▶ sjsujetsontool delete"
 }
 
+juiceshop() {
+  CONTAINER_NAME="juice-shop"
+  IMAGE_NAME="bkimminich/juice-shop"
+  PORT=3000
+
+  if ! docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+    echo "[INFO] Pulling Juice Shop image..."
+    docker pull $IMAGE_NAME
+
+    echo "[INFO] Creating Juice Shop container..."
+    docker create -d --name $CONTAINER_NAME -p $PORT:3000 $IMAGE_NAME
+  fi
+
+  echo "[INFO] Starting Juice Shop at http://localhost:$PORT"
+  docker start $CONTAINER_NAME
+}
+
 check_service() {
   local port=$1
   local name=$2
@@ -467,6 +484,9 @@ case "$1" in
     else
       echo "⚠️  Image not found locally."
     fi
+    ;;
+  juiceshop)
+    juiceshop
     ;;
   publish)
     shift
