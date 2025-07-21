@@ -41,7 +41,7 @@ Install `weasyprint` or use browser print-to-PDF from `localhost:8000`.
 #### 5. Push to Github Pages (Optional)
 
 ```bash
-% mkdocs gh-deploy
+mkdocs gh-deploy
 To https://github.com/lkk688/edgeAI.git
  * [new branch]      gh-pages -> gh-pages
 INFO    -  Your documentation should shortly be available at:

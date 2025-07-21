@@ -1,5 +1,3 @@
-
-
 # 🚀 What Are LLMs?
 **Author:** Dr. Kaikai Liu, Ph.D.  
 **Position:** Associate Professor, Computer Engineering  
@@ -59,7 +57,7 @@ Quantization reduces model precision from FP32/FP16 to lower bit representations
 
 ### 🔧 LLM Backends for Edge Devices
 
-The `unified_llm_demo.py` script provides a comprehensive framework for running various LLM backends on edge devices, with specific optimizations for different hardware platforms. Let's explore each backend, its device compatibility, and installation requirements.
+<!-- The `unified_llm_demo.py` script provides a comprehensive framework for running various LLM backends on edge devices, with specific optimizations for different hardware platforms. Let's explore each backend, its device compatibility, and installation requirements. -->
 
 #### **1. llama.cpp - High-Performance C++ Engine**
 
@@ -72,7 +70,7 @@ The `unified_llm_demo.py` script provides a comprehensive framework for running 
 - ✅ x86 CPUs
 - ✅ Apple Silicon (Metal support via separate build)
 
-**Installation**:
+<!-- **Installation**:
 ```bash
 # Basic installation
 git clone https://github.com/ggerganov/llama.cpp
@@ -83,6 +81,35 @@ make LLAMA_CUBLAS=1
 
 # For CPU-only
 make
+``` -->
+Local models are already downloaded under the `models` directory in `/Developer/models`, when inside the container, the `/Developer/models` folder has been mounted to `/models`:
+```bash
+$ sjsujetsontool shell
+/models# ls
+hf  mistral.gguf  qwen.gguf
+#Download the model, if needed
+/models$ wget https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf -O mistral.gguf
+```
+Enter into the llama.cpp directory, perform the build. There are two build folders there, i.e., `build` and `build_cuda`
+```bash
+root@sjsujetson-02:/models# cd /Developer/llama.cpp
+root@sjsujetson-02:/Developer/llama.cpp# rm -r build_cuda/
+root@sjsujetson-02:/Developer/llama.cpp# cmake -B build_cuda -DGGML_CUDA=ON
+
+root@sjsujetson-02:/Developer/llama.cpp# ls build_cuda/bin/ #contains all the executable files
+```
+
+llama.cpp requires the model to be stored in the [GGUF](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md) file format. `llama-cli` is a CLI tool for accessing and experimenting with most of llama.cpp's functionality. Run in conversation mode: `llama-cli -m model.gguf` or add custom chat template: `llama-cli -m model.gguf -cnv --chat-template chatml`
+
+Run a local downloaded model:
+```bash
+root@sjsujetson-01:/workspace/llama.cpp# ./build_cuda/bin/llama-cli -m ../models/mistral.gguf -p "Explain what is Nvidia jetson"
+....
+llama_perf_sampler_print:    sampling time =      34.98 ms /   532 runs   (    0.07 ms per token, 15210.86 tokens per second)
+llama_perf_context_print:        load time =    3498.72 ms
+llama_perf_context_print: prompt eval time =    2193.93 ms /    17 tokens (  129.05 ms per token,     7.75 tokens per second)
+llama_perf_context_print:        eval time =   84805.65 ms /   514 runs   (  164.99 ms per token,     6.06 tokens per second)
+llama_perf_context_print:       total time =   92930.78 ms /   531 tokens
 ```
 
 **Optimal Settings by Device** (from unified_llm_demo.py):
