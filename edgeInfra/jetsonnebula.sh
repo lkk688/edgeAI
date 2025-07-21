@@ -11,6 +11,12 @@ NEBULA_DIR="/etc/nebula"
 NEBULA_BIN="/usr/local/bin/nebula"
 SERVICE_FILE="/etc/systemd/system/nebula.service"
 
+# Store original directory for absolute path calculations
+ORIGINAL_DIR=$(pwd)
+ABSOLUTE_NEBULA_DIR="$NEBULA_DIR"
+ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
+ABSOLUTE_TOKEN_FILE="$TOKEN_FILE"
+
 # Default token and platform settings
 DEFAULT_TOKEN="jetsonsupertoken"
 DEFAULT_PLATFORM="linux-arm64"
@@ -24,6 +30,19 @@ else
 fi
 
 PLATFORM="$DEFAULT_PLATFORM"
+
+# === Function: debug paths ===
+debug_paths() {
+  echo "[DEBUG] Current working directory: $(pwd)"
+  echo "[DEBUG] Script directory: $(dirname "$0")"
+  echo "[DEBUG] Absolute script path: $(realpath "$0")"
+  echo "[DEBUG] NEBULA_DIR: $NEBULA_DIR"
+  echo "[DEBUG] NEBULA_BIN: $NEBULA_BIN"
+  echo "[DEBUG] TOKEN_FILE: $TOKEN_FILE"
+  echo "[DEBUG] ABSOLUTE_NEBULA_DIR: $ABSOLUTE_NEBULA_DIR"
+  echo "[DEBUG] ABSOLUTE_NEBULA_BIN: $ABSOLUTE_NEBULA_BIN"
+  echo "[DEBUG] ABSOLUTE_TOKEN_FILE: $ABSOLUTE_TOKEN_FILE"
+}
 
 # === Function: download config ===
 download_config() {
@@ -65,11 +84,28 @@ download_config() {
   fi
   
   # Create Nebula directory and copy files
-  sudo mkdir -p "$NEBULA_DIR"
+  echo "[DEBUG] Creating Nebula directory: $ABSOLUTE_NEBULA_DIR"
+  if ! sudo mkdir -p "$ABSOLUTE_NEBULA_DIR"; then
+    echo "[ERROR] Failed to create directory: $ABSOLUTE_NEBULA_DIR"
+    echo "[DEBUG] Listing current directory contents:"
+    ls -la "$ORIGINAL_DIR"
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
+  # Verify directory was created
+  if [ ! -d "$ABSOLUTE_NEBULA_DIR" ]; then
+    echo "[ERROR] Directory $ABSOLUTE_NEBULA_DIR was not created successfully"
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
   
   # Copy client files
   if [ -f "$nodename.crt" ] && [ -f "$nodename.key" ] && [ -f "config.yml" ]; then
-    sudo cp "$nodename.crt" "$nodename.key" "config.yml" "$NEBULA_DIR/"
+    echo "[DEBUG] Copying client files to: $ABSOLUTE_NEBULA_DIR"
+    sudo cp "$nodename.crt" "$nodename.key" "config.yml" "$ABSOLUTE_NEBULA_DIR/"
   else
     echo "[ERROR] Required client files not found in the downloaded bundle."
     cd - > /dev/null
@@ -79,21 +115,25 @@ download_config() {
   
   # Copy CA certificate if available
   if [ -d "ca_temp" ] && [ -f "ca_temp/ca.crt" ]; then
-    sudo cp "ca_temp/ca.crt" "$NEBULA_DIR/"
-  elif [ ! -f "$NEBULA_DIR/ca.crt" ]; then
-    echo "[ERROR] CA certificate not found and not available in $NEBULA_DIR."
+    echo "[DEBUG] Copying CA certificate to: $ABSOLUTE_NEBULA_DIR"
+    sudo cp "ca_temp/ca.crt" "$ABSOLUTE_NEBULA_DIR/"
+  elif [ ! -f "$ABSOLUTE_NEBULA_DIR/ca.crt" ]; then
+    echo "[ERROR] CA certificate not found and not available in $ABSOLUTE_NEBULA_DIR."
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   else
-    echo "[INFO] Using existing CA certificate in $NEBULA_DIR."
+    echo "[INFO] Using existing CA certificate in $ABSOLUTE_NEBULA_DIR."
   fi
   
   # Clean up
   cd - > /dev/null
   rm -rf "$TMP_DIR"
   
-  echo "[INFO] Configuration files successfully installed to $NEBULA_DIR."
+  echo "[DEBUG] Verifying downloaded configuration:"
+  sudo ls -la "$ABSOLUTE_NEBULA_DIR"
+  
+  echo "[INFO] Configuration files successfully installed to $ABSOLUTE_NEBULA_DIR."
 }
 
 # === Function: install nebula ===
@@ -134,20 +174,23 @@ install_nebula() {
   fi
   
   # Move the nebula binary to the correct location
-  if ! sudo cp "nebula" "$NEBULA_BIN"; then
-    echo "[ERROR] Failed to copy nebula binary to $NEBULA_BIN."
+  echo "[DEBUG] Copying nebula binary to: $ABSOLUTE_NEBULA_BIN"
+  if ! sudo cp "nebula" "$ABSOLUTE_NEBULA_BIN"; then
+    echo "[ERROR] Failed to copy nebula binary to $ABSOLUTE_NEBULA_BIN."
+    echo "[DEBUG] Listing current directory contents:"
+    ls -la "$ORIGINAL_DIR"
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
   
-  sudo chmod +x "$NEBULA_BIN"
+  sudo chmod +x "$ABSOLUTE_NEBULA_BIN"
   
   # Verify the binary works
-  if ! sudo "$NEBULA_BIN" -version >/dev/null 2>&1; then
+  if ! sudo "$ABSOLUTE_NEBULA_BIN" -version >/dev/null 2>&1; then
     echo "[WARNING] Nebula binary installed but may not be working correctly."
   else
-    echo "[INFO] Nebula binary installed successfully: $($NEBULA_BIN -version 2>&1 | head -n 1)"
+    echo "[INFO] Nebula binary installed successfully: $(sudo $ABSOLUTE_NEBULA_BIN -version 2>&1 | head -n 1)"
   fi
   
   # Clean up
@@ -161,24 +204,27 @@ setup_systemd() {
   echo "[INFO] Creating systemd service for Nebula..."
   
   # Check if required files exist
-  if [ ! -f "$NEBULA_BIN" ]; then
-    echo "[ERROR] Nebula binary not found at $NEBULA_BIN. Please install it first."
+  echo "[DEBUG] Checking for nebula binary at: $ABSOLUTE_NEBULA_BIN"
+  if [ ! -f "$ABSOLUTE_NEBULA_BIN" ]; then
+    echo "[ERROR] Nebula binary not found at $ABSOLUTE_NEBULA_BIN. Please install it first."
     return 1
   fi
   
-  if [ ! -f "$NEBULA_DIR/config.yml" ]; then
-    echo "[ERROR] Configuration file not found at $NEBULA_DIR/config.yml. Please download it first."
+  echo "[DEBUG] Checking for config file at: $ABSOLUTE_NEBULA_DIR/config.yml"
+  if [ ! -f "$ABSOLUTE_NEBULA_DIR/config.yml" ]; then
+    echo "[ERROR] Configuration file not found at $ABSOLUTE_NEBULA_DIR/config.yml. Please download it first."
     return 1
   fi
   
   # Create systemd service file
+  echo "[DEBUG] Creating systemd service file with absolute paths"
   if ! sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
 Description=Nebula VPN
 After=network.target
 
 [Service]
-ExecStart=$NEBULA_BIN -config $NEBULA_DIR/config.yml
+ExecStart=$ABSOLUTE_NEBULA_BIN -config $ABSOLUTE_NEBULA_DIR/config.yml
 Restart=always
 RestartSec=10
 
@@ -213,6 +259,8 @@ EOF
 # === Function: check nebula status ===
 check_status() {
   echo "[INFO] Checking nebula service status..."
+  echo "[DEBUG] Using nebula binary at: $ABSOLUTE_NEBULA_BIN"
+  echo "[DEBUG] Using config directory at: $ABSOLUTE_NEBULA_DIR"
   
   # Check if service is active
   if sudo systemctl is-active nebula >/dev/null 2>&1; then
@@ -260,12 +308,17 @@ set_token() {
   fi
   
   echo "[INFO] Setting client token to: $1"
-  sudo mkdir -p "$(dirname "$TOKEN_FILE")"
-  echo "$1" | sudo tee "$TOKEN_FILE" > /dev/null
-  echo "[INFO] Token saved to $TOKEN_FILE"
+  echo "[DEBUG] Using token file at: $ABSOLUTE_TOKEN_FILE"
+  sudo mkdir -p "$(dirname "$ABSOLUTE_TOKEN_FILE")"
+  echo "$1" | sudo tee "$ABSOLUTE_TOKEN_FILE" > /dev/null
+  echo "[INFO] Token saved to $ABSOLUTE_TOKEN_FILE"
 }
 
 # === Main CLI logic ===
+
+# Call debug_paths for all commands to help with troubleshooting
+debug_paths
+
 case "$1" in
   install)
     echo "[INFO] Starting Nebula VPN installation for $nodename..."
@@ -303,12 +356,45 @@ case "$1" in
       exit 1
     fi
     ;;
+  debug)
+    echo "[INFO] Running diagnostics..."
+    echo "[DEBUG] Checking for nebula config directory:"
+    if [ -d "$ABSOLUTE_NEBULA_DIR" ]; then
+      echo "[STATUS] Config directory exists: $ABSOLUTE_NEBULA_DIR ✅"
+      sudo ls -la "$ABSOLUTE_NEBULA_DIR"
+    else
+      echo "[STATUS] Config directory NOT found: $ABSOLUTE_NEBULA_DIR ❌"
+    fi
+    
+    echo "[DEBUG] Checking for nebula binary:"
+    if [ -f "$ABSOLUTE_NEBULA_BIN" ]; then
+      echo "[STATUS] Nebula binary exists: $ABSOLUTE_NEBULA_BIN ✅"
+      sudo ls -la "$ABSOLUTE_NEBULA_BIN"
+    else
+      echo "[STATUS] Nebula binary NOT found: $ABSOLUTE_NEBULA_BIN ❌"
+    fi
+    
+    echo "[DEBUG] Checking for token file:"
+    if [ -f "$ABSOLUTE_TOKEN_FILE" ]; then
+      echo "[STATUS] Token file exists: $ABSOLUTE_TOKEN_FILE ✅"
+      sudo ls -la "$ABSOLUTE_TOKEN_FILE"
+    else
+      echo "[STATUS] Token file NOT found: $ABSOLUTE_TOKEN_FILE ❌"
+    fi
+    ;;
   *)
     echo "Usage: jetsonnebula install              # install/start Nebula"
     echo "       jetsonnebula status               # check status"
     echo "       jetsonnebula update               # update config only"
     echo "       jetsonnebula set-token <token>    # set client-specific token"
     echo "       jetsonnebula restart              # restart Nebula service"
+    echo "       jetsonnebula debug                # run diagnostics"
+    echo ""
+    echo "Notes:"
+    echo "- Configuration files are stored in $NEBULA_DIR"
+    echo "- Nebula binary is installed to $NEBULA_BIN"
+    echo "- All paths are resolved to absolute paths at runtime"
+    echo "- This script uses systemd for service management"
     ;;
 esac
 

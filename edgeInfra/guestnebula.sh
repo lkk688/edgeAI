@@ -352,7 +352,7 @@ case "$1" in
     check_status
     ;;
   set-token)
-    set_token "$3"
+    set_token "$2"
     ;;
   debug)
     echo "[DEBUG] Running diagnostics..."
