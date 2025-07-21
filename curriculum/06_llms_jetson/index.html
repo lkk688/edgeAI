@@ -1792,7 +1792,8 @@
 <li><strong>Kernel Fusion</strong>: Combine operations to reduce memory transfers</li>
 </ul>
 <h3 id="llm-backends-for-edge-devices">🔧 LLM Backends for Edge Devices<a class="headerlink" href="#llm-backends-for-edge-devices" title="Permanent link">&para;</a></h3>
-<p>The <code>unified_llm_demo.py</code> script provides a comprehensive framework for running various LLM backends on edge devices, with specific optimizations for different hardware platforms. Let's explore each backend, its device compatibility, and installation requirements.</p>
+<!-- The `unified_llm_demo.py` script provides a comprehensive framework for running various LLM backends on edge devices, with specific optimizations for different hardware platforms. Let's explore each backend, its device compatibility, and installation requirements. -->
+
 <h4 id="1-llamacpp-high-performance-c-engine"><strong>1. llama.cpp - High-Performance C++ Engine</strong><a class="headerlink" href="#1-llamacpp-high-performance-c-engine" title="Permanent link">&para;</a></h4>
 <p><strong>Architecture</strong>: Pure C++ implementation with CUDA acceleration
 <strong>Memory Model</strong>: Efficient GGUF format with memory mapping
@@ -1802,7 +1803,7 @@
 - ✅ NVIDIA GPUs (CUDA)
 - ✅ x86 CPUs
 - ✅ Apple Silicon (Metal support via separate build)</p>
-<p><strong>Installation</strong>:
+<p>&lt;!-- <strong>Installation</strong>:
 <div class="highlight"><pre><span></span><code><span class="c1"># Basic installation</span>
 git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggerganov/llama.cpp
 <span class="nb">cd</span><span class="w"> </span>llama.cpp
@@ -1812,6 +1813,31 @@ make<span class="w"> </span><span class="nv">LLAMA_CUBLAS</span><span class="o">
 
 <span class="c1"># For CPU-only</span>
 make
+<span class="sb">```</span><span class="w"> </span>--&gt;
+Local<span class="w"> </span>models<span class="w"> </span>are<span class="w"> </span>already<span class="w"> </span>downloaded<span class="w"> </span>under<span class="w"> </span>the<span class="w"> </span><span class="sb">`</span>models<span class="sb">`</span><span class="w"> </span>directory<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="sb">`</span>/Developer/models<span class="sb">`</span>,<span class="w"> </span>when<span class="w"> </span>inside<span class="w"> </span>the<span class="w"> </span>container,<span class="w"> </span>the<span class="w"> </span><span class="sb">`</span>/Developer/models<span class="sb">`</span><span class="w"> </span>folder<span class="w"> </span>has<span class="w"> </span>been<span class="w"> </span>mounted<span class="w"> </span>to<span class="w"> </span><span class="sb">`</span>/models<span class="sb">`</span>:
+<span class="sb">```</span>bash
+$<span class="w"> </span>sjsujetsontool<span class="w"> </span>shell
+/models#<span class="w"> </span>ls
+hf<span class="w">  </span>mistral.gguf<span class="w">  </span>qwen.gguf
+<span class="c1">#Download the model, if needed</span>
+/models$<span class="w"> </span>wget<span class="w"> </span>https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf<span class="w"> </span>-O<span class="w"> </span>mistral.gguf
+</code></pre></div>
+Enter into the llama.cpp directory, perform the build. There are two build folders there, i.e., <code>build</code> and <code>build_cuda</code>
+<div class="highlight"><pre><span></span><code>root@sjsujetson-02:/models#<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/Developer/llama.cpp
+root@sjsujetson-02:/Developer/llama.cpp#<span class="w"> </span>rm<span class="w"> </span>-r<span class="w"> </span>build_cuda/
+root@sjsujetson-02:/Developer/llama.cpp#<span class="w"> </span>cmake<span class="w"> </span>-B<span class="w"> </span>build_cuda<span class="w"> </span>-DGGML_CUDA<span class="o">=</span>ON
+
+root@sjsujetson-02:/Developer/llama.cpp#<span class="w"> </span>ls<span class="w"> </span>build_cuda/bin/<span class="w"> </span><span class="c1">#contains all the executable files</span>
+</code></pre></div></p>
+<p>llama.cpp requires the model to be stored in the <a href="https://github.com/ggml-org/ggml/blob/master/docs/gguf.md">GGUF</a> file format. <code>llama-cli</code> is a CLI tool for accessing and experimenting with most of llama.cpp's functionality. Run in conversation mode: <code>llama-cli -m model.gguf</code> or add custom chat template: <code>llama-cli -m model.gguf -cnv --chat-template chatml</code></p>
+<p>Run a local downloaded model:
+<div class="highlight"><pre><span></span><code>root@sjsujetson-01:/workspace/llama.cpp#<span class="w"> </span>./build_cuda/bin/llama-cli<span class="w"> </span>-m<span class="w"> </span>../models/mistral.gguf<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain what is Nvidia jetson&quot;</span>
+....
+llama_perf_sampler_print:<span class="w">    </span>sampling<span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w">      </span><span class="m">34</span>.98<span class="w"> </span>ms<span class="w"> </span>/<span class="w">   </span><span class="m">532</span><span class="w"> </span>runs<span class="w">   </span><span class="o">(</span><span class="w">    </span><span class="m">0</span>.07<span class="w"> </span>ms<span class="w"> </span>per<span class="w"> </span>token,<span class="w"> </span><span class="m">15210</span>.86<span class="w"> </span>tokens<span class="w"> </span>per<span class="w"> </span>second<span class="o">)</span>
+llama_perf_context_print:<span class="w">        </span>load<span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w">    </span><span class="m">3498</span>.72<span class="w"> </span>ms
+llama_perf_context_print:<span class="w"> </span>prompt<span class="w"> </span><span class="nb">eval</span><span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w">    </span><span class="m">2193</span>.93<span class="w"> </span>ms<span class="w"> </span>/<span class="w">    </span><span class="m">17</span><span class="w"> </span>tokens<span class="w"> </span><span class="o">(</span><span class="w">  </span><span class="m">129</span>.05<span class="w"> </span>ms<span class="w"> </span>per<span class="w"> </span>token,<span class="w">     </span><span class="m">7</span>.75<span class="w"> </span>tokens<span class="w"> </span>per<span class="w"> </span>second<span class="o">)</span>
+llama_perf_context_print:<span class="w">        </span><span class="nb">eval</span><span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w">   </span><span class="m">84805</span>.65<span class="w"> </span>ms<span class="w"> </span>/<span class="w">   </span><span class="m">514</span><span class="w"> </span>runs<span class="w">   </span><span class="o">(</span><span class="w">  </span><span class="m">164</span>.99<span class="w"> </span>ms<span class="w"> </span>per<span class="w"> </span>token,<span class="w">     </span><span class="m">6</span>.06<span class="w"> </span>tokens<span class="w"> </span>per<span class="w"> </span>second<span class="o">)</span>
+llama_perf_context_print:<span class="w">       </span>total<span class="w"> </span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w">   </span><span class="m">92930</span>.78<span class="w"> </span>ms<span class="w"> </span>/<span class="w">   </span><span class="m">531</span><span class="w"> </span>tokens
 </code></pre></div></p>
 <p><strong>Optimal Settings by Device</strong> (from unified_llm_demo.py):
 <div class="highlight"><pre><span></span><code># NVIDIA CUDA (Desktop GPUs)
