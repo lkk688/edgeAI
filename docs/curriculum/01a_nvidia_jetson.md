@@ -228,41 +228,62 @@ NVIDIA's official software stack for Jetson, includes:
 
 
 ## ⚙️ Jetson Orin Nano Super Developer Kit
-The [Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](../figures/jetson-nano-dev-kit.png)
 
-The Jetson Orin Nano 8GB Module has NVIDIA Ampere architecture with 1024 CUDA cores and 32 tensor cores, delivers up to 67 INT8 TOPS of AI performance, 8GB 128-bit LPDDR5 (102GB/s memory bandwidth), and 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 (1.7GHz CPU Frequency). The power range is 7W–25W. You can flash the base L4T BSP on any of these storage medium using SDK Manager: SD card slot (1), external NVMe (2280-size on 10, 2230-size on 11), and USB drive on any USB port (4 or 6). 
+[![Jetson Orin Nano Super Developer Kit](../figures/jetson-nano-dev-kit.png)](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/)
+
+### Module Specifications
+
+The Jetson Orin Nano 8GB Module features:
+- **Architecture**: NVIDIA Ampere with 1024 CUDA cores and 32 tensor cores
+- **AI Performance**: Up to 67 INT8 TOPS
+- **Memory**: 8GB 128-bit LPDDR5 (102GB/s memory bandwidth)
+- **CPU**: 6-core Arm® Cortex®-A78AE v8.2 64-bit (1.7GHz) with 1.5MB L2 + 4MB L3
+- **Power Range**: 7W–25W
+
+You can flash the base L4T BSP using SDK Manager on any of these storage media:
+- SD card slot (1)
+- External NVMe (2280-size on slot 10, 2230-size on slot 11)
+- USB drive on any USB port (4 or 6)
+
 | Feature     | Value                                |
 | ----------- | ------------------------------------ |
-| CPU         | 6-core ARM Cortex-A78AE              |
-| GPU         | 1024-core Ampere w/ 32 Tensor Cores  |
-| Memory      | 4GB or 8GB LPDDR5                    |
-| Storage     | microSD / M.2 NVMe SSD support       |
-| Power       | 5W / 15W modes                       |
+| Model       | Jetson Orin Nano                     |
+| Form Factor | 69.6mm × 45mm                       |
 | JetPack SDK | Ubuntu 20.04 + CUDA, cuDNN, TensorRT |
 | IO Support  | GPIO, I2C, SPI, UART, MIPI CSI       |
+| Variants    | 4GB RAM (5W) and 8GB RAM (7-15W)     |
+| Storage     | microSD / M.2 NVMe SSD support       |
 
 
-Key components of the Carrier Board include: 
- - 2x MIPI CSI-2 camera
-connectors (0.5mm pitch 22-pin flex connectors to connect CSI camera modules)
-   - 15-pin connector like Raspberry Pi Camera Module v2, a 15-pin to 22-pin conversion cable is required.
-   - supports the following: CAM0: CSI 1 x2 lane, CAM1: CSI 1 x2 lane or 1 x4 lane
- - 2x M.2 Key M, M.2 Key E 
-   - M.2 Key M slot with x4 PCIe Gen3
-   - M.2 Key M slot with x2 PCIe Gen3
-   - M.2 Key E slot
- - 4x USB 3.2 Gen2 Type-A
- - USB Type-C for UFP (supports Host, Device and USB Recovery mode), can NOT be used to output display signal. 
-   - *In host mode*: You can use this port as a downstream-facing port (DFP), just like the 4 Type-A ports.
-   - *Device mode*: You can connect your Jetson to a PC and expose three logical USB device: USB Mass Storage Device (mount L4T-README drive), USB Serial, USB Ethernet (RNDIS) device to form a local area network in between your PC and Jetson (your Jetson being 192.168.55.1)
-   - *USB Recovery mode*: use the PC to flash Jetson
- - Gigabit Ethernet
- - DisplayPort (8): 1x DP 1.2 (+MST) connector
- - 40-pin expansion header (UART, SPI, I2S, I2C, GPIO), 12-pin button header, and 4-pin fan header
- - DC power jack for 19V power input
- - Mechanical: 103mm x 90.5mm x 34.77mm
+### Key Components of the Carrier Board
 
-The connector of the Carrier Board include:
+* **Camera Connectors**:
+  * 2× MIPI CSI-2 camera connectors (0.5mm pitch 22-pin flex connectors)
+  * Compatible with 15-pin connector (like Raspberry Pi Camera Module v2) using a 15-pin to 22-pin conversion cable
+  * Supports: CAM0: CSI 1 ×2 lane, CAM1: CSI 1 ×2 lane or 1 ×4 lane
+
+* **Storage Expansion**:
+  * M.2 Key M slot with ×4 PCIe Gen3
+  * M.2 Key M slot with ×2 PCIe Gen3
+  * M.2 Key E slot
+
+* **USB Connectivity**:
+  * 4× USB 3.2 Gen2 Type-A ports
+  * USB Type-C port for UFP (cannot output display signal)
+    * **Host mode**: Functions as downstream-facing port (DFP), like the Type-A ports
+    * **Device mode**: Connects to PC as USB Mass Storage, Serial, and Ethernet (RNDIS) device (Jetson IP: 192.168.55.1)
+    * **Recovery mode**: Used for flashing Jetson from PC
+
+* **Other Interfaces**:
+  * Gigabit Ethernet port
+  * DisplayPort: 1× DP 1.2 (+MST) connector
+  * 40-pin expansion header (UART, SPI, I2S, I2C, GPIO)
+  * 12-pin button header and 4-pin fan header
+  * DC power jack for 19V power input
+
+* **Dimensions**: 103mm × 90.5mm × 34.77mm
+
+### Carrier Board Connectors
 | Mark. | Name                                  | Note                     |
 |-------|---------------------------------------|--------------------------|
 | 1     | microSD card slot                     |                          |
@@ -270,7 +291,7 @@ The connector of the Carrier Board include:
 | 3     | Power Indicator LED                   |                          |
 | 4     | USB-C port                            | For data only            |
 | 5     | Gigabit Ethernet Port                 |                          |
-| 6     | USB 3.2 Type-A ports (x4)             | 10Gbps                   |
+| 6     | USB 3.2 Gen2 Type-A ports (×4)        | 10Gbps                   |
 | 7     | DisplayPort Output Connector          |                          |
 | 8     | DC Power Jack                         | 5.5mm x 2.5mm            |
 | 9     | MIPI CSI Camera Connectors (x2)       | 22pin, 0.5mm pitch       |
@@ -279,15 +300,18 @@ The connector of the Carrier Board include:
 | 12    | M.2 Slot (Key-E, Type 2230) (populated) |                          |
 
 
-The ![40-pin Expansion Header](../figures/jetsonnano40pin.png)
+### 40-pin Expansion Header
 
-> Reference: 
- - [Jetson Orin Nano Developer Kit User Guide - Hardware Specs](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
- - [Jetson datasheet](https://nvdam.widen.net/s/zkfqjmtds2/jetson-orin-datasheet-nano-developer-kit-3575392-r2).
- - [Jetson Orin Nano Developer Kit User Guide - Software Setup](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/software_setup.html) 
- - [Jetson Orin Nano Developer Kit Getting Started Guide](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit)
- - [Jetson Orin Nano Developer Kit Carrier Board Specification](https://developer.download.nvidia.com/assets/embedded/secure/jetson/orin_nano/docs/Jetson-Orin-Nano-DevKit-Carrier-Board-Specification_SP-11324-001_v1.3.pdf?__token__=exp=1750620110~hmac=a78678cf11fa4e52be5ec5dc4e403f4575431a0cf9a56fffe709f85327f8c267&t=eyJscyI6ImdzZW8iLCJsc2QiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyJ9)
- - [Jetson Orin Nano Initial Setup using SDK Manager](https://www.jetson-ai-lab.com/initial_setup_jon_sdkm.html)
+![40-pin Expansion Header Pinout](../figures/jetsonnano40pin.png)
+
+### References
+
+* [Jetson Orin Nano Developer Kit User Guide - Hardware Specs](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
+* [Jetson Datasheet](https://nvdam.widen.net/s/zkfqjmtds2/jetson-orin-datasheet-nano-developer-kit-3575392-r2)
+* [Jetson Orin Nano Developer Kit User Guide - Software Setup](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/software_setup.html)
+* [Jetson Orin Nano Developer Kit Getting Started Guide](https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit)
+* [Jetson Orin Nano Developer Kit Carrier Board Specification](https://developer.download.nvidia.com/assets/embedded/secure/jetson/orin_nano/docs/Jetson-Orin-Nano-DevKit-Carrier-Board-Specification_SP-11324-001_v1.3.pdf?__token__=exp=1750620110~hmac=a78678cf11fa4e52be5ec5dc4e403f4575431a0cf9a56fffe709f85327f8c267&t=eyJscyI6ImdzZW8iLCJsc2QiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyJ9)
+* [Jetson Orin Nano Initial Setup using SDK Manager](https://www.jetson-ai-lab.com/initial_setup_jon_sdkm.html)
 
 
 ### 🧪 First Boot on SSD

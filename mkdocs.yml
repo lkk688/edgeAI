@@ -22,26 +22,17 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Introduction:
-      - sjsujetsontool Guide: curriculum/00_sjsujetsontool_guide.md
-      - Introduction to NVIDIA Jetson: curriculum/01a_nvidia_jetson.md
-      - Introduction to Linux and Networking: curriculum/01b_linux_networking_tools.md
-  - Core Systems:
-      - Programming Environment (Python/C++/CUDA): curriculum/02_programming_env_python_cpp_cuda.md
-      - Accelerated Python + CUDA: curriculum/03_accelerated_computing_python_cuda.md
-      - Numpy: curriculum/04a_numpy_pytorch_intro.md
-      - PyTorch: curriculum/04b_pytorch_intro.md
-  - Cyber Systems:
-      - Linux Networking Tools: curriculum/01b_linux_networking_tools.md
-      - Packet Sniffing & Monitoring: curriculum/01c_packet_sniffing_monitoring.md
-      - Linux Cyber Defense Tools: curriculum/01d_linux_cyber_defense_basics.md
-      - Simulated Attacks & Detection: curriculum/01e_linux_cyber_attack_simulation.md
-  - AI & LLM:
-      - CNNs + Image Processing: curriculum/05_cnn_image_processing_jetson.md
-      - Transformers & LLMs: curriculum/06_transformers_llms_jetson.md
-      - NLP + Inference Optimization: curriculum/07_nlp_applications_llm_optimization.md
-      - Prompt Engineering: curriculum/08_prompt_engineering_langchain_jetson.md
-      - RAG Apps: curriculum/09_rag_app_langchain_jetson.md
-      - Local AI Agents: curriculum/10_local_ai_agents_jetson.md
-  - Final Project:
-      - Hackathon & Challenges: curriculum/11_final_challenges_hackathon.md
+  - 🔰 Getting Started with Jetson:
+      - ✅ sjsujetsontool Guide: curriculum/00_sjsujetsontool_guide.md
+      - 📋 sjsujetsontool Cheatsheet: curriculum/00b_sjsujetsontool_cheatsheet.md
+      - 🔧 Introduction to NVIDIA Jetson: curriculum/01a_nvidia_jetson.md
+      - 🚀 CUDA Programming on Jetson: curriculum/01b_jetson_cuda.md
+  - 🐧 Linux Fundamentals:
+      - 💡 Linux OS Basics: curriculum/02a_linux_basics.md
+      - 🌐 Linux Networking Tools: curriculum/03a_linux_networking_tools.md
+  - 🤖 AI & LLM:
+      - 🧠 Transformers & NLP Applications: curriculum/05_transformers_nlp_applications.md
+      - 🚀 Large Language Models on Jetson: curriculum/06_llms_jetson.md
+      - 📚 NLP Applications & LLM Optimization: curriculum/07_nlp_applications_llm_optimization.md
+      - ✍️ Prompt Engineering & LangChain: curriculum/08_prompt_engineering_langchain_jetson.md
+      - 🔎 RAG Applications with LangChain: curriculum/09_rag_app_langchain_jetson.md
