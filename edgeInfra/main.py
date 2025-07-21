@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 # Third-party imports
-from fastapi import FastAPI, HTTPException, Query, Security
+from fastapi import FastAPI, HTTPException, Query, Security, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
@@ -117,10 +117,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/", include_in_schema=False)
+def root():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
+
 # Directory configuration
 # Using absolute path for client files to ensure consistency across deployments
 BASE_DIR = Path("/Developer/serverdata").resolve()
 CLIENTS_DIR = BASE_DIR / "nebula-clients"
+PUBLIC_DIR = BASE_DIR / "public"  # Public directory for downloadable files
 
 # Platform-specific binary mappings
 # Maps platform identifiers to their corresponding Nebula binary paths
@@ -135,6 +141,8 @@ if not BASE_DIR.exists():
     raise RuntimeError(f"Base directory does not exist: {BASE_DIR}")
 if not CLIENTS_DIR.exists():
     CLIENTS_DIR.mkdir(parents=True, exist_ok=True)
+if not PUBLIC_DIR.exists():
+    PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.get("/nebula/{client}/{filename}")
 def get_file(client: str, filename: str) -> FileResponse:
@@ -535,7 +543,8 @@ def _parse_peer_output(output: str) -> List[Dict[str, str]]:
 def download_nebula_bundle(
     client_id: str,
     token: str = Query(..., description="Authentication token for client access"),
-    platform: str = Query(..., description="Target platform (macos-arm64, linux-amd64, linux-arm64)")
+    platform: str = Query(..., description="Target platform (macos-arm64, linux-amd64, linux-arm64)"),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ) -> FileResponse:
     """
     Download a complete Nebula VPN client bundle.
@@ -565,47 +574,95 @@ def download_nebula_bundle(
     Raises:
         HTTPException: Various error codes for different failure scenarios
     """
+    print(f"\n\n=== Starting download request for client: {client_id}, platform: {platform} ===\n")
+    
+    # Use a persistent temporary directory to avoid cleanup issues
+    persistent_tmp_dir = None
+    
     try:
         # Input validation and security checks
         _validate_client_id(client_id)
         
         client_path = CLIENTS_DIR / client_id
+        print(f"Client path: {client_path}, exists: {client_path.exists()}")
+        
         if not client_path.exists():
             raise HTTPException(status_code=404, detail=f"Client directory not found: {client_path}")
 
         # Verify client has valid token using unified verification method
+        print(f"Verifying token for client: {client_id}")
         _verify_client_specific_token(client_path, token)
         
         # Validate platform and check binary availability
+        print(f"Validating platform: {platform}")
         _validate_platform(platform)
         
         # Verify all required files exist before creating bundle
+        print(f"Checking required files for client: {client_id}")
         required_files = _check_required_files(client_path, client_id)
         
-        # Create bundle in temporary directory for security
-        with tempfile.TemporaryDirectory() as tmpdir:
-            bundle_path = _create_client_bundle(tmpdir, client_path, client_id, platform, required_files)
+        # Create a persistent temporary directory that won't be automatically cleaned up
+        # This helps prevent the file from being deleted before it can be served
+        persistent_tmp_dir = tempfile.mkdtemp(prefix=f"nebula-{client_id}-")
+        print(f"Created persistent temporary directory: {persistent_tmp_dir}")
+        
+        # Create the bundle
+        bundle_path = _create_client_bundle(persistent_tmp_dir, client_path, client_id, platform, required_files)
+        
+        # Verify the bundle exists and is readable before attempting to serve it
+        if not bundle_path.exists():
+            raise Exception(f"Bundle file was not created at expected path: {bundle_path}")
             
-            return FileResponse(
-                bundle_path, 
-                filename=f"{client_id}.zip", 
-                media_type="application/zip",
-                headers={
-                    "Content-Disposition": f"attachment; filename={client_id}.zip",
-                    "Cache-Control": "no-cache, no-store, must-revalidate",
-                    "Pragma": "no-cache",
-                    "Expires": "0"
-                }
-            )
+        if not os.access(bundle_path, os.R_OK):
+            raise Exception(f"Bundle file is not readable: {bundle_path}")
             
-    except HTTPException:
+        print(f"Bundle created successfully at: {bundle_path}, size: {bundle_path.stat().st_size} bytes")
+        
+        # Create the response
+        response = FileResponse(
+            path=bundle_path, 
+            filename=f"{client_id}.zip", 
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename={client_id}.zip",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        )
+        
+        # Register a background task to clean up the temporary directory after the response is sent
+        def cleanup_temp_dir():
+            try:
+                if persistent_tmp_dir and os.path.exists(persistent_tmp_dir):
+                    print(f"Cleaning up temporary directory: {persistent_tmp_dir}")
+                    shutil.rmtree(persistent_tmp_dir, ignore_errors=True)
+            except Exception as e:
+                print(f"Error cleaning up temporary directory: {str(e)}")
+        
+        # Add the cleanup task to background tasks
+        background_tasks.add_task(cleanup_temp_dir)
+        
+        print(f"Returning file response for client: {client_id}")
+        return response
+            
+    except HTTPException as he:
         # Re-raise HTTP exceptions as-is
+        print(f"HTTP Exception: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
         # Log the full error for debugging
         import traceback
         error_details = f"Unexpected error in download_nebula_bundle: {str(e)}\nTraceback: {traceback.format_exc()}"
         print(error_details)  # This will appear in server logs
+        
+        # Clean up the temporary directory if it exists
+        if persistent_tmp_dir and os.path.exists(persistent_tmp_dir):
+            try:
+                shutil.rmtree(persistent_tmp_dir, ignore_errors=True)
+            except Exception as cleanup_error:
+                print(f"Error cleaning up temporary directory: {str(cleanup_error)}")
+        
         raise HTTPException(
             status_code=500, 
             detail=f"Internal server error: {str(e)}"
@@ -722,42 +779,81 @@ def _create_client_bundle(tmpdir: str, client_path: Path, client_id: str, platfo
         
     Returns:
         Path to created zip file
+        
+    Raises:
+        Exception: If any step in the bundle creation process fails
     """
     tmp = Path(tmpdir)
+    zip_path = tmp / f"{client_id}.zip"
+    
+    print(f"Creating bundle in temporary directory: {tmp}")
+    print(f"Temporary directory exists: {tmp.exists()}, is writable: {os.access(tmp, os.W_OK)}")
     
     # Copy required files with error handling
     try:
+        # Copy client files
         for file_type, src_path in required_files.items():
             dst_path = tmp / src_path.name
+            print(f"Copying {file_type} from {src_path} to {dst_path}")
+            if not src_path.exists():
+                raise Exception(f"Source file does not exist: {src_path}")
+            if not os.access(src_path, os.R_OK):
+                raise Exception(f"Source file is not readable: {src_path}")
+            
             shutil.copy2(src_path, dst_path)  # copy2 preserves metadata
+            print(f"Successfully copied {file_type} file")
             
         # Copy and prepare Nebula binary
         binary_src = BINARIES[platform]
         binary_dst = tmp / "nebula"
+        print(f"Copying binary from {binary_src} to {binary_dst}")
+        if not binary_src.exists():
+            raise Exception(f"Binary does not exist: {binary_src}")
+        if not os.access(binary_src, os.R_OK):
+            raise Exception(f"Binary is not readable: {binary_src}")
+            
         shutil.copy2(binary_src, binary_dst)
         binary_dst.chmod(0o755)  # Ensure executable permissions
+        print(f"Successfully copied binary with executable permissions")
         
     except (OSError, PermissionError) as e:
         raise Exception(f"Failed to copy files: {str(e)}")
     
-    # Create enhanced startup script
-    startup_script = _generate_startup_script(client_id)
-    script_path = tmp / "run.sh"
-    script_path.write_text(startup_script, encoding='utf-8')
-    script_path.chmod(0o755)
+    try:
+        # Create enhanced startup script
+        print("Creating startup script")
+        startup_script = _generate_startup_script(client_id)
+        script_path = tmp / "run.sh"
+        script_path.write_text(startup_script, encoding='utf-8')
+        script_path.chmod(0o755)
+        
+        # Create README with usage instructions
+        print("Creating README file")
+        readme_content = _generate_readme(client_id, platform)
+        (tmp / "README.txt").write_text(readme_content, encoding='utf-8')
+    except Exception as e:
+        raise Exception(f"Failed to create script or README files: {str(e)}")
     
-    # Create README with usage instructions
-    readme_content = _generate_readme(client_id, platform)
-    (tmp / "README.txt").write_text(readme_content, encoding='utf-8')
-    
-    # Create zip bundle with optimal compression
-    zip_path = tmp / f"{client_id}.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zipf:
-        for file_path in tmp.iterdir():
-            if file_path != zip_path:  # Don't include the zip file itself
-                zipf.write(file_path, arcname=file_path.name)
-    
-    return zip_path
+    try:
+        # Create zip bundle with optimal compression
+        print(f"Creating zip file at {zip_path}")
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zipf:
+            for file_path in tmp.iterdir():
+                if file_path != zip_path:  # Don't include the zip file itself
+                    print(f"Adding {file_path.name} to zip")
+                    zipf.write(file_path, arcname=file_path.name)
+        
+        # Verify the zip file was created successfully
+        if not zip_path.exists():
+            raise Exception(f"Zip file was not created: {zip_path}")
+        if not os.access(zip_path, os.R_OK):
+            raise Exception(f"Zip file is not readable: {zip_path}")
+            
+        print(f"Successfully created zip file: {zip_path}, size: {zip_path.stat().st_size} bytes")
+        return zip_path
+        
+    except Exception as e:
+        raise Exception(f"Failed to create zip file: {str(e)}")
 
 
 def _generate_startup_script(client_id: str) -> str:
@@ -850,6 +946,73 @@ Troubleshooting:
 
 For support, contact your network administrator.
 '''
+# ============================================================================
+# PUBLIC FILE DOWNLOAD ENDPOINT
+# ============================================================================
+
+@app.get("/public/{folder}/{filename}")
+def download_public_file(
+    folder: str,
+    filename: str,
+    token: str = Query(..., description="Authentication token for access"),
+) -> FileResponse:
+    """
+    Download a file from the public directory.
+    
+    Args:
+        folder: The folder within the public directory
+        filename: Name of the file to download
+        token: Authentication token (must be in VALID_TOKENS)
+        
+    Returns:
+        FileResponse: The requested file as a download
+        
+    Raises:
+        HTTPException: 401 if token invalid, 404 if file not found, 400 if path traversal detected
+        
+    Usage example:
+        curl -O -G \
+          -d "token=jetsonsupertoken" \
+          http://your-server:8000/public/downloads/example.zip
+    """
+    # Verify token against global tokens
+    if token not in VALID_TOKENS:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or missing token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Security: Prevent path traversal attacks
+    if ".." in folder or ".." in filename or folder.startswith("/") or filename.startswith("/"):
+        raise HTTPException(status_code=400, detail="Invalid path")
+    
+    # Construct the file path
+    file_path = PUBLIC_DIR / folder / filename
+    
+    # Ensure the resolved path is still within PUBLIC_DIR
+    try:
+        resolved_path = file_path.resolve()
+        if not str(resolved_path).startswith(str(PUBLIC_DIR.resolve())):
+            raise ValueError("Path traversal detected")
+    except (ValueError, RuntimeError):
+        raise HTTPException(status_code=400, detail="Invalid file path")
+    
+    # Check if file exists
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Check if file is readable
+    if not os.access(file_path, os.R_OK):
+        raise HTTPException(status_code=403, detail="Permission denied")
+    
+    # Return the file as a download
+    return FileResponse(
+        path=file_path,
+        filename=filename,
+        media_type="application/octet-stream"
+    )
+
 # ============================================================================
 # SERVER STARTUP AND USAGE INSTRUCTIONS
 # ============================================================================
