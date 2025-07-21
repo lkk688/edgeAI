@@ -274,7 +274,7 @@ with gr.Blocks(title="Ollama Chat UI", theme=Soft(primary_hue="indigo")) as demo
             elif IS_APPLE_SILICON:
                 gr.Markdown("### Apple Silicon")
                 gr.Markdown("Optimized for Apple M1/M2/M3 hardware")
-                gr.Markdown("*For detailed GPU stats, run 'sudo powermetrics --samplers gpu_power' in a terminal*")
+                gr.Markdown("*For detailed GPU stats, try tools like 'mactop' (brew install mactop), 'macmon' (brew install macmon), or 'asitop' (pip install asitop)*")
             elif HAS_NVIDIA_GPU:
                 gr.Markdown("### NVIDIA GPU")
                 gr.Markdown("Optimized for NVIDIA graphics cards")
