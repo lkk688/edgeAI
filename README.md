@@ -4,6 +4,8 @@
 
 Welcome to the official github site for the **Edge AI**. This site contains setup guide, sample code for common edge AI devices (Raspberry Pi, Nvidia Jetson, and normal PCs). It also contains one **SJSU Cyber-AI Curriculum**, which is designed for high school and university students to learn about Linux, AI, and cybersecurity through hands-on labs on the NVIDIA Jetson Orin Nano platform.
 
+The full curriculum document is available at [Documents](https://lkk688.github.io/edgeAI/).
+
 ---
 
 ## 🧭 Getting Started
