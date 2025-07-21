@@ -1,0 +1,2624 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../00_sjsujetsontool_guide/">
+      
+      
+        <link rel="next" href="../07_nlp_applications_llm_optimization/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>Introduction to NVIDIA Jetson - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction-to-nvidia-jetson" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Introduction to NVIDIA Jetson
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sjsujetsontool Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Introduction to NVIDIA Jetson
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to NVIDIA Jetson
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 What is NVIDIA Jetson?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 What is NVIDIA Jetson?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview-of-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Overview of NVIDIA Jetson
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-evolution-of-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      📜 Historical Evolution of NVIDIA Jetson
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-to-other-nvidia-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Relation to Other NVIDIA Platforms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison-with-other-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚖️ Performance Comparison with Other Platforms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-modules-and-their-gpu-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Jetson Modules and Their GPU Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Jetson Modules and Their GPU Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-comparison-desktop-data-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Architecture Comparison: Desktop / Data Center
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#introduction-to-gpu-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Introduction to GPU Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-granularity-threads-warps-and-thread-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Execution Granularity: Threads, Warps, and Thread Blocks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nvidias-official-software-stack-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔹 NVIDIA's official software stack for Jetson
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-orin-nano-super-developer-kit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Jetson Orin Nano Super Developer Kit
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Jetson Orin Nano Super Developer Kit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-boot-on-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 First Boot on SSD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-development-workflow-in-sjsu" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Jetson Development Workflow in SJSU
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-orin-nano-hardware-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Jetson Orin Nano Hardware Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Jetson Orin Nano Hardware Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-on-module-som-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ System-on-Module (SOM) Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ System-on-Module (SOM) Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Module Specifications:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comprehensive-connector-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Comprehensive Connector Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Comprehensive Connector Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#power-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Power System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-and-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display and Video
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-interfaces-mipi-csi-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Camera Interfaces (MIPI CSI-2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-expansion-m2-slots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Expansion (M.2 Slots)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#40-pin-gpio-expansion-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 40-Pin GPIO Expansion Header
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 40-Pin GPIO Expansion Header">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Interfaces:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to Linux and Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Core Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_programming_env_python_cpp_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Programming Environment (Python/C++/CUDA)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_accelerated_computing_python_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Accelerated Python + CUDA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04a_numpy_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numpy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PyTorch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Cyber Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Cyber Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Networking Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01c_packet_sniffing_monitoring.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Packet Sniffing & Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01d_linux_cyber_defense_basics.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Cyber Defense Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01e_linux_cyber_attack_simulation.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulated Attacks & Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    AI & LLM
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            AI & LLM
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_cnn_image_processing_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CNNs + Image Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_transformers_llms_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Transformers & LLMs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NLP + Inference Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Prompt Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RAG Apps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Local AI Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Final Project
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Final Project
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_final_challenges_hackathon.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hackathon & Challenges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 What is NVIDIA Jetson?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 What is NVIDIA Jetson?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview-of-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧭 Overview of NVIDIA Jetson
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-evolution-of-nvidia-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      📜 Historical Evolution of NVIDIA Jetson
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-to-other-nvidia-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Relation to Other NVIDIA Platforms
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison-with-other-platforms" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚖️ Performance Comparison with Other Platforms
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-modules-and-their-gpu-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Jetson Modules and Their GPU Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Jetson Modules and Their GPU Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-comparison-desktop-data-center" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Architecture Comparison: Desktop / Data Center
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#introduction-to-gpu-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Introduction to GPU Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execution-granularity-threads-warps-and-thread-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Execution Granularity: Threads, Warps, and Thread Blocks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nvidias-official-software-stack-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔹 NVIDIA's official software stack for Jetson
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-orin-nano-super-developer-kit" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚙️ Jetson Orin Nano Super Developer Kit
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Jetson Orin Nano Super Developer Kit">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-boot-on-ssd" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 First Boot on SSD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-development-workflow-in-sjsu" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Jetson Development Workflow in SJSU
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-orin-nano-hardware-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Jetson Orin Nano Hardware Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Jetson Orin Nano Hardware Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-on-module-som-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ System-on-Module (SOM) Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ System-on-Module (SOM) Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#module-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Module Specifications:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comprehensive-connector-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Comprehensive Connector Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Comprehensive Connector Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#power-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Power System
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#display-and-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Display and Video
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-interfaces-mipi-csi-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Camera Interfaces (MIPI CSI-2)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-expansion-m2-slots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storage Expansion (M.2 Slots)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#40-pin-gpio-expansion-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 40-Pin GPIO Expansion Header
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 40-Pin GPIO Expansion Header">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-interfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Interfaces:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔗 Resources
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="introduction-to-nvidia-jetson">📦 Introduction to NVIDIA Jetson<a class="headerlink" href="#introduction-to-nvidia-jetson" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.<br />
+<strong>Position:</strong> Associate Professor, Computer Engineering<br />
+<strong>Institution:</strong> San Jose State University<br />
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<h2 id="what-is-nvidia-jetson">🔍 What is NVIDIA Jetson?<a class="headerlink" href="#what-is-nvidia-jetson" title="Permanent link">&para;</a></h2>
+<h3 id="overview-of-nvidia-jetson">🧭 Overview of NVIDIA Jetson<a class="headerlink" href="#overview-of-nvidia-jetson" title="Permanent link">&para;</a></h3>
+<p>NVIDIA Jetson is a series of small, powerful computers (system-on-modules and developer kits) designed for edge AI, robotics, and embedded systems. It brings the power of NVIDIA’s GPU architecture to low-power, compact platforms, enabling real-time computer vision, deep learning inference, and autonomous decision-making on devices deployed outside the data center. 
+    - Launched: 2014, starting with the Jetson TK1.
+    - Key Purpose: To bring GPU-accelerated computing to embedded and edge devices for applications such as robotics, drones, autonomous vehicles, and AI at the edge.</p>
+<h3 id="historical-evolution-of-nvidia-jetson">📜 Historical Evolution of NVIDIA Jetson<a class="headerlink" href="#historical-evolution-of-nvidia-jetson" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Release Date</th>
+<th>Product</th>
+<th>Highlights</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mar 2014</strong></td>
+<td>Jetson TK1</td>
+<td>First Jetson board; Tegra K1 chip with Kepler GPU.</td>
+</tr>
+<tr>
+<td><strong>Nov 2015</strong></td>
+<td>Jetson TX1</td>
+<td>Introduced Maxwell GPU and enhanced CUDA support.</td>
+</tr>
+<tr>
+<td><strong>Mar 2017</strong></td>
+<td>Jetson TX2</td>
+<td>Pascal GPU; improved efficiency and performance.</td>
+</tr>
+<tr>
+<td><strong>Sep 2018</strong></td>
+<td>Jetson AGX Xavier</td>
+<td>Volta GPU with Tensor Cores (~32 TOPS); industrial-grade AI.</td>
+</tr>
+<tr>
+<td><strong>Mar 2019</strong></td>
+<td>Jetson Nano Developer Kit</td>
+<td>Affordable AI platform (~0.5 TOPS), ideal for education and prototyping.</td>
+</tr>
+<tr>
+<td><strong>May 2020</strong></td>
+<td>Jetson Xavier NX</td>
+<td>Volta GPU (~21 TOPS); compact and powerful for edge applications.</td>
+</tr>
+<tr>
+<td><strong>Apr 2022</strong></td>
+<td>Jetson AGX Orin Developer Kit</td>
+<td>Ampere GPU (~275 TOPS); debuted in MLPerf benchmarks.</td>
+</tr>
+<tr>
+<td><strong>Dec 2022</strong></td>
+<td>Jetson AGX Orin Production Module (32 GB)</td>
+<td>Production version began shipping.</td>
+</tr>
+<tr>
+<td><strong>Sep 2022</strong></td>
+<td>Jetson Orin Nano Developer Kit</td>
+<td>Entry-level Orin (~40 TOPS) announced at GTC.</td>
+</tr>
+<tr>
+<td><strong>Dec 17, 2024</strong></td>
+<td>Jetson Orin Nano Super Dev Kit</td>
+<td>Enhanced Orin Nano with 67 INT8 TOPS (1.7× generative AI boost).</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://blogs.nvidia.com/blog/jetson-generative-ai-supercomputer/">NVIDIA Unveils Its Most Affordable Generative AI Supercomputer</a> The new NVIDIA Jetson Orin Nano Super Developer Kit, which fits in the palm of a hand, provides everyone from commercial AI developers to hobbyists and students, gains in generative AI capabilities and performance. And the price is now $249, down from $499. It delivers as much as a 1.7x leap in generative AI inference performance, a 70% increase in performance to 67 INT8 TOPS, and a 50% increase in memory bandwidth to 102GB/s compared with its predecessor. <a href="https://youtu.be/S9L2WGf1KrM">Introduction Video</a></p>
+<h3 id="relation-to-other-nvidia-platforms">🔗 Relation to Other NVIDIA Platforms<a class="headerlink" href="#relation-to-other-nvidia-platforms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Chipset</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jetson Nano</td>
+<td>Maxwell</td>
+<td>Entry-level AI and CV</td>
+</tr>
+<tr>
+<td>Jetson Xavier NX</td>
+<td>Volta</td>
+<td>Intermediate robotics, drones</td>
+</tr>
+<tr>
+<td>Jetson Orin Nano</td>
+<td>Ampere</td>
+<td>Education, AI, edge compute</td>
+</tr>
+<tr>
+<td>NVIDIA DRIVE AGX</td>
+<td>Orin</td>
+<td>Autonomous driving compute</td>
+</tr>
+<tr>
+<td>Switch 2 (rumor)</td>
+<td>Custom Orin</td>
+<td>High-performance gaming console</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The <strong>Orin family</strong> spans from Jetson to automotive and even rumored consumer devices like the <strong>Nintendo Switch 2</strong>.</li>
+<li>Jetson Orin Nano shares architectural DNA with <strong>NVIDIA DRIVE Orin</strong>, used in autonomous vehicles.</li>
+</ul>
+<h3 id="performance-comparison-with-other-platforms">⚖️ Performance Comparison with Other Platforms<a class="headerlink" href="#performance-comparison-with-other-platforms" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Device/Chipset</th>
+<th>AI Throughput (TOPS)</th>
+<th>Power (W)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jetson Orin Nano (8GB)</td>
+<td>\~40 TOPS</td>
+<td>15W</td>
+<td>Optimized for edge AI and inference</td>
+</tr>
+<tr>
+<td>Apple M2</td>
+<td>\~15 TOPS (NPU est.)</td>
+<td>20W–30W</td>
+<td>General-purpose SoC with ML acceleration</td>
+</tr>
+<tr>
+<td>Intel Core i7 (12th Gen)</td>
+<td>\~1–2 TOPS (CPU only)</td>
+<td>45W+</td>
+<td>High compute, poor AI power efficiency</td>
+</tr>
+<tr>
+<td>Raspberry Pi 5</td>
+<td>&lt;0.5 TOPS</td>
+<td>5–7W</td>
+<td>General ARM SBC, no dedicated AI engine</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Jetson Orin Nano</strong> provides a highly efficient balance of AI compute and power usage, ideal for on-device inference.</li>
+<li>It <strong>outperforms embedded CPUs</strong> and SBCs while being more power-efficient than traditional desktops.</li>
+</ul>
+<h2 id="jetson-modules-and-their-gpu-architecture">📦 Jetson Modules and Their GPU Architecture<a class="headerlink" href="#jetson-modules-and-their-gpu-architecture" title="Permanent link">&para;</a></h2>
+<p>Jetson modules use cut-down versions of NVIDIA’s main GPU architectures (Kepler, Maxwell, Pascal, Volta, Ampere, and now Blackwell) that are optimized for <strong>power efficiency, thermal limits, and edge deployment</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Jetson Module</th>
+<th>GPU Architecture</th>
+<th>Related Desktop GPU Series</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jetson TK1</td>
+<td>Kepler</td>
+<td>GTX 600 / 700 Series</td>
+</tr>
+<tr>
+<td>Jetson TX1</td>
+<td>Maxwell</td>
+<td>GTX 900 Series</td>
+</tr>
+<tr>
+<td>Jetson TX2</td>
+<td>Pascal</td>
+<td>GTX 10 Series</td>
+</tr>
+<tr>
+<td>Jetson AGX Xavier</td>
+<td>Volta</td>
+<td>Tesla V100-class (with Tensor Cores)</td>
+</tr>
+<tr>
+<td>Jetson Orin Series</td>
+<td>Ampere</td>
+<td>RTX 30 Series / A100-class</td>
+</tr>
+<tr>
+<td><em>(Future)</em> Jetson Blackwell</td>
+<td>Blackwell (Expected)</td>
+<td>RTX 50 / B100-class GPUs</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Jetson shares the <strong>CUDA</strong>, <strong>cuDNN</strong>, <strong>TensorRT</strong>, and <strong>DeepStream SDK</strong> software stacks with desktop and server-class GPUs, allowing AI/vision models developed in the cloud or lab to scale down for embedded inference.</p>
+</blockquote>
+<p>The <strong>Jetson Orin Nano</strong> brings the powerful <strong>Ampere architecture</strong> to embedded AI platforms. With Ampere’s Tensor Cores and optimized power/performance, Jetson Orin Nano can run modern <strong>transformers</strong>, <strong>YOLOv8</strong>, and <strong>vision-language models</strong>—right on the edge.
+- <strong>GPU</strong>: 512-core Ampere GPU with 16 Tensor Cores
+- <strong>AI Performance</strong>: Up to <strong>40 TOPS</strong> (INT8), or <strong>67 TOPS</strong> on the Orin Nano Super
+- <strong>CPU</strong>: 6-core ARM Cortex-A78AE
+- <strong>Memory</strong>: 4GB or 8GB LPDDR5
+- <strong>Target Use Cases</strong>: Robotics, smart cameras, low-power edge AI</p>
+<h3 id="architecture-comparison-desktop-data-center">⚙️ Architecture Comparison: Desktop / Data Center<a class="headerlink" href="#architecture-comparison-desktop-data-center" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Architecture</th>
+<th>GPUs / Chips</th>
+<th>Precision Support</th>
+<th>Tensor Core Gen</th>
+<th>Memory Bandwidth</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kepler</strong></td>
+<td>GTX 600 / Jetson TK1</td>
+<td>FP32</td>
+<td>N/A</td>
+<td>~192 GB/s</td>
+<td>First unified memory</td>
+</tr>
+<tr>
+<td><strong>Maxwell</strong></td>
+<td>GTX 900 / Jetson TX1</td>
+<td>FP32</td>
+<td>N/A</td>
+<td>~200 GB/s</td>
+<td>Energy efficiency focus</td>
+</tr>
+<tr>
+<td><strong>Pascal</strong></td>
+<td>GTX 10 / Jetson TX2</td>
+<td>FP32, FP16</td>
+<td>None</td>
+<td>~300 GB/s</td>
+<td>Deep learning training begins</td>
+</tr>
+<tr>
+<td><strong>Volta</strong></td>
+<td>Tesla V100 / Xavier</td>
+<td>FP32, FP16, INT8</td>
+<td>1st Gen</td>
+<td>~900 GB/s (HBM2)</td>
+<td>Introduced Tensor Cores</td>
+</tr>
+<tr>
+<td><strong>Ampere</strong></td>
+<td>RTX 30xx / A100 / Orin</td>
+<td>FP32, FP16, TF32, INT8</td>
+<td>3rd Gen</td>
+<td>1.5 TB/s (A100), 204 GB/s (Orin)</td>
+<td>TF32 and structured sparsity</td>
+</tr>
+<tr>
+<td><strong>Ada Lovelace</strong></td>
+<td>RTX 40xx</td>
+<td>FP8, FP16, INT8</td>
+<td>4th Gen</td>
+<td>~1 TB/s</td>
+<td>Optimized for raster + transformer</td>
+</tr>
+<tr>
+<td><strong>Blackwell</strong></td>
+<td>RTX 50xx, B100, GB200</td>
+<td>FP8, TF32, INT4</td>
+<td>5th Gen</td>
+<td>1.8–3.0 TB/s (HBM3E)</td>
+<td>AI fusion, FP8/INT4 LLM inference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="introduction-to-gpu-architecture">🧠 Introduction to GPU Architecture<a class="headerlink" href="#introduction-to-gpu-architecture" title="Permanent link">&para;</a></h3>
+<p>A <strong>Graphics Processing Unit (GPU)</strong> is a parallel processor optimized for <strong>data-parallel throughput computing</strong>. Unlike CPUs which have a handful of powerful cores optimized for control flow and single-threaded performance, GPUs feature <strong>many simpler cores</strong> that execute instructions on <strong>SIMD</strong> or <strong>SIMT</strong> (Single Instruction, Multiple Threads) principles—ideal for vectorizable and matrix-heavy workloads like:</p>
+<ul>
+<li>Deep neural network inference</li>
+<li>Image and signal processing</li>
+<li>Linear algebra (matrix multiplication, convolutions)</li>
+<li>Physics and fluid dynamics simulations</li>
+</ul>
+<p>A GPU is composed of several <strong>Streaming Multiprocessors (SMs)</strong>, each containing:</p>
+<ul>
+<li><strong>CUDA Cores</strong>: Scalar ALUs for FP32/INT32 operations</li>
+<li><strong>Tensor Cores</strong>: Fused multiply-accumulate (FMA) engines for low-precision matrix ops (e.g., FP16/INT8/INT4)</li>
+<li><strong>Warp Scheduler</strong>: Dispatches 32-thread warps to available execution units</li>
+<li><strong>Register Files &amp; Shared Memory</strong>: On-chip fast memory for intra-thread block communication</li>
+<li><strong>Special Function Units</strong>: For transcendental math like sin, cos, exp, rsqrt</li>
+</ul>
+<p>GPUs are designed with a <strong>non-uniform memory hierarchy</strong> to balance throughput and latency:</p>
+<ul>
+<li><strong>Global Memory (DRAM)</strong>: High-latency, high-bandwidth (e.g., LPDDR5 on Jetson, HBM on data center GPUs)</li>
+<li><strong>Shared Memory / L1 Cache</strong>: Low-latency memory within SMs for intra-thread block comms</li>
+<li><strong>L2 Cache</strong>: Shared across SMs; allows memory coalescing</li>
+<li><strong>Texture/Constant Memory</strong>: Specialized caches for spatial or read-only access</li>
+</ul>
+<blockquote>
+<p>Bandwidth is often the bottleneck in GPU computing, not ALU count. Efficient memory coalescing and reuse (e.g., tiling, blocking) are key to performance.</p>
+</blockquote>
+<p>NVIDIA GPUs follow a <strong>SIMT (Single Instruction, Multiple Threads)</strong> model:</p>
+<ul>
+<li>Threads are grouped into <strong>warps</strong> (32 threads)</li>
+<li>Each warp executes the same instruction path; divergence (e.g., <code>if</code> branches) leads to <strong>warp serialization</strong></li>
+<li>Multiple warps and thread blocks are scheduled per SM</li>
+</ul>
+<p>Execution granularity is fine-tuned through <strong>occupancy</strong>: the ratio of active warps to maximum supported warps on an SM.</p>
+<p>The <strong>Streaming Multiprocessor (SM)</strong> is the fundamental hardware unit in NVIDIA GPUs responsible for executing parallel instructions. It encapsulates the resources necessary to support thousands of concurrent threads, and its microarchitecture directly determines <strong>latency hiding</strong>, <strong>throughput</strong>, and <strong>occupancy</strong>. Each GPU consists of multiple SMs (e.g., 16–128+), and each SM contains:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CUDA Cores (ALUs)</strong></td>
+<td>Scalar processors for FP32, INT32, and logical ops</td>
+</tr>
+<tr>
+<td><strong>Tensor Cores</strong></td>
+<td>Matrix-multiply–accumulate units for FP16, BF16, INT8, and sparsity-optimized operations</td>
+</tr>
+<tr>
+<td><strong>Warp Scheduler</strong></td>
+<td>Dispatches one or more warps per cycle to execution pipelines</td>
+</tr>
+<tr>
+<td><strong>Instruction Dispatch Units</strong></td>
+<td>Decodes and routes instructions to functional units</td>
+</tr>
+<tr>
+<td><strong>Shared Memory / L1 Cache</strong></td>
+<td>Programmable, low-latency memory for inter-thread communication</td>
+</tr>
+<tr>
+<td><strong>Register File</strong></td>
+<td>Stores private per-thread variables (e.g., 64K registers per SM)</td>
+</tr>
+<tr>
+<td><strong>Special Function Units (SFUs)</strong></td>
+<td>Handles transcendental math like <code>exp</code>, <code>sin</code>, <code>rsqrt</code></td>
+</tr>
+<tr>
+<td><strong>Load/Store Units</strong></td>
+<td>Handles memory transactions to/from global/local memory</td>
+</tr>
+</tbody>
+</table>
+<p>Each SM contains <strong>Tensor Cores</strong>—specialized FMA (fused multiply-accumulate) units capable of processing small matrices at very high throughput.</p>
+<ul>
+<li>Operate on <strong>4×4 or 8×8 matrices</strong> internally.</li>
+<li>Support <strong>mixed-precision input/output</strong> (FP16, INT8, FP8, TF32).</li>
+<li>Enable high-throughput operations for <strong>convolutions</strong>, <strong>transformers</strong>, and <strong>matrix multiplications</strong>.</li>
+</ul>
+<p><strong>Example:</strong> On Jetson Orin Nano (Ampere):
+- Each SM has 1 Tensor Core
+- Each Tensor Core processes <strong>64 FP16 or 128 INT8 FMA ops per cycle</strong>
+- With 16 SMs × 128 INT8 ops, theoretical peak = ~32K ops/cycle</p>
+<p>Each SM has a <strong>large register file</strong> (e.g., 64 KB per SM) and <strong>shared memory / L1 cache</strong> (up to 128 KB depending on configuration).</p>
+<ul>
+<li><strong>Registers</strong> are used for fast local thread variables.</li>
+<li><strong>Shared memory</strong> is explicitly managed by the programmer and ideal for:</li>
+<li>Tiled matrix multiplication</li>
+<li>Reductions</li>
+<li>Communication across threads in a block</li>
+</ul>
+<p>Proper register allocation and shared memory usage are <strong>critical for occupancy</strong>—too many registers per thread can limit the number of resident warps.</p>
+<p>Example: SM Configuration on Jetson Orin Nano</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SMs</td>
+<td>16</td>
+</tr>
+<tr>
+<td>CUDA Cores per SM</td>
+<td>32</td>
+</tr>
+<tr>
+<td>Tensor Cores per SM</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Total CUDA Cores</td>
+<td>512</td>
+</tr>
+<tr>
+<td>Warp Schedulers per SM</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Registers per SM</td>
+<td>64K</td>
+</tr>
+<tr>
+<td>Shared Memory per SM</td>
+<td>64–128 KB</td>
+</tr>
+<tr>
+<td>FP16/INT8 Tensor Ops</td>
+<td>Accelerated by dedicated tensor units</td>
+</tr>
+<tr>
+<td>Max Warps per SM</td>
+<td>64</td>
+</tr>
+<tr>
+<td>Max Threads per SM</td>
+<td>2048</td>
+</tr>
+</tbody>
+</table>
+<h3 id="execution-granularity-threads-warps-and-thread-blocks">📦 Execution Granularity: Threads, Warps, and Thread Blocks<a class="headerlink" href="#execution-granularity-threads-warps-and-thread-blocks" title="Permanent link">&para;</a></h3>
+<p>A single SM can hold <strong>multiple warps from multiple thread blocks</strong>. The GPU scheduler dynamically switches between warps to hide memory and instruction latency.
+- <strong>Thread</strong>: Basic unit of execution; executes the kernel’s code independently.
+- <strong>Warp</strong>: Group of 32 threads executed in SIMT fashion (Single Instruction, Multiple Threads).
+- <strong>Thread Block</strong>: Group of warps scheduled together and sharing resources like shared memory.</p>
+<blockquote>
+<p>Example: When one warp stalls on a memory load, another ready warp is dispatched without pipeline stalls.</p>
+</blockquote>
+<p>Each SM contains multiple <strong>warp schedulers</strong> (e.g., 4 in Ampere SMs), which issue instructions per cycle from <strong>active warps</strong> to the relevant execution pipelines. Warp scheduling is <strong>round-robin</strong> or <strong>greedy-then-oldest</strong>, depending on architecture. Execution Pipelines (Ampere example):</p>
+<table>
+<thead>
+<tr>
+<th>Pipeline</th>
+<th>Operations Handled</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP32 Units</td>
+<td>Scalar arithmetic (add, mul)</td>
+</tr>
+<tr>
+<td>INT Units</td>
+<td>Integer math, bitwise logic</td>
+</tr>
+<tr>
+<td>Tensor Cores</td>
+<td>Fused matrix ops (e.g. <code>D = A×B + C</code>)</td>
+</tr>
+<tr>
+<td>SFUs</td>
+<td><code>sin</code>, <code>exp</code>, <code>log</code>, <code>sqrt</code>, etc.</td>
+</tr>
+<tr>
+<td>LD/ST Units</td>
+<td>Memory read/write transactions</td>
+</tr>
+<tr>
+<td>Branch Units</td>
+<td>Handles divergence and predication</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Up to 4 instructions from different warps can be issued per cycle per SM, depending on available resources.</p>
+</blockquote>
+<p>GPUs do not use traditional out-of-order execution. Instead, they rely on:</p>
+<ul>
+<li><strong>Thread-level parallelism (TLP)</strong>: Multiple warps in-flight per SM</li>
+<li><strong>Warp-level parallelism (WLP)</strong>: Warp interleaving masks memory/instruction latency</li>
+</ul>
+<p><strong>Occupancy</strong> = (Active warps per SM) / (Maximum warps per SM)</p>
+<ul>
+<li>Higher occupancy helps hide memory latency</li>
+<li>Too high occupancy can lead to register pressure or shared memory contention</li>
+</ul>
+<h3 id="nvidias-official-software-stack-for-jetson">🔹 NVIDIA's official software stack for Jetson<a class="headerlink" href="#nvidias-official-software-stack-for-jetson" title="Permanent link">&para;</a></h3>
+<p>NVIDIA's official software stack for Jetson, includes:</p>
+<ul>
+<li>Ubuntu 20.04</li>
+<li>CUDA Toolkit</li>
+<li>cuDNN (Deep Neural Network library)</li>
+<li>TensorRT (optimized inference engine)</li>
+<li>OpenCV and multimedia APIs</li>
+</ul>
+<p>🚀 CUDA, cuDNN, TensorRT Comparison and Modern GPU Architectures:
+    - 🔹 CUDA (Compute Unified Device Architecture): Parallel computing platform and programming model that allows developers to harness the power of NVIDIA GPUs for general-purpose computing.
+    - 🔹 TensorRT: High-performance deep learning inference optimizer and runtime engine. Used to accelerate models exported from PyTorch or ONNX.
+    - 🔹 cuDNN: CUDA Deep Neural Network library: provides optimized implementations of operations such as convolution, pooling, and activation for deep learning.</p>
+<p>📦 Layered Abstraction for GPU AI Inference</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High-Level</td>
+<td>TensorRT</td>
+<td>Optimized deployment, quantization, engine runtime</td>
+</tr>
+<tr>
+<td>Mid-Level</td>
+<td>cuDNN</td>
+<td>Primitives for DL ops (Conv, Pool, RNN, etc.)</td>
+</tr>
+<tr>
+<td>Low-Level</td>
+<td>CUDA</td>
+<td>General GPU programming with warp/thread/memory control</td>
+</tr>
+</tbody>
+</table>
+<h2 id="jetson-orin-nano-super-developer-kit">⚙️ Jetson Orin Nano Super Developer Kit<a class="headerlink" href="#jetson-orin-nano-super-developer-kit" title="Permanent link">&para;</a></h2>
+<p>The [Jetson Orin Nano Super Developer Kit] (https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in <img alt="Diagram" src="./docs/figures/jetson-nano-dev-kit.png" /></p>
+<p>The Jetson Orin Nano 8GB Module has NVIDIA Ampere architecture with 1024 CUDA cores and 32 tensor cores, delivers up to 67 INT8 TOPS of AI performance, 8GB 128-bit LPDDR5 (102GB/s memory bandwidth), and 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 (1.7GHz CPU Frequency). The power range is 7W–25W. You can flash the base L4T BSP on any of these storage medium using SDK Manager: SD card slot (1), external NVMe (2280-size on 10, 2230-size on 11), and USB drive on any USB port (4 or 6). 
+| Feature     | Value                                |
+| ----------- | ------------------------------------ |
+| CPU         | 6-core ARM Cortex-A78AE              |
+| GPU         | 1024-core Ampere w/ 32 Tensor Cores  |
+| Memory      | 4GB or 8GB LPDDR5                    |
+| Storage     | microSD / M.2 NVMe SSD support       |
+| Power       | 5W / 15W modes                       |
+| JetPack SDK | Ubuntu 20.04 + CUDA, cuDNN, TensorRT |
+| IO Support  | GPIO, I2C, SPI, UART, MIPI CSI       |</p>
+<p>Key components of the Carrier Board include: 
+ - 2x MIPI CSI-2 camera
+connectors (0.5mm pitch 22-pin flex connectors to connect CSI camera modules)
+   - 15-pin connector like Raspberry Pi Camera Module v2, a 15-pin to 22-pin conversion cable is required.
+   - supports the following: CAM0: CSI 1 x2 lane, CAM1: CSI 1 x2 lane or 1 x4 lane
+ - 2x M.2 Key M, M.2 Key E 
+   - M.2 Key M slot with x4 PCIe Gen3
+   - M.2 Key M slot with x2 PCIe Gen3
+   - M.2 Key E slot
+ - 4x USB 3.2 Gen2 Type-A
+ - USB Type-C for UFP (supports Host, Device and USB Recovery mode), can NOT be used to output display signal. 
+   - <em>In host mode</em>: You can use this port as a downstream-facing port (DFP), just like the 4 Type-A ports.
+   - <em>Device mode</em>: You can connect your Jetson to a PC and expose three logical USB device: USB Mass Storage Device (mount L4T-README drive), USB Serial, USB Ethernet (RNDIS) device to form a local area network in between your PC and Jetson (your Jetson being 192.168.55.1)
+   - <em>USB Recovery mode</em>: use the PC to flash Jetson
+ - Gigabit Ethernet
+ - DisplayPort (8): 1x DP 1.2 (+MST) connector
+ - 40-pin expansion header (UART, SPI, I2S, I2C, GPIO), 12-pin button header, and 4-pin fan header
+ - DC power jack for 19V power input
+ - Mechanical: 103mm x 90.5mm x 34.77mm</p>
+<p>The connector of the Carrier Board include:
+| Mark. | Name                                  | Note                     |
+|-------|---------------------------------------|--------------------------|
+| 1     | microSD card slot                     |                          |
+| 2     | 40-pin Expansion Header               |                          |
+| 3     | Power Indicator LED                   |                          |
+| 4     | USB-C port                            | For data only            |
+| 5     | Gigabit Ethernet Port                 |                          |
+| 6     | USB 3.2 Type-A ports (x4)             | 10Gbps                   |
+| 7     | DisplayPort Output Connector          |                          |
+| 8     | DC Power Jack                         | 5.5mm x 2.5mm            |
+| 9     | MIPI CSI Camera Connectors (x2)       | 22pin, 0.5mm pitch       |
+| 10    | M.2 Slot (Key-M, Type 2280)           | PCIe 3.0 x4              |
+| 11    | M.2 Slot (Key-M, Type 2230)           | PCIe 3.0 x2              |
+| 12    | M.2 Slot (Key-E, Type 2230) (populated) |                          |</p>
+<p>The <img alt="40-pin Expansion Header" src="docs/figures/jetsonnano40pin.png" /></p>
+<blockquote>
+<p>Reference: 
+ - <a href="https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html">Jetson Orin Nano Developer Kit User Guide - Hardware Specs</a>
+ - <a href="https://nvdam.widen.net/s/zkfqjmtds2/jetson-orin-datasheet-nano-developer-kit-3575392-r2">Jetson datasheet</a>.
+ - <a href="https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/software_setup.html">Jetson Orin Nano Developer Kit User Guide - Software Setup</a> 
+ - <a href="https://developer.nvidia.com/embedded/learn/get-started-jetson-orin-nano-devkit">Jetson Orin Nano Developer Kit Getting Started Guide</a>
+ - <a href="https://developer.download.nvidia.com/assets/embedded/secure/jetson/orin_nano/docs/Jetson-Orin-Nano-DevKit-Carrier-Board-Specification_SP-11324-001_v1.3.pdf?__token__=exp=1750620110~hmac=a78678cf11fa4e52be5ec5dc4e403f4575431a0cf9a56fffe709f85327f8c267&amp;t=eyJscyI6ImdzZW8iLCJsc2QiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyJ9">Jetson Orin Nano Developer Kit Carrier Board Specification</a>
+ - <a href="https://www.jetson-ai-lab.com/initial_setup_jon_sdkm.html">Jetson Orin Nano Initial Setup using SDK Manager</a></p>
+</blockquote>
+<h3 id="first-boot-on-ssd">🧪 First Boot on SSD<a class="headerlink" href="#first-boot-on-ssd" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Connect Jetson to the Monitor:</li>
+<li>If still plugged, <em>remove the jumper</em> from header (that was used to put it in Forced Recovery mode)</li>
+<li>Connect the DisplayPort cable or adapter and USB keyboard and mouse to Jetson Orin Nano Developer Kit, or hook up the USB to TTL Serial cable.</li>
+<li><em>Unplug the power supply and put back in to power cycle</em>.</li>
+<li>
+<p>Jetson should now boot into the Jetson Linux (BSP) of your selected JetPack version from the storage of your choice.</p>
+</li>
+<li>
+<p>Power up Jetson — it will boot from SSD automatically.</p>
+</li>
+<li>
+<p>Complete <strong>initial Ubuntu setup wizard</strong> (username, password, time zone).</p>
+</li>
+<li>
+<p>Optional: Verify SSD is rootfs:
+   <div class="highlight"><pre><span></span><code>df<span class="w"> </span>-h<span class="w"> </span>/
+<span class="c1"># Output should show something like: /dev/nvme0n1p1</span>
+<span class="c1">#Identify your NVMe SSD</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsblk
+</code></pre></div></p>
+</li>
+<li>
+<p>Optional: Check JetPack version
+   <div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>dpkg-query<span class="w"> </span>--show<span class="w"> </span>nvidia-l4t-core
+nvidia-l4t-core<span class="w">  </span><span class="m">36</span>.4.3-20250107174145
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>dpkg<span class="w"> </span>-l<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvidia*
+</code></pre></div>
+It shows L4T 36.4.3, which corresponds to JetPack 6.2 <a href="https://developer.nvidia.com/embedded/jetpack-archive">Official mapping reference</a>. JetPack 6.2 is the latest production release of JetPack 6. This release includes Jetson Linux 36.4.3, featuring the Linux Kernel 5.15 and an Ubuntu 22.04-based root file system. The Jetson AI stack packaged with JetPack 6.2 includes CUDA 12.6, TensorRT 10.3, cuDNN 9.3, VPI 3.2, DLA 3.1, and DLFW 24.0.</p>
+</li>
+</ol>
+<h2 id="jetson-development-workflow-in-sjsu">🧪 Jetson Development Workflow in SJSU<a class="headerlink" href="#jetson-development-workflow-in-sjsu" title="Permanent link">&para;</a></h2>
+<p>We have prepared a master Jetson image preloaded with the latest JetPack 6.2, NVIDIA Container Toolkit (Docker support), and all essential runtime and development components that typically require elevated privileges. This includes CUDA, cuDNN, TensorRT, DeepStream, and necessary drivers.</p>
+<p>Students can simply SSH into their assigned Jetson device and begin testing functionality, running containerized applications, or developing their own AI/robotics projects—without needing to configure the system themselves or worry about low-level device setup. This streamlined environment is ideal for focusing on learning and experimentation rather than system administration.</p>
+<p>✅ No sudo access required.
+✅ Pre-installed JetPack, Docker, and AI libraries.
+✅ Access Jetson remotely via <code>.local</code> hostname or static IP.
+✅ Custom designed <code>sjsujetsontool</code> to update, launch shell/JupyterLab, run Python scripts, llm models, and monitor system.</p>
+<h2 id="jetson-orin-nano-hardware-deep-dive">🔌 Jetson Orin Nano Hardware Deep Dive<a class="headerlink" href="#jetson-orin-nano-hardware-deep-dive" title="Permanent link">&para;</a></h2>
+<h3 id="system-on-module-som-architecture">🏗️ System-on-Module (SOM) Architecture<a class="headerlink" href="#system-on-module-som-architecture" title="Permanent link">&para;</a></h3>
+<p>The Jetson Orin Nano consists of two main components:
+1. <strong>Jetson Orin Nano Module</strong> - The compute module containing CPU, GPU, memory
+2. <strong>Developer Kit Carrier Board</strong> - Provides I/O, power, and expansion interfaces</p>
+<h4 id="module-specifications">Module Specifications:<a class="headerlink" href="#module-specifications" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────┐
+│                 Jetson Orin Nano Module                │
+│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────┐ │
+│  │   6-core    │  │   512-core   │  │    8GB LPDDR5   │ │
+│  │ Cortex-A78AE│  │ Ampere GPU   │  │   102 GB/s BW   │ │
+│  │  @ 1.7GHz   │  │ 16 Tensor    │  │                 │ │
+│  │             │  │    Cores     │  │                 │ │
+│  └─────────────┘  └──────────────┘  └─────────────────┘ │
+│                                                         │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │              Tegra Orin SoC                         │ │
+│  │  • Video Encoders: 2x 4K30 H.264/H.265             │ │
+│  │  • Video Decoders: 2x 4K60 H.264/H.265             │ │
+│  │  • ISP: 2x 12MP cameras                             │ │
+│  │  • PCIe: 3.0 x8 + 3.0 x4                           │ │
+│  │  • USB: 4x USB 3.2 Gen2                             │ │
+│  └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="comprehensive-connector-analysis">🔌 Comprehensive Connector Analysis<a class="headerlink" href="#comprehensive-connector-analysis" title="Permanent link">&para;</a></h3>
+<h4 id="power-system"><strong>Power System</strong><a class="headerlink" href="#power-system" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>DC Jack (19V)</strong>: Primary power input, 5.5mm x 2.5mm barrel connector</li>
+<li><strong>Power Modes</strong>: </li>
+<li><strong>5W Mode</strong>: CPU @ 1.2GHz, GPU @ 510MHz (fanless operation)</li>
+<li><strong>15W Mode</strong>: CPU @ 1.7GHz, GPU @ 918MHz (active cooling)</li>
+<li><strong>25W Mode</strong>: Maximum performance (requires adequate cooling)</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check current power mode</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-q
+
+<span class="c1"># Set to maximum performance</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-m<span class="w"> </span><span class="m">0</span>
+
+<span class="c1"># Set to power-efficient mode</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-m<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<h4 id="display-and-video"><strong>Display and Video</strong><a class="headerlink" href="#display-and-video" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>DisplayPort 1.2</strong>: Supports up to 4K@60Hz with Multi-Stream Transport (MST)</li>
+<li><strong>Video Encoding</strong>: 2x 4K30 H.264/H.265 hardware encoders</li>
+<li><strong>Video Decoding</strong>: 2x 4K60 H.264/H.265 hardware decoders</li>
+</ul>
+<h4 id="camera-interfaces-mipi-csi-2"><strong>Camera Interfaces (MIPI CSI-2)</strong><a class="headerlink" href="#camera-interfaces-mipi-csi-2" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>Camera Connector Pinout (22-pin, 0.5mm pitch):
+┌─────────────────────────────────────────┐
+│ Pin │ Signal    │ Pin │ Signal          │
+├─────┼───────────┼─────┼─────────────────┤
+│  1  │ GND       │ 12  │ CSI_D1_N        │
+│  2  │ CSI_CLK_P │ 13  │ GND             │
+│  3  │ CSI_CLK_N │ 14  │ CSI_D0_P        │
+│  4  │ GND       │ 15  │ CSI_D0_N        │
+│  5  │ CSI_D3_P  │ 16  │ GND             │
+│  6  │ CSI_D3_N  │ 17  │ CAM_I2C_SCL     │
+│  7  │ GND       │ 18  │ CAM_I2C_SDA     │
+│  8  │ CSI_D2_P  │ 19  │ GND             │
+│  9  │ CSI_D2_N  │ 20  │ CAM_PWDN        │
+│ 10  │ GND       │ 21  │ CAM_RST_N       │
+│ 11  │ CSI_D1_P  │ 22  │ +3.3V           │
+└─────┴───────────┴─────┴─────────────────┘
+</code></pre></div>
+<p><strong>Supported Camera Configurations:</strong>
+- <strong>CAM0</strong>: 1x2 lane or 1x4 lane MIPI CSI-2
+- <strong>CAM1</strong>: 1x2 lane MIPI CSI-2
+- <strong>Maximum Resolution</strong>: 12MP per camera
+- <strong>Compatible Cameras</strong>: IMX219, IMX477, OV5693, and many others</p>
+<h4 id="storage-expansion-m2-slots"><strong>Storage Expansion (M.2 Slots)</strong><a class="headerlink" href="#storage-expansion-m2-slots" title="Permanent link">&para;</a></h4>
+<p><strong>M.2 Key-M Slot (2280 size) - PCIe 3.0 x4:</strong>
+- <strong>Use Cases</strong>: High-performance NVMe SSDs
+- <strong>Max Speed</strong>: ~3.5 GB/s sequential read
+- <strong>Recommended</strong>: Samsung 980, WD SN570, Crucial P3</p>
+<p><strong>M.2 Key-M Slot (2230 size) - PCIe 3.0 x2:</strong>
+- <strong>Use Cases</strong>: Compact SSDs, additional storage
+- <strong>Max Speed</strong>: ~1.7 GB/s sequential read</p>
+<p><strong>M.2 Key-E Slot (2230 size) - PCIe 3.0 x1 + USB 2.0:</strong>
+- <strong>Use Cases</strong>: WiFi/Bluetooth modules, cellular modems
+- <strong>Pre-populated</strong>: Intel AX201 WiFi 6 + Bluetooth 5.2
+- <strong>Alternatives</strong>: Quectel EM05-G (4G LTE), Sierra Wireless modules</p>
+<h3 id="40-pin-gpio-expansion-header">🔧 40-Pin GPIO Expansion Header<a class="headerlink" href="#40-pin-gpio-expansion-header" title="Permanent link">&para;</a></h3>
+<p>The 40-pin header provides extensive I/O capabilities compatible with Raspberry Pi HATs:</p>
+<div class="highlight"><pre><span></span><code>     3.3V  (1) (2)  5V
+ GPIO2/SDA  (3) (4)  5V
+ GPIO3/SCL  (5) (6)  GND
+    GPIO4  (7) (8)  GPIO14/TXD
+      GND  (9) (10) GPIO15/RXD
+   GPIO17 (11) (12) GPIO18/PWM
+   GPIO27 (13) (14) GND
+   GPIO22 (15) (16) GPIO23
+     3.3V (17) (18) GPIO24
+ GPIO10/MOSI(19) (20) GND
+ GPIO9/MISO (21) (22) GPIO25
+ GPIO11/SCLK(23) (24) GPIO8/CE0
+      GND (25) (26) GPIO7/CE1
+   ID_SD  (27) (28) ID_SC
+    GPIO5 (29) (30) GND
+    GPIO6 (31) (32) GPIO12/PWM
+   GPIO13 (33) (34) GND
+   GPIO19 (35) (36) GPIO16
+   GPIO26 (37) (38) GPIO20
+      GND (39) (40) GPIO21
+</code></pre></div>
+<h4 id="available-interfaces"><strong>Available Interfaces:</strong><a class="headerlink" href="#available-interfaces" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>I2C</strong>: 2 channels (I2C-1: pins 3,5; I2C-0: pins 27,28)</li>
+<li><strong>SPI</strong>: 2 channels (SPI0: pins 19,21,23,24,26; SPI1: pins 12,35,38,40)</li>
+<li><strong>UART</strong>: 1 channel (pins 8,10)</li>
+<li><strong>PWM</strong>: 4 channels (pins 12,32,33,35)</li>
+<li><strong>GPIO</strong>: 26 digital I/O pins</li>
+<li><strong>Power</strong>: 3.3V, 5V, and multiple GND pins</li>
+</ul>
+<!-- ## 🚀 Hardware Extension Possibilities
+
+### 🎯 AI and Vision Extensions
+
+#### **1. Multi-Camera Arrays**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Stereo vision setup</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Initialize dual cameras</span>
+<span class="n">cap_left</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># CAM0</span>
+<span class="n">cap_right</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># CAM1</span>
+
+<span class="c1"># Configure for synchronized capture</span>
+<span class="n">cap_left</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_WIDTH</span><span class="p">,</span> <span class="mi">1920</span><span class="p">)</span>
+<span class="n">cap_left</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_HEIGHT</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
+<span class="n">cap_right</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_WIDTH</span><span class="p">,</span> <span class="mi">1920</span><span class="p">)</span>
+<span class="n">cap_right</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_HEIGHT</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
+
+<span class="c1"># Stereo vision processing</span>
+<span class="n">stereo</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">StereoBM_create</span><span class="p">(</span><span class="n">numDisparities</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">blockSize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+</code></pre></div>
+
+#### **2. LiDAR Integration**
+**Compatible LiDAR Sensors:**
+- **RPLIDAR A1/A2**: USB connection, 360° scanning
+- **Velodyne VLP-16**: Ethernet connection, 3D point clouds
+- **Ouster OS1**: High-resolution 3D LiDAR
+
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: RPLIDAR integration</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">rplidar</span>
+
+<span class="n">lidar</span> <span class="o">=</span> <span class="n">rplidar</span><span class="o">.</span><span class="n">RPLidar</span><span class="p">(</span><span class="s1">&#39;/dev/ttyUSB0&#39;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">scan</span> <span class="ow">in</span> <span class="n">lidar</span><span class="o">.</span><span class="n">iter_scans</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">scan</span><span class="p">:</span>
+        <span class="n">angle</span><span class="p">,</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1"># Process LiDAR data</span>
+</code></pre></div>
+
+### 🤖 Robotics Extensions
+
+#### **1. Motor Control via GPIO**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Servo control using PWM</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">Jetson.GPIO</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">GPIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Setup PWM on pin 32</span>
+<span class="n">servo_pin</span> <span class="o">=</span> <span class="mi">32</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setmode</span><span class="p">(</span><span class="n">GPIO</span><span class="o">.</span><span class="n">BOARD</span><span class="p">)</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">servo_pin</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+<span class="n">pwm</span> <span class="o">=</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">PWM</span><span class="p">(</span><span class="n">servo_pin</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>  <span class="c1"># 50Hz frequency</span>
+<span class="n">pwm</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">set_servo_angle</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
+    <span class="n">duty_cycle</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">angle</span> <span class="o">/</span> <span class="mi">18</span><span class="p">)</span>
+    <span class="n">pwm</span><span class="o">.</span><span class="n">ChangeDutyCycle</span><span class="p">(</span><span class="n">duty_cycle</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">pwm</span><span class="o">.</span><span class="n">ChangeDutyCycle</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Move servo to 90 degrees</span>
+<span class="n">set_servo_angle</span><span class="p">(</span><span class="mi">90</span><span class="p">)</span>
+</code></pre></div>
+
+#### **2. CAN Bus Communication**
+**Hardware**: MCP2515 CAN controller via SPI
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: CAN bus setup</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">can</span>
+
+<span class="c1"># Configure CAN interface</span>
+<span class="n">bus</span> <span class="o">=</span> <span class="n">can</span><span class="o">.</span><span class="n">interface</span><span class="o">.</span><span class="n">Bus</span><span class="p">(</span><span class="n">channel</span><span class="o">=</span><span class="s1">&#39;can0&#39;</span><span class="p">,</span> <span class="n">bustype</span><span class="o">=</span><span class="s1">&#39;socketcan&#39;</span><span class="p">)</span>
+
+<span class="c1"># Send CAN message</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">can</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">arbitration_id</span><span class="o">=</span><span class="mh">0x123</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mh">0x11</span><span class="p">,</span> <span class="mh">0x22</span><span class="p">,</span> <span class="mh">0x33</span><span class="p">])</span>
+<span class="n">bus</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+<span class="c1"># Receive CAN messages</span>
+<span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">bus</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ID: </span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">arbitration_id</span><span class="si">:</span><span class="s2">x</span><span class="si">}</span><span class="s2">, Data: </span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+### 🌐 Connectivity Extensions
+
+#### **1. 4G/5G Cellular Modules**
+**Recommended Modules:**
+- **Quectel EM05-G**: 4G LTE Cat 4
+- **Quectel RM500Q-GL**: 5G Sub-6GHz
+- **Sierra Wireless EM9191**: 5G mmWave
+
+<div class="highlight"><pre><span></span><code><span class="c1"># Configure cellular connection</span>
+sudo<span class="w"> </span>nmcli<span class="w"> </span>connection<span class="w"> </span>add<span class="w"> </span><span class="nb">type</span><span class="w"> </span>gsm<span class="w"> </span>ifname<span class="w"> </span><span class="s1">&#39;*&#39;</span><span class="w"> </span>con-name<span class="w"> </span>cellular<span class="w"> </span>apn<span class="w"> </span>internet
+sudo<span class="w"> </span>nmcli<span class="w"> </span>connection<span class="w"> </span>up<span class="w"> </span>cellular
+</code></pre></div>
+
+#### **2. LoRaWAN Integration**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: LoRaWAN sensor node</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">serial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># RAK3172 LoRaWAN module via UART</span>
+<span class="n">lora</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">Serial</span><span class="p">(</span><span class="s1">&#39;/dev/ttyTHS0&#39;</span><span class="p">,</span> <span class="mi">115200</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_lora_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;AT+SEND=1:</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">hex</span><span class="p">()</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span>
+    <span class="n">lora</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">lora</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">response</span>
+
+<span class="c1"># Send sensor data</span>
+<span class="n">sensor_data</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;</span><span class="se">\x01\x23\x45\x67</span><span class="s2">&quot;</span>  <span class="c1"># Example payload</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">send_lora_data</span><span class="p">(</span><span class="n">sensor_data</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LoRa response: </span><span class="si">{</span><span class="n">response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+### ⚡ Power and Environmental Extensions
+
+#### **1. UPS and Battery Management**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Battery monitoring via I2C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">smbus</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="n">bus</span> <span class="o">=</span> <span class="n">smbus</span><span class="o">.</span><span class="n">SMBus</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># I2C bus 1</span>
+<span class="n">battery_addr</span> <span class="o">=</span> <span class="mh">0x36</span>   <span class="c1"># MAX17048 fuel gauge</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">read_battery_voltage</span><span class="p">():</span>
+    <span class="c1"># Read voltage register</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">bus</span><span class="o">.</span><span class="n">read_word_data</span><span class="p">(</span><span class="n">battery_addr</span><span class="p">,</span> <span class="mh">0x02</span><span class="p">)</span>
+    <span class="n">voltage</span> <span class="o">=</span> <span class="p">((</span><span class="n">data</span> <span class="o">&amp;</span> <span class="mh">0xFF</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">voltage</span> <span class="o">*</span> <span class="mf">78.125</span> <span class="o">/</span> <span class="mi">1000000</span>  <span class="c1"># Convert to volts</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">read_battery_soc</span><span class="p">():</span>
+    <span class="c1"># Read state of charge</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">bus</span><span class="o">.</span><span class="n">read_word_data</span><span class="p">(</span><span class="n">battery_addr</span><span class="p">,</span> <span class="mh">0x04</span><span class="p">)</span>
+    <span class="n">soc</span> <span class="o">=</span> <span class="p">((</span><span class="n">data</span> <span class="o">&amp;</span> <span class="mh">0xFF</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">data</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">soc</span> <span class="o">/</span> <span class="mi">256</span>  <span class="c1"># Convert to percentage</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Battery: </span><span class="si">{</span><span class="n">read_battery_voltage</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">V, </span><span class="si">{</span><span class="n">read_battery_soc</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+#### **2. Environmental Sensors**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: BME280 sensor (temperature, humidity, pressure)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">board</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">adafruit_bme280</span>
+
+<span class="n">i2c</span> <span class="o">=</span> <span class="n">board</span><span class="o">.</span><span class="n">I2C</span><span class="p">()</span>
+<span class="n">bme280</span> <span class="o">=</span> <span class="n">adafruit_bme280</span><span class="o">.</span><span class="n">Adafruit_BME280_I2C</span><span class="p">(</span><span class="n">i2c</span><span class="p">)</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temperature: </span><span class="si">{</span><span class="n">bme280</span><span class="o">.</span><span class="n">temperature</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°C&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Humidity: </span><span class="si">{</span><span class="n">bme280</span><span class="o">.</span><span class="n">relative_humidity</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pressure: </span><span class="si">{</span><span class="n">bme280</span><span class="o">.</span><span class="n">pressure</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> hPa&quot;</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+
+### 🔧 Development and Debugging Extensions
+
+#### **1. JTAG Debugging**
+**Hardware**: Segger J-Link or similar JTAG debugger
+- Connect to 12-pin debug header
+- Enable kernel debugging and bootloader analysis
+- Real-time system profiling
+
+#### **2. Logic Analyzer Integration**
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Protocol analysis with Saleae Logic</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">saleae</span>
+
+<span class="c1"># Connect to Logic analyzer</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">saleae</span><span class="o">.</span><span class="n">Saleae</span><span class="p">()</span>
+<span class="n">s</span><span class="o">.</span><span class="n">set_active_channels</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>  <span class="c1"># Monitor I2C, SPI signals</span>
+<span class="n">s</span><span class="o">.</span><span class="n">capture_to_file</span><span class="p">(</span><span class="s1">&#39;/tmp/capture.logicdata&#39;</span><span class="p">)</span>
+</code></pre></div>
+
+### 📊 Performance Monitoring Extensions
+
+#### **1. Real-time System Monitoring**
+<div class="highlight"><pre><span></span><code><span class="c1"># Advanced system monitoring</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_jetson_stats</span><span class="p">():</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># GPU utilization</span>
+    <span class="n">gpu_stats</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;tegrastats&#39;</span><span class="p">,</span> <span class="s1">&#39;--interval&#39;</span><span class="p">,</span> <span class="s1">&#39;100&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+
+    <span class="c1"># CPU usage</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;cpu_percent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;cpu_freq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_freq</span><span class="p">()</span><span class="o">.</span><span class="n">current</span>
+
+    <span class="c1"># Memory usage</span>
+    <span class="n">memory</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;memory_percent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">percent</span>
+    <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;memory_available&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">available</span> <span class="o">//</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>  <span class="c1"># MB</span>
+
+    <span class="c1"># Temperature</span>
+    <span class="n">temps</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">sensors_temperatures</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;thermal-fan-est&#39;</span> <span class="ow">in</span> <span class="n">temps</span><span class="p">:</span>
+        <span class="n">stats</span><span class="p">[</span><span class="s1">&#39;temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temps</span><span class="p">[</span><span class="s1">&#39;thermal-fan-est&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">current</span>
+
+    <span class="k">return</span> <span class="n">stats</span>
+
+<span class="c1"># Monitor system continuously</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">get_jetson_stats</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+
+## 🎓 Hands-on Lab: Jetson Hardware Exploration
+
+### **Lab Objectives:**
+1. Query and understand Jetson hardware capabilities
+2. Test GPIO, I2C, and camera interfaces
+3. Monitor system performance and power consumption
+4. Implement a simple CUDA application
+
+### **Lab Setup:**
+<div class="highlight"><pre><span></span><code><span class="c1"># Install required packages</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>python3-pip<span class="w"> </span>i2c-tools<span class="w"> </span>v4l-utils
+pip3<span class="w"> </span>install<span class="w"> </span>Jetson.GPIO<span class="w"> </span>opencv-python<span class="w"> </span>numpy<span class="w"> </span>matplotlib
+
+<span class="c1"># Enable I2C and SPI</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-a<span class="w"> </span>-G<span class="w"> </span>i2c<span class="w"> </span><span class="nv">$USER</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-a<span class="w"> </span>-G<span class="w"> </span>spi<span class="w"> </span><span class="nv">$USER</span>
+</code></pre></div>
+
+### **Exercise 1: Hardware Discovery**
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># hardware_discovery.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_jetson_info</span><span class="p">():</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Get CUDA device info</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s1">&#39;nvidia-smi&#39;</span><span class="p">,</span> <span class="s1">&#39;--query-gpu=name,memory.total,driver_version&#39;</span><span class="p">,</span> 
+                               <span class="s1">&#39;--format=csv,noheader,nounits&#39;</span><span class="p">],</span> 
+                               <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">gpu_info</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;gpu_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gpu_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;gpu_memory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gpu_info</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> MB&quot;</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;driver_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gpu_info</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">info</span><span class="p">[</span><span class="s1">&#39;gpu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;CUDA not available&quot;</span>
+
+    <span class="c1"># Get CPU info</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/proc/cpuinfo&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">cpu_lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">cpu_lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;model name&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">info</span><span class="p">[</span><span class="s1">&#39;cpu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">break</span>
+
+    <span class="c1"># Get memory info</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/proc/meminfo&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;MemTotal&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">mem_kb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">info</span><span class="p">[</span><span class="s1">&#39;memory_total&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mem_kb</span><span class="w"> </span><span class="o">//</span><span class="w"> </span><span class="mi">1024</span><span class="si">}</span><span class="s2"> MB&quot;</span>
+                <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">info</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">get_jetson_info</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+</code></pre></div>
+
+### **Exercise 2: GPIO LED Control**
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># gpio_led_test.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">Jetson.GPIO</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">GPIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1"># Setup</span>
+<span class="n">led_pin</span> <span class="o">=</span> <span class="mi">18</span>  <span class="c1"># GPIO18 (pin 12)</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setmode</span><span class="p">(</span><span class="n">GPIO</span><span class="o">.</span><span class="n">BCM</span><span class="p">)</span>
+<span class="n">GPIO</span><span class="o">.</span><span class="n">setup</span><span class="p">(</span><span class="n">led_pin</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Blinking LED on GPIO18...&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+        <span class="n">GPIO</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">led_pin</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">HIGH</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">GPIO</span><span class="o">.</span><span class="n">output</span><span class="p">(</span><span class="n">led_pin</span><span class="p">,</span> <span class="n">GPIO</span><span class="o">.</span><span class="n">LOW</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Blink </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/10&quot;</span><span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">GPIO</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;GPIO cleanup complete&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+### **Exercise 3: Camera Test**
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># camera_test.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_camera</span><span class="p">():</span>
+    <span class="c1"># Try to open camera</span>
+    <span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cap</span><span class="o">.</span><span class="n">isOpened</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Could not open camera&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Set resolution</span>
+    <span class="n">cap</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_WIDTH</span><span class="p">,</span> <span class="mi">1920</span><span class="p">)</span>
+    <span class="n">cap</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_HEIGHT</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Camera opened successfully&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resolution: </span><span class="si">{</span><span class="n">cap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_WIDTH</span><span class="p">)</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">cap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FRAME_HEIGHT</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FPS: </span><span class="si">{</span><span class="n">cap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FPS</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Capture a few frames</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="n">ret</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;test_frame_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.jpg&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Captured frame </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to capture frame </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">cap</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Camera test complete&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">test_camera</span><span class="p">()</span>
+</code></pre></div>
+
+### **Exercise 4: Simple CUDA Vector Addition**
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># cuda_vector_add.py</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cupy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">vector_add_cpu</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;CPU vector addition&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">vector_add_gpu</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;GPU vector addition using CuPy&quot;&quot;&quot;</span>
+    <span class="n">a_gpu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">b_gpu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">c_gpu</span> <span class="o">=</span> <span class="n">a_gpu</span> <span class="o">+</span> <span class="n">b_gpu</span>
+    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">asnumpy</span><span class="p">(</span><span class="n">c_gpu</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">benchmark_vector_add</span><span class="p">():</span>
+    <span class="c1"># Create test vectors</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">1000000</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vector size: </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> elements&quot;</span><span class="p">)</span>
+
+    <span class="c1"># CPU benchmark</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">c_cpu</span> <span class="o">=</span> <span class="n">vector_add_cpu</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">cpu_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU time: </span><span class="si">{</span><span class="n">cpu_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># GPU benchmark</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">c_gpu</span> <span class="o">=</span> <span class="n">vector_add_gpu</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="n">gpu_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU time: </span><span class="si">{</span><span class="n">gpu_time</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Verify results</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">c_cpu</span><span class="p">,</span> <span class="n">c_gpu</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Results match!&quot;</span><span class="p">)</span>
+        <span class="n">speedup</span> <span class="o">=</span> <span class="n">cpu_time</span> <span class="o">/</span> <span class="n">gpu_time</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Speedup: </span><span class="si">{</span><span class="n">speedup</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✗ Results don&#39;t match!&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">benchmark_vector_add</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CuPy not installed. Install with: pip3 install cupy&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+### **Lab Deliverables:**
+1. **Hardware Report**: Document your Jetson's specifications and capabilities
+2. **GPIO Demo**: Working LED blink program with timing measurements
+3. **Camera Validation**: Captured test images with resolution verification
+4. **CUDA Performance**: Vector addition benchmark results and analysis
+5. **Extension Proposal**: Design for one hardware extension project -->
+
+<h2 id="resources">🔗 Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://developer.nvidia.com/embedded-computing">NVIDIA Jetson Developer Site</a></li>
+<li><a href="https://developer.nvidia.com/embedded/jetpack">JetPack SDK</a></li>
+<li><a href="https://developer.nvidia.com/jetson-orin">Jetson Orin Nano Datasheet</a></li>
+<li><a href="https://developer.nvidia.com/cuda-toolkit">CUDA Toolkit</a></li>
+<li><a href="https://docs.nvidia.com/deeplearning/tensorrt/">TensorRT Documentation</a></li>
+<li><a href="https://github.com/NVIDIA/jetson-gpio">Jetson GPIO Library</a></li>
+<li><a href="https://developer.nvidia.com/nsight-systems">NVIDIA Nsight Systems</a></li>
+<li><a href="https://developer.nvidia.com/embedded/community/jetson-projects">Jetson Community Projects</a></li>
+<li><a href="https://docs.nvidia.com/jetpack/">JetPack SDK Components</a></li>
+<li><a href="https://developer.nvidia.com/embedded/develop/hardware">Jetson Hardware Design Guidelines</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

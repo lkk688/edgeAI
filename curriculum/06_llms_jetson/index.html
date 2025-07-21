@@ -1,0 +1,2244 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>🚀 What Are LLMs? - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#what-are-llms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🚀 What Are LLMs?
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sjsujetsontool Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to NVIDIA Jetson
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to Linux and Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Core Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_programming_env_python_cpp_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Programming Environment (Python/C++/CUDA)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_accelerated_computing_python_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Accelerated Python + CUDA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04a_numpy_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numpy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PyTorch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Cyber Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Cyber Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Networking Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01c_packet_sniffing_monitoring.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Packet Sniffing & Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01d_linux_cyber_defense_basics.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Cyber Defense Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01e_linux_cyber_attack_simulation.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulated Attacks & Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    AI & LLM
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            AI & LLM
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_cnn_image_processing_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CNNs + Image Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_transformers_llms_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Transformers & LLMs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NLP + Inference Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Prompt Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RAG Apps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Local AI Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Final Project
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Final Project
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_final_challenges_hackathon.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hackathon & Challenges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      💬 Common Use Cases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-llms-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Running LLMs on Jetson
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Running LLMs on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#llm-backend-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 LLM Backend Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Theoretical Foundations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Theoretical Foundations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quantization-theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantization Theory
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-optimization-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Optimization Strategies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inference-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inference Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-backends-for-edge-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 LLM Backends for Edge Devices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 LLM Backends for Edge Devices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-llamacpp-high-performance-c-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. llama.cpp - High-Performance C++ Engine
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-ollama-simplified-llm-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Ollama - Simplified LLM Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-transformers-huggingface-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Transformers - HuggingFace Library
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-onnx-runtime-cross-platform-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. ONNX Runtime - Cross-Platform Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-specific-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 Device-Specific Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Device-Specific Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#device-detection-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Device Detection Logic:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-optimizations-by-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Optimizations by Device:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-optimization-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Memory Optimization Techniques
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Memory Optimization Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-memory-optimization-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Memory Optimization Function
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Performance Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benchmarking-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Benchmarking Capabilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Benchmarking Capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-single-backend-benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Single Backend Benchmarking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-multi-backend-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Multi-Backend Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-visualization" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Visualization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-the-unified-llm-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Running the Unified LLM Demo
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gguf-model-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔄 GGUF Model Format
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 GGUF Model Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#format-advantages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Format Advantages:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quantization-levels-for-7b-parameter-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quantization Levels for 7B Parameter Models:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-compatible-transformer-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚡ Jetson-Compatible Transformer Models
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-run-a-transformer-model-with-llamacpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Lab: Run a Transformer Model with llama.cpp
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab: Run a Transformer Model with llama.cpp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#objective" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Objective
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-gguf-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      📥 Download GGUF Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Run Inference
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-use-ollama-for-rest-api-based-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Lab: Use Ollama for REST API-based Inference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab: Use Ollama for REST API-based Inference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-ollama-inside-docker-or-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Setup Ollama (inside Docker or local)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rest-api-call-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ REST API Call (Python)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-use-llama-cpp-python-for-local-gpu-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Lab: Use llama-cpp-python for Local GPU Inference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab: Use llama-cpp-python for Local GPU Inference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      ✅ Install Python bindings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inference-with-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧠 Inference with Python
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Troubleshooting &amp; Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Troubleshooting &amp; Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues-and-solutions" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚠️ Common Issues and Solutions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚠️ Common Issues and Solutions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-loading-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Model Loading Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 Performance Monitoring Tools
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jetson-specific-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Jetson-Specific Optimizations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benchmarking-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      📈 Benchmarking Framework
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Lab Deliverables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Lab Deliverables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎯 Required Deliverables
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="what-are-llms">🚀 What Are LLMs?<a class="headerlink" href="#what-are-llms" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.<br />
+<strong>Position:</strong> Associate Professor, Computer Engineering<br />
+<strong>Institution:</strong> San Jose State University<br />
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<p>LLMs (Large Language Models) are transformer-based models trained on vast datasets to understand and generate human-like text.</p>
+<h2 id="common-use-cases">💬 Common Use Cases<a class="headerlink" href="#common-use-cases" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Chatbots and virtual assistants</li>
+<li>Code generation</li>
+<li>Summarization</li>
+<li>Translation</li>
+</ul>
+<hr />
+<h2 id="running-llms-on-jetson">🛠️ Running LLMs on Jetson<a class="headerlink" href="#running-llms-on-jetson" title="Permanent link">&para;</a></h2>
+<p>Running LLMs on Jetson Orin Nano requires careful consideration of memory constraints, compute capabilities, and inference optimization. This section explores various LLM backends, their theoretical foundations, and practical implementations.</p>
+<h3 id="llm-backend-comparison">🎯 LLM Backend Comparison<a class="headerlink" href="#llm-backend-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Memory Efficiency</th>
+<th>Speed</th>
+<th>Ease of Use</th>
+<th>CUDA Support</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>llama.cpp</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+<td>Production inference</td>
+</tr>
+<tr>
+<td><strong>Ollama</strong></td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>✅</td>
+<td>Quick deployment</td>
+</tr>
+<tr>
+<td><strong>llama-cpp-python</strong></td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>✅</td>
+<td>Python integration</td>
+</tr>
+<tr>
+<td><strong>TensorRT-LLM</strong></td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>✅</td>
+<td>Maximum performance</td>
+</tr>
+<tr>
+<td><strong>ONNX Runtime</strong></td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+<td>Cross-platform</td>
+</tr>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+<td>Batch inference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="theoretical-foundations">🧠 Theoretical Foundations<a class="headerlink" href="#theoretical-foundations" title="Permanent link">&para;</a></h3>
+<h4 id="quantization-theory"><strong>Quantization Theory</strong><a class="headerlink" href="#quantization-theory" title="Permanent link">&para;</a></h4>
+<p>Quantization reduces model precision from FP32/FP16 to lower bit representations:</p>
+<ul>
+<li><strong>INT8 Quantization</strong>: 8-bit integers, ~4x memory reduction</li>
+<li><strong>INT4 Quantization</strong>: 4-bit integers, ~8x memory reduction  </li>
+<li><strong>GPTQ</strong>: Post-training quantization preserving model quality</li>
+<li><strong>AWQ</strong>: Activation-aware weight quantization</li>
+</ul>
+<h4 id="memory-optimization-strategies"><strong>Memory Optimization Strategies</strong><a class="headerlink" href="#memory-optimization-strategies" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>KV-Cache Management</strong>: Efficient attention cache storage</li>
+<li><strong>Paged Attention</strong>: Dynamic memory allocation for sequences</li>
+<li><strong>Gradient Checkpointing</strong>: Trade compute for memory during training</li>
+<li><strong>Model Sharding</strong>: Split large models across memory boundaries</li>
+</ol>
+<h4 id="inference-optimization"><strong>Inference Optimization</strong><a class="headerlink" href="#inference-optimization" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Speculative Decoding</strong>: Use smaller model to predict tokens</li>
+<li><strong>Continuous Batching</strong>: Dynamic batching for variable sequence lengths</li>
+<li><strong>Flash Attention</strong>: Memory-efficient attention computation</li>
+<li><strong>Kernel Fusion</strong>: Combine operations to reduce memory transfers</li>
+</ul>
+<h3 id="llm-backends-for-edge-devices">🔧 LLM Backends for Edge Devices<a class="headerlink" href="#llm-backends-for-edge-devices" title="Permanent link">&para;</a></h3>
+<p>The <code>unified_llm_demo.py</code> script provides a comprehensive framework for running various LLM backends on edge devices, with specific optimizations for different hardware platforms. Let's explore each backend, its device compatibility, and installation requirements.</p>
+<h4 id="1-llamacpp-high-performance-c-engine"><strong>1. llama.cpp - High-Performance C++ Engine</strong><a class="headerlink" href="#1-llamacpp-high-performance-c-engine" title="Permanent link">&para;</a></h4>
+<p><strong>Architecture</strong>: Pure C++ implementation with CUDA acceleration
+<strong>Memory Model</strong>: Efficient GGUF format with memory mapping
+<strong>Quantization</strong>: K-quants (Q4_K_M, Q6_K) for optimal quality/speed trade-off
+<strong>Device Availability</strong>:
+- ✅ NVIDIA Jetson (CUDA-enabled)
+- ✅ NVIDIA GPUs (CUDA)
+- ✅ x86 CPUs
+- ✅ Apple Silicon (Metal support via separate build)</p>
+<p><strong>Installation</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Basic installation</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggerganov/llama.cpp
+<span class="nb">cd</span><span class="w"> </span>llama.cpp
+
+<span class="c1"># For CUDA support (Jetson/NVIDIA GPUs)</span>
+make<span class="w"> </span><span class="nv">LLAMA_CUBLAS</span><span class="o">=</span><span class="m">1</span>
+
+<span class="c1"># For CPU-only</span>
+make
+</code></pre></div></p>
+<p><strong>Optimal Settings by Device</strong> (from unified_llm_demo.py):
+<div class="highlight"><pre><span></span><code># NVIDIA CUDA (Desktop GPUs)
+n_gpu_layers=35, n_threads=8, n_batch=512, n_ctx=2048
+
+# Jetson
+n_gpu_layers=20, n_threads=6, n_batch=256, n_ctx=2048
+
+# Apple Silicon
+n_gpu_layers=0, n_threads=8, n_batch=512, n_ctx=2048
+
+# CPU
+n_gpu_layers=0, n_threads=8, n_batch=256, n_ctx=2048
+</code></pre></div></p>
+<h4 id="2-ollama-simplified-llm-deployment"><strong>2. Ollama - Simplified LLM Deployment</strong><a class="headerlink" href="#2-ollama-simplified-llm-deployment" title="Permanent link">&para;</a></h4>
+<p><strong>Architecture</strong>: Docker-based deployment with REST API
+<strong>Model Management</strong>: Automatic model downloading and caching
+<strong>Concurrency</strong>: Built-in request queuing and batching
+<strong>Device Availability</strong>:
+- ✅ NVIDIA Jetson (with Docker)
+- ✅ NVIDIA GPUs
+- ✅ x86 CPUs
+- ✅ Apple Silicon (native ARM build)</p>
+<p><strong>Installation</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># macOS and Linux</span>
+curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.ai/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+
+<span class="c1"># For Jetson, you may need to build from source</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ollama/ollama
+<span class="nb">cd</span><span class="w"> </span>ollama
+go<span class="w"> </span>build
+</code></pre></div></p>
+<p><strong>API Endpoint</strong>: http://localhost:11434/api/generate</p>
+<h4 id="3-transformers-huggingface-library"><strong>3. Transformers - HuggingFace Library</strong><a class="headerlink" href="#3-transformers-huggingface-library" title="Permanent link">&para;</a></h4>
+<p><strong>Architecture</strong>: Python-based with PyTorch/TensorFlow backend
+<strong>Memory Management</strong>: Model parallelism and offloading options
+<strong>Optimization</strong>: Supports quantization, caching, and JIT compilation
+<strong>Device Availability</strong>:
+- ✅ NVIDIA Jetson (with limitations on model size)
+- ✅ NVIDIA GPUs
+- ✅ x86 CPUs
+- ✅ Apple Silicon (via MPS backend)</p>
+<p><strong>Installation</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Basic installation</span>
+pip<span class="w"> </span>install<span class="w"> </span>transformers
+
+<span class="c1"># With PyTorch for GPU support</span>
+pip<span class="w"> </span>install<span class="w"> </span>torch<span class="w"> </span>transformers
+
+<span class="c1"># With quantization support</span>
+pip<span class="w"> </span>install<span class="w"> </span>transformers<span class="w"> </span>accelerate<span class="w"> </span>bitsandbytes
+</code></pre></div></p>
+<p><strong>Optimal Settings by Device</strong> (from unified_llm_demo.py):
+<div class="highlight"><pre><span></span><code># NVIDIA CUDA (Desktop GPUs/Jetson)
+device_map=&quot;auto&quot;, torch_dtype=torch.float16, load_in_8bit=True, use_cache=True
+
+# Apple Silicon
+device_map=&quot;mps&quot;, use_cache=True
+
+# CPU
+device_map=&quot;cpu&quot;, use_cache=True
+</code></pre></div></p>
+<h4 id="4-onnx-runtime-cross-platform-optimization"><strong>4. ONNX Runtime - Cross-Platform Optimization</strong><a class="headerlink" href="#4-onnx-runtime-cross-platform-optimization" title="Permanent link">&para;</a></h4>
+<p><strong>Architecture</strong>: Microsoft's cross-platform inference engine
+<strong>Optimization</strong>: Graph optimization, operator fusion, memory planning
+<strong>Providers</strong>: CUDA, TensorRT, CPU execution providers
+<strong>Device Availability</strong>:
+- ✅ NVIDIA Jetson (via CUDA provider)
+- ✅ NVIDIA GPUs (via CUDA/TensorRT providers)
+- ✅ x86 CPUs (via CPU provider)
+- ✅ Apple Silicon (via CPU provider)</p>
+<p><strong>Installation</strong>:
+<div class="highlight"><pre><span></span><code><span class="c1"># CPU-only version</span>
+pip<span class="w"> </span>install<span class="w"> </span>onnxruntime
+
+<span class="c1"># GPU-accelerated version</span>
+pip<span class="w"> </span>install<span class="w"> </span>onnxruntime-gpu
+
+<span class="c1"># For Jetson, you may need to build from source or use NVIDIA containers</span>
+</code></pre></div></p>
+<p><strong>Optimal Settings by Device</strong> (from unified_llm_demo.py):
+<div class="highlight"><pre><span></span><code># NVIDIA CUDA (Desktop GPUs/Jetson)
+provider=&quot;CUDAExecutionProvider&quot;, optimization_level=99
+
+# CPU or Apple Silicon
+provider=&quot;CPUExecutionProvider&quot;, optimization_level=99
+</code></pre></div></p>
+<h3 id="device-specific-optimizations">🔄 Device-Specific Optimizations<a class="headerlink" href="#device-specific-optimizations" title="Permanent link">&para;</a></h3>
+<p>The <code>unified_llm_demo.py</code> script includes a <code>DeviceManager</code> class that automatically detects the hardware platform and applies optimal settings for each backend. Here's how it works:</p>
+<h4 id="device-detection-logic"><strong>Device Detection Logic</strong>:<a class="headerlink" href="#device-detection-logic" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">_detect_device_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="c1"># Check for NVIDIA GPU with CUDA</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="c1"># Check if it&#39;s a Jetson device</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/etc/nv_tegra_release&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/etc/nv_tegra_version&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;jetson&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;cuda&quot;</span>
+
+    <span class="c1"># Check for Apple Silicon</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Darwin&quot;</span> <span class="ow">and</span> <span class="n">platform</span><span class="o">.</span><span class="n">machine</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;arm64&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;apple_silicon&quot;</span>
+
+    <span class="c1"># Default to CPU</span>
+    <span class="k">return</span> <span class="s2">&quot;cpu&quot;</span>
+</code></pre></div>
+<h4 id="available-optimizations-by-device"><strong>Available Optimizations by Device</strong>:<a class="headerlink" href="#available-optimizations-by-device" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Optimization</th>
+<th>Jetson</th>
+<th>NVIDIA GPU</th>
+<th>Apple Silicon</th>
+<th>CPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ONNX</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Quantization</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>MPS</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>CUDA</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Half Precision</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>INT8</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<h3 id="memory-optimization-techniques">🎯 Memory Optimization Techniques<a class="headerlink" href="#memory-optimization-techniques" title="Permanent link">&para;</a></h3>
+<p>Running LLMs on edge devices requires careful memory management. The <code>unified_llm_demo.py</code> script implements several techniques:</p>
+<h4 id="1-memory-optimization-function"><strong>1. Memory Optimization Function</strong><a class="headerlink" href="#1-memory-optimization-function" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">optimize_memory</span><span class="p">():</span>
+    <span class="c1"># Clear Python garbage</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+    <span class="c1"># Clear CUDA cache if using PyTorch</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+
+    <span class="c1"># Get memory info</span>
+    <span class="n">memory</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available RAM: </span><span class="si">{</span><span class="n">memory</span><span class="o">.</span><span class="n">available</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">GB&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="c1"># Print GPU memory statistics</span>
+        <span class="n">gpu_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span>
+        <span class="n">gpu_allocated</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">gpu_reserved</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_reserved</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU Memory: </span><span class="si">{</span><span class="n">gpu_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">GB total&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU Allocated: </span><span class="si">{</span><span class="n">gpu_allocated</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">GB&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;GPU Reserved: </span><span class="si">{</span><span class="n">gpu_reserved</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">GB&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="2-performance-monitoring"><strong>2. Performance Monitoring</strong><a class="headerlink" href="#2-performance-monitoring" title="Permanent link">&para;</a></h4>
+<p>The script includes a <code>performance_monitor</code> context manager that tracks:
+- Execution time
+- Memory usage (RAM and GPU)
+- CPU usage
+- GPU utilization and temperature (when available)</p>
+<h3 id="benchmarking-capabilities">📊 Benchmarking Capabilities<a class="headerlink" href="#benchmarking-capabilities" title="Permanent link">&para;</a></h3>
+<p>The <code>unified_llm_demo.py</code> script includes a comprehensive benchmarking system through the <code>BenchmarkManager</code> class:</p>
+<h4 id="1-single-backend-benchmarking"><strong>1. Single Backend Benchmarking</strong><a class="headerlink" href="#1-single-backend-benchmarking" title="Permanent link">&para;</a></h4>
+<p>The <code>run_benchmark</code> method tests a specific backend and model with multiple prompts and runs, collecting:
+- Inference times
+- Memory usage
+- Generated text quality</p>
+<h4 id="2-multi-backend-comparison"><strong>2. Multi-Backend Comparison</strong><a class="headerlink" href="#2-multi-backend-comparison" title="Permanent link">&para;</a></h4>
+<p>The <code>compare_backends</code> method allows comparing different backends and models on the same prompts, with visualization capabilities:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example usage</span>
+<span class="n">benchmark_manager</span><span class="o">.</span><span class="n">compare_backends</span><span class="p">(</span>
+    <span class="n">prompts</span><span class="o">=</span><span class="n">sample_prompts</span><span class="p">,</span>
+    <span class="n">backends_models</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;llama_cpp&quot;</span><span class="p">,</span> <span class="s2">&quot;llama-2-7b-chat.q4_K_M.gguf&quot;</span><span class="p">),</span> 
+                    <span class="p">(</span><span class="s2">&quot;ollama&quot;</span><span class="p">,</span> <span class="s2">&quot;llama2:7b-chat&quot;</span><span class="p">)],</span>
+    <span class="n">num_runs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">max_tokens</span><span class="o">=</span><span class="mi">50</span>
+<span class="p">)</span>
+</code></pre></div>
+<h4 id="3-visualization"><strong>3. Visualization</strong><a class="headerlink" href="#3-visualization" title="Permanent link">&para;</a></h4>
+<p>The <code>create_comparison_visualization</code> method generates bar charts comparing:
+- Average inference time
+- Memory usage
+- Standard deviation</p>
+<h3 id="running-the-unified-llm-demo">🚀 Running the Unified LLM Demo<a class="headerlink" href="#running-the-unified-llm-demo" title="Permanent link">&para;</a></h3>
+<p>The script provides a flexible command-line interface:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List available backends</span>
+python<span class="w"> </span>unified_llm_demo.py<span class="w"> </span>--list
+
+<span class="c1"># Run with llama.cpp backend</span>
+python<span class="w"> </span>unified_llm_demo.py<span class="w"> </span>--backend<span class="w"> </span>llama_cpp<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-path<span class="w"> </span>models/llama-2-7b-chat.q4_K_M.gguf<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--prompt<span class="w"> </span><span class="s2">&quot;Explain edge AI&quot;</span>
+
+<span class="c1"># Run with Ollama backend</span>
+python<span class="w"> </span>unified_llm_demo.py<span class="w"> </span>--backend<span class="w"> </span>ollama<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-name<span class="w"> </span>llama2:7b-chat<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--prompt<span class="w"> </span><span class="s2">&quot;Explain edge AI&quot;</span>
+
+<span class="c1"># Run benchmark comparison</span>
+python<span class="w"> </span>unified_llm_demo.py<span class="w"> </span>--benchmark<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--backends<span class="w"> </span>llama_cpp<span class="w"> </span>ollama<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-names<span class="w"> </span>llama-2-7b-chat.q4_K_M.gguf<span class="w"> </span>llama2:7b-chat
+</code></pre></div>
+<h3 id="gguf-model-format">🔄 GGUF Model Format<a class="headerlink" href="#gguf-model-format" title="Permanent link">&para;</a></h3>
+<p><strong>GGUF (GPT-Generated Unified Format)</strong> is the successor to GGML, designed for efficient LLM storage and inference:</p>
+<h4 id="format-advantages"><strong>Format Advantages</strong>:<a class="headerlink" href="#format-advantages" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Memory Mapping</strong>: Direct file access without loading entire model into RAM</li>
+<li><strong>Metadata Storage</strong>: Model configuration embedded in file</li>
+<li><strong>Quantization Support</strong>: Multiple precision levels in single file</li>
+<li><strong>Cross-Platform</strong>: Consistent format across architectures</li>
+</ul>
+<h4 id="quantization-levels-for-7b-parameter-models"><strong>Quantization Levels for 7B Parameter Models</strong>:<a class="headerlink" href="#quantization-levels-for-7b-parameter-models" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Size</th>
+<th>Quality</th>
+<th>Speed</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td>13.5GB</td>
+<td>100%</td>
+<td>Baseline</td>
+<td>Maximum quality</td>
+</tr>
+<tr>
+<td>Q8_0</td>
+<td>7.2GB</td>
+<td>99%</td>
+<td>1.2x</td>
+<td>High quality, some speed</td>
+</tr>
+<tr>
+<td>Q6_K</td>
+<td>5.4GB</td>
+<td>97%</td>
+<td>1.5x</td>
+<td>Good balance</td>
+</tr>
+<tr>
+<td>Q4_K_M</td>
+<td>4.1GB</td>
+<td>95%</td>
+<td>2.0x</td>
+<td>Recommended for most use</td>
+</tr>
+<tr>
+<td>Q4_0</td>
+<td>3.8GB</td>
+<td>92%</td>
+<td>2.2x</td>
+<td>Faster inference</td>
+</tr>
+<tr>
+<td>Q3_K_M</td>
+<td>3.1GB</td>
+<td>88%</td>
+<td>2.5x</td>
+<td>Memory constrained</td>
+</tr>
+<tr>
+<td>Q2_K</td>
+<td>2.4GB</td>
+<td>80%</td>
+<td>3.0x</td>
+<td>Maximum speed</td>
+</tr>
+</tbody>
+</table>
+<p>For Jetson devices, the Q4_K_M format typically offers the best balance of quality, speed, and memory usage.</p>
+<hr />
+<h2 id="jetson-compatible-transformer-models">⚡ Jetson-Compatible Transformer Models<a class="headerlink" href="#jetson-compatible-transformer-models" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Size</th>
+<th>Format</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mistral 7B</td>
+<td>4–8GB</td>
+<td>GGUF</td>
+<td>Fast and widely supported</td>
+</tr>
+<tr>
+<td>Qwen 1.5/3 7B/8B</td>
+<td>5–9GB</td>
+<td>GGUF</td>
+<td>Open-source, multilingual</td>
+</tr>
+<tr>
+<td>LLaMA 2/3 7B</td>
+<td>4–7GB</td>
+<td>GGUF</td>
+<td>General-purpose LLM</td>
+</tr>
+<tr>
+<td>DeepSeek 7B</td>
+<td>4–8GB</td>
+<td>GGUF</td>
+<td>Math &amp; reasoning focus</td>
+</tr>
+<tr>
+<td>DistilBERT</td>
+<td>\~250MB</td>
+<td>HF</td>
+<td>Lightweight, good for NLP tasks</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="lab-run-a-transformer-model-with-llamacpp">🧪 Lab: Run a Transformer Model with <code>llama.cpp</code><a class="headerlink" href="#lab-run-a-transformer-model-with-llamacpp" title="Permanent link">&para;</a></h2>
+<h3 id="objective">🎯 Objective<a class="headerlink" href="#objective" title="Permanent link">&para;</a></h3>
+<p>Run a quantized transformer (e.g., Mistral) using <code>llama.cpp</code> with GPU acceleration.</p>
+<h3 id="setup">✅ Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggerganov/llama.cpp
+<span class="nb">cd</span><span class="w"> </span>llama.cpp
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..<span class="w"> </span>-DLLAMA_CUDA<span class="o">=</span>on
+make<span class="w"> </span>-j
+</code></pre></div>
+<h3 id="download-gguf-model">📥 Download GGUF Model<a class="headerlink" href="#download-gguf-model" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>models/mistral.gguf<span class="w"> </span>https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_K_M.gguf
+</code></pre></div>
+<h3 id="run-inference">🚀 Run Inference<a class="headerlink" href="#run-inference" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>./main<span class="w"> </span>-m<span class="w"> </span>models/mistral.gguf<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;What is Jetson Orin Nano?&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="lab-use-ollama-for-rest-api-based-inference">🧪 Lab: Use Ollama for REST API-based Inference<a class="headerlink" href="#lab-use-ollama-for-rest-api-based-inference" title="Permanent link">&para;</a></h2>
+<h3 id="setup-ollama-inside-docker-or-local">✅ Setup Ollama (inside Docker or local)<a class="headerlink" href="#setup-ollama-inside-docker-or-local" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://ollama.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+ollama<span class="w"> </span>run<span class="w"> </span>mistral
+</code></pre></div>
+<h3 id="rest-api-call-python">🛠️ REST API Call (Python)<a class="headerlink" href="#rest-api-call-python" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;http://localhost:11434/api/generate&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="p">{</span>
+    <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;mistral&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="s2">&quot;What is edge AI?&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stream&quot;</span><span class="p">:</span> <span class="kc">False</span>
+<span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;response&quot;</span><span class="p">])</span>
+</code></pre></div>
+<hr />
+<h2 id="lab-use-llama-cpp-python-for-local-gpu-inference">🧪 Lab: Use llama-cpp-python for Local GPU Inference<a class="headerlink" href="#lab-use-llama-cpp-python-for-local-gpu-inference" title="Permanent link">&para;</a></h2>
+<h3 id="install-python-bindings">✅ Install Python bindings<a class="headerlink" href="#install-python-bindings" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nv">CMAKE_ARGS</span><span class="o">=</span><span class="s2">&quot;-DLLAMA_CUDA=on&quot;</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>llama-cpp-python<span class="w"> </span>--no-binary<span class="w"> </span>llama-cpp-python
+</code></pre></div>
+<h3 id="inference-with-python">🧠 Inference with Python<a class="headerlink" href="#inference-with-python" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">llama_cpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Llama</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">Llama</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;models/mistral.gguf&quot;</span><span class="p">,</span> <span class="n">n_gpu_layers</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="p">(</span><span class="s2">&quot;Explain transformers in 3 sentences.&quot;</span><span class="p">))</span>
+</code></pre></div>
+<hr />
+<h2 id="troubleshooting-best-practices">🔧 Troubleshooting &amp; Best Practices<a class="headerlink" href="#troubleshooting-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues-and-solutions">⚠️ Common Issues and Solutions<a class="headerlink" href="#common-issues-and-solutions" title="Permanent link">&para;</a></h3>
+<h4 id="memory-issues">Memory Issues<a class="headerlink" href="#memory-issues" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Problem: CUDA out of memory</span>
+<span class="c1"># Solution: Implement memory management</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">clear_memory</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear GPU memory and cache&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">synchronize</span><span class="p">()</span>
+    <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🧹 Memory cleared&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use smaller batch sizes</span>
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1"># Instead of 16 or 32</span>
+
+<span class="c1"># Enable gradient checkpointing</span>
+<span class="n">model</span><span class="o">.</span><span class="n">gradient_checkpointing_enable</span><span class="p">()</span>
+
+<span class="c1"># Use mixed precision</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.cuda.amp</span><span class="w"> </span><span class="kn">import</span> <span class="n">autocast</span>
+<span class="k">with</span> <span class="n">autocast</span><span class="p">():</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="model-loading-issues">Model Loading Issues<a class="headerlink" href="#model-loading-issues" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Problem: Model fails to load</span>
+<span class="c1"># Solution: Progressive fallback strategy</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_model_with_fallback</span><span class="p">(</span><span class="n">model_name</span><span class="p">):</span>
+    <span class="n">strategies</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># Strategy 1: Full precision GPU</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="p">,</span> <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span>
+        <span class="p">),</span>
+        <span class="c1"># Strategy 2: Half precision GPU</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="p">,</span> <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span>
+        <span class="p">),</span>
+        <span class="c1"># Strategy 3: 8-bit quantization</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="p">,</span> <span class="n">load_in_8bit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span>
+        <span class="p">),</span>
+        <span class="c1"># Strategy 4: CPU fallback</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="p">,</span> <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">strategy</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">strategies</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🔄 Trying loading strategy </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">strategy</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ Model loaded with strategy </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">model</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Strategy </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">clear_memory</span><span class="p">()</span>
+
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All loading strategies failed&quot;</span><span class="p">)</span>
+
+<span class="c1"># Usage</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">load_model_with_fallback</span><span class="p">(</span><span class="s2">&quot;gpt2-medium&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="performance-optimization">Performance Optimization<a class="headerlink" href="#performance-optimization" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Enable optimizations</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">benchmark</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># For consistent input sizes</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># For better performance</span>
+
+<span class="c1"># Use torch.compile (PyTorch 2.0+)</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">torch</span><span class="p">,</span> <span class="s1">&#39;compile&#39;</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;reduce-overhead&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;🚀 Model compiled for optimization&quot;</span><span class="p">)</span>
+
+<span class="c1"># Optimize tokenizer</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">AutoTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="n">model_name</span><span class="p">,</span>
+    <span class="n">use_fast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Use fast tokenizer</span>
+    <span class="n">padding_side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span>  <span class="c1"># Better for generation</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="performance-monitoring-tools">📊 Performance Monitoring Tools<a class="headerlink" href="#performance-monitoring-tools" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">system_monitor</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Monitor system resources during inference&quot;&quot;&quot;</span>
+    <span class="c1"># Initial readings</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">start_cpu</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">start_memory</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">percent</span>
+
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="n">start_gpu_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">reset_peak_memory_stats</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">yield</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Final readings</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">end_cpu</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">end_memory</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">percent</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 System Performance:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⏱️  Execution time: </span><span class="si">{</span><span class="n">end_time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;💻 CPU usage: </span><span class="si">{</span><span class="n">end_cpu</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🧠 RAM usage: </span><span class="si">{</span><span class="n">end_memory</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+            <span class="n">current_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">peak_gpu</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">max_memory_allocated</span><span class="p">()</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🎮 GPU memory current: </span><span class="si">{</span><span class="n">current_gpu</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🔝 GPU memory peak: </span><span class="si">{</span><span class="n">peak_gpu</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MB&quot;</span><span class="p">)</span>
+
+<span class="c1"># Usage example</span>
+<span class="k">with</span> <span class="n">system_monitor</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="o">**</span><span class="n">inputs</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="jetson-specific-optimizations">🎯 Jetson-Specific Optimizations<a class="headerlink" href="#jetson-specific-optimizations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check Jetson model and optimize accordingly</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_jetson_config</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;/proc/device-tree/model&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s1">&#39;Orin Nano&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;max_memory_gb&#39;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span>  <span class="c1"># Leave 2GB for system</span>
+                <span class="s1">&#39;optimal_batch_size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s1">&#39;use_fp16&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;enable_flash_attention&#39;</span><span class="p">:</span> <span class="kc">False</span>  <span class="c1"># Not supported on older CUDA</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="s1">&#39;Orin NX&#39;</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;max_memory_gb&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span>
+                <span class="s1">&#39;optimal_batch_size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+                <span class="s1">&#39;use_fp16&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;enable_flash_attention&#39;</span><span class="p">:</span> <span class="kc">True</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s1">&#39;max_memory_gb&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s1">&#39;optimal_batch_size&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s1">&#39;use_fp16&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;enable_flash_attention&#39;</span><span class="p">:</span> <span class="kc">False</span>
+            <span class="p">}</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># Fallback for non-Jetson systems</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;max_memory_gb&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;optimal_batch_size&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;use_fp16&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;enable_flash_attention&#39;</span><span class="p">:</span> <span class="kc">True</span>
+        <span class="p">}</span>
+
+<span class="c1"># Apply Jetson-specific settings</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">get_jetson_config</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🤖 Detected configuration: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use configuration in model loading</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">AutoModelForCausalLM</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="n">model_name</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span> <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;use_fp16&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+    <span class="n">device_map</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="n">max_memory</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_memory_gb&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">GB&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="benchmarking-framework">📈 Benchmarking Framework<a class="headerlink" href="#benchmarking-framework" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">TransformerBenchmark</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">benchmark_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_func</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">num_runs</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Benchmark a specific task&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🧪 Benchmarking </span><span class="si">{</span><span class="n">task_name</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+        <span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_runs</span><span class="p">):</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">task_func</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="n">run_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+            <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_time</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">run</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Show first result</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📝 Sample output: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">)[:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+
+        <span class="n">avg_time</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+        <span class="n">std_time</span> <span class="o">=</span> <span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">t</span> <span class="o">-</span> <span class="n">avg_time</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">times</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">))</span> <span class="o">**</span> <span class="mf">0.5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;task&#39;</span><span class="p">:</span> <span class="n">task_name</span><span class="p">,</span>
+            <span class="s1">&#39;avg_time&#39;</span><span class="p">:</span> <span class="n">avg_time</span><span class="p">,</span>
+            <span class="s1">&#39;std_time&#39;</span><span class="p">:</span> <span class="n">std_time</span><span class="p">,</span>
+            <span class="s1">&#39;min_time&#39;</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;max_time&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">times</span><span class="p">),</span>
+            <span class="s1">&#39;times&#39;</span><span class="p">:</span> <span class="n">times</span>
+        <span class="p">})</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⏱️  Average: </span><span class="si">{</span><span class="n">avg_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">±</span><span class="si">{</span><span class="n">std_time</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">avg_time</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate comprehensive benchmark report&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📊 BENCHMARK REPORT&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestamp: </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📈 Results:&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🎯 </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Average: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Std Dev: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;std_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Range: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;min_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s - </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;max_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Find best and worst performing tasks</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">])</span>
+            <span class="n">worst</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">])</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🏆 Fastest task: </span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🐌 Slowest task: </span><span class="si">{</span><span class="n">worst</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">worst</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">s)&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">speedup</span> <span class="o">=</span> <span class="n">worst</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">best</span><span class="p">[</span><span class="s1">&#39;avg_time&#39;</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;⚡ Performance ratio: </span><span class="si">{</span><span class="n">speedup</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+
+<span class="c1"># Example usage</span>
+<span class="n">benchmark</span> <span class="o">=</span> <span class="n">TransformerBenchmark</span><span class="p">(</span><span class="s2">&quot;distilbert-base-uncased&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define benchmark tasks</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sentiment_task</span><span class="p">(</span><span class="n">texts</span><span class="p">):</span>
+    <span class="n">classifier</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;sentiment-analysis&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">classifier</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">generation_task</span><span class="p">(</span><span class="n">prompts</span><span class="p">):</span>
+    <span class="n">generator</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;text-generation&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt2&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">generator</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span> <span class="k">for</span> <span class="n">prompt</span> <span class="ow">in</span> <span class="n">prompts</span><span class="p">]</span>
+
+<span class="c1"># Run benchmarks</span>
+<span class="n">test_texts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;This is a test sentence.&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+<span class="n">test_prompts</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;The future of AI&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span>
+
+<span class="n">benchmark</span><span class="o">.</span><span class="n">benchmark_task</span><span class="p">(</span><span class="s2">&quot;Sentiment Analysis&quot;</span><span class="p">,</span> <span class="n">sentiment_task</span><span class="p">,</span> <span class="n">test_texts</span><span class="p">)</span>
+<span class="n">benchmark</span><span class="o">.</span><span class="n">benchmark_task</span><span class="p">(</span><span class="s2">&quot;Text Generation&quot;</span><span class="p">,</span> <span class="n">generation_task</span><span class="p">,</span> <span class="n">test_prompts</span><span class="p">)</span>
+
+<span class="c1"># Generate report</span>
+<span class="n">benchmark</span><span class="o">.</span><span class="n">generate_report</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="lab-deliverables">📋 Lab Deliverables<a class="headerlink" href="#lab-deliverables" title="Permanent link">&para;</a></h2>
+<h3 id="required-deliverables">🎯 Required Deliverables<a class="headerlink" href="#required-deliverables" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Performance Analysis Report</strong>:</li>
+<li>Comparison of basic vs accelerated inference</li>
+<li>Memory usage analysis</li>
+<li>Throughput measurements (tokens/second)</li>
+<li>
+<p>Latency analysis for different batch sizes</p>
+</li>
+<li>
+<p><strong>Implementation Portfolio</strong>:</p>
+</li>
+<li>Working code for all optimization techniques</li>
+<li>Error handling and fallback strategies</li>
+<li>Memory monitoring integration</li>
+<li>
+<p>Performance visualization dashboard</p>
+</li>
+<li>
+<p><strong>Optimization Documentation</strong>:</p>
+</li>
+<li>Identified bottlenecks and solutions</li>
+<li>Jetson-specific configuration recommendations</li>
+<li>
+<p>Trade-off analysis (speed vs accuracy vs memory)</p>
+</li>
+<li>
+<p><strong>Benchmark Results</strong>:</p>
+</li>
+<li>Systematic performance comparison</li>
+<li>Resource utilization metrics</li>
+<li>Scalability analysis</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

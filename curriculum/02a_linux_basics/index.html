@@ -1,0 +1,2266 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.9">
+    
+    
+      
+        <title>🧠 Introduction to Linux Basics on Jetson - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.4af4bdda.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction-to-linux-basics-on-jetson" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🧠 Introduction to Linux Basics on Jetson
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Introduction
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sjsujetsontool Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to NVIDIA Jetson
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Introduction to Linux and Networking
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Core Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Core Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02_programming_env_python_cpp_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Programming Environment (Python/C++/CUDA)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03_accelerated_computing_python_cuda.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Accelerated Python + CUDA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04a_numpy_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Numpy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_pytorch_intro.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    PyTorch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Cyber Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Cyber Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_linux_networking_tools.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Networking Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01c_packet_sniffing_monitoring.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Packet Sniffing & Monitoring
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01d_linux_cyber_defense_basics.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Linux Cyber Defense Tools
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01e_linux_cyber_attack_simulation.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulated Attacks & Detection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    AI & LLM
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            AI & LLM
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_cnn_image_processing_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    CNNs + Image Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_transformers_llms_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Transformers & LLMs
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    NLP + Inference Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Prompt Engineering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    RAG Apps
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Local AI Agents
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Final Project
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Final Project
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_final_challenges_hackathon.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hackathon & Challenges
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      📚 What is Linux?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#linux-system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ Linux System Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Linux System Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Kernel
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Shell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-file-system-hierarchy" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. File System Hierarchy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-user-space-and-daemons" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. User Space and Daemons
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-jetson-l4t" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧩 What is Jetson L4T?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧩 What is Jetson L4T?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#components" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 Components:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧬 Architecture:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l4t-version-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔍 L4T Version Check:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#popular-linux-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      💻 Popular Linux Commands
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-exercise-advanced-linux-practice-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      🧪 Lab Exercise: Advanced Linux Practice on Jetson
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab Exercise: Advanced Linux Practice on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-file-system-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: File System Exploration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-system-monitoring-and-processes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: System Monitoring and Processes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-examine-kernel-and-drivers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Examine Kernel and Drivers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-explore-l4t-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Explore L4T Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4: Explore L4T Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tracing-system-calls" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tracing System Calls:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-l4t-in-depth-technical-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      🚀 Jetson L4T: In-Depth Technical Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Jetson L4T: In-Depth Technical Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#l4t-architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      🏗️ L4T Architecture Overview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#l4t-components-deep-dive" class="md-nav__link">
+    <span class="md-ellipsis">
+      📦 L4T Components Deep Dive
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 L4T Components Deep Dive">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-bootloader-chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Bootloader Chain
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-device-tree-and-hardware-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Device Tree and Hardware Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-nvidia-gpu-driver-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. NVIDIA GPU Driver Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-tegra-specific-drivers-and-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Tegra-Specific Drivers and Services
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-access-and-driver-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔌 Hardware Access and Driver Interface
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 Hardware Access and Driver Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-gpio-general-purpose-inputoutput" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. GPIO (General Purpose Input/Output)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-i2c-inter-integrated-circuit" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. I2C (Inter-Integrated Circuit)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-spi-serial-peripheral-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. SPI (Serial Peripheral Interface)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-pwm-pulse-width-modulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. PWM (Pulse Width Modulation)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#camera-and-multimedia-subsystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      📹 Camera and Multimedia Subsystem
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📹 Camera and Multimedia Subsystem">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-camera-interface-csi" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Camera Interface (CSI)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#power-management-and-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚡ Power Management and Performance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Power Management and Performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-power-models-nvpmodel" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Power Models (nvpmodel)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-cpu-frequency-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. CPU Frequency Scaling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-gpu-frequency-and-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. GPU Frequency and Power
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-system-administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛠️ Advanced System Administration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Advanced System Administration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-monitoring-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      📊 System Monitoring and Debugging
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 System Monitoring and Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-process-and-resource-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Process and Resource Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-system-logs-and-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. System Logs and Debugging
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-network-diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Network Diagnostics
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#package-management-and-software-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Package Management and Software Installation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Package Management and Software Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-apt-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. APT Package Manager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-snap-package-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Snap Package Manager
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-building-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Building from Source
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-user-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔐 Security and User Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔐 Security and User Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#user-and-group-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      👥 User and Group Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-permissions-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔒 File Permissions and Security
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#system-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      🛡️ System Security
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="introduction-to-linux-basics-on-jetson">🧠 Introduction to Linux Basics on Jetson<a class="headerlink" href="#introduction-to-linux-basics-on-jetson" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.<br />
+<strong>Position:</strong> Associate Professor, Computer Engineering<br />
+<strong>Institution:</strong> San Jose State University<br />
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<p>This document introduces the fundamentals of the Linux operating system with a focus on practical usage for students working on NVIDIA Jetson devices like the Orin Nano. You'll also learn about NVIDIA's custom Linux version: L4T.</p>
+<hr />
+<h2 id="what-is-linux">📚 What is Linux?<a class="headerlink" href="#what-is-linux" title="Permanent link">&para;</a></h2>
+<p>Linux is an open-source operating system that powers everything from phones to servers. Jetson uses a specialized version of Ubuntu Linux.</p>
+<p><strong>Key Characteristics:</strong></p>
+<ul>
+<li>Open-source and customizable</li>
+<li>Multi-user, multi-tasking environment</li>
+<li>Command-line and graphical interfaces</li>
+<li>High performance and low resource usage</li>
+</ul>
+<hr />
+<h2 id="linux-system-architecture">🏗️ Linux System Architecture<a class="headerlink" href="#linux-system-architecture" title="Permanent link">&para;</a></h2>
+<p>Linux architecture is typically divided into:</p>
+<h3 id="1-kernel">1. <strong>Kernel</strong><a class="headerlink" href="#1-kernel" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Core of the OS that interfaces with hardware</li>
+<li>Manages memory, processes, file systems, device drivers</li>
+</ul>
+<h3 id="2-shell">2. <strong>Shell</strong><a class="headerlink" href="#2-shell" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Interface that accepts user commands (CLI)</li>
+<li>Common shells: <code>bash</code>, <code>zsh</code>, <code>sh</code></li>
+</ul>
+<h3 id="3-file-system-hierarchy">3. <strong>File System Hierarchy</strong><a class="headerlink" href="#3-file-system-hierarchy" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>/</code>: Root of the filesystem</li>
+<li><code>/bin</code>, <code>/sbin</code>: Essential binaries</li>
+<li><code>/usr</code>: Secondary hierarchy for user-installed software</li>
+<li><code>/etc</code>: Configuration files</li>
+<li><code>/home</code>: Personal user directories</li>
+<li><code>/dev</code>, <code>/proc</code>, <code>/sys</code>: Virtual files for devices and kernel state</li>
+</ul>
+<h3 id="4-user-space-and-daemons">4. <strong>User Space and Daemons</strong><a class="headerlink" href="#4-user-space-and-daemons" title="Permanent link">&para;</a></h3>
+<ul>
+<li>System and user-level applications</li>
+<li>Daemons provide background services (e.g., <code>systemd</code>, <code>networkd</code>)</li>
+</ul>
+<hr />
+<h2 id="what-is-jetson-l4t">🧩 What is Jetson L4T?<a class="headerlink" href="#what-is-jetson-l4t" title="Permanent link">&para;</a></h2>
+<p>L4T (Linux for Tegra) is NVIDIA’s embedded Linux distribution tailored for Jetson SoCs (System-on-Chip). It extends standard Ubuntu with:</p>
+<h3 id="components">📦 Components:<a class="headerlink" href="#components" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Ubuntu Base Image</strong>: L4T usually uses Ubuntu 20.04 or 22.04 LTS</li>
+<li><strong>Tegra Drivers</strong>: GPU, ISP, CSI camera, I2C, SPI, PWM</li>
+<li><strong>Bootloader Stack</strong>: U-Boot, CBoot, extlinux</li>
+<li><strong>CUDA Toolkit</strong>: GPU-accelerated computing framework</li>
+<li><strong>TensorRT</strong>: Inference optimizer and runtime</li>
+<li><strong>cuDNN</strong>: Deep neural network acceleration libraries</li>
+<li><strong>Multimedia API</strong>: V4L2, GStreamer, OpenMAX for camera and audio</li>
+</ul>
+<h3 id="architecture">🧬 Architecture:<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Jetson boots via UEFI or CBoot into Linux kernel</li>
+<li>Kernel loads NVIDIA drivers (GPU, CPU governors, DeepSleep)</li>
+<li>Device tree manages hardware layout (CPU/GPU/I/O)</li>
+<li>Userland launches graphical UI or SSH terminal</li>
+</ul>
+<h3 id="l4t-version-check">🔍 L4T Version Check:<a class="headerlink" href="#l4t-version-check" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>/etc/nv_tegra_release
+<span class="c1"># R36 (release), REVISION: 4.3, GCID: 38968081, BOARD: generic, EABI: aarch64, DATE: Wed Jan  8 01:49:37 UTC 2025</span>
+</code></pre></div>
+<p>This shows JetPack version and internal driver details.</p>
+<hr />
+<h2 id="popular-linux-commands">💻 Popular Linux Commands<a class="headerlink" href="#popular-linux-commands" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ls</code></td>
+<td>List files in a directory</td>
+</tr>
+<tr>
+<td><code>cd</code></td>
+<td>Change directory</td>
+</tr>
+<tr>
+<td><code>pwd</code></td>
+<td>Print working directory</td>
+</tr>
+<tr>
+<td><code>cp</code> / <code>mv</code> / <code>rm</code></td>
+<td>Copy, move, remove files</td>
+</tr>
+<tr>
+<td><code>top</code> / <code>htop</code></td>
+<td>Monitor system processes</td>
+</tr>
+<tr>
+<td><code>cat</code> / <code>less</code></td>
+<td>View file content</td>
+</tr>
+<tr>
+<td><code>sudo</code></td>
+<td>Run command with admin privileges</td>
+</tr>
+<tr>
+<td><code>apt</code></td>
+<td>Install or update software packages</td>
+</tr>
+<tr>
+<td><code>chmod</code> / <code>chown</code></td>
+<td>Change file permissions/ownership</td>
+</tr>
+<tr>
+<td><code>journalctl</code></td>
+<td>View system logs (via systemd)</td>
+</tr>
+<tr>
+<td><code>dmesg</code></td>
+<td>Print kernel ring buffer (boot logs)</td>
+</tr>
+<tr>
+<td><code>lscpu</code>, <code>lsblk</code></td>
+<td>List hardware info (CPU/disk)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="lab-exercise-advanced-linux-practice-on-jetson">🧪 Lab Exercise: Advanced Linux Practice on Jetson<a class="headerlink" href="#lab-exercise-advanced-linux-practice-on-jetson" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-file-system-exploration">Step 1: File System Exploration<a class="headerlink" href="#step-1-file-system-exploration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/
+ls<span class="w"> </span>-lh
+ls<span class="w"> </span>-lh<span class="w"> </span>/dev<span class="w"> </span>/proc<span class="w"> </span>/sys<span class="w"> </span>/boot<span class="w"> </span>/media
+</code></pre></div>
+<h3 id="step-2-system-monitoring-and-processes">Step 2: System Monitoring and Processes<a class="headerlink" href="#step-2-system-monitoring-and-processes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>top
+htop<span class="w">  </span><span class="c1"># Already installed, If not installed: sudo apt install htop</span>
+ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>python
+</code></pre></div>
+<h3 id="step-3-examine-kernel-and-drivers">Step 3: Examine Kernel and Drivers<a class="headerlink" href="#step-3-examine-kernel-and-drivers" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>uname<span class="w"> </span>-r
+<span class="m">5</span>.15.148-tegra
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvgpu
+nvgpu<span class="w">                </span><span class="m">2654208</span><span class="w">  </span><span class="m">23</span>
+host1x<span class="w">                </span><span class="m">180224</span><span class="w">  </span><span class="m">6</span><span class="w"> </span>host1x_nvhost,host1x_fence,nvgpu,tegra_drm,nvidia_drm,nvidia_modeset
+mc_utils<span class="w">               </span><span class="m">16384</span><span class="w">  </span><span class="m">3</span><span class="w"> </span>nvidia,nvgpu,tegra_camera_platform
+nvmap<span class="w">                 </span><span class="m">204800</span><span class="w">  </span><span class="m">79</span><span class="w"> </span>nvgpu
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/proc/device-tree/model
+NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+</code></pre></div>
+<h3 id="step-4-explore-l4t-features">Step 4: Explore L4T Features<a class="headerlink" href="#step-4-explore-l4t-features" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span>/etc/nv_tegra_release
+<span class="c1"># R36 (release), REVISION: 4.3, GCID: 38968081, BOARD: generic, EABI: aarch64, DATE: Wed Jan  8 01:49:37 UTC 2025</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>/usr/lib/aarch64-linux-gnu/tegra
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>nvpmodel<span class="w"> </span>-q
+NV<span class="w"> </span>Power<span class="w"> </span>Mode:<span class="w"> </span>MAXN_SUPER
+<span class="m">2</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>tegrastats
+<span class="m">07</span>-14-2025<span class="w"> </span><span class="m">10</span>:29:36<span class="w"> </span>RAM<span class="w"> </span><span class="m">2147</span>/7620MB<span class="w"> </span><span class="o">(</span>lfb<span class="w"> </span>2x4MB<span class="o">)</span><span class="w"> </span>SWAP<span class="w"> </span><span class="m">1476</span>/3810MB<span class="w"> </span><span class="o">(</span>cached<span class="w"> </span>1MB<span class="o">)</span><span class="w"> </span>CPU<span class="w"> </span><span class="o">[</span><span class="m">0</span>%@729,0%@729,0%@729,0%@729,0%@729,0%@729<span class="o">]</span><span class="w"> </span>GR3D_FREQ<span class="w"> </span><span class="m">0</span>%<span class="w"> </span>cpu@47.687C<span class="w"> </span>soc2@46.718C<span class="w"> </span>soc0@47.468C<span class="w"> </span>gpu@48.625C<span class="w"> </span>tj@48.625C<span class="w"> </span>soc1@48.25C<span class="w"> </span>VDD_IN<span class="w"> </span>4556mW/4556mW<span class="w"> </span>VDD_CPU_GPU_CV<span class="w"> </span>483mW/483mW<span class="w"> </span>VDD_SOC<span class="w"> </span>1451mW/1451mW
+</code></pre></div>
+<!-- ### Step 5: Create a Custom Script
+
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>~/jetson_labs
+<span class="nb">cd</span><span class="w"> </span>~/jetson_labs
+<span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;#!/bin/bash\necho Welcome to Jetson L4T!\nuname -a\ntegrastats --interval 1000&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>check_system.sh
+chmod<span class="w"> </span>+x<span class="w"> </span>check_system.sh
+./check_system.sh
+<span class="sb">```</span><span class="w"> </span>--&gt;
+
+&lt;!--<span class="w"> </span><span class="c1">### Step 6: Modify System Settings (SAFE)</span>
+
+<span class="sb">```</span>bash
+<span class="c1"># Change hostname (do not reboot in lab)</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;jetson-labtest&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/etc/hostname
+<span class="c1"># Create a new non-sudo user for labs</span>
+sudo<span class="w"> </span>useradd<span class="w"> </span>-m<span class="w"> </span>labstudent
+sudo<span class="w"> </span>passwd<span class="w"> </span>labstudent
+<span class="sb">```</span><span class="w"> </span>--&gt;
+
+---
+
+<span class="c1">## 🔬 Deep Dive: Operating System Fundamentals</span>
+
+<span class="c1">### 🧠 What is an Operating System?</span>
+
+An<span class="w"> </span>Operating<span class="w"> </span>System<span class="w"> </span><span class="o">(</span>OS<span class="o">)</span><span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>complex<span class="w"> </span>software<span class="w"> </span>layer<span class="w"> </span>that<span class="w"> </span>acts<span class="w"> </span>as<span class="w"> </span>an<span class="w"> </span>intermediary<span class="w"> </span>between<span class="w"> </span>computer<span class="w"> </span>hardware<span class="w"> </span>and<span class="w"> </span>application<span class="w"> </span>programs.<span class="w"> </span>It<span class="w"> </span>provides<span class="w"> </span>essential<span class="w"> </span>services<span class="w"> </span>and<span class="w"> </span>manages<span class="w"> </span>system<span class="w"> </span>resources.
+
+<span class="c1">#### Core Functions:</span>
+
+<span class="m">1</span>.<span class="w"> </span>**Process<span class="w"> </span>Management**:<span class="w"> </span>Creating,<span class="w"> </span>scheduling,<span class="w"> </span>and<span class="w"> </span>terminating<span class="w"> </span>processes
+<span class="m">2</span>.<span class="w"> </span>**Memory<span class="w"> </span>Management**:<span class="w"> </span>Allocating<span class="w"> </span>and<span class="w"> </span>deallocating<span class="w"> </span>memory<span class="w"> </span>space
+<span class="m">3</span>.<span class="w"> </span>**File<span class="w"> </span>System<span class="w"> </span>Management**:<span class="w"> </span>Organizing<span class="w"> </span>and<span class="w"> </span>accessing<span class="w"> </span>data<span class="w"> </span>on<span class="w"> </span>storage<span class="w"> </span>devices
+<span class="m">4</span>.<span class="w"> </span>**Device<span class="w"> </span>Management**:<span class="w"> </span>Controlling<span class="w"> </span>and<span class="w"> </span>coordinating<span class="w"> </span>hardware<span class="w"> </span>devices
+<span class="m">5</span>.<span class="w"> </span>**Security<span class="w"> </span>and<span class="w"> </span>Access<span class="w"> </span>Control**:<span class="w"> </span>Protecting<span class="w"> </span>system<span class="w"> </span>resources<span class="w"> </span>and<span class="w"> </span>user<span class="w"> </span>data
+<span class="m">6</span>.<span class="w"> </span>**User<span class="w"> </span>Interface**:<span class="w"> </span>Providing<span class="w"> </span>command-line<span class="w"> </span>and<span class="w"> </span>graphical<span class="w"> </span>interfaces
+
+<span class="c1">#### OS Types:</span>
+
+-<span class="w"> </span>**Monolithic<span class="w"> </span>Kernel**:<span class="w"> </span>Single<span class="w"> </span>large<span class="w"> </span>kernel<span class="w"> </span><span class="o">(</span>Linux,<span class="w"> </span>Windows<span class="o">)</span>
+-<span class="w"> </span>**Microkernel**:<span class="w"> </span>Minimal<span class="w"> </span>kernel<span class="w"> </span>with<span class="w"> </span>services<span class="w"> </span><span class="k">in</span><span class="w"> </span>user<span class="w"> </span>space<span class="w"> </span><span class="o">(</span>QNX,<span class="w"> </span>L4<span class="o">)</span>
+-<span class="w"> </span>**Hybrid<span class="w"> </span>Kernel**:<span class="w"> </span>Combination<span class="w"> </span>approach<span class="w"> </span><span class="o">(</span>macOS,<span class="w"> </span>Windows<span class="w"> </span>NT<span class="o">)</span>
+-<span class="w"> </span>**Real-time<span class="w"> </span>OS**:<span class="w"> </span>Deterministic<span class="w"> </span>response<span class="w"> </span><span class="nb">times</span><span class="w"> </span><span class="o">(</span>FreeRTOS,<span class="w"> </span>VxWorks<span class="o">)</span>
+
+<span class="c1">### 🏛️ Linux Kernel Architecture Deep Dive</span>
+
+The<span class="w"> </span>Linux<span class="w"> </span>kernel<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>monolithic<span class="w"> </span>kernel<span class="w"> </span>with<span class="w"> </span>modular<span class="w"> </span>design:
+</code></pre></div>
+┌─────────────────────────────────────────────────────────────┐
+│                    User Space Applications                   │
+├─────────────────────────────────────────────────────────────┤
+│                    System Call Interface                     │
+├─────────────────────────────────────────────────────────────┤
+│  Process    │  Memory     │  File       │  Network    │ I/O │
+│  Scheduler  │  Manager    │  System     │  Stack      │ Mgr │
+├─────────────────────────────────────────────────────────────┤
+│                    Device Drivers                           │
+├─────────────────────────────────────────────────────────────┤
+│                    Hardware Abstraction                     │
+└─────────────────────────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code>#### Kernel Subsystems:
+
+**1. Process Scheduler (CFS - Completely Fair Scheduler)**
+```bash
+# Check process scheduling policy
+chrt -p $$
+
+# Set real-time priority (requires sudo)
+#sudo chrt -f -p 50 $$
+</code></pre></div>
+
+**2. Memory Management Unit (MMU)**
+<div class="highlight"><pre><span></span><code><span class="c1"># View memory information</span>
+cat<span class="w"> </span>/proc/meminfo
+cat<span class="w"> </span>/proc/vmstat
+cat<span class="w"> </span>/proc/buddyinfo<span class="w">  </span><span class="c1"># Buddy allocator info</span>
+
+<span class="c1"># Check memory mapping of a process</span>
+cat<span class="w"> </span>/proc/self/maps
+cat<span class="w"> </span>/proc/self/smaps<span class="w">  </span><span class="c1"># Detailed memory usage</span>
+</code></pre></div>
+
+**3. Virtual File System (VFS)**
+<div class="highlight"><pre><span></span><code><span class="c1"># View mounted filesystems</span>
+cat<span class="w"> </span>/proc/mounts
+mount<span class="w"> </span><span class="p">|</span><span class="w"> </span>column<span class="w"> </span>-t
+
+<span class="c1"># File system statistics</span>
+cat<span class="w"> </span>/proc/filesystems
+df<span class="w"> </span>-Th<span class="w">  </span><span class="c1"># Disk usage by filesystem type</span>
+</code></pre></div>
+
+**4. Network Stack**
+<div class="highlight"><pre><span></span><code><span class="c1"># Network interface statistics</span>
+cat<span class="w"> </span>/proc/net/dev
+cat<span class="w"> </span>/proc/net/netstat
+
+<span class="c1"># Socket information</span>
+ss<span class="w"> </span>-tuln<span class="w">  </span><span class="c1"># TCP/UDP listening sockets, need apt install iproute2</span>
+cat<span class="w"> </span>/proc/net/tcp
+</code></pre></div>
+
+### 🔧 System Calls and Kernel Interface
+
+#### 🧠 What Are System Calls?
+
+A **system call** is how a user-space program requests a service from the operating system's **kernel** (the core part of the OS with full control over hardware).
+
+Think of it like this:
+- **User space** = your app or code
+- **Kernel space** = the powerful, protected core of the OS
+- **System call** = a formal way to knock on the kernel’s door and ask it to do something only it can do (like read a file, allocate memory, or send data).
+
+
+#### 🧰 Common System Call Categories (with Use Cases)
+
+| Category              | System Calls                              | What They Do                                                                 |
+|-----------------------|-------------------------------------------|------------------------------------------------------------------------------|
+| **Process Control**   | `fork()`, `exec()`, `wait()`, `exit()`     | Manage how processes are created, replaced, and terminated.                 |
+| **File Operations**   | `open()`, `read()`, `write()`, `close()`   | Interact with files – similar to opening, reading from, and saving documents. |
+| **Memory Management** | `mmap()`, `brk()`, `munmap()`              | Request and manage memory for applications.                                 |
+| **IPC**               | `pipe()`, `socket()`, `shmget()`           | Allow processes to talk to each other or share memory.                      |
+
+📦 **Example**: When you run a C program that reads a file:
+<div class="highlight"><pre><span></span><code><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="s">&quot;data.txt&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">O_RDONLY</span><span class="p">);</span><span class="w"> </span><span class="c1">// file open</span>
+<span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">100</span><span class="p">);</span><span class="w">               </span><span class="c1">// file read</span>
+<span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span><span class="w">                           </span><span class="c1">// file close</span>
+</code></pre></div>
+This actually causes the kernel to get involved three times!
+
+User App
+   |
+   |  open("file.txt")
+   |
+======== System Call Boundary ========
+   |
+   |--->
+<p>Kernel handles VFS (Virtual File System)
+              |
+              |---&gt; Filesystem driver
+                        |
+                        |---&gt; Disk I/O</p>
+<h4 id="tracing-system-calls">Tracing System Calls:<a class="headerlink" href="#tracing-system-calls" title="Permanent link">&para;</a></h4>
+<p><code>strace</code> lets you watch how programs talk to the kernel.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install strace</span>
+apt<span class="w"> </span>install<span class="w"> </span>strace
+
+<span class="c1"># Trace system calls of a command</span>
+strace<span class="w"> </span>ls<span class="w"> </span>-la
+
+<span class="c1"># Trace specific system calls</span>
+strace<span class="w"> </span>-e<span class="w"> </span><span class="nv">trace</span><span class="o">=</span>open,read,write<span class="w"> </span>cat<span class="w"> </span>/etc/passwd
+
+<span class="c1"># Trace system calls of running process</span>
+sudo<span class="w"> </span>strace<span class="w"> </span>-p<span class="w"> </span>&lt;PID&gt;
+
+<span class="c1"># Count system calls</span>
+strace<span class="w"> </span>-c<span class="w"> </span>ls<span class="w"> </span>-la
+</code></pre></div>
+<hr />
+<h2 id="jetson-l4t-in-depth-technical-analysis">🚀 Jetson L4T: In-Depth Technical Analysis<a class="headerlink" href="#jetson-l4t-in-depth-technical-analysis" title="Permanent link">&para;</a></h2>
+<h3 id="l4t-architecture-overview">🏗️ L4T Architecture Overview<a class="headerlink" href="#l4t-architecture-overview" title="Permanent link">&para;</a></h3>
+<p>L4T (Linux for Tegra) is NVIDIA's comprehensive embedded Linux solution:</p>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────────┐
+│                    Applications &amp; Frameworks                 │
+│  TensorRT │ cuDNN │ OpenCV │ GStreamer │ ROS │ Docker      │
+├─────────────────────────────────────────────────────────────┤
+│                    CUDA Runtime &amp; Libraries                  │
+│  CUDA Toolkit │ cuBLAS │ cuFFT │ Thrust │ NPP             │
+├─────────────────────────────────────────────────────────────┤
+│                    L4T User Space                           │
+│  Ubuntu 20.04/22.04 │ systemd │ NetworkManager │ X11/Wayland│
+├─────────────────────────────────────────────────────────────┤
+│                    L4T Kernel Space                         │
+│  Linux Kernel │ NVIDIA GPU Driver │ Tegra Drivers          │
+├─────────────────────────────────────────────────────────────┤
+│                    Bootloader &amp; Firmware                    │
+│  CBoot │ U-Boot │ TOS │ BPMP-FW │ Device Tree             │
+├─────────────────────────────────────────────────────────────┤
+│                    Tegra SoC Hardware                       │
+│  ARM CPU │ NVIDIA GPU │ ISP │ VIC │ NVENC │ NVDEC │ I/O    │
+└─────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="l4t-components-deep-dive">📦 L4T Components Deep Dive<a class="headerlink" href="#l4t-components-deep-dive" title="Permanent link">&para;</a></h3>
+<h4 id="1-bootloader-chain">1. <strong>Bootloader Chain</strong><a class="headerlink" href="#1-bootloader-chain" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check bootloader information</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/proc
+<span class="nv">root</span><span class="o">=</span><span class="nv">PARTUUID</span><span class="o">=</span>2eea7ca9-2b58-4100-80a1-ba1b97bdc52b<span class="w"> </span>rw<span class="w"> </span>rootwait<span class="w"> </span><span class="nv">rootfstype</span><span class="o">=</span>ext4<span class="w"> </span><span class="nv">mminit_loglevel</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="nv">console</span><span class="o">=</span>ttyTCU0,115200<span class="w"> </span>firmware_class.path<span class="o">=</span>/etc/firmware<span class="w"> </span><span class="nv">fbcon</span><span class="o">=</span>map:0<span class="w"> </span>nospectre_bhb<span class="w"> </span><span class="nv">video</span><span class="o">=</span>efifb:off<span class="w"> </span><span class="nv">console</span><span class="o">=</span>tty0<span class="w"> </span><span class="nv">bl_prof_dataptr</span><span class="o">=</span><span class="m">2031616</span>@0x271E10000<span class="w"> </span><span class="nv">bl_prof_ro_ptr</span><span class="o">=</span><span class="m">65536</span>@0x271E00000
+
+<span class="c1"># View boot configuration</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>-la<span class="w"> </span>/boot/extlinux/
+total<span class="w"> </span><span class="m">24</span>
+drwxr-xr-x<span class="w"> </span><span class="m">2</span><span class="w"> </span>root<span class="w"> </span>root<span class="w">  </span><span class="m">4096</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="m">14</span>:24<span class="w"> </span>.
+drwxr-xr-x<span class="w"> </span><span class="m">5</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">12288</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="m">15</span>:19<span class="w"> </span>..
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w">   </span><span class="m">938</span><span class="w"> </span>Jun<span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="m">14</span>:24<span class="w"> </span>extlinux.conf
+-rw-r--r--<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w">   </span><span class="m">727</span><span class="w"> </span>Apr<span class="w"> </span><span class="m">21</span><span class="w"> </span><span class="m">10</span>:59<span class="w"> </span>extlinux.conf.nv-update-extlinux-backup
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/boot/extlinux/extlinux.conf
+TIMEOUT<span class="w"> </span><span class="m">30</span>
+DEFAULT<span class="w"> </span>primary
+
+MENU<span class="w"> </span>TITLE<span class="w"> </span>L4T<span class="w"> </span>boot<span class="w"> </span>options
+
+LABEL<span class="w"> </span>primary
+<span class="w">      </span>MENU<span class="w"> </span>LABEL<span class="w"> </span>primary<span class="w"> </span>kernel
+<span class="w">      </span>LINUX<span class="w"> </span>/boot/Image
+<span class="w">      </span>INITRD<span class="w"> </span>/boot/initrd
+<span class="w">      </span>APPEND<span class="w"> </span><span class="si">${</span><span class="nv">cbootargs</span><span class="si">}</span><span class="w"> </span><span class="nv">root</span><span class="o">=</span><span class="nv">PARTUUID</span><span class="o">=</span>2eea7ca9-2b58-4100-80a1-ba1b97bdc52b<span class="w"> </span>rw<span class="w"> </span>rootwait<span class="w"> </span><span class="nv">rootfstype</span><span class="o">=</span>ext4<span class="w"> </span><span class="nv">mminit_loglevel</span><span class="o">=</span><span class="m">4</span><span class="w"> </span><span class="nv">console</span><span class="o">=</span>ttyTCU0,115200<span class="w"> </span>firmware_class.path<span class="o">=</span>/etc/firmware<span class="w"> </span><span class="nv">fbcon</span><span class="o">=</span>map:0<span class="w"> </span>nospectre_bhb<span class="w"> </span><span class="nv">video</span><span class="o">=</span>efifb:off<span class="w"> </span><span class="nv">console</span><span class="o">=</span>tty0
+
+<span class="c1"># Check boot partition</span>
+lsblk<span class="w"> </span>-f
+</code></pre></div>
+<p><strong>Boot Sequence:</strong>
+1. <strong>BootROM</strong>: Hardware initialization, loads CBoot
+2. <strong>CBoot</strong>: NVIDIA's bootloader, loads kernel and device tree
+3. <strong>Linux Kernel</strong>: Initializes hardware, loads drivers
+4. <strong>systemd</strong>: User space initialization</p>
+<h4 id="2-device-tree-and-hardware-configuration">2. <strong>Device Tree and Hardware Configuration</strong><a class="headerlink" href="#2-device-tree-and-hardware-configuration" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># View device tree information</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>/proc/device-tree/
+<span class="s1">&#39;#address-cells&#39;</span><span class="w">       </span>dsu-pmu2<span class="w">             </span>regulator-vdd-1v1-hub<span class="w">    </span>soc1-throttle-alert
+<span class="w"> </span>aliases<span class="w">               </span>firmware<span class="w">             </span>regulator-vdd-1v8-ao<span class="w">     </span>soc2-throttle-alert
+<span class="w"> </span>bpmp<span class="w">                  </span>gpio-keys<span class="w">            </span>regulator-vdd-1v8-hs<span class="w">     </span>soctherm-oc-event
+<span class="w"> </span>bus@0<span class="w">                 </span>gpu-throttle-alert<span class="w">   </span>regulator-vdd-1v8-sys<span class="w">    </span>sound
+<span class="w"> </span>camera-ivc-channels<span class="w">   </span>hot-surface-alert<span class="w">    </span>regulator-vdd-3v3-ao<span class="w">     </span>sram@40000000
+<span class="w"> </span>chosen<span class="w">                </span>interrupt-parent<span class="w">     </span>regulator-vdd-3v3-pcie<span class="w">   </span>__symbols__
+<span class="w"> </span>compatible<span class="w">            </span>mgbe-vm-irq-config<span class="w">   </span>regulator-vdd-3v3-sd<span class="w">     </span>tegra-capture-vi
+<span class="w"> </span>cpus<span class="w">                  </span>model<span class="w">                </span>regulator-vdd-3v3-sys<span class="w">    </span>tegra-carveouts
+<span class="w"> </span>cpu-throttle-alert<span class="w">    </span>name<span class="w">                 </span>regulator-vdd-5v0-sys<span class="w">    </span>tegra-hsp@b950000
+<span class="w"> </span>cv0-throttle-alert<span class="w">    </span>nvpmodel<span class="w">             </span>reserved-memory<span class="w">          </span>tegra_mce@e100000
+<span class="w"> </span>cv1-throttle-alert<span class="w">    </span>opp-table-cluster0<span class="w">   </span>rtcpu@bc00000<span class="w">            </span>tegra-rtcpu-trace
+<span class="w"> </span>cv2-throttle-alert<span class="w">    </span>opp-table-cluster1<span class="w">   </span>scf-pmu<span class="w">                  </span>thermal-zones
+<span class="w"> </span>dce@d800000<span class="w">           </span>opp-table-cluster2<span class="w">   </span>serial<span class="w">                   </span>timer
+<span class="w"> </span>display@13800000<span class="w">      </span>pmu<span class="w">                  </span>serial-number<span class="w">            </span>tsc_sig_gen@c6a0000
+<span class="w"> </span>dsu-pmu0<span class="w">              </span>psci<span class="w">                </span><span class="s1">&#39;#size-cells&#39;</span><span class="w">             </span>vm-irq-config
+<span class="w"> </span>dsu-pmu1<span class="w">              </span>pwm-fan<span class="w">              </span>soc0-throttle-alert
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/proc/device-tree/model
+NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/proc/device-tree/compatible
+nvidia,p3768-0000+p3767-0005-supernvidia,p3767-0005nvidia,tegra234
+</code></pre></div>
+<h4 id="3-nvidia-gpu-driver-architecture">3. <strong>NVIDIA GPU Driver Architecture</strong><a class="headerlink" href="#3-nvidia-gpu-driver-architecture" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check GPU driver version</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>cat<span class="w"> </span>/proc/driver/nvidia/version
+NVRM<span class="w"> </span>version:<span class="w"> </span>NVIDIA<span class="w"> </span>UNIX<span class="w"> </span>Open<span class="w"> </span>Kernel<span class="w"> </span>Module<span class="w"> </span><span class="k">for</span><span class="w"> </span>aarch64<span class="w">  </span><span class="m">540</span>.4.0<span class="w">  </span>Release<span class="w"> </span>Build<span class="w">  </span><span class="o">(</span>buildbrain@mobile-u64-6336-d8000<span class="o">)</span><span class="w">  </span>Tue<span class="w"> </span>Jan<span class="w">  </span><span class="m">7</span><span class="w"> </span><span class="m">17</span>:35:12<span class="w"> </span>PST<span class="w"> </span><span class="m">2025</span>
+GCC<span class="w"> </span>version:<span class="w">  </span>collect2:<span class="w"> </span>error:<span class="w"> </span>ld<span class="w"> </span>returned<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span>status
+
+<span class="c1"># View GPU device information</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>-la<span class="w"> </span>/dev/nvidia*
+crw-rw-rw-<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">195</span>,<span class="w">   </span><span class="m">0</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">31</span><span class="w">  </span><span class="m">1969</span><span class="w"> </span>/dev/nvidia0
+crw-rw-rw-<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">195</span>,<span class="w"> </span><span class="m">255</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">31</span><span class="w">  </span><span class="m">1969</span><span class="w"> </span>/dev/nvidiactl
+crw-rw-rw-<span class="w"> </span><span class="m">1</span><span class="w"> </span>root<span class="w"> </span>root<span class="w"> </span><span class="m">195</span>,<span class="w"> </span><span class="m">254</span><span class="w"> </span>Dec<span class="w"> </span><span class="m">31</span><span class="w">  </span><span class="m">1969</span><span class="w"> </span>/dev/nvidia-modeset
+</code></pre></div>
+<h4 id="4-tegra-specific-drivers-and-services">4. <strong>Tegra-Specific Drivers and Services</strong><a class="headerlink" href="#4-tegra-specific-drivers-and-services" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># List Tegra-specific kernel modules</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>tegra
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvgpu
+nvgpu<span class="w">                </span><span class="m">2654208</span><span class="w">  </span><span class="m">23</span>
+host1x<span class="w">                </span><span class="m">180224</span><span class="w">  </span><span class="m">6</span><span class="w"> </span>host1x_nvhost,host1x_fence,nvgpu,tegra_drm,nvidia_drm,nvidia_modeset
+mc_utils<span class="w">               </span><span class="m">16384</span><span class="w">  </span><span class="m">3</span><span class="w"> </span>nvidia,nvgpu,tegra_camera_platform
+nvmap<span class="w">                 </span><span class="m">204800</span><span class="w">  </span><span class="m">79</span><span class="w"> </span>nvgpu
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsmod<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvhost
+
+<span class="c1"># Check Tegra driver information</span>
+modinfo<span class="w"> </span>tegra_xudc
+modinfo<span class="w"> </span>nvgpu
+
+<span class="c1"># View Tegra-specific devices</span>
+ls<span class="w"> </span>-la<span class="w"> </span>/dev/tegra*
+ls<span class="w"> </span>-la<span class="w"> </span>/dev/nvhost*
+</code></pre></div>
+<h3 id="hardware-access-and-driver-interface">🔌 Hardware Access and Driver Interface<a class="headerlink" href="#hardware-access-and-driver-interface" title="Permanent link">&para;</a></h3>
+<p><code>/opt/nvidia/jetson-io/jetson-io.py</code> is a tool to configure 40-pin header from Nvidia.</p>
+<h4 id="1-gpio-general-purpose-inputoutput">1. <strong>GPIO (General Purpose Input/Output)</strong><a class="headerlink" href="#1-gpio-general-purpose-inputoutput" title="Permanent link">&para;</a></h4>
+<p>GPIO (General Purpose Input/Output) pins allow the Jetson board to interface with external hardware such as LEDs, buttons, sensors, and relays. Each pin can be configured as either:
+    - Input – to read digital signals (e.g. button press)
+    - Output – to send digital signals (e.g. turn on an LED)</p>
+<p>On modern Jetson platforms, using libgpiod is generally better and more future-proof than using the older sysfs (/sys/class/gpio) GPIO interface.</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># Install gpiod via sudo apt install gpiod (already installed)</span>
+<span class="c1">#Discover GPIO chips:</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>gpiodetect
+gpiochip0<span class="w"> </span><span class="o">[</span>tegra234-gpio<span class="o">]</span><span class="w"> </span><span class="o">(</span><span class="m">164</span><span class="w"> </span>lines<span class="o">)</span>
+gpiochip1<span class="w"> </span><span class="o">[</span>tegra234-gpio-aon<span class="o">]</span><span class="w"> </span><span class="o">(</span><span class="m">32</span><span class="w"> </span>lines<span class="o">)</span>
+<span class="c1">#List lines on a chip:</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>gpioinfo<span class="w"> </span>gpiochip0
+gpiochip0<span class="w"> </span>-<span class="w"> </span><span class="m">164</span><span class="w"> </span>lines:
+<span class="w">    </span>line<span class="w">   </span><span class="m">0</span>:<span class="w">      </span><span class="s2">&quot;PA.00&quot;</span><span class="w"> </span><span class="s2">&quot;regulator-vdd-3v3-sd&quot;</span><span class="w"> </span>output<span class="w"> </span>active-high<span class="w"> </span><span class="o">[</span>used<span class="o">]</span>
+<span class="w">    </span>line<span class="w">   </span><span class="m">1</span>:<span class="w">      </span><span class="s2">&quot;PA.01&quot;</span><span class="w">       </span>unused<span class="w">   </span>input<span class="w">  </span>active-high
+<span class="w">    </span>....
+</code></pre></div>
+gpiochip0 → 164 lines (main Tegra GPIO); gpiochip1 → 32 lines (AON = always-on GPIO, often used for wake, power buttons, etc.)</p>
+<p>Physical Pin 7 on the 40-pin header is connected to GPIO3_PBB.00. That corresponds to GPIO line 84 on gpiochip0 (according to NVIDIA’s Orin Nano mapping).
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>gpioinfo<span class="w"> </span>gpiochip0<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="m">84</span>
+<span class="w">    </span>line<span class="w">  </span><span class="m">84</span>:<span class="w">      </span><span class="s2">&quot;PN.00&quot;</span><span class="w">       </span>unused<span class="w">   </span>input<span class="w">  </span>active-high
+</code></pre></div>
+tells us that:
+    •   GPIO line 84 maps to PN.00 (port N, pin 0)
+    •   It’s currently configured as an input
+    •   It is unused, so safe to control</p>
+<div class="highlight"><pre><span></span><code><span class="c1">#Temporarily Set Line 84 to Output &amp; Drive High:</span>
+gpioset<span class="w"> </span>gpiochip0<span class="w"> </span><span class="nv">84</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="c1">#automatically requests the line as output, sets it HIGH, and releases it after execution.</span>
+<span class="c1">#To hold the output state (e.g., keep LED on), use the --mode=wait flag</span>
+gpioset<span class="w"> </span>--mode<span class="o">=</span><span class="nb">wait</span><span class="w"> </span>gpiochip0<span class="w"> </span><span class="nv">84</span><span class="o">=</span><span class="m">1</span>
+</code></pre></div>
+<p>if use Python (with libgpiod): <code>sudo apt install python3-libgpiod</code></p>
+<p><code>Jetson.GPIO</code> is another popular GPIO python library developed by Nvidia, but it uses sysfs (deprecated), which is deprecated in the Linux kernel since 4.8, and removed in Linux 5.10+.</p>
+<h4 id="2-i2c-inter-integrated-circuit">2. <strong>I2C (Inter-Integrated Circuit)</strong><a class="headerlink" href="#2-i2c-inter-integrated-circuit" title="Permanent link">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># List I2C buses</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>/dev/i2c-*
+/dev/i2c-0<span class="w">  </span>/dev/i2c-1<span class="w">  </span>/dev/i2c-2<span class="w">  </span>/dev/i2c-4<span class="w">  </span>/dev/i2c-5<span class="w">  </span>/dev/i2c-7<span class="w">  </span>/dev/i2c-9
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>i2cdetect<span class="w"> </span>-l
+i2c-0<span class="w">   </span>i2c<span class="w">         </span><span class="m">3160000</span>.i2c<span class="w">                         </span>I2C<span class="w"> </span>adapter
+i2c-1<span class="w">   </span>i2c<span class="w">         </span>c240000.i2c<span class="w">                         </span>I2C<span class="w"> </span>adapter
+i2c-2<span class="w">   </span>i2c<span class="w">         </span><span class="m">3180000</span>.i2c<span class="w">                         </span>I2C<span class="w"> </span>adapter
+i2c-4<span class="w">   </span>i2c<span class="w">         </span>Tegra<span class="w"> </span>BPMP<span class="w"> </span>I2C<span class="w"> </span>adapter<span class="w">              </span>I2C<span class="w"> </span>adapter
+i2c-5<span class="w">   </span>i2c<span class="w">         </span>31b0000.i2c<span class="w">                         </span>I2C<span class="w"> </span>adapter
+i2c-7<span class="w">   </span>i2c<span class="w">         </span>c250000.i2c<span class="w">                         </span>I2C<span class="w"> </span>adapter
+i2c-9<span class="w">   </span>i2c<span class="w">         </span>NVIDIA<span class="w"> </span>SOC<span class="w"> </span>i2c<span class="w"> </span>adapter<span class="w"> </span><span class="m">0</span><span class="w">            </span>I2C<span class="w"> </span>adapter
+
+<span class="c1"># Scan I2C bus for devices (bus 1)</span>
+i2cdetect<span class="w"> </span>-y<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+You can use the <code>smbus2</code> library to use Python for I2C.</p>
+<h4 id="3-spi-serial-peripheral-interface">3. <strong>SPI (Serial Peripheral Interface)</strong><a class="headerlink" href="#3-spi-serial-peripheral-interface" title="Permanent link">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># Check SPI devices</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>/dev/spidev*
+/dev/spidev0.0<span class="w">  </span>/dev/spidev0.1<span class="w">  </span>/dev/spidev1.0<span class="w">  </span>/dev/spidev1.1
+</code></pre></div>
+To read from an SPI device on your Jetson Orin Nano using Python, you typically use the spidev module, which provides access to the SPI bus via /dev/spidev*.</p>
+<h4 id="4-pwm-pulse-width-modulation">4. <strong>PWM (Pulse Width Modulation)</strong><a class="headerlink" href="#4-pwm-pulse-width-modulation" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check PWM chips</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>ls<span class="w"> </span>/sys/class/pwm/
+pwmchip0<span class="w">  </span>pwmchip1<span class="w">  </span>pwmchip2<span class="w">  </span>pwmchip3<span class="w">  </span>pwmchip4
+</code></pre></div>
+<p>Controlling PWM (Pulse Width Modulation) on NVIDIA Jetson (e.g., Orin Nano, Xavier NX, Nano) in Python requires configuring the correct pins and using the Linux PWM sysfs interface or pwmchip character devices.</p>
+<h3 id="camera-and-multimedia-subsystem">📹 Camera and Multimedia Subsystem<a class="headerlink" href="#camera-and-multimedia-subsystem" title="Permanent link">&para;</a></h3>
+<h4 id="1-camera-interface-csi">1. <strong>Camera Interface (CSI)</strong><a class="headerlink" href="#1-camera-interface-csi" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># List video devices</span>
+ls<span class="w"> </span>/dev/video*
+<span class="c1">#sudo apt install v4l-utils</span>
+v4l2-ctl<span class="w"> </span>--list-devices
+
+<span class="c1"># Get camera capabilities</span>
+v4l2-ctl<span class="w"> </span>-d<span class="w"> </span>/dev/video0<span class="w"> </span>--all
+v4l2-ctl<span class="w"> </span>-d<span class="w"> </span>/dev/video0<span class="w"> </span>--list-formats-ext
+
+<span class="c1"># Capture image using GStreamer</span>
+gst-launch-1.0<span class="w"> </span>nvarguscamerasrc<span class="w"> </span>!<span class="w"> </span><span class="s1">&#39;video/x-raw(memory:NVMM),width=1920,height=1080&#39;</span><span class="w"> </span>!<span class="w"> </span>nvjpegenc<span class="w"> </span>!<span class="w"> </span>filesink<span class="w"> </span><span class="nv">location</span><span class="o">=</span>test.jpg
+
+<span class="c1"># Live camera preview</span>
+gst-launch-1.0<span class="w"> </span>nvarguscamerasrc<span class="w"> </span>!<span class="w"> </span><span class="s1">&#39;video/x-raw(memory:NVMM),width=1280,height=720&#39;</span><span class="w"> </span>!<span class="w"> </span>nvvidconv<span class="w"> </span>!<span class="w"> </span>xvimagesink
+</code></pre></div>
+<p><strong>Python Camera Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/usr/bin/env python3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gstreamer_pipeline</span><span class="p">(</span>
+    <span class="n">capture_width</span><span class="o">=</span><span class="mi">1280</span><span class="p">,</span>
+    <span class="n">capture_height</span><span class="o">=</span><span class="mi">720</span><span class="p">,</span>
+    <span class="n">display_width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span>
+    <span class="n">display_height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span>
+    <span class="n">framerate</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">flip_method</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="s2">&quot;nvarguscamerasrc ! &quot;</span>
+        <span class="s2">&quot;video/x-raw(memory:NVMM), &quot;</span>
+        <span class="s2">&quot;width=(int)</span><span class="si">%d</span><span class="s2">, height=(int)</span><span class="si">%d</span><span class="s2">, &quot;</span>
+        <span class="s2">&quot;format=(string)NV12, framerate=(fraction)</span><span class="si">%d</span><span class="s2">/1 ! &quot;</span>
+        <span class="s2">&quot;nvvidconv flip-method=</span><span class="si">%d</span><span class="s2"> ! &quot;</span>
+        <span class="s2">&quot;video/x-raw, width=(int)</span><span class="si">%d</span><span class="s2">, height=(int)</span><span class="si">%d</span><span class="s2">, format=(string)BGRx ! &quot;</span>
+        <span class="s2">&quot;videoconvert ! &quot;</span>
+        <span class="s2">&quot;video/x-raw, format=(string)BGR ! appsink&quot;</span>
+        <span class="o">%</span> <span class="p">(</span>
+            <span class="n">capture_width</span><span class="p">,</span>
+            <span class="n">capture_height</span><span class="p">,</span>
+            <span class="n">framerate</span><span class="p">,</span>
+            <span class="n">flip_method</span><span class="p">,</span>
+            <span class="n">display_width</span><span class="p">,</span>
+            <span class="n">display_height</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># Create camera capture</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="n">gstreamer_pipeline</span><span class="p">(),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CAP_GSTREAMER</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">cap</span><span class="o">.</span><span class="n">isOpened</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot open camera&quot;</span><span class="p">)</span>
+    <span class="n">exit</span><span class="p">()</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">ret</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ret</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="c1"># Display frame</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s1">&#39;Jetson Camera&#39;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xFF</span> <span class="o">==</span> <span class="nb">ord</span><span class="p">(</span><span class="s1">&#39;q&#39;</span><span class="p">):</span>
+            <span class="k">break</span>
+
+<span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+    <span class="k">pass</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">cap</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">destroyAllWindows</span><span class="p">()</span>
+</code></pre></div></p>
+<h3 id="power-management-and-performance">⚡ Power Management and Performance<a class="headerlink" href="#power-management-and-performance" title="Permanent link">&para;</a></h3>
+<h4 id="1-power-models-nvpmodel">1. <strong>Power Models (nvpmodel)</strong><a class="headerlink" href="#1-power-models-nvpmodel" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check current power model</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>nvpmodel<span class="w"> </span>-q
+NV<span class="w"> </span>Power<span class="w"> </span>Mode:<span class="w"> </span>MAXN_SUPER
+<span class="m">2</span>
+
+<span class="c1"># List available power models</span>
+nvpmodel<span class="w"> </span>-q<span class="w"> </span>--verbose
+
+<span class="c1"># Set power model (requires sudo)</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-m<span class="w"> </span><span class="m">0</span><span class="w">  </span><span class="c1"># Maximum performance</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-m<span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># Balanced</span>
+sudo<span class="w"> </span>nvpmodel<span class="w"> </span>-m<span class="w"> </span><span class="m">2</span><span class="w">  </span><span class="c1"># Power saving</span>
+
+<span class="c1"># Check power model configuration</span>
+cat<span class="w"> </span>/etc/nvpmodel.conf
+</code></pre></div>
+<h4 id="2-cpu-frequency-scaling">2. <strong>CPU Frequency Scaling</strong><a class="headerlink" href="#2-cpu-frequency-scaling" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check CPU frequency information</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lscpu<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>MHz
+CPU<span class="w"> </span>max<span class="w"> </span>MHz:<span class="w">                        </span><span class="m">1728</span>.0000
+CPU<span class="w"> </span>min<span class="w"> </span>MHz:<span class="w">                        </span><span class="m">115</span>.2000
+
+<span class="c1"># View CPU frequency scaling governors</span>
+cat<span class="w"> </span>/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+cat<span class="w"> </span>/sys/devices/system/cpu/cpu*/cpufreq/scaling_available_governors
+
+<span class="c1"># Set CPU governor (requires sudo)</span>
+<span class="nb">echo</span><span class="w"> </span>performance<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+<span class="nb">echo</span><span class="w"> </span>powersave<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>tee<span class="w"> </span>/sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+<span class="c1"># Check current CPU frequencies</span>
+cat<span class="w"> </span>/sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq
+</code></pre></div>
+<h4 id="3-gpu-frequency-and-power">3. <strong>GPU Frequency and Power</strong><a class="headerlink" href="#3-gpu-frequency-and-power" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check GPU frequency</span>
+cat<span class="w"> </span>/sys/kernel/debug/bpmp/debug/clk/gpcclk/rate
+cat<span class="w"> </span>/sys/kernel/debug/bpmp/debug/clk/gpcclk/state
+
+<span class="c1"># Monitor GPU usage</span>
+sudo<span class="w"> </span>tegrastats<span class="w"> </span>--interval<span class="w"> </span><span class="m">1000</span>
+
+<span class="c1"># Check thermal zones</span>
+cat<span class="w"> </span>/sys/class/thermal/thermal_zone*/type
+cat<span class="w"> </span>/sys/class/thermal/thermal_zone*/temp
+</code></pre></div>
+<hr />
+<h2 id="advanced-system-administration">🛠️ Advanced System Administration<a class="headerlink" href="#advanced-system-administration" title="Permanent link">&para;</a></h2>
+<h3 id="system-monitoring-and-debugging">📊 System Monitoring and Debugging<a class="headerlink" href="#system-monitoring-and-debugging" title="Permanent link">&para;</a></h3>
+<h4 id="1-process-and-resource-monitoring">1. <strong>Process and Resource Monitoring</strong><a class="headerlink" href="#1-process-and-resource-monitoring" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Advanced process monitoring</span>
+top<span class="w"> </span>-H<span class="w">  </span><span class="c1"># Show threads</span>
+htop<span class="w"> </span>-t<span class="w">  </span><span class="c1"># Tree view</span>
+iotop<span class="w">   </span><span class="c1"># I/O monitoring</span>
+iftop<span class="w">   </span><span class="c1"># Network monitoring</span>
+
+<span class="c1"># Process tree</span>
+pstree<span class="w"> </span>-p
+pstree<span class="w"> </span>-u<span class="w">  </span><span class="c1"># Show users</span>
+
+<span class="c1"># Detailed process information</span>
+ps<span class="w"> </span>aux<span class="w"> </span>--forest
+ps<span class="w"> </span>-eo<span class="w"> </span>pid,ppid,cmd,%mem,%cpu<span class="w"> </span>--sort<span class="o">=</span>-%cpu
+
+<span class="c1"># Memory analysis</span>
+cat<span class="w"> </span>/proc/meminfo
+free<span class="w"> </span>-h
+vmstat<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">5</span><span class="w">  </span><span class="c1"># Virtual memory statistics</span>
+
+<span class="c1"># Disk I/O statistics</span>
+iostat<span class="w"> </span>-x<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">5</span>
+lsof<span class="w"> </span>+D<span class="w"> </span>/path/to/directory<span class="w">  </span><span class="c1"># Files open in directory</span>
+</code></pre></div>
+<h4 id="2-system-logs-and-debugging">2. <strong>System Logs and Debugging</strong><a class="headerlink" href="#2-system-logs-and-debugging" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># systemd journal</span>
+journalctl<span class="w"> </span>-f<span class="w">  </span><span class="c1"># Follow logs</span>
+journalctl<span class="w"> </span>-u<span class="w"> </span>service_name<span class="w">  </span><span class="c1"># Service-specific logs</span>
+journalctl<span class="w"> </span>--since<span class="w"> </span><span class="s2">&quot;2024-01-01&quot;</span><span class="w"> </span>--until<span class="w"> </span><span class="s2">&quot;2024-01-02&quot;</span>
+journalctl<span class="w"> </span>-p<span class="w"> </span>err<span class="w">  </span><span class="c1"># Error level and above</span>
+
+<span class="c1"># Kernel logs</span>
+dmesg<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-50
+dmesg<span class="w"> </span>-T<span class="w">  </span><span class="c1"># Human-readable timestamps</span>
+dmesg<span class="w"> </span>-l<span class="w"> </span>err,warn<span class="w">  </span><span class="c1"># Error and warning levels</span>
+
+<span class="c1"># System logs</span>
+tail<span class="w"> </span>-f<span class="w"> </span>/var/log/syslog
+tail<span class="w"> </span>-f<span class="w"> </span>/var/log/kern.log
+
+<span class="c1"># Boot analysis</span>
+systemd-analyze
+systemd-analyze<span class="w"> </span>blame<span class="w">  </span><span class="c1"># Service startup times</span>
+systemd-analyze<span class="w"> </span>critical-chain<span class="w">  </span><span class="c1"># Critical path</span>
+</code></pre></div>
+<h4 id="3-network-diagnostics">3. <strong>Network Diagnostics</strong><a class="headerlink" href="#3-network-diagnostics" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Network interface configuration</span>
+ip<span class="w"> </span>addr<span class="w"> </span>show
+ip<span class="w"> </span>route<span class="w"> </span>show
+ip<span class="w"> </span>link<span class="w"> </span>show
+
+<span class="c1"># Network connectivity</span>
+ping<span class="w"> </span>-c<span class="w"> </span><span class="m">4</span><span class="w"> </span>google.com
+traceroute<span class="w"> </span>google.com
+mtr<span class="w"> </span>google.com<span class="w">  </span><span class="c1"># Continuous traceroute</span>
+
+<span class="c1"># Port scanning and connections</span>
+nmap<span class="w"> </span>-sT<span class="w"> </span>localhost
+ss<span class="w"> </span>-tuln<span class="w">  </span><span class="c1"># Socket statistics</span>
+netstat<span class="w"> </span>-tuln<span class="w">  </span><span class="c1"># Network connections</span>
+lsof<span class="w"> </span>-i<span class="w"> </span>:22<span class="w">  </span><span class="c1"># Processes using port 22</span>
+
+<span class="c1"># Network traffic analysis</span>
+sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>eth0<span class="w"> </span>-n
+sudo<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>port<span class="w"> </span><span class="m">22</span>
+</code></pre></div>
+<h3 id="package-management-and-software-installation">🔧 Package Management and Software Installation<a class="headerlink" href="#package-management-and-software-installation" title="Permanent link">&para;</a></h3>
+<h4 id="1-apt-package-manager">1. <strong>APT Package Manager</strong><a class="headerlink" href="#1-apt-package-manager" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Update package lists</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update
+
+<span class="c1"># Upgrade packages</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>upgrade
+sudo<span class="w"> </span>apt<span class="w"> </span>full-upgrade
+
+<span class="c1"># Search packages</span>
+apt<span class="w"> </span>search<span class="w"> </span>keyword
+apt<span class="w"> </span>show<span class="w"> </span>package_name
+
+<span class="c1"># Install packages</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>package_name
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>./local_package.deb
+
+<span class="c1"># Remove packages</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>remove<span class="w"> </span>package_name
+sudo<span class="w"> </span>apt<span class="w"> </span>purge<span class="w"> </span>package_name<span class="w">  </span><span class="c1"># Remove config files too</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>autoremove<span class="w">  </span><span class="c1"># Remove unused dependencies</span>
+
+<span class="c1"># Package information</span>
+dpkg<span class="w"> </span>-l<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>package_name
+dpkg<span class="w"> </span>-L<span class="w"> </span>package_name<span class="w">  </span><span class="c1"># List files in package</span>
+dpkg<span class="w"> </span>-S<span class="w"> </span>/path/to/file<span class="w">  </span><span class="c1"># Find package containing file</span>
+</code></pre></div>
+<h4 id="2-snap-package-manager">2. <strong>Snap Package Manager</strong><a class="headerlink" href="#2-snap-package-manager" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># List installed snaps</span>
+snap<span class="w"> </span>list
+
+<span class="c1"># Search snaps</span>
+snap<span class="w"> </span>find<span class="w"> </span>keyword
+
+<span class="c1"># Install snap</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>install<span class="w"> </span>package_name
+
+<span class="c1"># Update snaps</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>refresh
+sudo<span class="w"> </span>snap<span class="w"> </span>refresh<span class="w"> </span>package_name
+
+<span class="c1"># Remove snap</span>
+sudo<span class="w"> </span>snap<span class="w"> </span>remove<span class="w"> </span>package_name
+
+<span class="c1"># Snap information</span>
+snap<span class="w"> </span>info<span class="w"> </span>package_name
+</code></pre></div>
+<h4 id="3-building-from-source">3. <strong>Building from Source</strong><a class="headerlink" href="#3-building-from-source" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install build tools</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>cmake<span class="w"> </span>git
+
+<span class="c1"># Example: Building a simple C program</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>hello.c<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+<span class="s">#include &lt;stdio.h&gt;</span>
+<span class="s">int main() {</span>
+<span class="s">    printf(&quot;Hello, Jetson!\n&quot;);</span>
+<span class="s">    return 0;</span>
+<span class="s">}</span>
+<span class="s">EOF</span>
+
+<span class="c1"># Compile</span>
+gcc<span class="w"> </span>-o<span class="w"> </span>hello<span class="w"> </span>hello.c
+./hello
+
+<span class="c1"># Example: CMake project</span>
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<hr />
+<h2 id="security-and-user-management">🔐 Security and User Management<a class="headerlink" href="#security-and-user-management" title="Permanent link">&para;</a></h2>
+<h3 id="user-and-group-management">👥 User and Group Management<a class="headerlink" href="#user-and-group-management" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># User information</span>
+id
+whoami
+groups
+w<span class="w">  </span><span class="c1"># Who is logged in</span>
+last<span class="w">  </span><span class="c1"># Login history</span>
+
+<span class="c1"># Create user</span>
+sudo<span class="w"> </span>useradd<span class="w"> </span>-m<span class="w"> </span>-s<span class="w"> </span>/bin/bash<span class="w"> </span>newuser
+sudo<span class="w"> </span>passwd<span class="w"> </span>newuser
+
+<span class="c1"># Modify user</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>sudo<span class="w"> </span>newuser<span class="w">  </span><span class="c1"># Add to sudo group</span>
+sudo<span class="w"> </span>usermod<span class="w"> </span>-s<span class="w"> </span>/bin/zsh<span class="w"> </span>newuser<span class="w">  </span><span class="c1"># Change shell</span>
+
+<span class="c1"># Delete user</span>
+sudo<span class="w"> </span>userdel<span class="w"> </span>-r<span class="w"> </span>newuser<span class="w">  </span><span class="c1"># Remove home directory too</span>
+
+<span class="c1"># Group management</span>
+sudo<span class="w"> </span>groupadd<span class="w"> </span>newgroup
+sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>newgroup<span class="w"> </span>username
+sudo<span class="w"> </span>gpasswd<span class="w"> </span>-d<span class="w"> </span>username<span class="w"> </span>groupname<span class="w">  </span><span class="c1"># Remove from group</span>
+</code></pre></div>
+<h3 id="file-permissions-and-security">🔒 File Permissions and Security<a class="headerlink" href="#file-permissions-and-security" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># File permissions</span>
+ls<span class="w"> </span>-la
+stat<span class="w"> </span>filename
+
+<span class="c1"># Change permissions</span>
+chmod<span class="w"> </span><span class="m">755</span><span class="w"> </span>filename<span class="w">  </span><span class="c1"># rwxr-xr-x</span>
+chmod<span class="w"> </span>u+x<span class="w"> </span>filename<span class="w">  </span><span class="c1"># Add execute for user</span>
+chmod<span class="w"> </span>g-w<span class="w"> </span>filename<span class="w">  </span><span class="c1"># Remove write for group</span>
+chmod<span class="w"> </span><span class="nv">o</span><span class="o">=</span>r<span class="w"> </span>filename<span class="w">  </span><span class="c1"># Set read-only for others</span>
+
+<span class="c1"># Change ownership</span>
+sudo<span class="w"> </span>chown<span class="w"> </span>user:group<span class="w"> </span>filename
+sudo<span class="w"> </span>chown<span class="w"> </span>-R<span class="w"> </span>user:group<span class="w"> </span>directory/
+
+<span class="c1"># Special permissions</span>
+chmod<span class="w"> </span>+t<span class="w"> </span>directory/<span class="w">  </span><span class="c1"># Sticky bit</span>
+chmod<span class="w"> </span>g+s<span class="w"> </span>directory/<span class="w">  </span><span class="c1"># Set GID</span>
+chmod<span class="w"> </span>u+s<span class="w"> </span>filename<span class="w">   </span><span class="c1"># Set UID (SUID)</span>
+
+<span class="c1"># Access Control Lists (ACL)</span>
+getfacl<span class="w"> </span>filename
+setfacl<span class="w"> </span>-m<span class="w"> </span>u:username:rw<span class="w"> </span>filename
+setfacl<span class="w"> </span>-x<span class="w"> </span>u:username<span class="w"> </span>filename
+</code></pre></div>
+<h3 id="system-security">🛡️ System Security<a class="headerlink" href="#system-security" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Firewall (UFW)</span>
+sudo<span class="w"> </span>ufw<span class="w"> </span>status
+sudo<span class="w"> </span>ufw<span class="w"> </span><span class="nb">enable</span>
+sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">22</span>/tcp<span class="w">  </span><span class="c1"># SSH</span>
+sudo<span class="w"> </span>ufw<span class="w"> </span>allow<span class="w"> </span><span class="m">80</span>/tcp<span class="w">  </span><span class="c1"># HTTP</span>
+sudo<span class="w"> </span>ufw<span class="w"> </span>deny<span class="w"> </span><span class="m">23</span>/tcp<span class="w">   </span><span class="c1"># Telnet</span>
+sudo<span class="w"> </span>ufw<span class="w"> </span>delete<span class="w"> </span>allow<span class="w"> </span><span class="m">80</span>/tcp
+
+<span class="c1"># SSH security</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>ssh
+sudo<span class="w"> </span>nano<span class="w"> </span>/etc/ssh/sshd_config
+<span class="c1"># Recommended changes:</span>
+<span class="c1"># PermitRootLogin no</span>
+<span class="c1"># PasswordAuthentication no</span>
+<span class="c1"># PubkeyAuthentication yes</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>ssh
+
+<span class="c1"># Generate SSH key pair</span>
+ssh-keygen<span class="w"> </span>-t<span class="w"> </span>ed25519<span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;your_email@example.com&quot;</span>
+cat<span class="w"> </span>~/.ssh/id_ed25519.pub<span class="w">  </span><span class="c1"># Public key</span>
+
+<span class="c1"># System updates and security</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>upgrade
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>unattended-upgrades
+sudo<span class="w"> </span>dpkg-reconfigure<span class="w"> </span>unattended-upgrades
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
