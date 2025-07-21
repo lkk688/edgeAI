@@ -8,7 +8,7 @@ DEFAULT_CLIENT_ID="guest01"
 CLIENT_ID="${2:-$DEFAULT_CLIENT_ID}"
 
 API_SERVER="http://lkk688.duckdns.org:8000"
-NEBULA_DIR="/etc/nebula"
+NEBULA_DIR="./nebula-config" # Local config directory
 NEBULA_BIN="./nebula" # Local binary in current directory
 
 # Default token and platform settings
@@ -16,7 +16,7 @@ DEFAULT_TOKEN="guest-secure-token-2025"
 DEFAULT_PLATFORM="linux-arm64"
 
 # Try to load client-specific token if available
-TOKEN_FILE="/etc/nebula/token.txt"
+TOKEN_FILE="./nebula-config/token.txt"
 if [ -f "$TOKEN_FILE" ]; then
   TOKEN=$(cat "$TOKEN_FILE")
 else
@@ -29,27 +29,48 @@ PLATFORM="$DEFAULT_PLATFORM"
 download_config() {
   echo "[INFO] Downloading bundle for $CLIENT_ID from $API_SERVER..."
   
+  # Check if NEBULA_DIR is writable or can be created
+  if [ -d "$NEBULA_DIR" ] && [ ! -w "$NEBULA_DIR" ]; then
+    echo "[ERROR] $NEBULA_DIR exists but is not writable. Please run with sudo or fix permissions."
+    return 1
+  elif [ ! -d "$NEBULA_DIR" ] && [ ! -w "$(dirname "$NEBULA_DIR")" ]; then
+    echo "[ERROR] Cannot create $NEBULA_DIR. Parent directory is not writable."
+    return 1
+  fi
+  
   # Create a temporary directory for downloads
   TMP_DIR=$(mktemp -d)
   cd "$TMP_DIR"
   
   # Download the client bundle
   echo "[INFO] Downloading client bundle..."
-  if ! curl -f -O -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
+  if ! curl -v -f -o "$CLIENT_ID.zip" -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
     echo "[ERROR] Failed to download client bundle. Check your token and network connection."
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
   
+  echo "[DEBUG] Downloaded file size: $(ls -lh "$CLIENT_ID.zip" | awk '{print $5}')"
+  
   # Download CA certificate
   echo "[INFO] Downloading CA certificate..."
-  if ! curl -f -O -G -d "token=jetsonsupertoken" "$API_SERVER/public/downloads/ca.zip"; then
+  if ! curl -v -f -o "ca.zip" -G -d "token=jetsonsupertoken" "$API_SERVER/public/downloads/ca.zip"; then
     echo "[WARNING] Failed to download CA certificate. Will try to use existing one if available."
+  else
+    echo "[DEBUG] CA certificate file size: $(ls -lh "ca.zip" | awk '{print $5}')"
   fi
   
   # Extract the downloaded files
   echo "[INFO] Extracting files..."
+  if [ ! -f "$CLIENT_ID.zip" ]; then
+    echo "[ERROR] Downloaded file not found: $CLIENT_ID.zip"
+    ls -la
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
   if ! unzip -o "$CLIENT_ID.zip"; then
     echo "[ERROR] Failed to extract client bundle."
     cd - > /dev/null
@@ -65,11 +86,11 @@ download_config() {
   fi
   
   # Create Nebula directory and copy files
-  sudo mkdir -p "$NEBULA_DIR"
+  mkdir -p "$NEBULA_DIR"
   
   # Copy client files
   if [ -f "$CLIENT_ID.crt" ] && [ -f "$CLIENT_ID.key" ] && [ -f "config.yml" ]; then
-    sudo cp "$CLIENT_ID.crt" "$CLIENT_ID.key" "config.yml" "$NEBULA_DIR/"
+    cp "$CLIENT_ID.crt" "$CLIENT_ID.key" "config.yml" "$NEBULA_DIR/"
   else
     echo "[ERROR] Required client files not found in the downloaded bundle."
     cd - > /dev/null
@@ -79,7 +100,7 @@ download_config() {
   
   # Copy CA certificate if available
   if [ -d "ca_temp" ] && [ -f "ca_temp/ca.crt" ]; then
-    sudo cp "ca_temp/ca.crt" "$NEBULA_DIR/"
+    cp "ca_temp/ca.crt" "$NEBULA_DIR/"
   elif [ ! -f "$NEBULA_DIR/ca.crt" ]; then
     echo "[ERROR] CA certificate not found and not available in $NEBULA_DIR."
     cd - > /dev/null
@@ -99,20 +120,37 @@ download_config() {
 # === Function: install nebula ===
 install_nebula() {
   echo "[INFO] Installing Nebula locally..."
+  
+  # Check if current directory is writable
+  if [ ! -w "$(pwd)" ]; then
+    echo "[ERROR] Current directory is not writable. Please run from a directory where you have write permissions."
+    return 1
+  fi
+  
   # Create a temporary directory for downloads
   TMP_DIR=$(mktemp -d)
   cd "$TMP_DIR"
   
   # Download the client bundle which includes the nebula binary
   echo "[INFO] Downloading client bundle with Nebula binary..."
-  if ! curl -f -O -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
+  if ! curl -v -f -o "$CLIENT_ID.zip" -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$CLIENT_ID"; then
     echo "[ERROR] Failed to download client bundle. Check your token and network connection."
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
   
+  echo "[DEBUG] Downloaded file size: $(ls -lh "$CLIENT_ID.zip" | awk '{print $5}')"
+  
   # Extract the downloaded files
+  if [ ! -f "$CLIENT_ID.zip" ]; then
+    echo "[ERROR] Downloaded file not found: $CLIENT_ID.zip"
+    ls -la
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
+  fi
+  
   if ! unzip -o "$CLIENT_ID.zip"; then
     echo "[ERROR] Failed to extract client bundle."
     cd - > /dev/null
@@ -168,10 +206,17 @@ run_nebula() {
   
   echo "[INFO] Starting Nebula VPN in foreground mode..."
   echo "[INFO] Press Ctrl+C to stop the VPN connection"
+  echo "[INFO] Note: Nebula requires root privileges to create network interfaces"
   echo "-------------------------------------------"
   
-  # Run nebula in foreground
-  sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+  # Check if we're running as root
+  if [ "$(id -u)" -ne 0 ]; then
+    echo "[WARNING] Not running as root. Using sudo to run Nebula..."
+    sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+  else
+    # Run nebula in foreground
+    "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml"
+  fi
   
   return $?
 }
@@ -214,8 +259,8 @@ set_token() {
   fi
   
   echo "[INFO] Setting client token to: $1"
-  sudo mkdir -p "$(dirname "$TOKEN_FILE")"
-  echo "$1" | sudo tee "$TOKEN_FILE" > /dev/null
+  mkdir -p "$(dirname "$TOKEN_FILE")"
+  echo "$1" > "$TOKEN_FILE"
   echo "[INFO] Token saved to $TOKEN_FILE"
 }
 
@@ -257,5 +302,10 @@ case "$1" in
     echo "       guestnebula set-token [client_id] <token>  # set client-specific token"
     echo ""
     echo "Note: If [client_id] is not provided, 'guest01' will be used as default"
+    echo ""
+    echo "This version of the script:"
+    echo "- Uses local directories (./nebula-config and ./nebula)"
+    echo "- Doesn't require sudo (except for creating TUN/TAP interfaces)"
+    echo "- Runs Nebula in foreground mode (Ctrl+C to stop)"
     ;;
 esac
