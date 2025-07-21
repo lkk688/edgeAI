@@ -39,3 +39,6 @@ for folder in sorted(BASE_DIR.iterdir()):
 df = pd.DataFrame(token_records)
 df.to_csv(OUTPUT_TABLE, index=False)
 print(f"[✅] Token table written to: {OUTPUT_TABLE}")
+
+#root@cmpe-jetson:/Developer/edgeAI/edgeInfra# python generate_tokens.py
+#[✅] Token table written to: /Developer/serverdata/nebula-clients/token_table.csv

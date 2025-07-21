@@ -231,9 +231,9 @@ install_nebula() {
 run_nebula() {
   echo "[INFO] Running Nebula VPN client..."
   
-  # Get absolute paths
+  # Get absolute paths - NEBULA_BIN is already an absolute path, don't prepend pwd
   ABSOLUTE_NEBULA_DIR="$(pwd)/$NEBULA_DIR"
-  ABSOLUTE_NEBULA_BIN="$(pwd)/$NEBULA_BIN"
+  ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
   
   echo "[DEBUG] Using config directory: $ABSOLUTE_NEBULA_DIR"
   echo "[DEBUG] Using nebula binary: $ABSOLUTE_NEBULA_BIN"
@@ -363,6 +363,7 @@ case "$1" in
     echo "[DEBUG] Checking for nebula-config directory..."
     ls -la "$(dirname "$0")/nebula-config" 2>/dev/null || echo "[ERROR] Directory not found: $(dirname "$0")/nebula-config"
     echo "[DEBUG] Checking for nebula binary..."
+    # Use absolute path for nebula binary without prepending current directory
     ls -la "$NEBULA_BIN" 2>/dev/null || echo "[ERROR] Binary not found: $NEBULA_BIN"
     echo "[DEBUG] Checking for token file..."
     ls -la "$(dirname "$0")/nebula-config/token.txt" 2>/dev/null || echo "[WARNING] Token file not found: $(dirname "$0")/nebula-config/token.txt"
@@ -385,8 +386,9 @@ case "$1" in
     echo "Note: If [client_id] is not provided, 'guest01' will be used as default"
     echo ""
     echo "This version of the script:"
-    echo "- Uses local directories (./nebula-config and ./nebula)"
-    echo "- Doesn't require sudo (except for creating TUN/TAP interfaces)"
+    echo "- Uses local directory for configuration (./nebula-config)"
+    echo "- Installs Nebula binary to system location ($NEBULA_BIN)"
+    echo "- Requires sudo for installation and for creating TUN/TAP interfaces"
     echo "- Runs Nebula in foreground mode (Ctrl+C to stop)"
     ;;
 esac

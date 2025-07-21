@@ -15,7 +15,6 @@ SERVICE_FILE="/etc/systemd/system/nebula.service"
 ORIGINAL_DIR=$(pwd)
 ABSOLUTE_NEBULA_DIR="$NEBULA_DIR"
 ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
-ABSOLUTE_TOKEN_FILE="$TOKEN_FILE"
 
 # Default token and platform settings
 DEFAULT_TOKEN="jetsonsupertoken"
@@ -23,6 +22,9 @@ DEFAULT_PLATFORM="linux-arm64"
 
 # Try to load client-specific token if available
 TOKEN_FILE="/etc/nebula/token.txt"
+# Set absolute token file path after TOKEN_FILE is defined
+ABSOLUTE_TOKEN_FILE="$TOKEN_FILE"
+
 if [ -f "$TOKEN_FILE" ]; then
   TOKEN=$(cat "$TOKEN_FILE")
 else
@@ -309,8 +311,22 @@ set_token() {
   
   echo "[INFO] Setting client token to: $1"
   echo "[DEBUG] Using token file at: $ABSOLUTE_TOKEN_FILE"
+  
+  # Ensure token file path is valid
+  if [ -z "$ABSOLUTE_TOKEN_FILE" ]; then
+    echo "[ERROR] Token file path is empty. Using default path: /etc/nebula/token.txt"
+    ABSOLUTE_TOKEN_FILE="/etc/nebula/token.txt"
+  fi
+  
+  # Create directory if it doesn't exist
   sudo mkdir -p "$(dirname "$ABSOLUTE_TOKEN_FILE")"
+  
+  # Save token to file
   echo "$1" | sudo tee "$ABSOLUTE_TOKEN_FILE" > /dev/null
+  
+  # Update TOKEN variable for immediate use
+  TOKEN="$1"
+  
   echo "[INFO] Token saved to $ABSOLUTE_TOKEN_FILE"
 }
 
