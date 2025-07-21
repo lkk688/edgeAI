@@ -19,7 +19,7 @@ CLIENT_ID="${2:-$DEFAULT_CLIENT_ID}"
 
 API_SERVER="http://lkk688.duckdns.org:8000"
 NEBULA_DIR="./nebula-config" # Local config directory
-NEBULA_BIN="./nebula" # Local binary in current directory
+NEBULA_BIN="/usr/local/bin/nebula" # System-wide binary location
 
 # Default token and platform settings
 DEFAULT_TOKEN="guest-secure-token-2025"
@@ -198,23 +198,22 @@ install_nebula() {
     return 1
   fi
   
-  # Get absolute path for nebula binary
-  ORIGINAL_DIR=$(cd - > /dev/null && pwd)
-  ABSOLUTE_NEBULA_BIN="$ORIGINAL_DIR/$NEBULA_BIN"
+  # Use absolute path for nebula binary
+  ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
   
-  echo "[DEBUG] Copying nebula binary to: $ABSOLUTE_NEBULA_BIN"
+  echo "[DEBUG] Installing nebula binary to system location: $ABSOLUTE_NEBULA_BIN"
   
-  # Copy the nebula binary to the current directory
-  if ! cp "nebula" "$ABSOLUTE_NEBULA_BIN"; then
+  # Copy the nebula binary to the system location (requires sudo)
+  if ! sudo cp "nebula" "$ABSOLUTE_NEBULA_BIN"; then
     echo "[ERROR] Failed to copy nebula binary to: $ABSOLUTE_NEBULA_BIN"
-    ls -la "$ORIGINAL_DIR"
+    echo "[ERROR] This operation requires sudo privileges to write to $ABSOLUTE_NEBULA_BIN"
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
   
   cd - > /dev/null
-  chmod +x "$ABSOLUTE_NEBULA_BIN"
+  sudo chmod +x "$ABSOLUTE_NEBULA_BIN"
   
   # Verify the binary works
   if ! "$ABSOLUTE_NEBULA_BIN" -version >/dev/null 2>&1; then
@@ -256,13 +255,17 @@ run_nebula() {
   echo "[INFO] Note: Nebula requires root privileges to create network interfaces"
   echo "-------------------------------------------"
   
+  # Change to the nebula-config directory
+  echo "[DEBUG] Changing to directory: $(dirname "$0")/nebula-config"
+  cd "$(dirname "$0")/nebula-config"
+  
   # Check if we're running as root
   if [ "$(id -u)" -ne 0 ]; then
     echo "[WARNING] Not running as root. Using sudo to run Nebula..."
-    sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml"
+    sudo "$ABSOLUTE_NEBULA_BIN" -config config.yml
   else
     # Run nebula in foreground
-    "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml"
+    "$ABSOLUTE_NEBULA_BIN" -config config.yml
   fi
   
   return $?
@@ -272,8 +275,8 @@ run_nebula() {
 check_status() {
   echo "[INFO] Checking nebula status..."
   
-  # Get absolute path
-  ABSOLUTE_NEBULA_BIN="$(pwd)/$NEBULA_BIN"
+  # Use absolute path for nebula binary
+  ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
   
   echo "[DEBUG] Using nebula binary: $ABSOLUTE_NEBULA_BIN"
   
@@ -358,11 +361,11 @@ case "$1" in
     echo "[DEBUG] Running diagnostics..."
     debug_paths
     echo "[DEBUG] Checking for nebula-config directory..."
-    ls -la "$(pwd)/$NEBULA_DIR" 2>/dev/null || echo "[ERROR] Directory not found: $(pwd)/$NEBULA_DIR"
+    ls -la "$(dirname "$0")/nebula-config" 2>/dev/null || echo "[ERROR] Directory not found: $(dirname "$0")/nebula-config"
     echo "[DEBUG] Checking for nebula binary..."
-    ls -la "$(pwd)/$NEBULA_BIN" 2>/dev/null || echo "[ERROR] Binary not found: $(pwd)/$NEBULA_BIN"
+    ls -la "$NEBULA_BIN" 2>/dev/null || echo "[ERROR] Binary not found: $NEBULA_BIN"
     echo "[DEBUG] Checking for token file..."
-    ls -la "$(pwd)/$TOKEN_FILE" 2>/dev/null || echo "[WARNING] Token file not found: $(pwd)/$TOKEN_FILE"
+    ls -la "$(dirname "$0")/nebula-config/token.txt" 2>/dev/null || echo "[WARNING] Token file not found: $(dirname "$0")/nebula-config/token.txt"
     ;;
 
   *)
@@ -374,10 +377,10 @@ case "$1" in
     echo "       guestnebula debug                 # run diagnostics to troubleshoot issues"
     echo ""
     echo "Notes:"
-    echo "  - Configuration files are stored in ./nebula-config (relative to current directory)"
-    echo "  - Nebula binary is stored in ./nebula (relative to current directory)"
-    echo "  - All paths are resolved to absolute paths at runtime"
-    echo "  - Run commands from the same directory each time for consistency"
+    echo "  - Configuration files are stored in ./nebula-config (relative to script directory)"
+    echo "  - Nebula binary is installed to $NEBULA_BIN (system-wide location)"
+    echo "  - The script will change to the nebula-config directory before running the binary"
+    echo "  - Installation requires sudo privileges to write to $NEBULA_BIN"
     echo ""
     echo "Note: If [client_id] is not provided, 'guest01' will be used as default"
     echo ""
