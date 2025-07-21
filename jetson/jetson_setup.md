@@ -1,6 +1,6 @@
 # 🚀 Jetson Orin Nano Setup Guide with SSD
 ## Jetson Orin Nano Super Developer Kit
-The [Jetson Orin Nano Super Developer Kit] (https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](./docs/figures/jetson-nano-dev-kit.png)
+The [Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](../docs/figures/jetson-nano-dev-kit.png)
 
 | Mark. | Name                                  | Note                     |
 |-------|---------------------------------------|--------------------------|
@@ -39,7 +39,7 @@ connectors (0.5mm pitch 22-pin flex connectors to connect CSI camera modules)
  - DC power jack for 19V power input
  - Mechanical: 103mm x 90.5mm x 34.77mm
 
-The ![40-pin Expansion Header](docs/figures/jetsonnano40pin.png)
+The ![40-pin Expansion Header](../docs/figures/jetsonnano40pin.png)
 
 > Reference: 
  - [Jetson Orin Nano Developer Kit User Guide - Hardware Specs](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)

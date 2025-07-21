@@ -228,7 +228,7 @@ NVIDIA's official software stack for Jetson, includes:
 
 
 ## ⚙️ Jetson Orin Nano Super Developer Kit
-The [Jetson Orin Nano Super Developer Kit] (https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](./docs/figures/jetson-nano-dev-kit.png)
+The [Jetson Orin Nano Super Developer Kit](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/nano-super-developer-kit/) is shown in ![Diagram](../figures/jetson-nano-dev-kit.png)
 
 The Jetson Orin Nano 8GB Module has NVIDIA Ampere architecture with 1024 CUDA cores and 32 tensor cores, delivers up to 67 INT8 TOPS of AI performance, 8GB 128-bit LPDDR5 (102GB/s memory bandwidth), and 6-core Arm® Cortex®-A78AE v8.2 64-bit CPU 1.5MB L2 + 4MB L3 (1.7GHz CPU Frequency). The power range is 7W–25W. You can flash the base L4T BSP on any of these storage medium using SDK Manager: SD card slot (1), external NVMe (2280-size on 10, 2230-size on 11), and USB drive on any USB port (4 or 6). 
 | Feature     | Value                                |
@@ -279,7 +279,7 @@ The connector of the Carrier Board include:
 | 12    | M.2 Slot (Key-E, Type 2230) (populated) |                          |
 
 
-The ![40-pin Expansion Header](docs/figures/jetsonnano40pin.png)
+The ![40-pin Expansion Header](../figures/jetsonnano40pin.png)
 
 > Reference: 
  - [Jetson Orin Nano Developer Kit User Guide - Hardware Specs](https://developer.nvidia.com/embedded/learn/jetson-orin-nano-devkit-user-guide/hardware_spec.html)
