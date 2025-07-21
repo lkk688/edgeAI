@@ -1,4 +1,9 @@
 # 🧠 NLP Applications & LLM Optimization on Jetson
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
+
 
 This tutorial covers essential techniques for deploying and optimizing NLP applications on Jetson devices. You'll learn about various optimization strategies, benchmark different NLP tasks, and implement production-ready solutions. All examples and implementations are combined into a single, easy-to-use command-line tool (`jetson_nlp_toolkit.py`) that you can use to experiment with different approaches.
 

@@ -1,4 +1,8 @@
 # 🧠 Advanced Prompt Engineering with LangChain on Jetson
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
 
 > **Note:** All code examples in this tutorial have been consolidated into a unified Python script called `jetson_prompt_toolkit.py`. See the [Unified Python Script](#-unified-python-script) section at the end of this document for installation and usage instructions.
 

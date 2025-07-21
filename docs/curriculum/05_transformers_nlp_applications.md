@@ -1,4 +1,9 @@
 # 🤖 Transformers on Jetson
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
+
 
 ## 🧠 What Are Transformers?
 

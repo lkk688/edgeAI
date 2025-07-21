@@ -1,4 +1,8 @@
 # 🧠 Introduction to Linux Basics on Jetson
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
 
 This document introduces the fundamentals of the Linux operating system with a focus on practical usage for students working on NVIDIA Jetson devices like the Orin Nano. You'll also learn about NVIDIA's custom Linux version: L4T.
 

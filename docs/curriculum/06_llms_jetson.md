@@ -1,6 +1,11 @@
 
 
 # 🚀 What Are LLMs?
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
+
 
 LLMs (Large Language Models) are transformer-based models trained on vast datasets to understand and generate human-like text.
 

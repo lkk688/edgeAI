@@ -1,4 +1,8 @@
 # 🧠 CUDA Programming Fundamentals and Jetson CUDA examples
+**Author:** Dr. Kaikai Liu, Ph.D.  
+**Position:** Associate Professor, Computer Engineering  
+**Institution:** San Jose State University  
+**Contact:** [kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
 
 ## 🔹 What is CUDA?
 
