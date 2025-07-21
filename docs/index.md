@@ -42,11 +42,12 @@ Install `weasyprint` or use browser print-to-PDF from `localhost:8000`.
 
 ```bash
 mkdocs gh-deploy
-To https://github.com/lkk688/edgeAI.git
+```
+
+<!-- To https://github.com/lkk688/edgeAI.git
  * [new branch]      gh-pages -> gh-pages
 INFO    -  Your documentation should shortly be available at:
-           https://lkk688.github.io/edgeAI/
-```
+           https://lkk688.github.io/edgeAI/ -->
 ---
 
 ## 📚 Curriculum Structure
