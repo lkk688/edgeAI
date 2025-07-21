@@ -195,7 +195,7 @@ juiceshop() {
   docker pull $IMAGE_NAME
 
   echo "[INFO] Starting Juice Shop with --rm at http://localhost:$PORT"
-  docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host -p $PORT:3000 $IMAGE_NAME
+  docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host $IMAGE_NAME
 }
 
 check_service() {
