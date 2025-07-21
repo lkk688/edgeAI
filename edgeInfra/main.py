@@ -277,6 +277,62 @@ def _parse_lighthouse_config() -> Optional[List[str]]:
     except (FileNotFoundError, PermissionError, IOError):
         return None
 
+@app.get("/debug/server-info")
+def debug_server_info() -> JSONResponse:
+    """
+    Debug endpoint to check server configuration and directory structure.
+    
+    Returns:
+        JSONResponse: Server configuration and directory information
+    """
+    info = {
+        "base_dir": str(BASE_DIR),
+        "base_dir_exists": BASE_DIR.exists(),
+        "clients_dir": str(CLIENTS_DIR),
+        "clients_dir_exists": CLIENTS_DIR.exists(),
+        "binaries": {},
+        "clients": []
+    }
+    
+    # Check binary availability
+    for platform, binary_path in BINARIES.items():
+        info["binaries"][platform] = {
+            "path": str(binary_path),
+            "exists": binary_path.exists(),
+            "readable": binary_path.exists() and os.access(binary_path, os.R_OK)
+        }
+    
+    # List client directories if they exist
+    if CLIENTS_DIR.exists():
+        try:
+            for client_dir in CLIENTS_DIR.iterdir():
+                if client_dir.is_dir():
+                    client_info = {
+                        "name": client_dir.name,
+                        "path": str(client_dir),
+                        "files": {}
+                    }
+                    
+                    # Check for required files
+                    required_files = {
+                        "tokens.json": client_dir / "tokens.json",
+                        "config.yml": client_dir / "config.yml",
+                        f"{client_dir.name}.crt": client_dir / f"{client_dir.name}.crt",
+                        f"{client_dir.name}.key": client_dir / f"{client_dir.name}.key"
+                    }
+                    
+                    for file_name, file_path in required_files.items():
+                        client_info["files"][file_name] = {
+                            "exists": file_path.exists(),
+                            "readable": file_path.exists() and os.access(file_path, os.R_OK)
+                        }
+                    
+                    info["clients"].append(client_info)
+        except Exception as e:
+            info["clients_error"] = str(e)
+    
+    return JSONResponse(info)
+
 @app.get("/nebula/members")
 def list_members() -> JSONResponse:
     """
@@ -509,23 +565,23 @@ def download_nebula_bundle(
     Raises:
         HTTPException: Various error codes for different failure scenarios
     """
-    # Input validation and security checks
-    _validate_client_id(client_id)
-    
-    client_path = CLIENTS_DIR / client_id
-    if not client_path.exists():
-        raise HTTPException(status_code=404, detail="Client ID not found")
-
-    # Verify client has valid token using unified verification method
-    _verify_client_specific_token(client_path, token)
-    
-    # Validate platform and check binary availability
-    _validate_platform(platform)
-    
-    # Verify all required files exist before creating bundle
-    required_files = _check_required_files(client_path, client_id)
-    
     try:
+        # Input validation and security checks
+        _validate_client_id(client_id)
+        
+        client_path = CLIENTS_DIR / client_id
+        if not client_path.exists():
+            raise HTTPException(status_code=404, detail=f"Client directory not found: {client_path}")
+
+        # Verify client has valid token using unified verification method
+        _verify_client_specific_token(client_path, token)
+        
+        # Validate platform and check binary availability
+        _validate_platform(platform)
+        
+        # Verify all required files exist before creating bundle
+        required_files = _check_required_files(client_path, client_id)
+        
         # Create bundle in temporary directory for security
         with tempfile.TemporaryDirectory() as tmpdir:
             bundle_path = _create_client_bundle(tmpdir, client_path, client_id, platform, required_files)
@@ -542,10 +598,17 @@ def download_nebula_bundle(
                 }
             )
             
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
+        # Log the full error for debugging
+        import traceback
+        error_details = f"Unexpected error in download_nebula_bundle: {str(e)}\nTraceback: {traceback.format_exc()}"
+        print(error_details)  # This will appear in server logs
         raise HTTPException(
             status_code=500, 
-            detail=f"Failed to create client bundle: {str(e)}"
+            detail=f"Internal server error: {str(e)}"
         )
 
 
@@ -836,6 +899,7 @@ if __name__ == "__main__":
 # ============================================================================
 
 # Development server:
+#pip3 install fastapi uvicorn
 # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 # Production server (background):
