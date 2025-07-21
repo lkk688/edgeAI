@@ -271,6 +271,80 @@ run_nebula() {
   return $?
 }
 
+# === Function: setup autorun with systemd ===
+setup_autorun() {
+  echo "[INFO] Setting up Nebula VPN to run automatically at boot..."
+  
+  # Get absolute paths
+  ABSOLUTE_NEBULA_DIR="$(pwd)/$NEBULA_DIR"
+  ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
+  
+  # Check if required files exist
+  if [ ! -f "$ABSOLUTE_NEBULA_BIN" ]; then
+    echo "[ERROR] Nebula binary not found at $ABSOLUTE_NEBULA_BIN. Please install it first."
+    return 1
+  fi
+  
+  if [ ! -f "$ABSOLUTE_NEBULA_DIR/config.yml" ]; then
+    echo "[ERROR] Configuration file not found at $ABSOLUTE_NEBULA_DIR/config.yml. Please download it first."
+    return 1
+  fi
+  
+  # Create systemd service file
+  echo "[INFO] Creating systemd service file..."
+  
+  # Create service file content
+  SERVICE_CONTENT="[Unit]
+  Description=Nebula VPN Client
+  After=network.target
+  
+  [Service]
+  Type=simple
+  WorkingDirectory=$ABSOLUTE_NEBULA_DIR
+  ExecStart=$ABSOLUTE_NEBULA_BIN -config $ABSOLUTE_NEBULA_DIR/config.yml
+  Restart=always
+  RestartSec=10
+  
+  [Install]
+  WantedBy=multi-user.target"
+  
+  # Write service file to temporary location
+  echo "$SERVICE_CONTENT" > /tmp/nebula.service
+  
+  # Copy service file to systemd directory (requires sudo)
+  echo "[INFO] Installing systemd service file (requires sudo)..."
+  if ! sudo cp /tmp/nebula.service /etc/systemd/system/nebula.service; then
+    echo "[ERROR] Failed to install systemd service file. This operation requires sudo privileges."
+    rm /tmp/nebula.service
+    return 1
+  fi
+  
+  # Clean up temporary file
+  rm /tmp/nebula.service
+  
+  # Reload systemd daemon
+  echo "[INFO] Reloading systemd daemon..."
+  sudo systemctl daemon-reload
+  
+  # Enable and start the service
+  echo "[INFO] Enabling and starting Nebula service..."
+  sudo systemctl enable nebula.service
+  sudo systemctl start nebula.service
+  
+  # Check service status
+  echo "[INFO] Checking Nebula service status..."
+  sudo systemctl status nebula.service
+  
+  echo "[SUCCESS] Nebula VPN is now configured to start automatically at boot!"
+  echo "[INFO] You can manually control the service with:"
+  echo "  sudo systemctl start nebula.service   # Start the service"
+  echo "  sudo systemctl stop nebula.service    # Stop the service"
+  echo "  sudo systemctl status nebula.service  # Check service status"
+  echo "  sudo systemctl disable nebula.service # Disable autostart at boot"
+  
+  return 0
+}
+
 # === Function: check nebula status ===
 check_status() {
   echo "[INFO] Checking nebula status..."
@@ -350,6 +424,10 @@ case "$1" in
   run)
     echo "[INFO] Running Nebula VPN for guest user ($CLIENT_ID)..."
     run_nebula
+    ;;    
+  autorun)
+    echo "[INFO] Setting up Nebula VPN for automatic startup for guest user ($CLIENT_ID)..."
+    setup_autorun
     ;;
   status)
     check_status
@@ -373,6 +451,7 @@ case "$1" in
     echo "Usage: guestnebula download [client_id]  # download configuration files"
     echo "       guestnebula install [client_id]   # install nebula binary"
     echo "       guestnebula run [client_id]       # run nebula in foreground"
+    echo "       guestnebula autorun [client_id]   # set up nebula to run automatically at boot via systemd"
     echo "       guestnebula status [client_id]    # check status"
     echo "       guestnebula set-token [client_id] <token>  # set client-specific token"
     echo "       guestnebula debug                 # run diagnostics to troubleshoot issues"
