@@ -57,6 +57,10 @@ Computer networking is typically divided into 5 abstract layers, each with speci
 
 
 ## 🧪 Network Discovery and Performance Testing
+All network packages used in this section are arealdy installed in the container. Run the following commands to start the default container:
+```bash
+sjsujetsontool shell
+```
 
 **Check Interfaces and IP Address**
 
@@ -146,7 +150,7 @@ hciconfig                  # View Bluetooth device configuration
 
 
 
-## 🔬 Part 4: Advanced Network Protocol Analysis
+## 🔬 Advanced Network Protocol Analysis
 
 ### 📊 Understanding Network Headers
 
@@ -223,7 +227,7 @@ ss -i
 
 ---
 
-## 🛠️ Part 5: Advanced Linux Network Tools
+## 🛠️ Advanced Linux Network Tools
 
 ### 🔍 Network Troubleshooting Arsenal
 
@@ -322,8 +326,10 @@ sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 
 
 ### 📋 Network Layer Analysis
-
 #### Task 1.1: Packet Capture and Analysis
+
+In this task, you'll learn how to capture and analyze network traffic using `tcpdump`.
+
 ```bash
 # Terminal 1 (inside the container): Start packet capture
 root@sjsujetson-01:/Developer# tcpdump -i any -w network_capture.pcap
@@ -340,6 +346,9 @@ root@sjsujetson-01:/Developer# tcpdump -r network_capture.pcap -n
 ```
 
 #### Task 1.2: Layer-by-Layer Inspection
+
+This task demonstrates how to inspect network traffic at different OSI model layers.
+
 ```bash
 # Physical layer - Wi-Fi signal (not permitted in Jetson)
 # iw dev wlP1p1s0 scan | grep -A 5 -B 5 "signal:"
@@ -354,21 +363,50 @@ traceroute 8.8.8.8 # apt install traceroute
 
 # Transport layer - TCP/UDP ports
 ss -tuln
-lsof -i #run `sudo lsof -i ` in host shows more data
+lsof -i # run `sudo lsof -i` in host for more detailed output
 
 # Application layer - HTTP headers
 curl -v http://httpbin.org/get
 ```
 
-#### Wireshark and Tshark
+### Using Wireshark and Tshark
+
+Tshark is the command-line version of Wireshark, a powerful network protocol analyzer. Follow these steps to set it up:
+
+1. Install Tshark and configure permissions:
+
 ```bash
-apt install wireshark
 apt install -y tshark
 root@sjsujetson-00:/workspace# which dumpcap
 /usr/bin/dumpcap
 root@sjsujetson-00:/workspace# setcap cap_net_raw,cap_net_admin=eip /usr/bin/dumpcap
 root@sjsujetson-00:/workspace# getcap /usr/bin/dumpcap
 /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
+```
+
+2. Capture packets using Tshark:
+
+```bash
+root@sjsujetson-00:/workspace# tshark -i wlP1p1s0
+```
+
+3. Test X11 window forwarding with a simple application:
+
+```bash
+apt install -y x11-apps
+xeyes
+```
+
+4. Install Wireshark with GUI support:
+
+```bash
+apt update
+root@sjsujetson-00:/workspace# DEBIAN_FRONTEND=noninteractive apt install -y wireshark
+```
+
+4. Run Wireshark inside the container:
+```bash
+wireshark
 ```
 
 ### 🔗 Additional Resources
