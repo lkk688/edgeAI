@@ -994,11 +994,12 @@ test_connectivity() {
     
     # Check UDP ports
     echo "[DEBUG] Checking if Nebula UDP port is open..."
-    local nebula_port=$(grep -A 5 'listen:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP ':\s*\K\d+')
+    local nebula_port=$(grep -A 5 'listen:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep 'port:' | head -1 | sed 's/.*port:[[:space:]]*//' | tr -d ' ')
     
-    if [ -z "$nebula_port" ]; then
-      echo "[WARNING] Could not determine Nebula port from config ⚠️"
+    if [ -z "$nebula_port" ] || [ "$nebula_port" = "0" ]; then
+      echo "[WARNING] Could not determine valid Nebula port from config (found: '$nebula_port') ⚠️"
       nebula_port=4242 # Default port
+      echo "[DEBUG] Using default port: $nebula_port"
     fi
     
     echo "[DEBUG] Checking UDP port $nebula_port..."
