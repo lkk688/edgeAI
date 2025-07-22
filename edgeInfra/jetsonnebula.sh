@@ -859,6 +859,81 @@ test_config_function() {
     return 0
 }
 
+# Function to run all tests
+test_all_function() {
+    echo "[INFO] Running comprehensive Nebula VPN diagnostics..."
+    echo "[INFO] This will run all test commands in sequence to provide a complete report."
+    echo "\n==================================================="
+    echo "🔍 STEP 1: Testing Token Authentication"
+    echo "==================================================="
+    
+    # Run token test but capture exit code to continue tests
+    "$0" test-token
+    local token_result=$?
+    
+    echo "\n==================================================="
+    echo "🔍 STEP 2: Testing Configuration Download"
+    echo "==================================================="
+    
+    # Run download test but capture exit code to continue tests
+    "$0" test-download
+    local download_result=$?
+    
+    echo "\n==================================================="
+    echo "🔍 STEP 3: Testing Configuration Files"
+    echo "==================================================="
+    
+    # Run config test but capture exit code to continue tests
+    "$0" test-config
+    local config_result=$?
+    
+    echo "\n==================================================="
+    echo "🔍 STEP 4: Testing Network Connectivity"
+    echo "==================================================="
+    
+    # Run connectivity test but capture exit code to continue tests
+    "$0" test-connectivity
+    local connectivity_result=$?
+    
+    # Print summary report
+    echo "\n==================================================="
+    echo "📋 DIAGNOSTIC SUMMARY REPORT"
+    echo "==================================================="
+    echo "Token Authentication:  $([ $token_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
+    echo "Configuration Download: $([ $download_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
+    echo "Configuration Files:   $([ $config_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
+    echo "Network Connectivity:  $([ $connectivity_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
+    echo "==================================================="
+    
+    # Determine overall status
+    if [ $token_result -eq 0 ] && [ $download_result -eq 0 ] && [ $config_result -eq 0 ] && [ $connectivity_result -eq 0 ]; then
+      echo "\n[SUCCESS] All tests passed! Your Nebula VPN is properly configured and working. ✅"
+      return 0
+    else
+      echo "\n[WARNING] Some tests failed. Please review the detailed output above for troubleshooting. ⚠️"
+      
+      # Provide specific recommendations based on which tests failed
+      if [ $token_result -ne 0 ]; then
+        echo "[RECOMMENDATION] Token issues detected. Try setting a new token: $0 set-token YOUR_TOKEN"
+      fi
+      
+      if [ $download_result -ne 0 ]; then
+        echo "[RECOMMENDATION] Download issues detected. Check your API server and token configuration."
+      fi
+      
+      if [ $config_result -ne 0 ]; then
+        echo "[RECOMMENDATION] Configuration issues detected. Try running: $0 update"
+      fi
+      
+      if [ $connectivity_result -ne 0 ]; then
+        echo "[RECOMMENDATION] Connectivity issues detected. Check your network and firewall settings."
+      fi
+      
+      return 1
+    fi
+}
+
+
 # === Main CLI logic ===
 
 # Call debug_paths for all commands to help with troubleshooting
@@ -1306,80 +1381,6 @@ case "$1" in
       exit 1
     fi
     ;;
-# Function to run all tests
-test_all_function() {
-    echo "[INFO] Running comprehensive Nebula VPN diagnostics..."
-    echo "[INFO] This will run all test commands in sequence to provide a complete report."
-    echo "\n==================================================="
-    echo "🔍 STEP 1: Testing Token Authentication"
-    echo "==================================================="
-    
-    # Run token test but capture exit code to continue tests
-    "$0" test-token
-    local token_result=$?
-    
-    echo "\n==================================================="
-    echo "🔍 STEP 2: Testing Configuration Download"
-    echo "==================================================="
-    
-    # Run download test but capture exit code to continue tests
-    "$0" test-download
-    local download_result=$?
-    
-    echo "\n==================================================="
-    echo "🔍 STEP 3: Testing Configuration Files"
-    echo "==================================================="
-    
-    # Run config test but capture exit code to continue tests
-    "$0" test-config
-    local config_result=$?
-    
-    echo "\n==================================================="
-    echo "🔍 STEP 4: Testing Network Connectivity"
-    echo "==================================================="
-    
-    # Run connectivity test but capture exit code to continue tests
-    "$0" test-connectivity
-    local connectivity_result=$?
-    
-    # Print summary report
-    echo "\n==================================================="
-    echo "📋 DIAGNOSTIC SUMMARY REPORT"
-    echo "==================================================="
-    echo "Token Authentication:  $([ $token_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
-    echo "Configuration Download: $([ $download_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
-    echo "Configuration Files:   $([ $config_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
-    echo "Network Connectivity:  $([ $connectivity_result -eq 0 ] && echo "✅ PASSED" || echo "❌ FAILED")"
-    echo "==================================================="
-    
-    # Determine overall status
-    if [ $token_result -eq 0 ] && [ $download_result -eq 0 ] && [ $config_result -eq 0 ] && [ $connectivity_result -eq 0 ]; then
-      echo "\n[SUCCESS] All tests passed! Your Nebula VPN is properly configured and working. ✅"
-      return 0
-    else
-      echo "\n[WARNING] Some tests failed. Please review the detailed output above for troubleshooting. ⚠️"
-      
-      # Provide specific recommendations based on which tests failed
-      if [ $token_result -ne 0 ]; then
-        echo "[RECOMMENDATION] Token issues detected. Try setting a new token: $0 set-token YOUR_TOKEN"
-      fi
-      
-      if [ $download_result -ne 0 ]; then
-        echo "[RECOMMENDATION] Download issues detected. Check your API server and token configuration."
-      fi
-      
-      if [ $config_result -ne 0 ]; then
-        echo "[RECOMMENDATION] Configuration issues detected. Try running: $0 update"
-      fi
-      
-      if [ $connectivity_result -ne 0 ]; then
-        echo "[RECOMMENDATION] Connectivity issues detected. Check your network and firewall settings."
-      fi
-      
-      return 1
-    fi
-}
-
   test-all)
     test_all_function
     exit $?
