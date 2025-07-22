@@ -859,6 +859,162 @@ test_config_function() {
     return 0
 }
 
+# Function to test Nebula VPN connectivity
+test_connectivity() {
+    echo "[INFO] Testing Nebula VPN connectivity..."
+    
+    # Check if Nebula is running
+    if ! sudo systemctl is-active --quiet nebula; then
+      echo "[ERROR] Nebula service is not running ❌"
+      echo "[INFO] Please start Nebula first: $0 restart"
+      return 1
+    fi
+    
+    echo "[STATUS] Nebula service is running ✅"
+    
+    # Get Nebula interface name and IP
+    echo "[DEBUG] Checking Nebula network interface..."
+    local nebula_interface=$(ip -o link show | grep -i nebula | awk -F': ' '{print $2}' | cut -d '@' -f 1)
+    
+    if [ -z "$nebula_interface" ]; then
+      echo "[ERROR] Nebula network interface not found ❌"
+      echo "[DEBUG] Available network interfaces:"
+      ip -o link show
+      return 1
+    fi
+    
+    echo "[STATUS] Nebula interface found: $nebula_interface ✅"
+    
+    # Get Nebula IP address
+    local nebula_ip=$(ip -o addr show dev "$nebula_interface" | grep -oP 'inet \K[\d.]+')
+    
+    if [ -z "$nebula_ip" ]; then
+      echo "[ERROR] Nebula IP address not found ❌"
+      echo "[DEBUG] Interface details:"
+      ip addr show dev "$nebula_interface"
+      return 1
+    fi
+    
+    echo "[STATUS] Nebula IP address: $nebula_ip ✅"
+    
+    # Extract lighthouse IPs from config
+    echo "[DEBUG] Checking lighthouse configuration..."
+    local lighthouse_ips=$(grep -A 10 'lighthouse:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP '\d+\.\d+\.\d+\.\d+')
+    
+    if [ -z "$lighthouse_ips" ]; then
+      echo "[ERROR] No lighthouse IPs found in config ❌"
+      echo "[DEBUG] Lighthouse section in config:"
+      grep -A 10 'lighthouse:' "$ABSOLUTE_NEBULA_DIR/config.yml"
+      return 1
+    fi
+    
+    echo "[STATUS] Lighthouse IPs found in config ✅"
+    
+    # Test connectivity to lighthouse nodes
+    echo "[INFO] Testing connectivity to lighthouse nodes..."
+    local ping_success=false
+    
+    for ip in $lighthouse_ips; do
+      echo "[DEBUG] Testing connectivity to lighthouse: $ip"
+      if ping -c 3 -W 2 -I "$nebula_interface" "$ip" > /dev/null 2>&1; then
+        echo "[STATUS] Successfully pinged lighthouse: $ip ✅"
+        ping_success=true
+      else
+        echo "[ERROR] Failed to ping lighthouse: $ip ❌"
+      fi
+    done
+    
+    # Check for other hosts in the network
+    echo "[INFO] Checking for other hosts in the Nebula network..."
+    
+    # Extract network CIDR from config
+    local network_cidr=$(grep -A 10 'tun:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP 'unsafe_routes.*\d+\.\d+\.\d+\.\d+/\d+')
+    
+    if [ -z "$network_cidr" ]; then
+      # Try alternative method to get network
+      network_cidr="${nebula_ip%.*}.0/24"
+      echo "[WARNING] Could not determine network CIDR from config, using: $network_cidr ⚠️"
+    else
+      network_cidr=$(echo "$network_cidr" | grep -oP '\d+\.\d+\.\d+\.\d+/\d+')
+      echo "[STATUS] Network CIDR from config: $network_cidr ✅"
+    fi
+    
+    # Scan for hosts (limited to 10 for performance)
+    echo "[DEBUG] Scanning for active hosts in the Nebula network (limited scan)..."
+    local active_hosts=0
+    
+    # Extract first 3 octets of IP
+    local base_ip="${nebula_ip%.*}"
+    
+    # Scan a limited range (1-20) to avoid long waits
+    for i in {1..20}; do
+      local target_ip="$base_ip.$i"
+      
+      # Skip our own IP
+      if [ "$target_ip" = "$nebula_ip" ]; then
+        continue
+      fi
+      
+      if ping -c 1 -W 1 -I "$nebula_interface" "$target_ip" > /dev/null 2>&1; then
+        echo "[STATUS] Found active host: $target_ip ✅"
+        active_hosts=$((active_hosts + 1))
+      fi
+    done
+    
+    # Check Nebula status using the binary
+    echo "[DEBUG] Checking Nebula status..."
+    if [ -x "$ABSOLUTE_NEBULA_BIN" ]; then
+      echo "[DEBUG] Nebula status output:"
+      sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml" -status
+    else
+      echo "[WARNING] Nebula binary not found or not executable, skipping status check ⚠️"
+    fi
+    
+    # Summary
+    echo "\n[SUMMARY] Connectivity Test Results:"
+    echo "[INFO] Nebula interface: $nebula_interface"
+    echo "[INFO] Nebula IP address: $nebula_ip"
+    
+    if [ "$ping_success" = "true" ]; then
+      echo "[✅] Lighthouse connectivity: SUCCESS"
+    else
+      echo "[❌] Lighthouse connectivity: FAILED"
+    fi
+    
+    if [ "$active_hosts" -gt 0 ]; then
+      echo "[✅] Other hosts found in network: $active_hosts"
+    else
+      echo "[⚠️] No other hosts found in network (this may be normal if you're the only node)"
+    fi
+    
+    # Check UDP ports
+    echo "[DEBUG] Checking if Nebula UDP port is open..."
+    local nebula_port=$(grep -A 5 'listen:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP ':\s*\K\d+')
+    
+    if [ -z "$nebula_port" ]; then
+      echo "[WARNING] Could not determine Nebula port from config ⚠️"
+      nebula_port=4242 # Default port
+    fi
+    
+    echo "[DEBUG] Checking UDP port $nebula_port..."
+    if sudo lsof -i :"$nebula_port" -P -n | grep UDP > /dev/null; then
+      echo "[STATUS] Nebula UDP port $nebula_port is open ✅"
+    else
+      echo "[ERROR] Nebula UDP port $nebula_port is not open ❌"
+      echo "[DEBUG] This may indicate a firewall issue or that Nebula is not running correctly"
+    fi
+    
+    # Final assessment
+    if [ "$ping_success" = "true" ]; then
+      echo "[SUCCESS] Nebula VPN appears to be working correctly! ✅"
+      return 0
+    else
+      echo "[WARNING] Nebula VPN may have connectivity issues ⚠️"
+      echo "[INFO] Check your firewall settings and ensure UDP port $nebula_port is open"
+      return 1
+    fi
+}
+
 # Function to run all tests
 test_all_function() {
     echo "[INFO] Running comprehensive Nebula VPN diagnostics..."
@@ -1227,159 +1383,10 @@ case "$1" in
     echo "[INFO] You can start/restart the service with: $0 restart"
     exit $?
     ;;
+
   test-connectivity)
-    echo "[INFO] Testing Nebula VPN connectivity..."
-    
-    # Check if Nebula is running
-    if ! sudo systemctl is-active --quiet nebula; then
-      echo "[ERROR] Nebula service is not running ❌"
-      echo "[INFO] Please start Nebula first: $0 restart"
-      exit 1
-    fi
-    
-    echo "[STATUS] Nebula service is running ✅"
-    
-    # Get Nebula interface name and IP
-    echo "[DEBUG] Checking Nebula network interface..."
-    local nebula_interface=$(ip -o link show | grep -i nebula | awk -F': ' '{print $2}' | cut -d '@' -f 1)
-    
-    if [ -z "$nebula_interface" ]; then
-      echo "[ERROR] Nebula network interface not found ❌"
-      echo "[DEBUG] Available network interfaces:"
-      ip -o link show
-      exit 1
-    fi
-    
-    echo "[STATUS] Nebula interface found: $nebula_interface ✅"
-    
-    # Get Nebula IP address
-    local nebula_ip=$(ip -o addr show dev "$nebula_interface" | grep -oP 'inet \K[\d.]+')
-    
-    if [ -z "$nebula_ip" ]; then
-      echo "[ERROR] Nebula IP address not found ❌"
-      echo "[DEBUG] Interface details:"
-      ip addr show dev "$nebula_interface"
-      exit 1
-    fi
-    
-    echo "[STATUS] Nebula IP address: $nebula_ip ✅"
-    
-    # Extract lighthouse IPs from config
-    echo "[DEBUG] Checking lighthouse configuration..."
-    local lighthouse_ips=$(grep -A 10 'lighthouse:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP '\d+\.\d+\.\d+\.\d+')
-    
-    if [ -z "$lighthouse_ips" ]; then
-      echo "[ERROR] No lighthouse IPs found in config ❌"
-      echo "[DEBUG] Lighthouse section in config:"
-      grep -A 10 'lighthouse:' "$ABSOLUTE_NEBULA_DIR/config.yml"
-      exit 1
-    fi
-    
-    echo "[STATUS] Lighthouse IPs found in config ✅"
-    
-    # Test connectivity to lighthouse nodes
-    echo "[INFO] Testing connectivity to lighthouse nodes..."
-    local ping_success=false
-    
-    for ip in $lighthouse_ips; do
-      echo "[DEBUG] Testing connectivity to lighthouse: $ip"
-      if ping -c 3 -W 2 -I "$nebula_interface" "$ip" > /dev/null 2>&1; then
-        echo "[STATUS] Successfully pinged lighthouse: $ip ✅"
-        ping_success=true
-      else
-        echo "[ERROR] Failed to ping lighthouse: $ip ❌"
-      fi
-    done
-    
-    # Check for other hosts in the network
-    echo "[INFO] Checking for other hosts in the Nebula network..."
-    
-    # Extract network CIDR from config
-    local network_cidr=$(grep -A 10 'tun:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP 'unsafe_routes.*\d+\.\d+\.\d+\.\d+/\d+')
-    
-    if [ -z "$network_cidr" ]; then
-      # Try alternative method to get network
-      network_cidr="${nebula_ip%.*}.0/24"
-      echo "[WARNING] Could not determine network CIDR from config, using: $network_cidr ⚠️"
-    else
-      network_cidr=$(echo "$network_cidr" | grep -oP '\d+\.\d+\.\d+\.\d+/\d+')
-      echo "[STATUS] Network CIDR from config: $network_cidr ✅"
-    fi
-    
-    # Scan for hosts (limited to 10 for performance)
-    echo "[DEBUG] Scanning for active hosts in the Nebula network (limited scan)..."
-    local active_hosts=0
-    
-    # Extract first 3 octets of IP
-    local base_ip="${nebula_ip%.*}"
-    
-    # Scan a limited range (1-20) to avoid long waits
-    for i in {1..20}; do
-      local target_ip="$base_ip.$i"
-      
-      # Skip our own IP
-      if [ "$target_ip" = "$nebula_ip" ]; then
-        continue
-      fi
-      
-      if ping -c 1 -W 1 -I "$nebula_interface" "$target_ip" > /dev/null 2>&1; then
-        echo "[STATUS] Found active host: $target_ip ✅"
-        active_hosts=$((active_hosts + 1))
-      fi
-    done
-    
-    # Check Nebula status using the binary
-    echo "[DEBUG] Checking Nebula status..."
-    if [ -x "$ABSOLUTE_NEBULA_BIN" ]; then
-      echo "[DEBUG] Nebula status output:"
-      sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml" -status
-    else
-      echo "[WARNING] Nebula binary not found or not executable, skipping status check ⚠️"
-    fi
-    
-    # Summary
-    echo "\n[SUMMARY] Connectivity Test Results:"
-    echo "[INFO] Nebula interface: $nebula_interface"
-    echo "[INFO] Nebula IP address: $nebula_ip"
-    
-    if [ "$ping_success" = "true" ]; then
-      echo "[✅] Lighthouse connectivity: SUCCESS"
-    else
-      echo "[❌] Lighthouse connectivity: FAILED"
-    fi
-    
-    if [ "$active_hosts" -gt 0 ]; then
-      echo "[✅] Other hosts found in network: $active_hosts"
-    else
-      echo "[⚠️] No other hosts found in network (this may be normal if you're the only node)"
-    fi
-    
-    # Check UDP ports
-    echo "[DEBUG] Checking if Nebula UDP port is open..."
-    local nebula_port=$(grep -A 5 'listen:' "$ABSOLUTE_NEBULA_DIR/config.yml" | grep -oP ':\s*\K\d+')
-    
-    if [ -z "$nebula_port" ]; then
-      echo "[WARNING] Could not determine Nebula port from config ⚠️"
-      nebula_port=4242 # Default port
-    fi
-    
-    echo "[DEBUG] Checking UDP port $nebula_port..."
-    if sudo lsof -i :"$nebula_port" -P -n | grep UDP > /dev/null; then
-      echo "[STATUS] Nebula UDP port $nebula_port is open ✅"
-    else
-      echo "[ERROR] Nebula UDP port $nebula_port is not open ❌"
-      echo "[DEBUG] This may indicate a firewall issue or that Nebula is not running correctly"
-    fi
-    
-    # Final assessment
-    if [ "$ping_success" = "true" ]; then
-      echo "[SUCCESS] Nebula VPN appears to be working correctly! ✅"
-      exit 0
-    else
-      echo "[WARNING] Nebula VPN may have connectivity issues ⚠️"
-      echo "[INFO] Check your firewall settings and ensure UDP port $nebula_port is open"
-      exit 1
-    fi
+    test_connectivity
+    exit $?
     ;;
   test-all)
     test_all_function
