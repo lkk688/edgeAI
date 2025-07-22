@@ -29,19 +29,6 @@ Transformers are a type of deep learning model designed to handle sequential dat
 
 While large LLMs require quantization, many HuggingFace models (BERT, DistilBERT, TinyGPT) can run on Jetson using PyTorch + Transformers with ONNX export or quantized alternatives.
 
-<!-- ### ✅ Setup in PyTorch Container
-
-```bash
-docker run --rm -it --runtime nvidia \
-  -v $(pwd):/workspace \
-  nvcr.io/nvidia/pytorch:24.04-py3
-```
-
-Inside the container:
-
-```bash
-pip install transformers accelerate torch onnx optimum[onnxruntime-gpu]
-``` -->
 
 ### 🚀 Basic vs Accelerated Inference
 

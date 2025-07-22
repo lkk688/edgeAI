@@ -66,6 +66,7 @@ INFO    -  Your documentation should shortly be available at:
 
 ### 🤖 AI & LLM
 
+* [🧠 Deep Learning & CNN](curriculum/04_deeplearning_cnn.md)
 * [🧠 Transformers & NLP Applications](curriculum/05_transformers_nlp_applications.md)
 * [🚀 Large Language Models on Jetson](curriculum/06_llms_jetson.md)
 * [📚 NLP Applications & LLM Optimization](curriculum/07_nlp_applications_llm_optimization.md)

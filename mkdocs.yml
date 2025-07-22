@@ -30,6 +30,7 @@ nav:
   - 🐧 Linux Fundamentals:
       - 💡 Linux OS Basics: curriculum/02a_linux_basics.md
       - 🌐 Linux Networking Tools: curriculum/03a_linux_networking_tools.md
+      # - 🔗 Nebula Overlay Network Guide: nebula_overlay_network_guide.md
   - 🤖 AI & LLM:
       - 🧠 Transformers & NLP Applications: curriculum/05_transformers_nlp_applications.md
       - 🚀 Large Language Models on Jetson: curriculum/06_llms_jetson.md

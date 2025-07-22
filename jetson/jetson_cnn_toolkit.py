@@ -26,7 +26,6 @@ Usage:
     # Benchmark performance
     python jetson_cnn_toolkit.py --mode benchmark --model all --dataset cifar10
 
-Author: Jetson AI Team
 Version: 1.0.0
 """
 
@@ -35,7 +34,8 @@ import os
 import time
 import json
 import logging
-from typing import Dict, List, Tuple, Optional, Any
+import subprocess
+from typing import Dict, List, Tuple, Optional #, Any, Union, cast, Number
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -52,7 +52,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 import psutil
-import GPUtil
+
+# Performance monitoring has been moved to edgeLLM.utils.performance_monitor
 
 # Optional TensorRT imports
 try:
@@ -68,6 +69,14 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Import system monitoring utilities
+import sys
+from pathlib import Path
+
+# Add parent directory to path to import edgeLLM utils
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+from edgeLLM.utils.performance_monitor import PerformanceMonitor
+
 @dataclass
 class BenchmarkResult:
     """Data class for storing benchmark results"""
@@ -81,56 +90,7 @@ class BenchmarkResult:
     gpu_utilization: float
     power_consumption_w: Optional[float] = None
 
-class PerformanceMonitor:
-    """Monitor system performance during inference"""
-    
-    def __init__(self):
-        self.start_time = None
-        self.end_time = None
-        self.start_memory = None
-        self.end_memory = None
-        self.gpu_stats = []
-        
-    def start_monitoring(self):
-        """Start performance monitoring"""
-        self.start_time = time.time()
-        self.start_memory = psutil.virtual_memory().used / 1024 / 1024  # MB
-        
-        # GPU monitoring if available
-        try:
-            gpus = GPUtil.getGPUs()
-            if gpus:
-                self.gpu_stats.append({
-                    'memory_used': gpus[0].memoryUsed,
-                    'memory_total': gpus[0].memoryTotal,
-                    'utilization': gpus[0].load * 100
-                })
-        except:
-            pass
-            
-    def stop_monitoring(self) -> Dict[str, float]:
-        """Stop monitoring and return results"""
-        self.end_time = time.time()
-        self.end_memory = psutil.virtual_memory().used / 1024 / 1024  # MB
-        
-        # Final GPU stats
-        try:
-            gpus = GPUtil.getGPUs()
-            if gpus:
-                self.gpu_stats.append({
-                    'memory_used': gpus[0].memoryUsed,
-                    'memory_total': gpus[0].memoryTotal,
-                    'utilization': gpus[0].load * 100
-                })
-        except:
-            pass
-            
-        return {
-            'execution_time': self.end_time - self.start_time,
-            'memory_delta': self.end_memory - self.start_memory,
-            'gpu_utilization': np.mean([stat['utilization'] for stat in self.gpu_stats]) if self.gpu_stats else 0,
-            'gpu_memory_used': self.gpu_stats[-1]['memory_used'] if self.gpu_stats else 0
-        }
+# PerformanceMonitor class has been moved to edgeLLM.utils.performance_monitor
 
 # ============================================================================
 # CNN ARCHITECTURES
@@ -634,14 +594,20 @@ class InferenceEngine:
         
         # Load and preprocess image
         image = Image.open(image_path).convert('RGB')
-        image_tensor = transform(image).unsqueeze(0).to(self.device)
+        # Transform the PIL image to tensor first, then add batch dimension
+        # PIL Image doesn't have unsqueeze method, only tensors do
+        image_tensor = transform(image)  # This transforms PIL Image to tensor
+        # Add batch dimension (unsqueeze) and move to device
+        image_tensor = image_tensor.unsqueeze(0).to(self.device)
         
         # Inference
         with torch.no_grad():
             output = self.model(image_tensor)
             probabilities = F.softmax(output, dim=1)
-            predicted_class = torch.argmax(probabilities, dim=1).item()
-            confidence = probabilities[0][predicted_class].item()
+            # Get predicted class as an integer
+            predicted_class = int(torch.argmax(probabilities, dim=1).item())
+            # Use integer indexing for tensor
+            confidence = float(probabilities[0, predicted_class].item())
         
         return predicted_class, confidence
     
@@ -733,7 +699,16 @@ class TensorRTOptimizer:
         logger.info(f"Optimizing model with TensorRT (precision: {precision})")
         
         # Export to ONNX first
-        dummy_input = torch.randn(1, *input_shape).cuda()
+        # Create a tuple from input_shape to ensure proper unpacking
+        input_shape_tuple = tuple(input_shape) if isinstance(input_shape, (list, tuple)) else (input_shape,)
+        # Create dummy input with proper dimensions
+        if isinstance(input_shape_tuple[0], int):
+            # If input_shape_tuple contains integers, use it directly
+            dummy_input = torch.randn(1, *input_shape_tuple).cuda()
+        else:
+            # If input_shape_tuple contains a nested tuple/list, extract the values
+            flattened_shape = [item for sublist in input_shape_tuple for item in (sublist if isinstance(sublist, (list, tuple)) else [sublist])]
+            dummy_input = torch.randn(1, *flattened_shape).cuda()
         onnx_path = "temp_model.onnx"
         
         torch.onnx.export(
