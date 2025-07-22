@@ -90,26 +90,90 @@ hf  mistral.gguf  qwen.gguf
 #Download the model, if needed
 /models$ wget https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf -O mistral.gguf
 ```
-Enter into the llama.cpp directory, perform the build. There are two build folders there, i.e., `build` and `build_cuda`
-```bash
-root@sjsujetson-02:/models# cd /Developer/llama.cpp
-root@sjsujetson-02:/Developer/llama.cpp# rm -r build_cuda/
-root@sjsujetson-02:/Developer/llama.cpp# cmake -B build_cuda -DGGML_CUDA=ON
-
-root@sjsujetson-02:/Developer/llama.cpp# ls build_cuda/bin/ #contains all the executable files
-```
 
 llama.cpp requires the model to be stored in the [GGUF](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md) file format. `llama-cli` is a CLI tool for accessing and experimenting with most of llama.cpp's functionality. Run in conversation mode: `llama-cli -m model.gguf` or add custom chat template: `llama-cli -m model.gguf -cnv --chat-template chatml`
 
-Run a local downloaded model:
+Run a local downloaded model (`llama-cli` is already added in the path of the container):
 ```bash
-root@sjsujetson-01:/workspace/llama.cpp# ./build_cuda/bin/llama-cli -m ../models/mistral.gguf -p "Explain what is Nvidia jetson"
+root@sjsujetson-00:/workspace# llama-cli -m /models/mistral.gguf -p "Explain what is Nvidia jetson"
 ....
-llama_perf_sampler_print:    sampling time =      34.98 ms /   532 runs   (    0.07 ms per token, 15210.86 tokens per second)
-llama_perf_context_print:        load time =    3498.72 ms
-llama_perf_context_print: prompt eval time =    2193.93 ms /    17 tokens (  129.05 ms per token,     7.75 tokens per second)
-llama_perf_context_print:        eval time =   84805.65 ms /   514 runs   (  164.99 ms per token,     6.06 tokens per second)
-llama_perf_context_print:       total time =   92930.78 ms /   531 tokens
+llama_perf_sampler_print:    sampling time =      11.06 ms /   185 runs   (    0.06 ms per token, 16731.48 tokens per second)
+llama_perf_context_print:        load time =    1082.38 ms
+llama_perf_context_print: prompt eval time =    2198.32 ms /    17 tokens (  129.31 ms per token,     7.73 tokens per second)
+llama_perf_context_print:        eval time =   27024.20 ms /   167 runs   (  161.82 ms per token,     6.18 tokens per second)
+llama_perf_context_print:       total time =   70364.22 ms /   184 tokens
+```
+
+
+`llama-server` is a lightweight, OpenAI API compatible, HTTP server for serving LLMs. Start a local HTTP server with default configuration on port 8080: `llama-server -m model.gguf --port 8080`, Basic web UI can be accessed via browser: `http://localhost:8080`. Chat completion endpoint: `http://localhost:8080/v1/chat/completions`
+```bash
+root@sjsujetson-00:/workspace# llama-server -m models/mistral.gguf --port 8080
+ggml_cuda_init: GGML_CUDA_FORCE_MMQ:    no
+ggml_cuda_init: GGML_CUDA_FORCE_CUBLAS: no
+ggml_cuda_init: found 1 CUDA devices:
+  Device 0: Orin, compute capability 8.7, VMM: yes
+build: 5752 (62af4642) with cc (Ubuntu 13.2.0-23ubuntu4) 13.2.0 for aarch64-linux-gnu
+system info: n_threads = 6, n_threads_batch = 6, total_threads = 6
+
+system_info: n_threads = 6 (n_threads_batch = 6) / 6 | CUDA : ARCHS = 870 | USE_GRAPHS = 1 | PEER_MAX_BATCH_SIZE = 128 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+.....
+```
+
+Send request via curl in another terminal (in the host machine or container):
+```bash
+sjsujetson@sjsujetson-01:~$ curl http://localhost:8080/completion -d '{
+  "prompt": "Explain what is Nvidia jetson?",
+  "n_predict": 100
+}'
+```
+
+By default, llama-server listens only on 127.0.0.1 (localhost), which blocks external access. To enable external access, you need to bind to 0.0.0.0 (This tells it to accept connections from any IP address.):
+```bash
+llama-server -m ../models/mistral.gguf --port 8080 --host 0.0.0.0
+```
+If your Jetson device has ufw (Uncomplicated Firewall) or iptables enabled, open port 8080:
+```bash
+sudo ufw allow 8080/tcp
+```
+`llama-server` command is also integrated with `sjsujetsontool`, you can quickly start llama server via:
+```bash
+sjsujetsontool llama #it will launch llama server on port 8000
+```
+
+# llama cpp Python
+[llama-cpp-python](https://github.com/abetlen/llama-cpp-python) is a Python library that provides bindings for llama.cpp. It provides 
+- Low-level access to C API via ctypes interface.
+- High-level Python API for text completion
+    - OpenAI-like API
+    - LangChain compatibility
+    - LlamaIndex compatibility
+- OpenAI compatible web server
+    - Local Copilot replacement
+    - Function Calling support
+    - Vision API support
+    - Multiple Models
+
+All llama.cpp cmake build options can be set via the CMAKE_ARGS environment variable or via the --config-settings / -C cli flag during installation. llama-cpp-python cuda backend is already build and installed inside our container. 
+```bash
+root@sjsujetson-00:/workspace# python 
+Python 3.12.3 (main, Nov  6 2024, 18:32:19) [GCC 13.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from llama_cpp import Llama
+```
+
+Run the test llama cpp python code:
+```bash
+root@sjsujetson-01:/Developer/edgeAI# python edgeLLM/llama_cpp_pythontest.py
+....
+Available chat formats from metadata: chat_template.default
+Guessed chat format: mistral-instruct
+llama_perf_context_print:        load time =    1874.08 ms
+llama_perf_context_print: prompt eval time =    1873.02 ms /    11 tokens (  170.27 ms per token,     5.87 tokens per second)
+llama_perf_context_print:        eval time =   25315.11 ms /   127 runs   (  199.33 ms per token,     5.02 tokens per second)
+llama_perf_context_print:       total time =   27284.54 ms /   138 tokens
+🕒 Inference time: 27.29 seconds
+🔢 Tokens generated: 128
+⚡ Tokens/sec: 4.69
 ```
 
 **Optimal Settings by Device** (from unified_llm_demo.py):
@@ -138,7 +202,7 @@ n_gpu_layers=0, n_threads=8, n_batch=256, n_ctx=2048
 - ✅ x86 CPUs
 - ✅ Apple Silicon (native ARM build)
 
-**Installation**:
+<!-- **Installation**:
 ```bash
 # macOS and Linux
 curl -fsSL https://ollama.ai/install.sh | sh
@@ -147,7 +211,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 git clone https://github.com/ollama/ollama
 cd ollama
 go build
-```
+``` -->
 
 **API Endpoint**: http://localhost:11434/api/generate
 
@@ -389,78 +453,6 @@ For Jetson devices, the Q4_K_M format typically offers the best balance of quali
 
 ---
 
-## 🧪 Lab: Run a Transformer Model with `llama.cpp`
-
-### 🎯 Objective
-
-Run a quantized transformer (e.g., Mistral) using `llama.cpp` with GPU acceleration.
-
-### ✅ Setup
-
-```bash
-git clone https://github.com/ggerganov/llama.cpp
-cd llama.cpp
-mkdir build && cd build
-cmake .. -DLLAMA_CUDA=on
-make -j
-```
-
-### 📥 Download GGUF Model
-
-```bash
-curl -L -o models/mistral.gguf https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_K_M.gguf
-```
-
-### 🚀 Run Inference
-
-```bash
-./main -m models/mistral.gguf -p "What is Jetson Orin Nano?"
-```
-
----
-
-## 🧪 Lab: Use Ollama for REST API-based Inference
-
-### ✅ Setup Ollama (inside Docker or local)
-
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-ollama run mistral
-```
-
-### 🛠️ REST API Call (Python)
-
-```python
-import requests
-response = requests.post("http://localhost:11434/api/generate", json={
-    "model": "mistral",
-    "prompt": "What is edge AI?",
-    "stream": False
-})
-print(response.json()["response"])
-```
-
----
-
-## 🧪 Lab: Use llama-cpp-python for Local GPU Inference
-
-### ✅ Install Python bindings
-
-```bash
-CMAKE_ARGS="-DLLAMA_CUDA=on" pip install llama-cpp-python --no-binary llama-cpp-python
-```
-
-### 🧠 Inference with Python
-
-```python
-from llama_cpp import Llama
-llm = Llama(model_path="models/mistral.gguf", n_gpu_layers=100)
-print(llm("Explain transformers in 3 sentences."))
-```
-
----
-
-## 🔧 Troubleshooting & Best Practices
 
 ### ⚠️ Common Issues and Solutions
 
@@ -736,33 +728,3 @@ benchmark.benchmark_task("Text Generation", generation_task, test_prompts)
 # Generate report
 benchmark.generate_report()
 ```
-
----
-
-## 📋 Lab Deliverables
-
-### 🎯 Required Deliverables
-
-1. **Performance Analysis Report**:
-   - Comparison of basic vs accelerated inference
-   - Memory usage analysis
-   - Throughput measurements (tokens/second)
-   - Latency analysis for different batch sizes
-
-2. **Implementation Portfolio**:
-   - Working code for all optimization techniques
-   - Error handling and fallback strategies
-   - Memory monitoring integration
-   - Performance visualization dashboard
-
-3. **Optimization Documentation**:
-   - Identified bottlenecks and solutions
-   - Jetson-specific configuration recommendations
-   - Trade-off analysis (speed vs accuracy vs memory)
-
-4. **Benchmark Results**:
-   - Systematic performance comparison
-   - Resource utilization metrics
-   - Scalability analysis
-
-

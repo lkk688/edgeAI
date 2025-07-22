@@ -256,8 +256,8 @@ run_nebula() {
   echo "-------------------------------------------"
   
   # Change to the nebula-config directory
-  echo "[DEBUG] Changing to directory: $(dirname "$0")/nebula-config"
-  cd "$(dirname "$0")/nebula-config"
+  echo "[DEBUG] Changing to directory: $ABSOLUTE_NEBULA_DIR"
+  cd "$ABSOLUTE_NEBULA_DIR"
   
   # Check if we're running as root
   if [ "$(id -u)" -ne 0 ]; then

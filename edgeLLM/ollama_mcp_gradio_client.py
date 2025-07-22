@@ -49,8 +49,19 @@ HAS_NVIDIA_GPU = platform_info["has_nvidia_gpu"]
 system_info = system_monitor.start_monitoring()
 
 # Global event loop for async operations
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
+def get_or_create_event_loop():
+    """Get existing event loop or create a new one"""
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("Event loop is closed")
+        return loop
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop
+
+loop = get_or_create_event_loop()
 
 class OllamaMCPClient:
     """MCP Client wrapper for Ollama integration"""
@@ -65,12 +76,44 @@ class OllamaMCPClient:
         """Connect to an MCP server"""
         if not MCP_AVAILABLE:
             return "MCP not available. Please install with: pip install mcp"
+        
+        try:
+            # Get or create a fresh event loop
+            current_loop = get_or_create_event_loop()
             
-        return loop.run_until_complete(self._connect_async(server_path))
+            # Run the async connection
+            if current_loop.is_running():
+                # If loop is already running (e.g., in Gradio), use asyncio.create_task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self._connect_async(server_path))
+                    return future.result(timeout=30)
+            else:
+                # If loop is not running, use run_until_complete
+                return current_loop.run_until_complete(self._connect_async(server_path))
+                
+        except Exception as e:
+            return f"❌ Connection error: {str(e)}\nError type: {type(e).__name__}"
     
     async def _connect_async(self, server_path: str) -> str:
-        """Async connection to MCP server"""
+        """Async connection to MCP server with improved error handling"""
         try:
+            # Validate server path
+            if not server_path.strip():
+                return "❌ Please provide a server path"
+            
+            # Convert to absolute path and check existence
+            abs_server_path = os.path.abspath(server_path.strip())
+            if not os.path.exists(abs_server_path):
+                return f"❌ Server file not found: {abs_server_path}"
+            
+            # Make file executable if it's not
+            if not os.access(abs_server_path, os.X_OK):
+                try:
+                    os.chmod(abs_server_path, 0o755)
+                except Exception as e:
+                    return f"❌ Cannot make server executable: {str(e)}"
+            
             if self.exit_stack:
                 await self.exit_stack.aclose()
             
@@ -81,8 +124,12 @@ class OllamaMCPClient:
             
             server_params = StdioServerParameters(
                 command=command,
-                args=[server_path],
-                env={"PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+                args=[abs_server_path],
+                env={
+                    "PYTHONIOENCODING": "utf-8", 
+                    "PYTHONUNBUFFERED": "1",
+                    "PATH": os.environ.get("PATH", "")
+                }
             )
             
             stdio_transport = await self.exit_stack.enter_async_context(
@@ -104,13 +151,21 @@ class OllamaMCPClient:
             
             self.connected_servers.append(server_path)
             tool_names = [tool["name"] for tool in self.tools]
-            return f"✅ Connected to MCP server: {server_path}\nAvailable tools: {', '.join(tool_names)}"
+            return f"✅ Connected to MCP server: {abs_server_path}\nAvailable tools ({len(self.tools)}): {', '.join(tool_names)}"
             
+        except FileNotFoundError as e:
+            return f"❌ Server file not found: {str(e)}"
+        except PermissionError as e:
+            return f"❌ Permission denied: {str(e)}"
         except Exception as e:
-            return f"❌ Failed to connect to MCP server: {str(e)}"
+            return f"❌ Failed to connect to MCP server: {str(e)}\nError type: {type(e).__name__}"
     
     def get_available_tools(self) -> List[Dict[str, Any]]:
         """Get list of available MCP tools"""
+        return self.tools
+    
+    def list_tools(self) -> List[Dict[str, Any]]:
+        """Get list of available MCP tools (alias for get_available_tools)"""
         return self.tools
     
     async def call_tool_async(self, tool_name: str, arguments: Dict[str, Any]) -> str:
@@ -120,13 +175,53 @@ class OllamaMCPClient:
             
         try:
             result = await self.session.call_tool(tool_name, arguments)
-            return json.dumps(result.content, indent=2)
+            
+            # Handle different MCP content types properly
+            if hasattr(result.content, '__iter__') and not isinstance(result.content, str):
+                # Extract content from different MCP content types
+                text_parts = []
+                for item in result.content:
+                    # Handle TextContent
+                    if hasattr(item, 'text'):
+                        text_parts.append(item.text)
+                    # Handle ImageContent
+                    elif hasattr(item, 'data') and hasattr(item, 'mimeType'):
+                        text_parts.append(f"[Image: {getattr(item, 'mimeType', 'unknown')}]")
+                    # Handle AudioContent
+                    elif hasattr(item, 'data') and hasattr(item, 'format'):
+                        text_parts.append(f"[Audio: {getattr(item, 'format', 'unknown')}]")
+                    # Handle ResourceLink
+                    elif hasattr(item, 'uri'):
+                        text_parts.append(f"[Resource: {getattr(item, 'uri', 'unknown')}]")
+                    # Handle EmbeddedResource
+                    elif hasattr(item, 'resource'):
+                        text_parts.append(f"[Embedded Resource: {getattr(item, 'type', 'unknown')}]")
+                    # Fallback for unknown types
+                    else:
+                        text_parts.append(str(item))
+                return "\n".join(text_parts)
+            else:
+                # Handle direct string content
+                return str(result.content)
+                
         except Exception as e:
             return f"Error calling tool {tool_name}: {str(e)}"
     
     def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> str:
         """Call an MCP tool synchronously"""
-        return loop.run_until_complete(self.call_tool_async(tool_name, arguments))
+        try:
+            current_loop = get_or_create_event_loop()
+            
+            if current_loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.call_tool_async(tool_name, arguments))
+                    return future.result(timeout=30)
+            else:
+                return current_loop.run_until_complete(self.call_tool_async(tool_name, arguments))
+                
+        except Exception as e:
+            return f"❌ Tool call error: {str(e)}\nError type: {type(e).__name__}"
 
 # Global MCP client instance
 mcp_client = OllamaMCPClient()
@@ -274,7 +369,7 @@ def get_mcp_tools_info() -> str:
     return info
 
 # Create Gradio interface
-with gr.Blocks(title="Ollama MCP Client", theme=gr.themes.Soft(primary_hue="blue")) as demo:
+with gr.Blocks(title="Ollama MCP Client") as demo:
     platform_name = system_monitor.get_platform_name()
     
     gr.Markdown(f"# 🤖 Ollama MCP Client ({platform_name})")
@@ -329,10 +424,12 @@ with gr.Blocks(title="Ollama MCP Client", theme=gr.themes.Soft(primary_hue="blue
         with gr.Column(scale=2):
             # MCP Server Connection
             gr.Markdown("### MCP Server Connection")
+            gr.Markdown("💡 **Quick Start**: Enter `./simple_mcp_server.py` to connect to the built-in server")
             with gr.Row():
                 server_path_input = gr.Textbox(
                     label="Server Path",
-                    placeholder="path/to/mcp_server.py",
+                    placeholder="./simple_mcp_server.py",
+                    value="./simple_mcp_server.py",
                     scale=3
                 )
                 connect_btn = gr.Button("Connect", scale=1)

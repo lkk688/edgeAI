@@ -313,7 +313,7 @@ case "$1" in
     ;;
   llama)
     echo "🧠 Launching llama.cpp server inside container (port 8000)..."
-    eval "$CONTAINER_CMD /Developer/llama.cpp/build_cuda/bin/llama-server -m /models/mistral.gguf --host 0.0.0.0 --port 8000"
+    eval "$CONTAINER_CMD llama-server -m /models/mistral.gguf --host 0.0.0.0 --port 8000"
     ;;
   gradio)
     ensure_container_started

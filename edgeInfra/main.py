@@ -1079,6 +1079,10 @@ if __name__ == "__main__":
 # SECURITY CONSIDERATIONS
 # ============================================================================
 
+#root@cmpe-jetson:/Developer/edgeAI/edgeInfra# uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+#another machine:
+#root@sjsujetson-00:/Developer# curl -H 'Authorization: Bearer jetsonsupertoken' http://lkk688.duckdns.org:8000/nebula/guest01/config.yml
+
 # TODO: Production security improvements:
 # 1. Move VALID_TOKENS to environment variables or secure key management
 # 2. Implement rate limiting (e.g., slowapi)
