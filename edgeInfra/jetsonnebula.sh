@@ -947,14 +947,15 @@ case "$1" in
       exit 1
     fi
     ;;
-  test-config)
+# Function to test Nebula configuration
+test_config_function() {
     echo "[INFO] Testing Nebula configuration files..."
     
     # Check if Nebula directory exists
     if [ ! -d "$ABSOLUTE_NEBULA_DIR" ]; then
       echo "[ERROR] Nebula configuration directory not found: $ABSOLUTE_NEBULA_DIR"
       echo "[INFO] Please run installation first: $0 install"
-      exit 1
+      return 1
     fi
     
     echo "[DEBUG] Checking configuration files in: $ABSOLUTE_NEBULA_DIR"
@@ -975,7 +976,7 @@ case "$1" in
     if [ "$missing_files" = "true" ]; then
       echo "[ERROR] Some required configuration files are missing ❌"
       echo "[INFO] You may need to run: $0 update"
-      exit 1
+      return 1
     fi
     
     # Validate certificate files
@@ -985,7 +986,7 @@ case "$1" in
     echo "[DEBUG] Checking client certificate: $ABSOLUTE_NEBULA_DIR/$nodename.crt"
     if ! openssl x509 -in "$ABSOLUTE_NEBULA_DIR/$nodename.crt" -noout 2>/dev/null; then
       echo "[ERROR] Invalid client certificate: $ABSOLUTE_NEBULA_DIR/$nodename.crt ❌"
-      exit 1
+      return 1
     else
       echo "[STATUS] Client certificate is valid ✅"
       echo "[DEBUG] Certificate details:"
@@ -996,7 +997,7 @@ case "$1" in
     echo "[DEBUG] Checking CA certificate: $ABSOLUTE_NEBULA_DIR/ca.crt"
     if ! openssl x509 -in "$ABSOLUTE_NEBULA_DIR/ca.crt" -noout 2>/dev/null; then
       echo "[ERROR] Invalid CA certificate: $ABSOLUTE_NEBULA_DIR/ca.crt ❌"
-      exit 1
+      return 1
     else
       echo "[STATUS] CA certificate is valid ✅"
       echo "[DEBUG] CA certificate details:"
@@ -1007,7 +1008,7 @@ case "$1" in
     echo "[DEBUG] Checking private key: $ABSOLUTE_NEBULA_DIR/$nodename.key"
     if ! openssl rsa -in "$ABSOLUTE_NEBULA_DIR/$nodename.key" -check -noout 2>/dev/null; then
       echo "[ERROR] Invalid private key: $ABSOLUTE_NEBULA_DIR/$nodename.key ❌"
-      exit 1
+      return 1
     else
       echo "[STATUS] Private key is valid ✅"
     fi
@@ -1023,7 +1024,7 @@ case "$1" in
       echo "[ERROR] Certificate and key do not match ❌"
       echo "[DEBUG] Certificate modulus: $cert_modulus"
       echo "[DEBUG] Key modulus: $key_modulus"
-      exit 1
+      return 1
     fi
     
     # Verify certificate is signed by CA
@@ -1034,14 +1035,14 @@ case "$1" in
       echo "[ERROR] Certificate is NOT signed by the provided CA ❌"
       echo "[DEBUG] Verification output:"
       openssl verify -CAfile "$ABSOLUTE_NEBULA_DIR/ca.crt" "$ABSOLUTE_NEBULA_DIR/$nodename.crt"
-      exit 1
+      return 1
     fi
     
     # Check config.yml
     echo "[DEBUG] Checking config.yml..."
     if [ ! -s "$ABSOLUTE_NEBULA_DIR/config.yml" ]; then
       echo "[ERROR] config.yml is empty ❌"
-      exit 1
+      return 1
     fi
     
     # Check if config.yml has required sections
@@ -1059,13 +1060,13 @@ case "$1" in
     
     if [ "$missing_sections" = "true" ]; then
       echo "[ERROR] Some required sections are missing in config.yml ❌"
-      exit 1
+      return 1
     fi
     
     # Check if Nebula binary exists and is executable
     if [ ! -x "$ABSOLUTE_NEBULA_BIN" ]; then
       echo "[ERROR] Nebula binary not found or not executable: $ABSOLUTE_NEBULA_BIN ❌"
-      exit 1
+      return 1
     else
       echo "[STATUS] Nebula binary is available and executable ✅"
       echo "[DEBUG] Nebula version:"
@@ -1078,13 +1079,19 @@ case "$1" in
       echo "[SUCCESS] Nebula configuration test passed ✅"
     else
       echo "[ERROR] Nebula configuration test failed ❌"
-      exit 1
+      return 1
     fi
     
     echo "[SUCCESS] All configuration tests passed! ✅"
     echo "[INFO] Your Nebula configuration appears to be valid and complete."
+    
+    return 0
+}
+
+  test-config)
+    test_config_function
     echo "[INFO] You can start/restart the service with: $0 restart"
-    exit 0
+    exit $?
     ;;
   test-connectivity)
     echo "[INFO] Testing Nebula VPN connectivity..."
@@ -1240,7 +1247,8 @@ case "$1" in
       exit 1
     fi
     ;;
-  test-all)
+# Function to run all tests
+test_all_function() {
     echo "[INFO] Running comprehensive Nebula VPN diagnostics..."
     echo "[INFO] This will run all test commands in sequence to provide a complete report."
     echo "\n==================================================="
@@ -1288,7 +1296,7 @@ case "$1" in
     # Determine overall status
     if [ $token_result -eq 0 ] && [ $download_result -eq 0 ] && [ $config_result -eq 0 ] && [ $connectivity_result -eq 0 ]; then
       echo "\n[SUCCESS] All tests passed! Your Nebula VPN is properly configured and working. ✅"
-      exit 0
+      return 0
     else
       echo "\n[WARNING] Some tests failed. Please review the detailed output above for troubleshooting. ⚠️"
       
@@ -1309,8 +1317,13 @@ case "$1" in
         echo "[RECOMMENDATION] Connectivity issues detected. Check your network and firewall settings."
       fi
       
-      exit 1
+      return 1
     fi
+}
+
+  test-all)
+    test_all_function
+    exit $?
     ;;
   restart)
     echo "[INFO] Restarting Nebula VPN service..."
