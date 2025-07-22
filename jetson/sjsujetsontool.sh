@@ -41,6 +41,45 @@ if [[ -n "$TENSORRT_VERSION" ]]; then
   echo "🧠 TensorRT Version: $TENSORRT_VERSION"
 fi
 
+# Function to show a spinner during long-running operations
+show_spinner() {
+  local PID=$1
+  local MESSAGE="$2"
+  local CHARS="⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+  
+  while kill -0 $PID 2>/dev/null; do
+    for (( i=0; i<${#CHARS}; i++ )); do
+      echo -ne "\r${CHARS:$i:1} $MESSAGE"
+      sleep 0.2
+    done
+  done
+  
+  # Clear the spinner line
+  echo -ne "\r                                                  \r"
+}
+
+# Function to pull Docker image with progress indicator
+pull_with_progress() {
+  local IMAGE="$1"
+  local MESSAGE="${2:-Downloading... Please wait}"
+  
+  # Start the pull in background
+  docker pull $IMAGE &
+  local PID=$!
+  
+  # Show spinner while pulling
+  show_spinner $PID "$MESSAGE"
+  
+  # Check if pull was successful
+  wait $PID
+  if [ $? -eq 0 ]; then
+    echo "✅ Image downloaded successfully."
+    return 0
+  else
+    echo "❌ Failed to download image. Please check your network connection."
+    return 1
+  fi
+}
 
 #IMAGE_NAME="jetson-llm-v1"
 DOCKERHUB_USER="cmpelkk"
@@ -94,6 +133,20 @@ CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
 ensure_container_started() {
   if ! docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
     echo "🛠️  Creating persistent container '$CONTAINER_NAME'..."
+    
+    # Check if image exists locally
+    if ! docker image inspect $LOCAL_IMAGE >/dev/null 2>&1; then
+      echo "📥 Image not found locally. Pulling $REMOTE_IMAGE..."
+      
+      # Pull with progress indicator
+      if pull_with_progress $REMOTE_IMAGE "Downloading container image... Please wait"; then
+        docker tag $REMOTE_IMAGE $LOCAL_IMAGE
+      else
+        exit 1
+      fi
+    fi
+    
+    echo "🔧 Creating container..."
     eval "$CREATE_CMD"
   fi
   docker start $CONTAINER_NAME >/dev/null
@@ -207,7 +260,11 @@ juiceshop() {
   fi
 
   echo "[INFO] Pulling Juice Shop image..."
-  docker pull $IMAGE_NAME
+  
+  # Pull with progress indicator
+  if ! pull_with_progress $IMAGE_NAME "Downloading Juice Shop image... Please wait"; then
+    exit 1
+  fi
 
   echo "[INFO] Starting Juice Shop with --rm at http://localhost:$PORT"
   docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host \
@@ -447,16 +504,20 @@ case "$1" in
   update-container)
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
-    echo "⬇️ Pulling latest image (this may take a while)..."
-    docker pull $REMOTE_IMAGE
-    echo "✓ Pull complete."
-    REMOTE_ID=$(docker image inspect $REMOTE_IMAGE --format '{{.Id}}' 2>/dev/null)
-    if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
-      echo "📦 New version detected. Updating local image..."
-      docker tag $REMOTE_IMAGE $LOCAL_IMAGE
-      echo "✅ Local container updated from Docker Hub."
+    echo "⬇️ Pulling latest image..."
+    
+    # Pull with progress indicator
+    if pull_with_progress $REMOTE_IMAGE "Downloading latest image... Please wait"; then
+      REMOTE_ID=$(docker image inspect $REMOTE_IMAGE --format '{{.Id}}' 2>/dev/null)
+      if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
+        echo "📦 New version detected. Updating local image..."
+        docker tag $REMOTE_IMAGE $LOCAL_IMAGE
+        echo "✅ Local container updated from Docker Hub."
+      else
+        echo "✅ Local container is already up-to-date."
+      fi
     else
-      echo "✅ Local container is already up-to-date."
+      exit 1
     fi
     ;;
     
