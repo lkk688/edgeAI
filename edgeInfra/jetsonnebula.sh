@@ -964,8 +964,13 @@ test_connectivity() {
     # Check Nebula status using the binary
     echo "[DEBUG] Checking Nebula status..."
     if [ -x "$ABSOLUTE_NEBULA_BIN" ]; then
-      echo "[DEBUG] Nebula status output:"
-      sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml" -status
+      echo "[DEBUG] Testing Nebula configuration:"
+      sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml" -test
+      if [ $? -eq 0 ]; then
+        echo "[DEBUG] Nebula configuration is valid ✅"
+      else
+        echo "[WARNING] Nebula configuration test failed ⚠️"
+      fi
     else
       echo "[WARNING] Nebula binary not found or not executable, skipping status check ⚠️"
     fi
