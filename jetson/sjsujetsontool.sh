@@ -198,6 +198,16 @@ juiceshop() {
   docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host $IMAGE_NAME
 }
 
+snapfix() {
+  echo "[⚙️] Reverting Snap daemon to a stable version..."
+  sudo snap revert snapd
+
+  echo "[🚫] Holding Snap daemon to prevent future auto-refresh..."
+  sudo snap refresh --hold snapd
+
+  echo "[✅] Snap daemon reverted and held. This helps prevent browser launch issues on Jetson."
+}
+
 check_service() {
   local port=$1
   local name=$2
@@ -488,6 +498,9 @@ case "$1" in
     ;;
   juiceshop)
     juiceshop
+    ;;
+  snapfix)
+    snapfix
     ;;
   publish)
     shift

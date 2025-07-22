@@ -16,6 +16,12 @@ ORIGINAL_DIR=$(pwd)
 ABSOLUTE_NEBULA_DIR="$NEBULA_DIR"
 ABSOLUTE_NEBULA_BIN="$NEBULA_BIN"
 
+# Ensure we're using absolute paths for the config file
+if [[ "$NEBULA_DIR" != /* ]]; then
+  echo "[WARNING] NEBULA_DIR is not an absolute path. This may cause issues with certificate paths."
+  echo "[INFO] Consider using an absolute path for NEBULA_DIR."
+fi
+
 # Default token and platform settings
 DEFAULT_TOKEN="jetsonsupertoken"
 DEFAULT_PLATFORM="linux-arm64"
@@ -83,6 +89,54 @@ debug_paths() {
   echo "[DEBUG] ABSOLUTE_NEBULA_DIR: $ABSOLUTE_NEBULA_DIR"
   echo "[DEBUG] ABSOLUTE_NEBULA_BIN: $ABSOLUTE_NEBULA_BIN"
   echo "[DEBUG] ABSOLUTE_TOKEN_FILE: $ABSOLUTE_TOKEN_FILE"
+}
+
+# === Function to update config paths to absolute ===
+update_config_paths() {
+  echo "[INFO] Updating config.yml to use absolute paths..."
+  
+  # Check if config file exists
+  if [ ! -f "$NEBULA_DIR/config.yml" ]; then
+    echo "[ERROR] Configuration file not found: $NEBULA_DIR/config.yml"
+    return 1
+  fi
+  
+  echo "[DEBUG] Modifying paths in config.yml to use absolute paths"
+  
+  # Create a temporary file
+  local tmp_config="$(mktemp)"
+  
+  # Read the config file and update paths
+  while IFS= read -r line; do
+    # Check for certificate paths in the pki section
+    if [[ "$line" =~ ^[[:space:]]*ca:[[:space:]]*([^/].+) ]]; then
+      # CA certificate path that doesn't start with /
+      echo "  ca: $NEBULA_DIR/ca.crt" >> "$tmp_config"
+    elif [[ "$line" =~ ^[[:space:]]*cert:[[:space:]]*([^/].+) ]]; then
+      # Certificate path that doesn't start with /
+      echo "  cert: $NEBULA_DIR/$nodename.crt" >> "$tmp_config"
+    elif [[ "$line" =~ ^[[:space:]]*key:[[:space:]]*([^/].+) ]]; then
+      # Key path that doesn't start with /
+      echo "  key: $NEBULA_DIR/$nodename.key" >> "$tmp_config"
+    else
+      # Keep the line as is
+      echo "$line" >> "$tmp_config"
+    fi
+  done < "$NEBULA_DIR/config.yml"
+  
+  # Backup the original config
+  sudo cp "$NEBULA_DIR/config.yml" "$NEBULA_DIR/config.yml.bak"
+  
+  # Replace the config with the updated one
+  sudo cp "$tmp_config" "$NEBULA_DIR/config.yml"
+  sudo chmod 600 "$NEBULA_DIR/config.yml"
+  
+  # Clean up
+  rm -f "$tmp_config"
+  
+  echo "[SUCCESS] Updated config.yml with absolute paths ✅"
+  echo "[DEBUG] Original config backed up to $NEBULA_DIR/config.yml.bak"
+  return 0
 }
 
 # === Function: download config ===
@@ -668,7 +722,7 @@ debug_paths
 case "$1" in
   install)
     echo "[INFO] Starting Nebula VPN installation for $nodename..."
-    if download_config && install_nebula && setup_systemd; then
+    if download_config && update_config_paths && install_nebula && setup_systemd; then
       echo "[SUCCESS] Nebula VPN installed and configured successfully!"
       check_status
     else
@@ -681,7 +735,7 @@ case "$1" in
     ;;
   update)
     echo "[INFO] Updating Nebula VPN configuration for $nodename..."
-    if download_config && setup_systemd; then
+    if download_config && update_config_paths && setup_systemd; then
       echo "[SUCCESS] Nebula VPN configuration updated successfully!"
       check_status
     else
@@ -952,26 +1006,30 @@ test_config_function() {
     echo "[INFO] Testing Nebula configuration files..."
     
     # Check if Nebula directory exists
-    if [ ! -d "$ABSOLUTE_NEBULA_DIR" ]; then
-      echo "[ERROR] Nebula configuration directory not found: $ABSOLUTE_NEBULA_DIR"
+    if [ ! -d "$NEBULA_DIR" ]; then
+      echo "[ERROR] Nebula configuration directory not found: $NEBULA_DIR"
       echo "[INFO] Please run installation first: $0 install"
       return 1
     fi
     
-    echo "[DEBUG] Checking configuration files in: $ABSOLUTE_NEBULA_DIR"
+    echo "[DEBUG] Checking configuration files in: $NEBULA_DIR"
     
     # Check for required files
     local required_files=("$nodename.crt" "$nodename.key" "config.yml" "ca.crt")
     local missing_files=false
     
     for file in "${required_files[@]}"; do
-      if [ ! -f "$ABSOLUTE_NEBULA_DIR/$file" ]; then
-        echo "[ERROR] Required file missing: $ABSOLUTE_NEBULA_DIR/$file ❌"
+      if [ ! -f "$NEBULA_DIR/$file" ]; then
+        echo "[ERROR] Required file missing: $NEBULA_DIR/$file ❌"
         missing_files=true
       else
-        echo "[STATUS] Required file found: $ABSOLUTE_NEBULA_DIR/$file ✅"
+        echo "[STATUS] Required file found: $NEBULA_DIR/$file ✅"
       fi
     done
+    
+    # Update config paths to absolute if needed
+    echo "[INFO] Ensuring configuration uses absolute paths..."
+    update_config_paths
     
     if [ "$missing_files" = "true" ]; then
       echo "[ERROR] Some required configuration files are missing ❌"
@@ -983,31 +1041,31 @@ test_config_function() {
     echo "[DEBUG] Validating certificate files..."
     
     # Check client certificate
-    echo "[DEBUG] Checking client certificate: $ABSOLUTE_NEBULA_DIR/$nodename.crt"
-    if ! openssl x509 -in "$ABSOLUTE_NEBULA_DIR/$nodename.crt" -noout 2>/dev/null; then
-      echo "[ERROR] Invalid client certificate: $ABSOLUTE_NEBULA_DIR/$nodename.crt ❌"
+    echo "[DEBUG] Checking client certificate: $NEBULA_DIR/$nodename.crt"
+    if ! openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout 2>/dev/null; then
+      echo "[ERROR] Invalid client certificate: $NEBULA_DIR/$nodename.crt ❌"
       return 1
     else
       echo "[STATUS] Client certificate is valid ✅"
       echo "[DEBUG] Certificate details:"
-      openssl x509 -in "$ABSOLUTE_NEBULA_DIR/$nodename.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
+      openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
     fi
     
     # Check CA certificate
-    echo "[DEBUG] Checking CA certificate: $ABSOLUTE_NEBULA_DIR/ca.crt"
-    if ! openssl x509 -in "$ABSOLUTE_NEBULA_DIR/ca.crt" -noout 2>/dev/null; then
-      echo "[ERROR] Invalid CA certificate: $ABSOLUTE_NEBULA_DIR/ca.crt ❌"
+    echo "[DEBUG] Checking CA certificate: $NEBULA_DIR/ca.crt"
+    if ! openssl x509 -in "$NEBULA_DIR/ca.crt" -noout 2>/dev/null; then
+      echo "[ERROR] Invalid CA certificate: $NEBULA_DIR/ca.crt ❌"
       return 1
     else
       echo "[STATUS] CA certificate is valid ✅"
       echo "[DEBUG] CA certificate details:"
-      openssl x509 -in "$ABSOLUTE_NEBULA_DIR/ca.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
+      openssl x509 -in "$NEBULA_DIR/ca.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
     fi
     
     # Check private key
-    echo "[DEBUG] Checking private key: $ABSOLUTE_NEBULA_DIR/$nodename.key"
-    if ! openssl rsa -in "$ABSOLUTE_NEBULA_DIR/$nodename.key" -check -noout 2>/dev/null; then
-      echo "[ERROR] Invalid private key: $ABSOLUTE_NEBULA_DIR/$nodename.key ❌"
+    echo "[DEBUG] Checking private key: $NEBULA_DIR/$nodename.key"
+    if ! openssl rsa -in "$NEBULA_DIR/$nodename.key" -check -noout 2>/dev/null; then
+      echo "[ERROR] Invalid private key: $NEBULA_DIR/$nodename.key ❌"
       return 1
     else
       echo "[STATUS] Private key is valid ✅"
@@ -1015,8 +1073,8 @@ test_config_function() {
     
     # Verify certificate and key match
     echo "[DEBUG] Verifying certificate and key match..."
-    local cert_modulus=$(openssl x509 -in "$ABSOLUTE_NEBULA_DIR/$nodename.crt" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
-    local key_modulus=$(openssl rsa -in "$ABSOLUTE_NEBULA_DIR/$nodename.key" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    local cert_modulus=$(openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    local key_modulus=$(openssl rsa -in "$NEBULA_DIR/$nodename.key" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
     
     if [ "$cert_modulus" = "$key_modulus" ]; then
       echo "[STATUS] Certificate and key match ✅"
@@ -1029,18 +1087,18 @@ test_config_function() {
     
     # Verify certificate is signed by CA
     echo "[DEBUG] Verifying certificate is signed by CA..."
-    if openssl verify -CAfile "$ABSOLUTE_NEBULA_DIR/ca.crt" "$ABSOLUTE_NEBULA_DIR/$nodename.crt" > /dev/null 2>&1; then
+    if openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt" > /dev/null 2>&1; then
       echo "[STATUS] Certificate is properly signed by CA ✅"
     else
       echo "[ERROR] Certificate is NOT signed by the provided CA ❌"
       echo "[DEBUG] Verification output:"
-      openssl verify -CAfile "$ABSOLUTE_NEBULA_DIR/ca.crt" "$ABSOLUTE_NEBULA_DIR/$nodename.crt"
+      openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt"
       return 1
     fi
     
     # Check config.yml
     echo "[DEBUG] Checking config.yml..."
-    if [ ! -s "$ABSOLUTE_NEBULA_DIR/config.yml" ]; then
+    if [ ! -s "$NEBULA_DIR/config.yml" ]; then
       echo "[ERROR] config.yml is empty ❌"
       return 1
     fi
@@ -1050,7 +1108,7 @@ test_config_function() {
     local missing_sections=false
     
     for section in "${required_sections[@]}"; do
-      if ! grep -q "$section" "$ABSOLUTE_NEBULA_DIR/config.yml"; then
+      if ! grep -q "$section" "$NEBULA_DIR/config.yml"; then
         echo "[ERROR] Required section missing in config.yml: $section ❌"
         missing_sections=true
       else
@@ -1064,18 +1122,18 @@ test_config_function() {
     fi
     
     # Check if Nebula binary exists and is executable
-    if [ ! -x "$ABSOLUTE_NEBULA_BIN" ]; then
-      echo "[ERROR] Nebula binary not found or not executable: $ABSOLUTE_NEBULA_BIN ❌"
+    if [ ! -x "$NEBULA_BIN" ]; then
+      echo "[ERROR] Nebula binary not found or not executable: $NEBULA_BIN ❌"
       return 1
     else
       echo "[STATUS] Nebula binary is available and executable ✅"
       echo "[DEBUG] Nebula version:"
-      sudo "$ABSOLUTE_NEBULA_BIN" -version
+      sudo "$NEBULA_BIN" -version
     fi
     
     # Test config with Nebula binary
     echo "[DEBUG] Testing configuration with Nebula binary..."
-    if sudo "$ABSOLUTE_NEBULA_BIN" -config "$ABSOLUTE_NEBULA_DIR/config.yml" -test; then
+    if sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml" -test; then
       echo "[SUCCESS] Nebula configuration test passed ✅"
     else
       echo "[ERROR] Nebula configuration test failed ❌"
@@ -1477,10 +1535,21 @@ test_all_function() {
     
     echo "[SUCCESS] Nebula VPN has been completely removed from the system! ✅"
     ;;
+  update-paths)
+    echo "[INFO] Updating config paths to absolute paths..."
+    if update_config_paths && setup_systemd; then
+      echo "[SUCCESS] Nebula VPN configuration paths updated successfully!"
+      check_status
+    else
+      echo "[ERROR] Nebula VPN path update failed. Please check the errors above."
+      exit 1
+    fi
+    ;;
   *)
     echo "Usage: jetsonnebula install              # install/start Nebula"
     echo "       jetsonnebula status               # check status"
     echo "       jetsonnebula update               # update config only"
+    echo "       jetsonnebula update-paths         # update config paths to absolute"
     echo "       jetsonnebula set-token <token>    # set authentication token"
     echo "       jetsonnebula test-token           # test if token works with API server"
     echo "       jetsonnebula test-download        # test client bundle download"
