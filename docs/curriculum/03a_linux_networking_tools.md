@@ -320,18 +320,6 @@ sudo iptables -L -n -v
 sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
 ```
 
-<!-- ### 🛠️ Lab Setup
-
-```bash
-# Install required tools
-sudo apt update
-sudo apt install -y tcpdump wireshark nmap mtr-tiny iperf3 \
-                    bluez bluez-tools wireless-tools net-tools \
-                    python3-scapy python3-socket
-
-# Add user to wireshark group
-sudo usermod -a -G wireshark $USER
-``` -->
 
 ### 📋 Network Layer Analysis
 
@@ -372,6 +360,16 @@ lsof -i #run `sudo lsof -i ` in host shows more data
 curl -v http://httpbin.org/get
 ```
 
+#### Wireshark and Tshark
+```bash
+apt install wireshark
+apt install -y tshark
+root@sjsujetson-00:/workspace# which dumpcap
+/usr/bin/dumpcap
+root@sjsujetson-00:/workspace# setcap cap_net_raw,cap_net_admin=eip /usr/bin/dumpcap
+root@sjsujetson-00:/workspace# getcap /usr/bin/dumpcap
+/usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
+```
 
 ### 🔗 Additional Resources
 
