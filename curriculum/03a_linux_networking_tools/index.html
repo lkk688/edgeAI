@@ -615,13 +615,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#part-4-advanced-network-protocol-analysis" class="md-nav__link">
+  <a href="#advanced-network-protocol-analysis" class="md-nav__link">
     <span class="md-ellipsis">
-      🔬 Part 4: Advanced Network Protocol Analysis
+      🔬 Advanced Network Protocol Analysis
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔬 Part 4: Advanced Network Protocol Analysis">
+    <nav class="md-nav" aria-label="🔬 Advanced Network Protocol Analysis">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -696,13 +696,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#part-5-advanced-linux-network-tools" class="md-nav__link">
+  <a href="#advanced-linux-network-tools" class="md-nav__link">
     <span class="md-ellipsis">
-      🛠️ Part 5: Advanced Linux Network Tools
+      🛠️ Advanced Linux Network Tools
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🛠️ Part 5: Advanced Linux Network Tools">
+    <nav class="md-nav" aria-label="🛠️ Advanced Linux Network Tools">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -775,6 +775,30 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-layer-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Network Layer Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Network Layer Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-11-packet-capture-and-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task 1.1: Packet Capture and Analysis
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#task-12-layer-by-layer-inspection" class="md-nav__link">
     <span class="md-ellipsis">
@@ -786,6 +810,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-wireshark-and-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Wireshark and Tshark
+    </span>
+  </a>
   
 </li>
         
@@ -1155,13 +1188,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#part-4-advanced-network-protocol-analysis" class="md-nav__link">
+  <a href="#advanced-network-protocol-analysis" class="md-nav__link">
     <span class="md-ellipsis">
-      🔬 Part 4: Advanced Network Protocol Analysis
+      🔬 Advanced Network Protocol Analysis
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔬 Part 4: Advanced Network Protocol Analysis">
+    <nav class="md-nav" aria-label="🔬 Advanced Network Protocol Analysis">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1236,13 +1269,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#part-5-advanced-linux-network-tools" class="md-nav__link">
+  <a href="#advanced-linux-network-tools" class="md-nav__link">
     <span class="md-ellipsis">
-      🛠️ Part 5: Advanced Linux Network Tools
+      🛠️ Advanced Linux Network Tools
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🛠️ Part 5: Advanced Linux Network Tools">
+    <nav class="md-nav" aria-label="🛠️ Advanced Linux Network Tools">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1315,6 +1348,30 @@
   
 </li>
         
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-layer-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      📋 Network Layer Analysis
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Network Layer Analysis">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-11-packet-capture-and-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      Task 1.1: Packet Capture and Analysis
+    </span>
+  </a>
+  
+</li>
+        
           <li class="md-nav__item">
   <a href="#task-12-layer-by-layer-inspection" class="md-nav__link">
     <span class="md-ellipsis">
@@ -1326,6 +1383,15 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-wireshark-and-tshark" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Wireshark and Tshark
+    </span>
+  </a>
   
 </li>
         
@@ -1500,6 +1566,9 @@
 </table>
 <hr />
 <h2 id="network-discovery-and-performance-testing">🧪 Network Discovery and Performance Testing<a class="headerlink" href="#network-discovery-and-performance-testing" title="Permanent link">&para;</a></h2>
+<p>All network packages used in this section are arealdy installed in the container. Run the following commands to start the default container:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell
+</code></pre></div></p>
 <p><strong>Check Interfaces and IP Address</strong></p>
 <p>Install net-tools (Debian/Ubuntu-based)
 <div class="highlight"><pre><span></span><code><span class="c1">#apt install -y net-tools #already installed in the container, This will install: ifconfig, netstat, route, arp, etc.</span>
@@ -1595,7 +1664,7 @@ rfkill<span class="w"> </span>list<span class="w">                </span><span c
 hciconfig<span class="w">                  </span><span class="c1"># View Bluetooth device configuration</span>
 </code></pre></div>
 <hr />
-<h2 id="part-4-advanced-network-protocol-analysis">🔬 Part 4: Advanced Network Protocol Analysis<a class="headerlink" href="#part-4-advanced-network-protocol-analysis" title="Permanent link">&para;</a></h2>
+<h2 id="advanced-network-protocol-analysis">🔬 Advanced Network Protocol Analysis<a class="headerlink" href="#advanced-network-protocol-analysis" title="Permanent link">&para;</a></h2>
 <h3 id="understanding-network-headers">📊 Understanding Network Headers<a class="headerlink" href="#understanding-network-headers" title="Permanent link">&para;</a></h3>
 <p>Each layer adds its own header to the data packet. Let's examine how to inspect these headers on Jetson:</p>
 <h4 id="packet-capture-with-tcpdump">🔍 Packet Capture with <code>tcpdump</code><a class="headerlink" href="#packet-capture-with-tcpdump" title="Permanent link">&para;</a></h4>
@@ -1687,7 +1756,7 @@ watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><
 ss<span class="w"> </span>-i
 </code></pre></div>
 <hr />
-<h2 id="part-5-advanced-linux-network-tools">🛠️ Part 5: Advanced Linux Network Tools<a class="headerlink" href="#part-5-advanced-linux-network-tools" title="Permanent link">&para;</a></h2>
+<h2 id="advanced-linux-network-tools">🛠️ Advanced Linux Network Tools<a class="headerlink" href="#advanced-linux-network-tools" title="Permanent link">&para;</a></h2>
 <h3 id="network-troubleshooting-arsenal">🔍 Network Troubleshooting Arsenal<a class="headerlink" href="#network-troubleshooting-arsenal" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1820,22 +1889,10 @@ sudo<span class="w"> </span>ufw<span class="w"> </span>status<span class="w"> </
 sudo<span class="w"> </span>iptables<span class="w"> </span>-L<span class="w"> </span>-n<span class="w"> </span>-v
 sudo<span class="w"> </span>iptables<span class="w"> </span>-A<span class="w"> </span>INPUT<span class="w"> </span>-p<span class="w"> </span>tcp<span class="w"> </span>--dport<span class="w"> </span><span class="m">22</span><span class="w"> </span>-j<span class="w"> </span>ACCEPT
 </code></pre></div>
-<p>&lt;!-- ### 🛠️ Lab Setup</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Install required tools</span>
-sudo<span class="w"> </span>apt<span class="w"> </span>update
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>tcpdump<span class="w"> </span>wireshark<span class="w"> </span>nmap<span class="w"> </span>mtr-tiny<span class="w"> </span>iperf3<span class="w"> </span><span class="se">\</span>
-<span class="w">                    </span>bluez<span class="w"> </span>bluez-tools<span class="w"> </span>wireless-tools<span class="w"> </span>net-tools<span class="w"> </span><span class="se">\</span>
-<span class="w">                    </span>python3-scapy<span class="w"> </span>python3-socket
-
-<span class="c1"># Add user to wireshark group</span>
-sudo<span class="w"> </span>usermod<span class="w"> </span>-a<span class="w"> </span>-G<span class="w"> </span>wireshark<span class="w"> </span><span class="nv">$USER</span>
-<span class="sb">```</span><span class="w"> </span>--&gt;
-
-<span class="c1">### 📋 Network Layer Analysis</span>
-
-<span class="c1">#### Task 1.1: Packet Capture and Analysis</span>
-<span class="sb">```</span>bash
-<span class="c1"># Terminal 1 (inside the container): Start packet capture</span>
+<h3 id="network-layer-analysis">📋 Network Layer Analysis<a class="headerlink" href="#network-layer-analysis" title="Permanent link">&para;</a></h3>
+<h4 id="task-11-packet-capture-and-analysis">Task 1.1: Packet Capture and Analysis<a class="headerlink" href="#task-11-packet-capture-and-analysis" title="Permanent link">&para;</a></h4>
+<p>In this task, you'll learn how to capture and analyze network traffic using <code>tcpdump</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Terminal 1 (inside the container): Start packet capture</span>
 root@sjsujetson-01:/Developer#<span class="w"> </span>tcpdump<span class="w"> </span>-i<span class="w"> </span>any<span class="w"> </span>-w<span class="w"> </span>network_capture.pcap
 tcpdump:<span class="w"> </span>data<span class="w"> </span>link<span class="w"> </span><span class="nb">type</span><span class="w"> </span>LINUX_SLL2
 tcpdump:<span class="w"> </span>listening<span class="w"> </span>on<span class="w"> </span>any,<span class="w"> </span>link-type<span class="w"> </span>LINUX_SLL2<span class="w"> </span><span class="o">(</span>Linux<span class="w"> </span>cooked<span class="w"> </span>v2<span class="o">)</span>,<span class="w"> </span>snapshot<span class="w"> </span>length<span class="w"> </span><span class="m">262144</span><span class="w"> </span>bytes
@@ -1849,6 +1906,7 @@ root@sjsujetson-01:/workspace#<span class="w"> </span>curl<span class="w"> </spa
 root@sjsujetson-01:/Developer#<span class="w"> </span>tcpdump<span class="w"> </span>-r<span class="w"> </span>network_capture.pcap<span class="w"> </span>-n
 </code></pre></div>
 <h4 id="task-12-layer-by-layer-inspection">Task 1.2: Layer-by-Layer Inspection<a class="headerlink" href="#task-12-layer-by-layer-inspection" title="Permanent link">&para;</a></h4>
+<p>This task demonstrates how to inspect network traffic at different OSI model layers.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Physical layer - Wi-Fi signal (not permitted in Jetson)</span>
 <span class="c1"># iw dev wlP1p1s0 scan | grep -A 5 -B 5 &quot;signal:&quot;</span>
 
@@ -1862,11 +1920,45 @@ traceroute<span class="w"> </span><span class="m">8</span>.8.8.8<span class="w">
 
 <span class="c1"># Transport layer - TCP/UDP ports</span>
 ss<span class="w"> </span>-tuln
-lsof<span class="w"> </span>-i<span class="w"> </span><span class="c1">#run `sudo lsof -i ` in host shows more data</span>
+lsof<span class="w"> </span>-i<span class="w"> </span><span class="c1"># run `sudo lsof -i` in host for more detailed output</span>
 
 <span class="c1"># Application layer - HTTP headers</span>
 curl<span class="w"> </span>-v<span class="w"> </span>http://httpbin.org/get
 </code></pre></div>
+<h3 id="using-wireshark-and-tshark">Using Wireshark and Tshark<a class="headerlink" href="#using-wireshark-and-tshark" title="Permanent link">&para;</a></h3>
+<p>Tshark is the command-line version of Wireshark, a powerful network protocol analyzer. Follow these steps to set it up:</p>
+<ol>
+<li>Install Tshark and configure permissions:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>tshark
+root@sjsujetson-00:/workspace#<span class="w"> </span>which<span class="w"> </span>dumpcap
+/usr/bin/dumpcap
+root@sjsujetson-00:/workspace#<span class="w"> </span>setcap<span class="w"> </span>cap_net_raw,cap_net_admin<span class="o">=</span>eip<span class="w"> </span>/usr/bin/dumpcap
+root@sjsujetson-00:/workspace#<span class="w"> </span>getcap<span class="w"> </span>/usr/bin/dumpcap
+/usr/bin/dumpcap<span class="w"> </span>cap_net_admin,cap_net_raw<span class="o">=</span>eip
+</code></pre></div>
+<ol>
+<li>Capture packets using Tshark:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>root@sjsujetson-00:/workspace#<span class="w"> </span>tshark<span class="w"> </span>-i<span class="w"> </span>wlP1p1s0
+</code></pre></div>
+<ol>
+<li>Test X11 window forwarding with a simple application:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>x11-apps
+xeyes
+</code></pre></div>
+<ol>
+<li>Install Wireshark with GUI support:</li>
+</ol>
+<div class="highlight"><pre><span></span><code>apt<span class="w"> </span>update
+root@sjsujetson-00:/workspace#<span class="w"> </span><span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>wireshark
+</code></pre></div>
+<ol>
+<li>Run Wireshark inside the container:
+<div class="highlight"><pre><span></span><code>wireshark
+</code></pre></div></li>
+</ol>
 <h3 id="additional-resources">🔗 Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">&para;</a></h3>
 <ul>
 <li><a href="https://tldp.org/LDP/nag2/index.html">Linux Network Administrators Guide</a></li>
