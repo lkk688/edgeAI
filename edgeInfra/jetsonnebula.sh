@@ -1201,181 +1201,188 @@ case "$1" in
     fi
     ;;
   test-download)
-    echo "[INFO] Testing client bundle download..."
-    
-    # Check if token file exists and load token
-    if [ ! -f "$ABSOLUTE_TOKEN_FILE" ]; then
-      echo "[ERROR] Token file not found: $ABSOLUTE_TOKEN_FILE"
-      echo "[INFO] Please set a token first using: $0 set-token <your-token>"
-      exit 1
-    fi
-    
-    # Load token
-    TOKEN=$(sudo cat "$ABSOLUTE_TOKEN_FILE")
-    if [ -z "$TOKEN" ]; then
-      echo "[ERROR] Token file exists but is empty"
-      echo "[INFO] Please set a token using: $0 set-token <your-token>"
-      exit 1
-    fi
-    
-    # Validate token
-    if ! validate_token "$TOKEN"; then
-      echo "[ERROR] Token is invalid"
-      echo "[INFO] Please set a valid token using: $0 set-token <your-token>"
-      exit 1
-    fi
-    
-    echo "[DEBUG] Token value (first 3 chars): ${TOKEN:0:3}..."
-    echo "[DEBUG] API server: $API_SERVER"
-    echo "[DEBUG] Platform: $platform"
-    echo "[DEBUG] Node name: $nodename"
-    
-    # Test API server connectivity
-    echo "[DEBUG] Testing API server connectivity..."
-    if ! curl -s --head "$API_SERVER" > /dev/null; then
-      echo "[ERROR] Cannot connect to API server: $API_SERVER"
-      echo "[DEBUG] Please check your network connection and server status."
-      exit 1
-    fi
-    
-    echo "[STATUS] API server is reachable: $API_SERVER ✅"
-    
-    # Create a temporary directory for testing downloads
-    local test_dir="/tmp/nebula_test_download"
-    rm -rf "$test_dir" # Clean up any previous test
-    mkdir -p "$test_dir"
-    echo "[DEBUG] Created temporary test directory: $test_dir"
-    
-    # URL encode the token
-    local encoded_token=$(urlencode "$TOKEN")
-    
-    # Test client bundle download
-    echo "[INFO] Testing client bundle download..."
-    
-    # Try different download methods
-    local bundle_file="$test_dir/client.zip"
-    local download_success=false
-    local download_methods=(
-      "curl -s -o '$bundle_file' -d 'token=$encoded_token' '$API_SERVER/download/$nodename'"
-      "curl -s -o '$bundle_file' -d 'token=$encoded_token' '$API_SERVER/api/download/$nodename'"
-      "curl -s -o '$bundle_file' '$API_SERVER/download/$nodename?token=$encoded_token'"
-      "curl -s -o '$bundle_file' '$API_SERVER/api/download/$nodename?token=$encoded_token'"
-    )
-    
-    for method in "${download_methods[@]}"; do
-      echo "[DEBUG] Trying download method: $method"
-      eval $method
-      local curl_exit=$?
+    # Create a function to encapsulate the test-download logic
+    test_download() {
+      echo "[INFO] Testing client bundle download..."
       
-      echo "[DEBUG] curl exit code: $curl_exit"
+      # Check if token file exists and load token
+      if [ ! -f "$ABSOLUTE_TOKEN_FILE" ]; then
+        echo "[ERROR] Token file not found: $ABSOLUTE_TOKEN_FILE"
+        echo "[INFO] Please set a token first using: $0 set-token <your-token>"
+        return 1
+      fi
       
-      if [ $curl_exit -eq 0 ] && [ -f "$bundle_file" ] && [ -s "$bundle_file" ]; then
-        # Check if it's a valid zip file
-        if check_zip_file "$bundle_file"; then
-          echo "[SUCCESS] Client bundle downloaded successfully ✅"
-          download_success=true
-          break
+      # Load token
+      TOKEN=$(sudo cat "$ABSOLUTE_TOKEN_FILE")
+      if [ -z "$TOKEN" ]; then
+        echo "[ERROR] Token file exists but is empty"
+        echo "[INFO] Please set a token using: $0 set-token <your-token>"
+        return 1
+      fi
+      
+      # Validate token
+      if ! validate_token "$TOKEN"; then
+        echo "[ERROR] Token is invalid"
+        echo "[INFO] Please set a valid token using: $0 set-token <your-token>"
+        return 1
+      fi
+      
+      echo "[DEBUG] Token value (first 3 chars): ${TOKEN:0:3}..."
+      echo "[DEBUG] API server: $API_SERVER"
+      echo "[DEBUG] Platform: $platform"
+      echo "[DEBUG] Node name: $nodename"
+      
+      # Test API server connectivity
+      echo "[DEBUG] Testing API server connectivity..."
+      if ! curl -s --head "$API_SERVER" > /dev/null; then
+        echo "[ERROR] Cannot connect to API server: $API_SERVER"
+        echo "[DEBUG] Please check your network connection and server status."
+        return 1
+      fi
+      
+      echo "[STATUS] API server is reachable: $API_SERVER ✅"
+      
+      # Create a temporary directory for testing downloads
+      local test_dir="/tmp/nebula_test_download"
+      rm -rf "$test_dir" # Clean up any previous test
+      mkdir -p "$test_dir"
+      echo "[DEBUG] Created temporary test directory: $test_dir"
+      
+      # URL encode the token
+      local encoded_token=$(urlencode "$TOKEN")
+      
+      # Test client bundle download
+      echo "[INFO] Testing client bundle download..."
+      
+      # Try different download methods
+      local bundle_file="$test_dir/client.zip"
+      local download_success=false
+      local download_methods=(
+        "curl -s -o '$bundle_file' -d 'token=$encoded_token' '$API_SERVER/download/$nodename'"
+        "curl -s -o '$bundle_file' -d 'token=$encoded_token' '$API_SERVER/api/download/$nodename'"
+        "curl -s -o '$bundle_file' '$API_SERVER/download/$nodename?token=$encoded_token'"
+        "curl -s -o '$bundle_file' '$API_SERVER/api/download/$nodename?token=$encoded_token'"
+      )
+      
+      for method in "${download_methods[@]}"; do
+        echo "[DEBUG] Trying download method: $method"
+        eval $method
+        local curl_exit=$?
+        
+        echo "[DEBUG] curl exit code: $curl_exit"
+        
+        if [ $curl_exit -eq 0 ] && [ -f "$bundle_file" ] && [ -s "$bundle_file" ]; then
+          # Check if it's a valid zip file
+          if check_zip_file "$bundle_file"; then
+            echo "[SUCCESS] Client bundle downloaded successfully ✅"
+            download_success=true
+            break
+          else
+            echo "[ERROR] Downloaded file is not a valid zip archive ❌"
+            rm -f "$bundle_file"
+          fi
         else
-          echo "[ERROR] Downloaded file is not a valid zip archive ❌"
+          echo "[ERROR] Failed to download client bundle ❌"
           rm -f "$bundle_file"
         fi
-      else
-        echo "[ERROR] Failed to download client bundle ❌"
-        rm -f "$bundle_file"
-      fi
-    done
-    
-    if [ "$download_success" = "true" ]; then
-      echo "[DEBUG] Testing bundle extraction..."
-      mkdir -p "$test_dir/extract"
-      if unzip -q "$bundle_file" -d "$test_dir/extract"; then
-        echo "[SUCCESS] Bundle extraction successful ✅"
-        echo "[DEBUG] Extracted files:"
-        ls -la "$test_dir/extract"
-        
-        # Check for required files
-        local required_files=("$nodename.crt" "$nodename.key" "config.yml")
-        local missing_files=false
-        
-        for file in "${required_files[@]}"; do
-          if [ ! -f "$test_dir/extract/$file" ]; then
-            echo "[ERROR] Required file missing from bundle: $file ❌"
-            missing_files=true
+      done
+      
+      if [ "$download_success" = "true" ]; then
+        echo "[DEBUG] Testing bundle extraction..."
+        mkdir -p "$test_dir/extract"
+        if unzip -q "$bundle_file" -d "$test_dir/extract"; then
+          echo "[SUCCESS] Bundle extraction successful ✅"
+          echo "[DEBUG] Extracted files:"
+          ls -la "$test_dir/extract"
+          
+          # Check for required files
+          local required_files=("$nodename.crt" "$nodename.key" "config.yml")
+          local missing_files=false
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$test_dir/extract/$file" ]; then
+              echo "[ERROR] Required file missing from bundle: $file ❌"
+              missing_files=true
+            else
+              echo "[STATUS] Required file found in bundle: $file ✅"
+            fi
+          done
+          
+          if [ "$missing_files" = "false" ]; then
+            echo "[SUCCESS] All required files found in client bundle ✅"
           else
-            echo "[STATUS] Required file found in bundle: $file ✅"
+            echo "[ERROR] Some required files are missing from the client bundle ❌"
           fi
-        done
-        
-        if [ "$missing_files" = "false" ]; then
-          echo "[SUCCESS] All required files found in client bundle ✅"
         else
-          echo "[ERROR] Some required files are missing from the client bundle ❌"
+          echo "[ERROR] Failed to extract client bundle ❌"
         fi
-      else
-        echo "[ERROR] Failed to extract client bundle ❌"
       fi
-    fi
-    
-    # Test CA certificate download
-    echo "[INFO] Testing CA certificate download..."
-    local ca_file="$test_dir/ca.crt"
-    local ca_success=false
-    local ca_methods=(
-      "curl -s -o '$ca_file' -d 'token=$encoded_token' '$API_SERVER/ca'"
-      "curl -s -o '$ca_file' -d 'token=$encoded_token' '$API_SERVER/api/ca'"
-      "curl -s -o '$ca_file' '$API_SERVER/ca?token=$encoded_token'"
-      "curl -s -o '$ca_file' '$API_SERVER/api/ca?token=$encoded_token'"
-    )
-    
-    for method in "${ca_methods[@]}"; do
-      echo "[DEBUG] Trying CA download method: $method"
-      eval $method
-      local curl_exit=$?
       
-      echo "[DEBUG] curl exit code: $curl_exit"
+      # Test CA certificate download
+      echo "[INFO] Testing CA certificate download..."
+      local ca_file="$test_dir/ca.crt"
+      local ca_success=false
+      local ca_methods=(
+        "curl -s -o '$ca_file' -d 'token=$encoded_token' '$API_SERVER/ca'"
+        "curl -s -o '$ca_file' -d 'token=$encoded_token' '$API_SERVER/api/ca'"
+        "curl -s -o '$ca_file' '$API_SERVER/ca?token=$encoded_token'"
+        "curl -s -o '$ca_file' '$API_SERVER/api/ca?token=$encoded_token'"
+      )
       
-      if [ $curl_exit -eq 0 ] && [ -f "$ca_file" ] && [ -s "$ca_file" ]; then
-        # Check if it looks like a certificate
-        if grep -q "BEGIN CERTIFICATE" "$ca_file"; then
-          echo "[SUCCESS] CA certificate downloaded successfully ✅"
-          ca_success=true
-          break
+      for method in "${ca_methods[@]}"; do
+        echo "[DEBUG] Trying CA download method: $method"
+        eval $method
+        local curl_exit=$?
+        
+        echo "[DEBUG] curl exit code: $curl_exit"
+        
+        if [ $curl_exit -eq 0 ] && [ -f "$ca_file" ] && [ -s "$ca_file" ]; then
+          # Check if it looks like a certificate
+          if grep -q "BEGIN CERTIFICATE" "$ca_file"; then
+            echo "[SUCCESS] CA certificate downloaded successfully ✅"
+            ca_success=true
+            break
+          else
+            echo "[ERROR] Downloaded file is not a valid certificate ❌"
+            rm -f "$ca_file"
+          fi
         else
-          echo "[ERROR] Downloaded file is not a valid certificate ❌"
+          echo "[ERROR] Failed to download CA certificate ❌"
           rm -f "$ca_file"
         fi
+      done
+      
+      # Summary
+      echo "\n[SUMMARY] Download Test Results:"
+      if [ "$download_success" = "true" ]; then
+        echo "[✅] Client bundle download: SUCCESS"
       else
-        echo "[ERROR] Failed to download CA certificate ❌"
-        rm -f "$ca_file"
+        echo "[❌] Client bundle download: FAILED"
       fi
-    done
+      
+      if [ "$ca_success" = "true" ]; then
+        echo "[✅] CA certificate download: SUCCESS"
+      else
+        echo "[❌] CA certificate download: FAILED"
+      fi
+      
+      # Clean up
+      echo "[DEBUG] Cleaning up test directory..."
+      rm -rf "$test_dir"
+      
+      if [ "$download_success" = "true" ] && [ "$ca_success" = "true" ]; then
+        echo "[SUCCESS] All download tests passed successfully! ✅"
+        echo "[INFO] You can now proceed with installation: $0 install"
+        return 0
+      else
+        echo "[ERROR] Some download tests failed. Please check the errors above. ❌"
+        return 1
+      fi
+    }
     
-    # Summary
-    echo "\n[SUMMARY] Download Test Results:"
-    if [ "$download_success" = "true" ]; then
-      echo "[✅] Client bundle download: SUCCESS"
-    else
-      echo "[❌] Client bundle download: FAILED"
-    fi
-    
-    if [ "$ca_success" = "true" ]; then
-      echo "[✅] CA certificate download: SUCCESS"
-    else
-      echo "[❌] CA certificate download: FAILED"
-    fi
-    
-    # Clean up
-    echo "[DEBUG] Cleaning up test directory..."
-    rm -rf "$test_dir"
-    
-    if [ "$download_success" = "true" ] && [ "$ca_success" = "true" ]; then
-      echo "[SUCCESS] All download tests passed successfully! ✅"
-      echo "[INFO] You can now proceed with installation: $0 install"
-      exit 0
-    else
-      echo "[ERROR] Some download tests failed. Please check the errors above. ❌"
-      exit 1
-    fi
+    # Call the function
+    test_download
+    exit $?
     ;;
 
   test-config)
@@ -1403,69 +1410,78 @@ case "$1" in
     fi
     ;;
   debug)
-    echo "[INFO] Running diagnostics..."
-    echo "[DEBUG] Checking for nebula config directory:"
-    if [ -d "$ABSOLUTE_NEBULA_DIR" ]; then
-      echo "[STATUS] Config directory exists: $ABSOLUTE_NEBULA_DIR ✅"
-      sudo ls -la "$ABSOLUTE_NEBULA_DIR"
-    else
-      echo "[STATUS] Config directory NOT found: $ABSOLUTE_NEBULA_DIR ❌"
-    fi
-    
-    echo "[DEBUG] Checking for nebula binary:"
-    if [ -f "$ABSOLUTE_NEBULA_BIN" ]; then
-      echo "[STATUS] Nebula binary exists: $ABSOLUTE_NEBULA_BIN ✅"
-      sudo ls -la "$ABSOLUTE_NEBULA_BIN"
-      echo "[DEBUG] Nebula version:"
-      sudo "$ABSOLUTE_NEBULA_BIN" -version
-    else
-      echo "[STATUS] Nebula binary NOT found: $ABSOLUTE_NEBULA_BIN ❌"
-    fi
-    
-    echo "[DEBUG] Checking for token file:"
-    if [ -f "$ABSOLUTE_TOKEN_FILE" ]; then
-      echo "[STATUS] Token file exists: $ABSOLUTE_TOKEN_FILE ✅"
-      sudo ls -la "$ABSOLUTE_TOKEN_FILE"
-      echo "[DEBUG] Token value (first 3 chars): $(sudo head -c 3 "$ABSOLUTE_TOKEN_FILE")..."
-    else
-      echo "[STATUS] Token file NOT found: $ABSOLUTE_TOKEN_FILE ❌"
-    fi
-    
-    echo "[DEBUG] Testing API server connectivity..."
-    if curl -s --head "$API_SERVER" > /dev/null; then
-      echo "[STATUS] API server is reachable: $API_SERVER ✅"
+    # Create a function to encapsulate the debug logic
+    debug_function() {
+      echo "[INFO] Running diagnostics..."
+      echo "[DEBUG] Checking for nebula config directory:"
+      if [ -d "$ABSOLUTE_NEBULA_DIR" ]; then
+        echo "[STATUS] Config directory exists: $ABSOLUTE_NEBULA_DIR ✅"
+        sudo ls -la "$ABSOLUTE_NEBULA_DIR"
+      else
+        echo "[STATUS] Config directory NOT found: $ABSOLUTE_NEBULA_DIR ❌"
+      fi
       
-      # Test authentication with token
+      echo "[DEBUG] Checking for nebula binary:"
+      if [ -f "$ABSOLUTE_NEBULA_BIN" ]; then
+        echo "[STATUS] Nebula binary exists: $ABSOLUTE_NEBULA_BIN ✅"
+        sudo ls -la "$ABSOLUTE_NEBULA_BIN"
+        echo "[DEBUG] Nebula version:"
+        sudo "$ABSOLUTE_NEBULA_BIN" -version
+      else
+        echo "[STATUS] Nebula binary NOT found: $ABSOLUTE_NEBULA_BIN ❌"
+      fi
+      
+      echo "[DEBUG] Checking for token file:"
       if [ -f "$ABSOLUTE_TOKEN_FILE" ]; then
-        echo "[DEBUG] Testing API authentication with token..."
-        local encoded_token=$(urlencode "$TOKEN")
-        local auth_test_result=$(curl -s -o /dev/null -w "%{http_code}" -G -d "token=$encoded_token" "$API_SERVER/auth/test")
+        echo "[STATUS] Token file exists: $ABSOLUTE_TOKEN_FILE ✅"
+        sudo ls -la "$ABSOLUTE_TOKEN_FILE"
+        echo "[DEBUG] Token value (first 3 chars): $(sudo head -c 3 "$ABSOLUTE_TOKEN_FILE")..."
+      else
+        echo "[STATUS] Token file NOT found: $ABSOLUTE_TOKEN_FILE ❌"
+      fi
+      
+      echo "[DEBUG] Testing API server connectivity..."
+      if curl -s --head "$API_SERVER" > /dev/null; then
+        echo "[STATUS] API server is reachable: $API_SERVER ✅"
         
-        if [ "$auth_test_result" = "200" ] || [ "$auth_test_result" = "204" ]; then
-          echo "[STATUS] Authentication successful with provided token ✅"
-        elif [ "$auth_test_result" = "401" ] || [ "$auth_test_result" = "403" ]; then
-          echo "[STATUS] Authentication failed with provided token (HTTP $auth_test_result) ❌"
-          echo "[DEBUG] You may need to set a valid token using the 'set-token' command."
+        # Test authentication with token
+        if [ -f "$ABSOLUTE_TOKEN_FILE" ]; then
+          echo "[DEBUG] Testing API authentication with token..."
+          local encoded_token=$(urlencode "$TOKEN")
+          local auth_test_result=$(curl -s -o /dev/null -w "%{http_code}" -G -d "token=$encoded_token" "$API_SERVER/auth/test")
+          
+          if [ "$auth_test_result" = "200" ] || [ "$auth_test_result" = "204" ]; then
+            echo "[STATUS] Authentication successful with provided token ✅"
+          elif [ "$auth_test_result" = "401" ] || [ "$auth_test_result" = "403" ]; then
+            echo "[STATUS] Authentication failed with provided token (HTTP $auth_test_result) ❌"
+            echo "[DEBUG] You may need to set a valid token using the 'set-token' command."
+          else
+            echo "[STATUS] Unexpected response from authentication test: HTTP $auth_test_result ⚠️"
+            echo "[DEBUG] The server may not support the auth test endpoint or may be misconfigured."
+          fi
         else
-          echo "[STATUS] Unexpected response from authentication test: HTTP $auth_test_result ⚠️"
-          echo "[DEBUG] The server may not support the auth test endpoint or may be misconfigured."
+          echo "[STATUS] Cannot test authentication: No token file found ❌"
         fi
       else
-        echo "[STATUS] Cannot test authentication: No token file found ❌"
+        echo "[STATUS] Cannot connect to API server: $API_SERVER ❌"
+        echo "[DEBUG] Please check your network connection and server status."
       fi
-    else
-      echo "[STATUS] Cannot connect to API server: $API_SERVER ❌"
-      echo "[DEBUG] Please check your network connection and server status."
-    fi
+      
+      echo "[DEBUG] Checking systemd service status:"
+      if sudo systemctl is-active --quiet nebula; then
+        echo "[STATUS] Nebula service is running ✅"
+        sudo systemctl status nebula --no-pager
+      else
+        echo "[STATUS] Nebula service is NOT running ❌"
+        sudo systemctl status nebula --no-pager || true
+      fi
+      
+      return 0
+    }
     
-    echo "[DEBUG] Checking systemd service status:"
-    if sudo systemctl is-active --quiet nebula; then
-      echo "[STATUS] Nebula service is running ✅"
-      sudo systemctl status nebula --no-pager
-    else
-      echo "[STATUS] Nebula service is NOT running ❌"
-      sudo systemctl status nebula --no-pager || true
-    fi
+    # Call the function
+    debug_function
+    exit $?
     ;;
   delete)
     echo "[INFO] Stopping Nebula VPN service and removing all files..."
