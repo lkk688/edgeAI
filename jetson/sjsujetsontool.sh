@@ -208,6 +208,26 @@ snapfix() {
   echo "[✅] Snap daemon reverted and held. This helps prevent browser launch issues on Jetson."
 }
 
+meshvpn() {
+  LOCAL_PATH="/Developer/"
+  SCRIPT_NAME="jetsonnebula.sh"
+  GITHUB_RAW="https://raw.githubusercontent.com/lkk688/edgeAI/main/edgeInfra/${SCRIPT_NAME}"
+
+  echo "[📥] Downloading ${SCRIPT_NAME} from GitHub..."
+  sudo mkdir -p "$LOCAL_PATH"
+  sudo curl -fsSL "$GITHUB_RAW" -o "$LOCAL_PATH/$SCRIPT_NAME"
+  sudo chmod +x "$LOCAL_PATH/$SCRIPT_NAME"
+
+  echo "[🔑] Setting token..."
+  sudo "$LOCAL_PATH/$SCRIPT_NAME" set-token sjsucyberaijetsonsuper25
+
+  echo "[⚙️] Installing Mesh VPN..."
+  sudo "$LOCAL_PATH/$SCRIPT_NAME" install
+
+  # echo "[📡] Checking Nebula status..."
+  # sudo "$LOCAL_PATH/$SCRIPT_NAME" status
+}
+
 check_service() {
   local port=$1
   local name=$2
@@ -501,6 +521,9 @@ case "$1" in
     ;;
   snapfix)
     snapfix
+    ;;
+  meshvpn)
+    meshvpn
     ;;
   publish)
     shift
