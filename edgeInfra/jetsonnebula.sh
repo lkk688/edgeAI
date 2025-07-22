@@ -714,6 +714,151 @@ set_token() {
   echo "[DEBUG] Token value: $TOKEN"
 }
 
+# Function to test Nebula configuration
+test_config_function() {
+    echo "[INFO] Testing Nebula configuration files..."
+    
+    # Check if Nebula directory exists
+    if [ ! -d "$NEBULA_DIR" ]; then
+      echo "[ERROR] Nebula configuration directory not found: $NEBULA_DIR"
+      echo "[INFO] Please run installation first: $0 install"
+      return 1
+    fi
+    
+    echo "[DEBUG] Checking configuration files in: $NEBULA_DIR"
+    
+    # Check for required files
+    local required_files=("$nodename.crt" "$nodename.key" "config.yml" "ca.crt")
+    local missing_files=false
+    
+    for file in "${required_files[@]}"; do
+      if [ ! -f "$NEBULA_DIR/$file" ]; then
+        echo "[ERROR] Required file missing: $NEBULA_DIR/$file ❌"
+        missing_files=true
+      else
+        echo "[STATUS] Required file found: $NEBULA_DIR/$file ✅"
+      fi
+    done
+    
+    # Update config paths to absolute if needed
+    echo "[INFO] Ensuring configuration uses absolute paths..."
+    update_config_paths
+    
+    if [ "$missing_files" = "true" ]; then
+      echo "[ERROR] Some required configuration files are missing ❌"
+      echo "[INFO] You may need to run: $0 update"
+      return 1
+    fi
+    
+    # Validate certificate files
+    echo "[DEBUG] Validating certificate files..."
+    
+    # Check client certificate
+    echo "[DEBUG] Checking client certificate: $NEBULA_DIR/$nodename.crt"
+    if ! openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout 2>/dev/null; then
+      echo "[ERROR] Invalid client certificate: $NEBULA_DIR/$nodename.crt ❌"
+      return 1
+    else
+      echo "[STATUS] Client certificate is valid ✅"
+      echo "[DEBUG] Certificate details:"
+      openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
+    fi
+    
+    # Check CA certificate
+    echo "[DEBUG] Checking CA certificate: $NEBULA_DIR/ca.crt"
+    if ! openssl x509 -in "$NEBULA_DIR/ca.crt" -noout 2>/dev/null; then
+      echo "[ERROR] Invalid CA certificate: $NEBULA_DIR/ca.crt ❌"
+      return 1
+    else
+      echo "[STATUS] CA certificate is valid ✅"
+      echo "[DEBUG] CA certificate details:"
+      openssl x509 -in "$NEBULA_DIR/ca.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
+    fi
+    
+    # Check private key
+    echo "[DEBUG] Checking private key: $NEBULA_DIR/$nodename.key"
+    if ! openssl rsa -in "$NEBULA_DIR/$nodename.key" -check -noout 2>/dev/null; then
+      echo "[ERROR] Invalid private key: $NEBULA_DIR/$nodename.key ❌"
+      return 1
+    else
+      echo "[STATUS] Private key is valid ✅"
+    fi
+    
+    # Verify certificate and key match
+    echo "[DEBUG] Verifying certificate and key match..."
+    local cert_modulus=$(openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    local key_modulus=$(openssl rsa -in "$NEBULA_DIR/$nodename.key" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
+    
+    if [ "$cert_modulus" = "$key_modulus" ]; then
+      echo "[STATUS] Certificate and key match ✅"
+    else
+      echo "[ERROR] Certificate and key do not match ❌"
+      echo "[DEBUG] Certificate modulus: $cert_modulus"
+      echo "[DEBUG] Key modulus: $key_modulus"
+      return 1
+    fi
+    
+    # Verify certificate is signed by CA
+    echo "[DEBUG] Verifying certificate is signed by CA..."
+    if openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt" > /dev/null 2>&1; then
+      echo "[STATUS] Certificate is properly signed by CA ✅"
+    else
+      echo "[ERROR] Certificate is NOT signed by the provided CA ❌"
+      echo "[DEBUG] Verification output:"
+      openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt"
+      return 1
+    fi
+    
+    # Check config.yml
+    echo "[DEBUG] Checking config.yml..."
+    if [ ! -s "$NEBULA_DIR/config.yml" ]; then
+      echo "[ERROR] config.yml is empty ❌"
+      return 1
+    fi
+    
+    # Check if config.yml has required sections
+    local required_sections=("pki:" "static_host_map:" "lighthouse:" "listen:" "punchy:" "tun:")
+    local missing_sections=false
+    
+    for section in "${required_sections[@]}"; do
+      if ! grep -q "$section" "$NEBULA_DIR/config.yml"; then
+        echo "[ERROR] Required section missing in config.yml: $section ❌"
+        missing_sections=true
+      else
+        echo "[STATUS] Required section found in config.yml: $section ✅"
+      fi
+    done
+    
+    if [ "$missing_sections" = "true" ]; then
+      echo "[ERROR] Some required sections are missing in config.yml ❌"
+      return 1
+    fi
+    
+    # Check if Nebula binary exists and is executable
+    if [ ! -x "$NEBULA_BIN" ]; then
+      echo "[ERROR] Nebula binary not found or not executable: $NEBULA_BIN ❌"
+      return 1
+    else
+      echo "[STATUS] Nebula binary is available and executable ✅"
+      echo "[DEBUG] Nebula version:"
+      sudo "$NEBULA_BIN" -version
+    fi
+    
+    # Test config with Nebula binary
+    echo "[DEBUG] Testing configuration with Nebula binary..."
+    if sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml" -test; then
+      echo "[SUCCESS] Nebula configuration test passed ✅"
+    else
+      echo "[ERROR] Nebula configuration test failed ❌"
+      return 1
+    fi
+    
+    echo "[SUCCESS] All configuration tests passed! ✅"
+    echo "[INFO] Your Nebula configuration appears to be valid and complete."
+    
+    return 0
+}
+
 # === Main CLI logic ===
 
 # Call debug_paths for all commands to help with troubleshooting
@@ -1001,150 +1146,6 @@ case "$1" in
       exit 1
     fi
     ;;
-# Function to test Nebula configuration
-test_config_function() {
-    echo "[INFO] Testing Nebula configuration files..."
-    
-    # Check if Nebula directory exists
-    if [ ! -d "$NEBULA_DIR" ]; then
-      echo "[ERROR] Nebula configuration directory not found: $NEBULA_DIR"
-      echo "[INFO] Please run installation first: $0 install"
-      return 1
-    fi
-    
-    echo "[DEBUG] Checking configuration files in: $NEBULA_DIR"
-    
-    # Check for required files
-    local required_files=("$nodename.crt" "$nodename.key" "config.yml" "ca.crt")
-    local missing_files=false
-    
-    for file in "${required_files[@]}"; do
-      if [ ! -f "$NEBULA_DIR/$file" ]; then
-        echo "[ERROR] Required file missing: $NEBULA_DIR/$file ❌"
-        missing_files=true
-      else
-        echo "[STATUS] Required file found: $NEBULA_DIR/$file ✅"
-      fi
-    done
-    
-    # Update config paths to absolute if needed
-    echo "[INFO] Ensuring configuration uses absolute paths..."
-    update_config_paths
-    
-    if [ "$missing_files" = "true" ]; then
-      echo "[ERROR] Some required configuration files are missing ❌"
-      echo "[INFO] You may need to run: $0 update"
-      return 1
-    fi
-    
-    # Validate certificate files
-    echo "[DEBUG] Validating certificate files..."
-    
-    # Check client certificate
-    echo "[DEBUG] Checking client certificate: $NEBULA_DIR/$nodename.crt"
-    if ! openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout 2>/dev/null; then
-      echo "[ERROR] Invalid client certificate: $NEBULA_DIR/$nodename.crt ❌"
-      return 1
-    else
-      echo "[STATUS] Client certificate is valid ✅"
-      echo "[DEBUG] Certificate details:"
-      openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
-    fi
-    
-    # Check CA certificate
-    echo "[DEBUG] Checking CA certificate: $NEBULA_DIR/ca.crt"
-    if ! openssl x509 -in "$NEBULA_DIR/ca.crt" -noout 2>/dev/null; then
-      echo "[ERROR] Invalid CA certificate: $NEBULA_DIR/ca.crt ❌"
-      return 1
-    else
-      echo "[STATUS] CA certificate is valid ✅"
-      echo "[DEBUG] CA certificate details:"
-      openssl x509 -in "$NEBULA_DIR/ca.crt" -noout -text | grep -E 'Subject:|Issuer:|Not Before:|Not After :'
-    fi
-    
-    # Check private key
-    echo "[DEBUG] Checking private key: $NEBULA_DIR/$nodename.key"
-    if ! openssl rsa -in "$NEBULA_DIR/$nodename.key" -check -noout 2>/dev/null; then
-      echo "[ERROR] Invalid private key: $NEBULA_DIR/$nodename.key ❌"
-      return 1
-    else
-      echo "[STATUS] Private key is valid ✅"
-    fi
-    
-    # Verify certificate and key match
-    echo "[DEBUG] Verifying certificate and key match..."
-    local cert_modulus=$(openssl x509 -in "$NEBULA_DIR/$nodename.crt" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
-    local key_modulus=$(openssl rsa -in "$NEBULA_DIR/$nodename.key" -noout -modulus 2>/dev/null | openssl md5 2>/dev/null)
-    
-    if [ "$cert_modulus" = "$key_modulus" ]; then
-      echo "[STATUS] Certificate and key match ✅"
-    else
-      echo "[ERROR] Certificate and key do not match ❌"
-      echo "[DEBUG] Certificate modulus: $cert_modulus"
-      echo "[DEBUG] Key modulus: $key_modulus"
-      return 1
-    fi
-    
-    # Verify certificate is signed by CA
-    echo "[DEBUG] Verifying certificate is signed by CA..."
-    if openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt" > /dev/null 2>&1; then
-      echo "[STATUS] Certificate is properly signed by CA ✅"
-    else
-      echo "[ERROR] Certificate is NOT signed by the provided CA ❌"
-      echo "[DEBUG] Verification output:"
-      openssl verify -CAfile "$NEBULA_DIR/ca.crt" "$NEBULA_DIR/$nodename.crt"
-      return 1
-    fi
-    
-    # Check config.yml
-    echo "[DEBUG] Checking config.yml..."
-    if [ ! -s "$NEBULA_DIR/config.yml" ]; then
-      echo "[ERROR] config.yml is empty ❌"
-      return 1
-    fi
-    
-    # Check if config.yml has required sections
-    local required_sections=("pki:" "static_host_map:" "lighthouse:" "listen:" "punchy:" "tun:")
-    local missing_sections=false
-    
-    for section in "${required_sections[@]}"; do
-      if ! grep -q "$section" "$NEBULA_DIR/config.yml"; then
-        echo "[ERROR] Required section missing in config.yml: $section ❌"
-        missing_sections=true
-      else
-        echo "[STATUS] Required section found in config.yml: $section ✅"
-      fi
-    done
-    
-    if [ "$missing_sections" = "true" ]; then
-      echo "[ERROR] Some required sections are missing in config.yml ❌"
-      return 1
-    fi
-    
-    # Check if Nebula binary exists and is executable
-    if [ ! -x "$NEBULA_BIN" ]; then
-      echo "[ERROR] Nebula binary not found or not executable: $NEBULA_BIN ❌"
-      return 1
-    else
-      echo "[STATUS] Nebula binary is available and executable ✅"
-      echo "[DEBUG] Nebula version:"
-      sudo "$NEBULA_BIN" -version
-    fi
-    
-    # Test config with Nebula binary
-    echo "[DEBUG] Testing configuration with Nebula binary..."
-    if sudo "$NEBULA_BIN" -config "$NEBULA_DIR/config.yml" -test; then
-      echo "[SUCCESS] Nebula configuration test passed ✅"
-    else
-      echo "[ERROR] Nebula configuration test failed ❌"
-      return 1
-    fi
-    
-    echo "[SUCCESS] All configuration tests passed! ✅"
-    echo "[INFO] Your Nebula configuration appears to be valid and complete."
-    
-    return 0
-}
 
   test-config)
     test_config_function
