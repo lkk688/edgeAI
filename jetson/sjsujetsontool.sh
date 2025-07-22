@@ -76,7 +76,7 @@ EXTRA_BINDS="-v /usr/bin/tegrastats:/usr/bin/tegrastats:ro -v /tmp/.X11-unix:/tm
 VOLUME_FLAGS="-v $WORKSPACE_DIR:/workspace -v $MODELS_DIR:/models -v $DEV_DIR:/Developer"
 CREATE_CMD="docker create -it --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
-  --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
+  --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
   -e DISPLAY=$DISPLAY \
   --name $CONTAINER_NAME $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 #EXEC_CMD is used after ensure_container_started() function
