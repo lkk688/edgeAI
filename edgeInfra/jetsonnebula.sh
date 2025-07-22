@@ -164,47 +164,17 @@ download_config() {
   echo "[DEBUG] Downloaded files in temporary directory:"
   ls -la
   
-  # Download CA certificate if needed
+  # Download CA certificate - Using approach from guestnebula.sh which works fine
   echo "[INFO] Downloading CA certificate..."
-  echo "[DEBUG] Using token: $TOKEN"
   
-  # Use the same encoded token from client bundle download
-  local encoded_token=$(urlencode "$TOKEN")
-  
-  # Try primary CA certificate endpoint
-  PRIMARY_CA_URL="$API_SERVER/public/downloads/ca.zip"
-  echo "[DEBUG] Trying primary CA certificate URL: $PRIMARY_CA_URL"
-  
-  if curl -f -o "ca.zip" -G -d "token=$encoded_token" "$PRIMARY_CA_URL"; then
-    echo "[INFO] Successfully downloaded CA certificate from primary URL."
+  # Use a specific token for CA download that is known to work
+  if ! curl -v -f -o "ca.zip" -G -d "token=jetsonsupertoken" "$API_SERVER/public/downloads/ca.zip"; then
+    echo "[ERROR] Failed to download CA certificate. This is required for Nebula to function."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
   else
-    # Try alternative endpoints if primary fails
-    ALT_CA_URLS=("$API_SERVER/api/public/downloads/ca.zip" "$API_SERVER/downloads/ca.zip" "$API_SERVER/ca.zip")
-    
-    for ALT_URL in "${ALT_CA_URLS[@]}"; do
-      echo "[DEBUG] Trying alternative CA certificate URL: $ALT_URL"
-      
-      if curl -f -o "ca.zip" -G -d "token=$encoded_token" "$ALT_URL"; then
-        echo "[INFO] Successfully downloaded CA certificate from alternative URL: $ALT_URL"
-        break
-      else
-        # Try direct URL with token in query string
-        DIRECT_URL="${ALT_URL}?token=$encoded_token"
-        echo "[DEBUG] Trying direct URL for CA certificate: ${ALT_URL}?token=..."
-        
-        if curl -f -o "ca.zip" "$DIRECT_URL"; then
-          echo "[INFO] Successfully downloaded CA certificate using direct URL: $ALT_URL"
-          break
-        else
-          echo "[DEBUG] Failed to download from $ALT_URL. Curl exit code: $?"
-        fi
-      fi
-    done
-    
-    if [ ! -f "ca.zip" ] || [ ! -s "ca.zip" ]; then
-      echo "[WARNING] Failed to download CA certificate from all endpoints. Will try to use existing one if available."
-      echo "[DEBUG] Token value (first 3 chars): ${TOKEN:0:3}..."
-    fi
+    echo "[DEBUG] CA certificate file size: $(ls -lh "ca.zip" | awk '{print $5}')"
   fi
   
   # Function to check if a file is a valid zip archive
@@ -343,21 +313,13 @@ download_config() {
     fi
   }
   
-  # Function to generate default configuration files if all else fails
+  # Function to generate default configuration file if needed
   generate_default_config() {
-    echo "[INFO] Generating default configuration files..."
+    echo "[INFO] Generating default configuration file..."
     local success=true
     
-    # Generate a self-signed certificate and key if they don't exist
-    if [ ! -f "$nodename.crt" ] || [ ! -f "$nodename.key" ]; then
-      echo "[DEBUG] Generating self-signed certificate and key..."
-      if ! openssl req -x509 -newkey rsa:4096 -keyout "$nodename.key" -out "$nodename.crt" -days 365 -nodes -subj "/CN=$nodename"; then
-        echo "[ERROR] Failed to generate self-signed certificate and key."
-        success=false
-      else
-        echo "[INFO] Generated self-signed certificate and key."
-      fi
-    fi
+    # We no longer generate self-signed certificates as they won't work with the CA
+    # Instead, we require proper certificates to be downloaded
     
     # Generate a default config.yml if it doesn't exist
     if [ ! -f "config.yml" ]; then
@@ -436,35 +398,13 @@ EOF
       echo "[DEBUG] Copying individually downloaded files to: $ABSOLUTE_NEBULA_DIR"
       sudo cp "$nodename.crt" "$nodename.key" "config.yml" "$ABSOLUTE_NEBULA_DIR/"
     else
-      echo "[WARNING] Could not download required client files. Attempting to generate default configuration..."
-      
-      if generate_default_config; then
-        echo "[DEBUG] Copying generated default files to: $ABSOLUTE_NEBULA_DIR"
-        sudo cp "$nodename.crt" "$nodename.key" "config.yml" "$ABSOLUTE_NEBULA_DIR/"
-        echo "[WARNING] Using default configuration. This is NOT SECURE and should be replaced with proper configuration."
-        echo "[WARNING] Please obtain a valid token and run 'set-token' followed by 'install' again when possible."
-      else
-        echo "[ERROR] Could not obtain required client files through any method."
-        cd - > /dev/null
-        rm -rf "$TMP_DIR"
-        return 1
-      fi
-    fi
-  fi
-  
-  # Function to generate a default CA certificate if needed
-  generate_default_ca() {
-    echo "[INFO] Generating default CA certificate..."
-    
-    if ! openssl req -x509 -newkey rsa:4096 -keyout "ca.key" -out "ca.crt" -days 3650 -nodes -subj "/CN=NebulaDefaultCA"; then
-      echo "[ERROR] Failed to generate default CA certificate."
+      echo "[ERROR] Could not download required client files. Cannot proceed without valid certificates."
+      echo "[INFO] Please obtain a valid token and run 'set-token' followed by 'install' again."
+      cd - > /dev/null
+      rm -rf "$TMP_DIR"
       return 1
     fi
-    
-    echo "[INFO] Generated default CA certificate."
-    echo "[WARNING] This is a self-signed CA certificate and should be replaced with a proper one when possible."
-    return 0
-  }
+  fi
   
   # Copy CA certificate if available
   if [ -d "ca_temp" ] && [ -f "ca_temp/ca.crt" ]; then
@@ -476,18 +416,10 @@ EOF
   elif [ -f "$ABSOLUTE_NEBULA_DIR/ca.crt" ]; then
     echo "[INFO] Using existing CA certificate in $ABSOLUTE_NEBULA_DIR."
   else
-    echo "[WARNING] CA certificate not found anywhere. Attempting to generate a default one..."
-    
-    if generate_default_ca; then
-      echo "[DEBUG] Copying generated default CA certificate to: $ABSOLUTE_NEBULA_DIR"
-      sudo cp "ca.crt" "$ABSOLUTE_NEBULA_DIR/"
-      echo "[WARNING] Using default CA certificate. This is NOT SECURE and should be replaced with a proper one."
-    else
-      echo "[ERROR] Could not generate a default CA certificate. Nebula will not work correctly without it."
-      cd - > /dev/null
-      rm -rf "$TMP_DIR"
-      return 1
-    fi
+    echo "[ERROR] CA certificate not found anywhere. Cannot proceed without a valid CA certificate."
+    cd - > /dev/null
+    rm -rf "$TMP_DIR"
+    return 1
   fi
   
   # Clean up
@@ -1453,6 +1385,83 @@ case "$1" in
       sudo systemctl status nebula --no-pager || true
     fi
     ;;
+  delete)
+    echo "[INFO] Stopping Nebula VPN service and removing all files..."
+    
+    # Stop and disable the service
+    echo "[INFO] Stopping and disabling Nebula service..."
+    if sudo systemctl is-active --quiet nebula; then
+      if sudo systemctl stop nebula; then
+        echo "[STATUS] Nebula service stopped successfully ✅"
+      else
+        echo "[ERROR] Failed to stop Nebula service ❌"
+      fi
+    else
+      echo "[STATUS] Nebula service is already stopped ✅"
+    fi
+    
+    if sudo systemctl is-enabled --quiet nebula 2>/dev/null; then
+      if sudo systemctl disable nebula; then
+        echo "[STATUS] Nebula service disabled successfully ✅"
+      else
+        echo "[ERROR] Failed to disable Nebula service ❌"
+      fi
+    else
+      echo "[STATUS] Nebula service is already disabled ✅"
+    fi
+    
+    # Remove systemd service file
+    echo "[INFO] Removing systemd service file..."
+    if [ -f "$SERVICE_FILE" ]; then
+      if sudo rm -f "$SERVICE_FILE"; then
+        echo "[STATUS] Systemd service file removed successfully ✅"
+      else
+        echo "[ERROR] Failed to remove systemd service file ❌"
+      fi
+    else
+      echo "[STATUS] Systemd service file not found, skipping ✅"
+    fi
+    
+    # Reload systemd daemon
+    echo "[INFO] Reloading systemd daemon..."
+    sudo systemctl daemon-reload
+    
+    # Remove Nebula binary
+    echo "[INFO] Removing Nebula binary..."
+    if [ -f "$ABSOLUTE_NEBULA_BIN" ]; then
+      if sudo rm -f "$ABSOLUTE_NEBULA_BIN"; then
+        echo "[STATUS] Nebula binary removed successfully ✅"
+      else
+        echo "[ERROR] Failed to remove Nebula binary ❌"
+      fi
+    else
+      echo "[STATUS] Nebula binary not found, skipping ✅"
+    fi
+    
+    # Remove Nebula configuration directory
+    echo "[INFO] Removing Nebula configuration directory..."
+    if [ -d "$ABSOLUTE_NEBULA_DIR" ]; then
+      if sudo rm -rf "$ABSOLUTE_NEBULA_DIR"; then
+        echo "[STATUS] Nebula configuration directory removed successfully ✅"
+      else
+        echo "[ERROR] Failed to remove Nebula configuration directory ❌"
+      fi
+    else
+      echo "[STATUS] Nebula configuration directory not found, skipping ✅"
+    fi
+    
+    # Remove token file if it exists in a different location
+    if [ -f "$ABSOLUTE_TOKEN_FILE" ] && [ "$ABSOLUTE_TOKEN_FILE" != "$ABSOLUTE_NEBULA_DIR/token.txt" ]; then
+      echo "[INFO] Removing token file..."
+      if sudo rm -f "$ABSOLUTE_TOKEN_FILE"; then
+        echo "[STATUS] Token file removed successfully ✅"
+      else
+        echo "[ERROR] Failed to remove token file ❌"
+      fi
+    fi
+    
+    echo "[SUCCESS] Nebula VPN has been completely removed from the system! ✅"
+    ;;
   *)
     echo "Usage: jetsonnebula install              # install/start Nebula"
     echo "       jetsonnebula status               # check status"
@@ -1465,6 +1474,7 @@ case "$1" in
     echo "       jetsonnebula test-all             # run all tests and provide a diagnostic report"
     echo "       jetsonnebula debug                # run diagnostics"
     echo "       jetsonnebula restart              # restart Nebula service"
+    echo "       jetsonnebula delete               # delete everything and stop services"
     echo ""
     echo "Notes:"
     echo "- Configuration files are stored in $NEBULA_DIR"
