@@ -458,12 +458,14 @@ install_nebula() {
   
   # Download the client bundle which includes the nebula binary
   echo "[INFO] Downloading client bundle with Nebula binary..."
-  if ! curl -f -O -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$nodename"; then
+  if ! curl -f -o "$nodename.zip" -G -d "token=$TOKEN" -d "platform=$PLATFORM" "$API_SERVER/download/$nodename"; then
     echo "[ERROR] Failed to download client bundle. Check your token and network connection."
     cd - > /dev/null
     rm -rf "$TMP_DIR"
     return 1
   fi
+  
+  echo "[DEBUG] Downloaded client bundle file size: $(ls -lh "$nodename.zip" | awk '{print $5}')"
   
   # Extract the downloaded files
   if ! unzip -o "$nodename.zip"; then
