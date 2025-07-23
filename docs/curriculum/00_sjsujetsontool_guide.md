@@ -129,11 +129,6 @@ docker.io/cmpelkk/jetson-llm:latest
 ✅ Script updated. Please rerun your command.
 ```
 
-<!-- Then reload shell:
-
-```bash
-source ~/.bashrc  # or ~/.zshrc
-``` -->
 
 Verify:
 
@@ -402,7 +397,7 @@ Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Load
 
 After entering into the container, you can run a local downloaded model ('build_cuda' folder is the cuda build):
 ```bash
-root@sjsujetson-01:/Developer/llama.cpp# ./build_cuda/bin/llama-cli -m /models/mistral.gguf -p "Explain what is Nvidia jetson"
+root@sjsujetson-01:/Developer/llama.cpp# llama-cli -m /models/mistral.gguf -p "Explain what is Nvidia jetson"
 ....
 llama_perf_sampler_print:    sampling time =      34.98 ms /   532 runs   (    0.07 ms per token, 15210.86 tokens per second)
 llama_perf_context_print:        load time =    3498.72 ms
@@ -413,7 +408,7 @@ llama_perf_context_print:       total time =   92930.78 ms /   531 tokens
 
 `llama-server` is a lightweight, OpenAI API compatible, HTTP server for serving LLMs. Start a local HTTP server with default configuration on port 8080: `llama-server -m model.gguf --port 8080`, Basic web UI can be accessed via browser: `http://localhost:8080`. Chat completion endpoint: `http://localhost:8080/v1/chat/completions`
 ```bash
-root@sjsujetson-01:/Developer/llama.cpp# ./build_cuda/bin/llama-server -m /models/mistral.gguf --port 8080
+root@sjsujetson-01:/Developer/llama.cpp# llama-server -m /models/mistral.gguf --port 8080
 ```
 
 Send request via curl in another terminal (in the host machine or container):
@@ -423,13 +418,6 @@ sjsujetson@sjsujetson-01:~$ curl http://localhost:8080/completion -d '{
   "n_predict": 100
 }'
 
-<!-- ### 🚀 `sjsujetsontool fastapi`
-
-Launches a FastAPI backend on port 8001, useful for serving AI endpoints for real-time apps.
-
-### 📚 `sjsujetsontool rag`
-
-Runs a LangChain Retrieval-Augmented Generation demo server with local documents and vector search. -->
 
 ### 📦 `sjsujetsontool status`
 
@@ -443,14 +431,6 @@ Displays:
 
 Changes device hostname, regenerates system identity, writes `/etc/device-id`.
 
-
-### 📁 `sjsujetsontool mount-nfs <host> <remote_path> <mount_point>`
-
-Mounts a shared folder from a remote NFS server. Useful for accessing centralized data or logging remotely.
-
-<!-- ### 🛠️ `sjsujetsontool build`
-
-Rebuilds the base development Docker image with CUDA, Python, PyTorch, and other libraries pre-installed. -->
 
 ### 🛑 `sjsujetsontool stop`
 
