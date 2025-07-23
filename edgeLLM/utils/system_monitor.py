@@ -44,9 +44,9 @@ def start_monitoring():
     
     if platform_info["is_jetson"]:
         # Jetson monitoring
-        has_jtop = jetson_monitor.init_monitoring()
-        if has_jtop:
-            jetson_monitor.start_jtop_monitoring(system_info)
+        has_tegrastats = jetson_monitor.init_monitoring()
+        if has_tegrastats:
+            jetson_monitor.start_tegrastats_monitoring(system_info)
         else:
             jetson_monitor.start_basic_monitoring(system_info)
     
@@ -117,6 +117,9 @@ def get_system_info():
 # Get platform information
 def get_platform_info():
     """Get information about the detected platform"""
+    # Ensure platform detection has been performed
+    init_monitoring()
+    
     return {
         "is_jetson": IS_JETSON,
         "is_apple_silicon": IS_APPLE_SILICON,
@@ -127,6 +130,9 @@ def get_platform_info():
 # Get platform name for display
 def get_platform_name():
     """Get a user-friendly platform name for display"""
+    # Ensure platform detection has been performed
+    init_monitoring()
+    
     if IS_JETSON:
         return "Jetson"
     elif IS_APPLE_SILICON:

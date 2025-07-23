@@ -15,6 +15,12 @@ Clone the Repository
 sjsujetson@sjsujetson-01:/Developer$ git clone https://github.com/lkk688/edgeAI.git
 ```
 
+Install the python package `edgeLLM`:
+```bash
+edgeAI % pip install -e .
+```
+From any places, you can import `edgeLLM` and use its functionalities, e.g., `from edgeLLM.utils import performance_monitor`
+
 ## 🔧 How to Build The Documentation
 
 Documents are inside the folder of `docs`. It also contains one sub-folder `curriculum` for CyberAI summer camp. You can build this curriculum as a local HTML site or generate a PDF using [MkDocs](https://www.mkdocs.org/) and the [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) theme.

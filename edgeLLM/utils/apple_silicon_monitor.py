@@ -252,6 +252,67 @@ def start_basic_monitoring(system_info):
     return thread
 
 
+# Synchronous monitoring function for performance_monitor integration
+def get_system_metrics():
+    """Get current system metrics synchronously for performance monitoring"""
+    import psutil
+    import json
+    
+    metrics = {
+        'cpu': {'total': 0, 'per_cpu': []},
+        'memory': {'used_gb': 0, 'total_gb': 0, 'percent': 0, 'used_mb': 0, 'total_mb': 0},
+        'gpu': {'utilization': None, 'power': None, 'temperature': None, 'model': 'Apple Silicon GPU'}
+    }
+    
+    try:
+        # Get CPU usage
+        cpu_percent = psutil.cpu_percent(interval=0.1, percpu=True)
+        cpu_avg = sum(cpu_percent) / len(cpu_percent)
+        metrics['cpu']['total'] = cpu_avg
+        metrics['cpu']['per_cpu'] = cpu_percent
+        
+        # Get memory usage
+        memory = psutil.virtual_memory()
+        metrics['memory']['used_gb'] = memory.used / (1024**3)
+        metrics['memory']['total_gb'] = memory.total / (1024**3)
+        metrics['memory']['percent'] = memory.percent
+        metrics['memory']['used_mb'] = memory.used / (1024**2)
+        metrics['memory']['total_mb'] = memory.total / (1024**2)
+        
+        # Try to get GPU metrics from macmon
+        try:
+            macmon_result = subprocess.run(["macmon", "pipe", "-s", "1"], 
+                                         capture_output=True, text=True, timeout=3)
+            if macmon_result.returncode == 0:
+                macmon_data = json.loads(macmon_result.stdout)
+                
+                # Extract GPU usage and power
+                if "gpu_usage" in macmon_data and len(macmon_data["gpu_usage"]) > 1:
+                    metrics['gpu']['utilization'] = macmon_data["gpu_usage"][1] * 100  # Convert to percentage
+                
+                if "gpu_power" in macmon_data:
+                    metrics['gpu']['power'] = macmon_data["gpu_power"]
+                    
+                if "temp" in macmon_data and "gpu_temp_avg" in macmon_data["temp"]:
+                    metrics['gpu']['temperature'] = macmon_data["temp"]["gpu_temp_avg"]
+        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError):
+            # macmon not available or failed, continue without GPU metrics
+            pass
+        except Exception:
+            # Other exceptions, continue without GPU metrics
+            pass
+            
+    except Exception as e:
+        # If psutil fails, return basic fallback metrics
+        metrics = {
+            'cpu': {'total': 0, 'per_cpu': []},
+            'memory': {'used_gb': 0, 'total_gb': 0, 'percent': 0, 'used_mb': 0, 'total_mb': 0},
+            'gpu': {'utilization': None, 'power': None, 'temperature': None, 'model': 'Apple Silicon GPU'}
+        }
+    
+    return metrics
+
+
 # Main function for testing
 def main():
     """Main function to test Apple Silicon monitoring functionality"""
