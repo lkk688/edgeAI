@@ -41,12 +41,7 @@ except ImportError:
     print("PyTorch not found. Please install: pip install torch torchvision")
     sys.exit(1)
 
-# YOLO
-try:
-    from ultralytics import YOLO
-except ImportError:
-    print("Ultralytics not found. Please install: pip install ultralytics")
-    YOLO = None
+# YOLO will be imported lazily when needed
 
 # Transformers for VLM models
 try:
@@ -151,8 +146,10 @@ class OptimizedYOLODetector(BaseDetector):
     
     def load_model(self):
         """Load and optimize YOLO model"""
-        if YOLO is None:
-            raise ImportError("Ultralytics YOLO not available")
+        try:
+            from ultralytics import YOLO
+        except ImportError:
+            raise ImportError("Ultralytics not found. Please install: pip install ultralytics")
         
         self.model = YOLO(self.model_path)
         
@@ -167,6 +164,7 @@ class OptimizedYOLODetector(BaseDetector):
                     logger.info(f"TensorRT engine saved to {engine_path}")
                 
                 # Load TensorRT engine
+                from ultralytics import YOLO
                 self.model = YOLO(engine_path)
                 logger.info("TensorRT engine loaded successfully")
             except Exception as e:
