@@ -4,11 +4,43 @@ import subprocess
 # Check if running on Jetson
 def is_jetson():
     """Check if the current system is a Jetson device"""
+    # Primary method: check device tree model
     try:
         with open("/proc/device-tree/model", "r") as f:
-            return "NVIDIA Jetson" in f.read()
+            if "NVIDIA Jetson" in f.read():
+                return True
     except:
-        return False
+        pass
+    
+    # Fallback method for containers: check if tegrastats is available
+    # tegrastats is Jetson-specific and typically mounted into containers
+    try:
+        subprocess.check_output("which tegrastats", shell=True, stderr=subprocess.DEVNULL)
+        return True
+    except subprocess.CalledProcessError:
+        pass
+    
+    # Additional fallback: check for Jetson-specific files/directories
+    jetson_indicators = [
+        "/usr/bin/tegrastats",
+        "/sys/devices/gpu.0",
+        "/proc/device-tree/compatible"
+    ]
+    
+    for indicator in jetson_indicators:
+        try:
+            if indicator.endswith("compatible"):
+                with open(indicator, "r") as f:
+                    if "nvidia,tegra" in f.read().lower():
+                        return True
+            else:
+                import os
+                if os.path.exists(indicator):
+                    return True
+        except:
+            continue
+    
+    return False
 
 # Initialize Jetson monitoring
 def init_monitoring():
@@ -22,6 +54,7 @@ def init_monitoring():
     except subprocess.CalledProcessError:
         print("tegrastats not found, monitoring may not work properly")
         print("tegrastats should be available by default on Jetson devices")
+        print("In containers, ensure tegrastats is mounted: -v /usr/bin/tegrastats:/usr/bin/tegrastats:ro")
     
     return has_tegrastats
 
@@ -141,7 +174,7 @@ def start_monitoring(system_info=None):
         system_info = {"text": "Initializing monitoring..."}
     
     if not is_jetson():
-        print("Not running on a Jetson device, monitoring may not be accurate")
+        print("Not running on a Jetson device (or Jetson detection failed in container), using basic monitoring")
         return start_basic_monitoring(system_info)
     
     has_tegrastats = init_monitoring()
