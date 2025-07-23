@@ -17,8 +17,6 @@ Features:
 - LLM integration for natural language descriptions
 - Comprehensive benchmarking and analysis tools
 
-Author: AI Assistant
-Date: 2024
 """
 
 import argparse
@@ -72,7 +70,13 @@ except ImportError:
 
 # Performance monitoring
 import psutil
-import GPUtil
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+try:
+    from edgeLLM.utils.performance_monitor import PerformanceMonitor
+    PERFORMANCE_MONITOR_AVAILABLE = True
+except ImportError:
+    PERFORMANCE_MONITOR_AVAILABLE = False
+    print("Warning: PerformanceMonitor not available. Using basic monitoring.")
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
