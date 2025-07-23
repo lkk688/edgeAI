@@ -179,6 +179,8 @@ show_help() {
   echo "  status            - Show container and service status"
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
   echo "  list              - Show all available commands"
+  echo "  juiceshop         - Run OWASP Juice Shop container"
+  echo "  zaproxy           - Run OWASP ZAP Proxy container"
   echo "  stop              - Stop container"
   echo "  delete            - Delete container without saving"
   echo "  help              - Show this help message"
@@ -238,6 +240,12 @@ show_list() {
   echo "  mount-nfs    → Mount an NFS share from .local hostname"
   echo "     ▶ sjsujetsontool mount-nfs nfs-server.local /srv/nfs/shared /mnt/nfs/shared"
   echo
+  echo "  juiceshop    → Run OWASP Juice Shop container"
+  echo "     ▶ sjsujetsontool juiceshop"
+  echo
+  echo "  zaproxy      → Run OWASP ZAP Proxy container"
+  echo "     ▶ sjsujetsontool zaproxy"
+  echo
   echo "  status       → Show container and service status"
   echo "     ▶ sjsujetsontool status"
   echo
@@ -271,6 +279,31 @@ juiceshop() {
     --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
     -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev:/dev \
     $IMAGE_NAME
+}
+
+zaproxy() {
+  CONTAINER_NAME="zap-proxy"
+  IMAGE_NAME="zaproxy/zap-stable"
+  PORT=8080
+
+  # Stop and remove any existing container (prevent conflict)
+  if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+    echo "[INFO] Removing existing container: $CONTAINER_NAME"
+    docker rm -f $CONTAINER_NAME
+  fi
+
+  echo "[INFO] Pulling ZAP Proxy image..."
+  
+  # Pull with progress indicator
+  if ! pull_with_progress $IMAGE_NAME "Downloading ZAP Proxy image... Please wait"; then
+    exit 1
+  fi
+
+  echo "[INFO] Starting ZAP Proxy with --rm at http://localhost:$PORT"
+  docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host \
+    --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
+    -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev:/dev \
+    $IMAGE_NAME zap-x.sh
 }
 
 snapfix() {
@@ -597,6 +630,9 @@ case "$1" in
     ;;
   juiceshop)
     juiceshop
+    ;;
+  zaproxy)
+    zaproxy
     ;;
   snapfix)
     snapfix
