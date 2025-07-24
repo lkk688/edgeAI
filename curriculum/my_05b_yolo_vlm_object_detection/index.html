@@ -1214,10 +1214,6 @@ python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"
 - <strong>Dynamic shape optimization</strong> for variable input sizes</p>
 <h3 id="complete-yolov8-setup-on-jetson">🛠️ Complete YOLOv8 Setup on Jetson<a class="headerlink" href="#complete-yolov8-setup-on-jetson" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="c1"># Install dependencies</span>
-pip<span class="w"> </span>install<span class="w"> </span>ultralytics<span class="w"> </span>torch<span class="w"> </span>torchvision
-sudo<span class="w"> </span>apt<span class="w"> </span>update
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>python3-libnvinfer-dev<span class="w"> </span>libnvinfer-bin
-
 <span class="c1"># Verify TensorRT installation</span>
 python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import tensorrt; print(f&#39;TensorRT version: {tensorrt.__version__}&#39;)&quot;</span>
 </code></pre></div>
