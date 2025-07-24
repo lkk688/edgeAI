@@ -45,6 +45,16 @@ If you want to enable X11-forwarding, you can use
 % ssh -X sjsujetson@sjsujetson-01.local
 sjsujetson@sjsujetson-01:~$ xclock #test x11
 ```
+
+## 🌐 Mesh VPN Connection
+All Jetson devices are connected through an overlay Layer 3 (L3) mesh VPN network, allowing them to communicate with each other using static IP addresses. To access another Jetson device in the mesh, simply use its assigned IP address. The IP address format is: `192.168.100.(10 + <number>)`
+
+Here, <number> corresponds to the numeric suffix xx of the device’s hostname (sjsujetson-xx). For example, to SSH into the device sjsujetson-04, use:
+```bash
+ssh [username]@192.168.100.14
+```
+Replace [username] with your actual username.
+
 ---
 
 ## ⚙️ Installing `sjsujetsontool`
