@@ -299,11 +299,38 @@ zaproxy() {
     exit 1
   fi
 
-  echo "[INFO] Starting ZAP Proxy with --rm at http://localhost:$PORT"
+  # Setup X11 forwarding
+  echo "[INFO] Setting up X11 forwarding..."
+  
+  # Allow X11 connections from localhost
+  xhost +local:docker 2>/dev/null || echo "[WARN] xhost not available, X11 forwarding may not work"
+  
+  # Get current user info for proper X11 permissions
+  USER_ID=$(id -u)
+  GROUP_ID=$(id -g)
+  
+  # Set DISPLAY if not already set
+  if [ -z "$DISPLAY" ]; then
+    export DISPLAY=:0
+    echo "[INFO] DISPLAY not set, using :0"
+  fi
+  
+  echo "[INFO] Starting ZAP Proxy with X11 forwarding at http://localhost:$PORT"
+  echo "[INFO] DISPLAY=$DISPLAY, UID=$USER_ID, GID=$GROUP_ID"
+  
   docker run --rm --name $CONTAINER_NAME --runtime=nvidia --network host \
     --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
-    -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev:/dev \
+    -e DISPLAY=$DISPLAY \
+    -e XAUTHORITY=/tmp/.docker.xauth \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+    -v "$HOME/.Xauthority:/tmp/.docker.xauth:ro" \
+    -v /dev:/dev \
+    --user "$USER_ID:$GROUP_ID" \
     $IMAGE_NAME zap-x.sh
+  
+  # Clean up X11 permissions
+  echo "[INFO] Cleaning up X11 permissions..."
+  xhost -local:docker 2>/dev/null || true
 }
 
 snapfix() {

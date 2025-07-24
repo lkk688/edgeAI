@@ -92,27 +92,61 @@ def start_tegrastats_monitoring(system_info):
                     pass
                 
                 # Get GPU and memory info from tegrastats
-                tegrastats_output = subprocess.check_output("tegrastats --interval 1000 --count 1", shell=True).decode().strip()
+                # Use timeout to get a single reading since --count is not supported
+                tegrastats_output = subprocess.check_output("timeout 2 tegrastats --interval 1000 | head -n 1", shell=True).decode().strip()
                 
-                # Extract GPU usage
-                gpu_match = re.search(r'GR3D_FREQ (\d+)%', tegrastats_output)
-                gpu_usage = gpu_match.group(1) if gpu_match else "N/A"
+                # Extract GPU usage with multiple patterns
+                gpu_usage = "N/A"
+                gpu_freq = "N/A"
                 
-                # Extract GPU frequency
-                gpu_freq_match = re.search(r'GR3D_FREQ\s+\d+%@(\d+)', tegrastats_output)
-                gpu_freq = gpu_freq_match.group(1) if gpu_freq_match else "N/A"
+                # Try different GPU usage patterns
+                gpu_patterns = [
+                    r'GR3D_FREQ (\d+)%',  # Standard pattern
+                    r'GPU (\d+)%',         # Alternative pattern
+                    r'gr3d (\d+)%',        # Lowercase pattern
+                    r'GR3D\s+(\d+)%'       # With whitespace
+                ]
+                
+                for pattern in gpu_patterns:
+                    gpu_match = re.search(pattern, tegrastats_output, re.IGNORECASE)
+                    if gpu_match:
+                        gpu_usage = gpu_match.group(1)
+                        break
+                
+                # Try different GPU frequency patterns
+                gpu_freq_patterns = [
+                    r'GR3D_FREQ\s+\d+%@(\d+)',  # Standard pattern
+                    r'GPU\s+\d+%@(\d+)',        # Alternative pattern
+                    r'gr3d\s+\d+%@(\d+)',      # Lowercase pattern
+                    r'@(\d+)MHz',               # Simple MHz pattern
+                    r'(\d+)MHz'                 # Just MHz
+                ]
+                
+                for pattern in gpu_freq_patterns:
+                    gpu_freq_match = re.search(pattern, tegrastats_output, re.IGNORECASE)
+                    if gpu_freq_match:
+                        gpu_freq = gpu_freq_match.group(1)
+                        break
                 
                 gpu_info = f"GPU: {gpu_usage}% @ {gpu_freq}MHz\n"
                 
-                # Extract RAM usage
-                ram_match = re.search(r'RAM (\d+)/(\d+)MB', tegrastats_output)
-                if ram_match:
-                    ram_used = ram_match.group(1)
-                    ram_total = ram_match.group(2)
-                    ram_percent = round(int(ram_used) / int(ram_total) * 100, 1)
-                    ram_info = f"RAM: {ram_used}/{ram_total}MB ({ram_percent}%)\n"
-                else:
-                    ram_info = "RAM: N/A\n"
+                # Extract RAM usage with multiple patterns
+                ram_info = "RAM: N/A\n"
+                ram_patterns = [
+                    r'RAM (\d+)/(\d+)MB',     # Standard pattern
+                    r'MEM (\d+)/(\d+)MB',     # Alternative pattern
+                    r'ram (\d+)/(\d+)mb',     # Lowercase pattern
+                    r'RAM\s+(\d+)/(\d+)\s*MB' # With whitespace
+                ]
+                
+                for pattern in ram_patterns:
+                    ram_match = re.search(pattern, tegrastats_output, re.IGNORECASE)
+                    if ram_match:
+                        ram_used = ram_match.group(1)
+                        ram_total = ram_match.group(2)
+                        ram_percent = round(int(ram_used) / int(ram_total) * 100, 1)
+                        ram_info = f"RAM: {ram_used}/{ram_total}MB ({ram_percent}%)\n"
+                        break
                 
                 # Extract temperature
                 temp_match = re.search(r'CPU@(\d+\.\d+)C', tegrastats_output)
