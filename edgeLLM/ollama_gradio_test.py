@@ -48,5 +48,12 @@ def chat_with_ollama(message, history):
 # Launch a simple Gradio interface
 #To create a chat application with gr.ChatInterface(), the first thing you should do is define your chat function, e.g., chat_with_ollama
 #In the simplest case, your chat function should accept two arguments: message and history (the arguments can be named anything, but must be in this order).
-gr.ChatInterface(chat_with_ollama).launch()
+#gr.ChatInterface(chat_with_ollama).launch(share=True)
 #call the .launch() method to create the web interface
+# For secure remote access
+gr.ChatInterface(chat_with_ollama).launch(
+    server_name="0.0.0.0",  # Allow external connections
+    server_port=7860,       # Specific port
+    auth=("admin", "password"),  # Add authentication
+    share=False             # Disable public tunnel
+)
