@@ -24,9 +24,11 @@ The **Jetson Orin Nano** is a powerful, energy-efficient AI edge computing board
 
 ---
 
-## 🌐 Connecting to Jetson via `.local` Hostname
+## 🌐 Connecting to Jetson via ssh
 
-Jetson devices with mDNS enabled can be accessed using the `.local` hostname from macOS or Linux:
+If you have deployed Jetson devices in the same network of your client device, e.g., Macbook, Windows, Linux, you can connect to Jetson devices via its local IP address, e.g., `ssh username@192.168.xx.xx`
+
+We already enabled the Jetson devices with mDNS, so you can access the device using the `.local` hostname from the client:
 
 ```bash
 ssh username@jetson-hostname.local
@@ -45,6 +47,12 @@ If you want to enable X11-forwarding, you can use
 % ssh -X sjsujetson@sjsujetson-01.local
 sjsujetson@sjsujetson-01:~$ xclock #test x11
 ```
+
+Another option is use ethernet over usb, which is already enabled in the Jetson device. You can connect your client device to the Jetson via a USB type C cable. You can use `ifconfig` to check the additional IP address, e.g., `192.168.55.100`. You can ssh into the Jetson device via:
+```bash
+% ssh sjsujetson@192.168.55.1
+```
+
 
 ## 🌐 Mesh VPN Connection
 All Jetson devices are connected through an overlay Layer 3 (L3) mesh VPN network, allowing them to communicate with each other using static IP addresses. To access another Jetson device in the mesh, simply use its assigned IP address. The IP address format is: `192.168.100.(10 + <number>)`
@@ -206,6 +214,47 @@ sjsujetson@sjsujetson-02:/Developer/edgeAI$ sjsujetsontool force_git_pull
 ```
 If you’re logged in as student and want to change your own password: `passwd`. You’ll be prompted to enter your current password, then the new password twice.
 
+### ✅ SSD changes (sudo required)
+Our default SSD image is 500GB. If the physical SSD devices installed in the jetson is larger than 500GB, you may only get 500GB in the system (shows 456G in the following example, but your `lsblk` command shows 1.8T for nvme0n1):
+```bash
+sjsujetson@sjsujetson-01:~$ df -h
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   456G   83G  351G  20% /
+tmpfs            3.8G  136K  3.8G   1% /dev/shm
+tmpfs            1.5G   27M  1.5G   2% /run
+tmpfs            5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p10   63M  112K   63M   1% /boot/efi
+tmpfs            762M   92K  762M   1% /run/user/128
+tmpfs            762M   80K  762M   1% /run/user/1000
+sjsujetson@sjsujetson-01:~$ lsblk
+NAME         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+...
+nvme0n1      259:0    0   1.8T  0 disk 
+├─nvme0n1p1  259:1    0 464.3G  0 part /
+...
+```
+You need to run the following command to re-claim the lost space.
+```bash
+sjsujetson@sjsujetson-01:~$ sudo apt install cloud-guest-utils
+sjsujetson@sjsujetson-01:~$ sudo growpart /dev/nvme0n1 1
+CHANGED: partition=1 start=3050048 old: size=973723080 end=976773128 new: size=3903979087 end=3907029135
+sjsujetson@sjsujetson-01:~$ sudo resize2fs /dev/nvme0n1p1
+resize2fs 1.46.5 (30-Dec-2021)
+Filesystem at /dev/nvme0n1p1 is mounted on /; on-line resizing required
+old_desc_blocks = 59, new_desc_blocks = 233
+The filesystem on /dev/nvme0n1p1 is now 487997385 (4k) blocks long.
+
+sjsujetson@sjsujetson-01:~$ df -h
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/nvme0n1p1   1.8T   83G  1.7T   5% /
+tmpfs            3.8G  136K  3.8G   1% /dev/shm
+tmpfs            1.5G   27M  1.5G   2% /run
+tmpfs            5.0M  4.0K  5.0M   1% /run/lock
+/dev/nvme0n1p10   63M  112K   63M   1% /boot/efi
+tmpfs            762M   92K  762M   1% /run/user/128
+tmpfs            762M   80K  762M   1% /run/user/1000
+```
+Now, your `/dev/nvme0n1p1` has 1.8T space.
 
 ### ✅ Exter the Container Shell
 Run the `sjsujetsontool shell` command line to enter into the shell of the container
