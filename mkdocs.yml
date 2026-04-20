@@ -30,11 +30,15 @@ nav:
   - 🐧 Linux Fundamentals:
       - 💡 Linux OS Basics: curriculum/02a_linux_basics.md
       - 🌐 Linux Networking Tools: curriculum/03a_linux_networking_tools.md
+      - 🌐 Packet Sniffing & Monitoring: curriculum/03b_packet_sniffing_monitoring.md
       # - 🔗 Nebula Overlay Network Guide: nebula_overlay_network_guide.md
   - 🤖 AI & LLM:
       - 🧠 Deep Learning & CNN: curriculum/04_deeplearning_cnn.md
+      - 🖼️ CNN Image Processing: curriculum/04b_cnn_image_processing_jetson.md
       - 🧠 Transformers & NLP Applications: curriculum/05_transformers_nlp_applications.md
       - 🚀 Large Language Models on Jetson: curriculum/06_llms_jetson.md
       - 📚 NLP Applications & LLM Optimization: curriculum/07_nlp_applications_llm_optimization.md
       - ✍️ Prompt Engineering & LangChain: curriculum/08_prompt_engineering_langchain_jetson.md
       - 🔎 RAG Applications with LangChain: curriculum/09_rag_app_langchain_jetson.md
+      - 🤖 Local AI Agents: curriculum/10_local_ai_agents_jetson.md
+      - 🎙️ Voice Assistant: curriculum/10b_voice_assistant_jetson.md
