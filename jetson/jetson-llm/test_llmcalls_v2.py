@@ -209,4 +209,13 @@ python test_llmcalls_v2.py --model_name "minimaxai/minimax-m2.7" --nvidia_api
 
 python test_llmcalls_v2.py --model_name "z-ai/glm4.7" --nvidia_api
 
+python test_llmcalls_v2.py --model_name "qwen/qwen3-coder-480b-a35b-instruct" --nvidia_api
+
+python test_llmcalls_v2.py --model_name "moonshotai/kimi-k2-instruct-0905" --nvidia_api
+
+python test_llmcalls_v2.py --model_name "mistralai/mistral-large-3-675b-instruct-2512" --nvidia_api
+
+python test_llmcalls_v2.py --model_name "deepseek-ai/deepseek-v3.2" --nvidia_api
+
+python test_llmcalls_v2.py --model_name "z-ai/glm4.7" --nvidia_api
 """
