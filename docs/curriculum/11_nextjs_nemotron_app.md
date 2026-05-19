@@ -29,7 +29,8 @@
 | 7 | **Bonus lab — embedding search + rerank** | Adds a `/retrieval` page calling `nv-embedqa-e5-v5` + `rerank-qa-mistral-4b`. |
 | 8 | **Bonus lab — Omni multimodal** | Adds an `/omni` page that accepts image + audio uploads. |
 | 9 | **Bonus lab — streaming ASR** | Adds an `/asr` page (file upload + mic) backed by `nemotron-asr-streaming` over Riva gRPC. |
-| 10 | **Security checklist** | What to verify before pushing to GitHub. |
+| 10 | **Bonus lab — zero-shot TTS** | Adds a `/tts` page that clones a 3–10 s reference voice using `magpie-tts-zeroshot`. |
+| 11 | **Security checklist** | What to verify before pushing to GitHub. |
 
 ---
 
@@ -176,9 +177,9 @@ nextjs-nemotron-app/
 ├── .env.local.example            ← template for your NVIDIA key
 ├── .gitignore
 ├── README.md
-├── asr_sidecar/                  ← Python FastAPI service (ASR lab only)
-│   ├── asr_sidecar.py            ← Riva gRPC → SSE bridge (~120 lines)
-│   ├── requirements.txt          ← fastapi · uvicorn · nvidia-riva-client
+├── asr_sidecar/                  ← Python FastAPI service (ASR + TTS labs)
+│   ├── asr_sidecar.py            ← Riva gRPC → HTTP bridge (~250 lines)
+│   ├── requirements.txt          ← fastapi · uvicorn · python-multipart · nvidia-riva-client
 │   └── README.md
 └── app/
     ├── layout.js                 ← root HTML shell + <NavBar/>
@@ -186,44 +187,51 @@ nextjs-nemotron-app/
     ├── retrieval/page.js         ← /retrieval → <RetrievalLab/>
     ├── omni/page.js              ← /omni      → <OmniLab/>
     ├── asr/page.js               ← /asr       → <AsrLab/>
+    ├── tts/page.js               ← /tts       → <TtsLab/>
     ├── globals.css               ← dark NVIDIA-green theme + nav styles
     ├── components/
     │   ├── NavBar.js             ← "use client" — top nav with active link
     │   ├── ChatUI.js             ← "use client" — streaming chat
     │   ├── RetrievalLab.js       ← "use client" — embed → rerank UI
     │   ├── OmniLab.js            ← "use client" — image + audio upload UI
-    │   └── AsrLab.js             ← "use client" — file + mic ASR UI
+    │   ├── AsrLab.js             ← "use client" — file + mic ASR UI
+    │   └── TtsLab.js             ← "use client" — text + voice-ref TTS UI
     └── api/
         ├── chat/route.js         ← POST /api/chat    → SSE chat proxy
         ├── embed/route.js        ← POST /api/embed   → batch embeddings
         ├── rerank/route.js       ← POST /api/rerank  → cross-encoder
         ├── omni/route.js         ← POST /api/omni    → multimodal SSE proxy
         ├── asr/route.js          ← POST /api/asr     → forwards SSE from sidecar
+        ├── tts/route.js          ← POST /api/tts     → forwards multipart to sidecar
         └── models/route.js       ← GET  /api/models  → model picker list
 ```
 
-Four pages, six HTTP routes, one shared NavBar, one Python sidecar (ASR only).
+Five pages, seven HTTP routes, one shared NavBar, one Python sidecar
+(serves both ASR and TTS).
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│  Jetson × NVIDIA Build                                               │
-│         [Chat]  [Retrieval Lab]  [Omni Lab]  [ASR Lab]   ← NavBar    │
-└──────────────────────────────────────────────────────────────────────┘
-       │              │                │              │
-       ▼              ▼                ▼              ▼
-   /api/chat   /api/embed +       /api/omni      /api/asr ──┐
-  (streaming)  /api/rerank   (image+audio+text)             │ SSE
-                                                            ▼
-                                                  asr_sidecar:8001
-                                                  (Python · FastAPI/Uvicorn)
-                                                  Swagger UI at :8001/docs
-                                                            │ gRPC
-                                                            ▼
-                                                  grpc.nvcf.nvidia.com
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Jetson × NVIDIA Build                                                      │
+│  [Chat] [Retrieval Lab] [Omni Lab] [ASR Lab] [TTS Lab]   ← NavBar           │
+└─────────────────────────────────────────────────────────────────────────────┘
+     │         │              │            │           │
+     ▼         ▼              ▼            ▼           ▼
+ /api/chat /api/embed +   /api/omni    /api/asr ──┐  /api/tts ──┐
+ (stream)  /api/rerank  (img+audio+    (raw PCM)  │  (multipart) │
+                         text)          SSE       │              │
+                                                  ▼              ▼
+                                      asr_sidecar:8001 (FastAPI/Uvicorn)
+                                      Swagger UI at :8001/docs
+                                                  │ gRPC
+                                                  ▼
+                                      grpc.nvcf.nvidia.com
+                                      asr=nemotron-asr-streaming
+                                      tts=magpie-tts-zeroshot
 ```
 
-The ASR lab is the only one that uses a Python helper — Riva ASR is gRPC and
-NVIDIA does not ship a maintained Node client. See §9 for the why.
+ASR and TTS are the only labs that need a Python helper — both Riva services
+are gRPC and NVIDIA does not ship a maintained Node client. The same sidecar
+serves both. See §9 and §10 for details.
 
 The recipe for adding a fourth lab later is mechanical: drop a
 `app/<new>/page.js` + a `components/<NewLab>.js`, register a server route
@@ -331,6 +339,7 @@ const LABS = [
   { href: "/retrieval", label: "Retrieval Lab", sub: "embed → rerank"     },
   { href: "/omni",      label: "Omni Lab",      sub: "image + audio"      },
   { href: "/asr",       label: "ASR Lab",       sub: "speech-to-text"     },
+  { href: "/tts",       label: "TTS Lab",       sub: "zero-shot voice"    },
 ];
 
 export default function NavBar() {
@@ -1682,7 +1691,349 @@ that was Riva's actual decoding.
 
 ---
 
-## 10. 🔐 Security checklist
+## 10. 🗣️ Bonus lab — **Zero-shot TTS** (voice cloning)
+
+The fifth page, **`/tts`**, completes the speech loop: paste a sentence,
+upload **or record a 3–10 s reference voice**, click *Synthesize*, and a
+new WAV plays back the sentence in that voice. It is backed by
+[NVIDIA's `nvidia/magpie-tts-zeroshot`](https://build.nvidia.com/nvidia/magpie-tts-zeroshot)
+through the **same FastAPI sidecar** we built in §9 — Magpie is also
+exposed as an NVCF gRPC function, so the sidecar architecture pays for
+itself a second time.
+
+### 10.1 What's new
+
+| File / change | Why |
+|---|---|
+| **`asr_sidecar/asr_sidecar.py`** — new `POST /synthesize` endpoint | Calls `riva.client.SpeechSynthesisService` against `magpie-tts-zeroshot`. The file is now a general "Riva speech sidecar" — same Python process, two endpoints. |
+| **`asr_sidecar/requirements.txt`** — `+ python-multipart` | FastAPI needs it to parse `multipart/form-data` for `File`/`Form` parameters. |
+| [`app/api/tts/route.js`](../../edgeLLM/nextjs-nemotron-app/app/api/tts/route.js) | Next.js route — passes multipart bytes through; returns `audio/wav`. |
+| [`app/tts/page.js`](../../edgeLLM/nextjs-nemotron-app/app/tts/page.js) + [`app/components/TtsLab.js`](../../edgeLLM/nextjs-nemotron-app/app/components/TtsLab.js) | The page + client UI with file/mic tabs, browser-side WAV encoder, and an `<audio>` player. |
+| `NavBar.js` and `.env.local.example` | New tab + new optional `MAGPIE_TTS_FUNCTION_ID` var. |
+
+### 10.2 The Magpie TTS NVCF function
+
+Discovery is the same pattern as for ASR:
+
+```bash
+$ curl -s -H "Authorization: Bearer $NVIDIA_API_KEY" \
+    https://api.nvcf.nvidia.com/v2/nvcf/functions \
+    | jq '.functions[] | select(.name=="ai-magpie-tts-zeroshot")'
+{
+  "id":   "55cf67bf-600f-4b04-8eac-12ed39537a08",
+  "name": "ai-magpie-tts-zeroshot",
+  "status": "ACTIVE",
+  "apiBodyFormat": "CUSTOM",
+  "health": { "protocol": "GRPC", "port": 50051 }
+}
+```
+
+Same `CUSTOM` + `GRPC` story as `nemotron-asr-streaming`, just a different
+function ID. The Riva Python client's `SpeechSynthesisService.synthesize()`
+talks to it the same way it would talk to a self-hosted Riva server — gRPC
+metadata picks the function:
+
+```python
+auth = riva.client.Auth(
+    None, True, "grpc.nvcf.nvidia.com:443",
+    [("function-id", "55cf67bf-600f-4b04-8eac-12ed39537a08"),
+     ("authorization", f"Bearer {NVIDIA_API_KEY}")],
+)
+tts = riva.client.SpeechSynthesisService(auth)
+```
+
+### 10.3 The two payload gotchas (we paid for them so you don't have to)
+
+While probing this endpoint we hit two failure modes worth flagging in
+class — they shape both the sidecar code and the browser code:
+
+**Gotcha 1 — `audio_prompt_encoding` and the WAV header.** The naive call
+fails:
+
+```
+INVALID_ARGUMENT: Error: config format doesn't match with header format
+```
+
+The Riva client *reads the bytes of the file at the path you pass* and
+forwards them to the server. The server then inspects the bytes:
+
+- Tell the server "this is `LINEAR_PCM`" while passing a file that starts
+  with `RIFF…WAVE…` → format mismatch, the call dies.
+- Tell the server `audio_prompt_encoding=ENCODING_UNSPECIFIED` (= 0,
+  the default) → it auto-detects from the bytes. **This is what works.**
+
+Hence in the sidecar:
+
+```python
+audio_prompt_encoding=riva.client.AudioEncoding.ENCODING_UNSPECIFIED,
+```
+
+with the comment `# Let the server detect the container from the bytes.`
+
+**Gotcha 2 — duration must be 3–10 s.** A second failure mode:
+
+```
+INVALID_ARGUMENT: Audio prompt duration (inf) for zero shot model
+is not between 3-10 seconds.
+```
+
+Two reasons we saw this:
+
+1. We sent *header-less* raw PCM. With no header, the server can't infer
+   the sample rate and computes `inf` seconds.
+2. We sent a clip outside the 3–10 s window.
+
+The TtsLab UI handles both by **always re-encoding the reference voice
+in the browser to a clean 16 kHz mono 16-bit WAV** before uploading, and
+disabling the *Synthesize* button when `refSeconds < 3 || refSeconds > 10`.
+
+### 10.4 The sidecar — `POST /synthesize`
+
+The new endpoint is ~50 lines added to the existing `asr_sidecar.py`:
+
+```python
+from fastapi import File, Form, UploadFile
+from fastapi.responses import Response
+import tempfile, io, struct
+from pathlib import Path
+
+@app.post("/synthesize",
+          responses={200: {"content": {"audio/wav": {}}}},
+          response_class=Response)
+async def synthesize(
+    voice_ref: UploadFile = File(..., description="3-10 s WAV reference voice"),
+    text: str             = Form(..., description="Sentence to synthesize"),
+    language_code: str    = Form("en-US"),
+    sample_rate_hz: int   = Form(22050),
+    quality: int          = Form(20, ge=1, le=40),
+):
+    # Riva's Python client wants a filesystem path → spool the upload.
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        tmp.write(await voice_ref.read())
+        prompt_path = Path(tmp.name)
+    try:
+        tts = make_tts_service()
+        resp = tts.synthesize(
+            text=text,
+            language_code=language_code,
+            encoding=riva.client.AudioEncoding.LINEAR_PCM,
+            sample_rate_hz=sample_rate_hz,
+            zero_shot_audio_prompt_file=prompt_path,
+            audio_prompt_encoding=riva.client.AudioEncoding.ENCODING_UNSPECIFIED,
+            zero_shot_quality=quality,
+        )
+        wav = _pcm_to_wav(resp.audio, sample_rate_hz)
+        return Response(content=wav, media_type="audio/wav",
+                        headers={"X-Synth-Elapsed-Ms": "...",
+                                 "X-Synth-Audio-Seconds": "...",
+                                 "X-Synth-Sample-Rate":  "..."})
+    finally:
+        prompt_path.unlink(missing_ok=True)
+```
+
+Three things to read carefully:
+
+1. **`File(...)` + `Form(...)` from FastAPI.** With `python-multipart`
+   installed, FastAPI parses the multipart boundary for you and hands you
+   a typed `UploadFile` plus typed scalar fields. This is *the* feature
+   you'd write yourself with Flask + `request.files` + `request.form`.
+2. **Tempfile spool.** Riva's `zero_shot_audio_prompt_file` parameter is
+   a `Path`, not bytes. We dump the upload to a NamedTemporaryFile in
+   `delete=False` mode, get its path, pass it in, and `unlink` in a
+   `finally` block.
+3. **PCM → WAV wrapping.** `resp.audio` is raw 16-bit PCM at
+   `sample_rate_hz`. The 11-line `_pcm_to_wav` helper prepends a RIFF
+   header so the browser can play the result directly with
+   `<audio src=url>`.
+
+The `X-Synth-*` response headers expose the server-side timing back to
+the UI (Next.js forwards them, the browser shows them in a metrics line).
+
+### 10.5 The Next.js route — `/api/tts`
+
+[`app/api/tts/route.js`](../../edgeLLM/nextjs-nemotron-app/app/api/tts/route.js)
+is ~60 lines, almost all "do not transform the payload":
+
+```js
+export const runtime = "nodejs";
+
+export async function POST(req) {
+  const contentType = req.headers.get("content-type") || "";
+  if (!contentType.includes("multipart/form-data")) {
+    return Response.json({ error: "Expected multipart/form-data" }, { status: 400 });
+  }
+
+  const upstream = await fetch(`${process.env.ASR_SIDECAR_URL}/synthesize`, {
+    method:  "POST",
+    body:    req.body,         // ReadableStream of the multipart upload
+    duplex:  "half",           // required for streaming bodies
+    headers: { "Content-Type": contentType },  // preserves the boundary!
+  });
+
+  if (!upstream.ok) {
+    return Response.json({ error: `Sidecar ${upstream.status}` },
+                        { status: upstream.status });
+  }
+  const out = { "Content-Type": "audio/wav", "Cache-Control": "no-store" };
+  for (const k of ["x-synth-elapsed-ms", "x-synth-audio-seconds", "x-synth-sample-rate"]) {
+    const v = upstream.headers.get(k);
+    if (v) out[k] = v;                         // pass timing back to UI
+  }
+  return new Response(upstream.body, { status: 200, headers: out });
+}
+```
+
+The one subtle part is **forwarding the `Content-Type` header verbatim**.
+A multipart upload's `Content-Type` looks like:
+
+```
+multipart/form-data; boundary=----WebKitFormBoundaryAbcXyz123
+```
+
+If we rewrote it to plain `multipart/form-data`, the sidecar would lose
+the boundary and fail to parse the form. Passing the original header is
+all we need to do.
+
+### 10.6 The client UI — `<TtsLab/>`
+
+[`TtsLab.js`](../../edgeLLM/nextjs-nemotron-app/app/components/TtsLab.js)
+mirrors the ASR lab but with the data flow inverted. Three pieces:
+
+**(a) Reference voice acquisition.** Same tabs as the ASR lab — file
+upload or `MediaRecorder` — but with a stricter validation:
+
+```js
+const refValid = refBuf
+  && refBuf.duration >= 3 && refBuf.duration <= 10.5;
+```
+
+We only enable the Synthesize button when the decoded buffer is in
+range. Out of range → an inline warning ("outside 3–10 s window") next
+to the audio preview.
+
+**(b) Browser-side WAV encoding.** The same
+`OfflineAudioContext` resample-to-16-kHz-mono helper from the ASR lab,
+plus a tiny `pcmToWavBlob` that prepends a RIFF header so the upload is
+a self-describing audio file:
+
+```js
+function pcmToWavBlob(int16, sampleRate) {
+  const n = int16.byteLength;
+  const buf = new ArrayBuffer(44 + n);
+  const v = new DataView(buf);
+  // ... 12 lines that write "RIFF…WAVE…fmt …data…" + the int16 payload
+  return new Blob([buf], { type: "audio/wav" });
+}
+```
+
+**(c) Multipart upload + audio playback.** Plain `FormData` + `fetch`:
+
+```js
+const form = new FormData();
+form.append("text", text);
+form.append("voice_ref", wavBlob, "voice_ref.wav");
+form.append("language_code", lang);
+form.append("sample_rate_hz", String(22050));
+form.append("quality", String(quality));
+
+const res = await fetch("/api/tts", { method: "POST", body: form });
+const blob = await res.blob();
+setOutputUrl(URL.createObjectURL(blob));  // → <audio src={outputUrl} controls autoPlay/>
+```
+
+That `URL.createObjectURL(blob)` pattern is the standard way to play
+in-memory audio in the browser — no temporary file, no streaming, just a
+synthetic URL pointing at the blob.
+
+### 10.7 Running it on the Jetson
+
+The two-terminal setup is unchanged from §9.7 — *the same sidecar* now
+serves both `/transcribe` and `/synthesize`. After §9.7's `pip install`
+step, also install:
+
+```bash
+/usr/bin/python3 -m pip install \
+    --target ~/.venv/lib/python3.10/site-packages \
+    python-multipart                # FastAPI Form/File parser
+```
+
+Then start the sidecar as before. Visit
+<http://`<jetson-ip>`:8001/docs> — the Swagger UI now lists **both**
+`/transcribe` and `/synthesize`. Click "Try it out" on `/synthesize`, paste
+text, attach a WAV, click Execute, and the response body is an embedded
+WAV with a play button. No JavaScript required.
+
+Open the UI at <http://`<jetson-ip>`:3000/tts>:
+
+1. Paste a sentence (or click one of the *sample 1/2/3* buttons).
+2. Click **Upload reference**, attach 3–10 s of someone's voice. (For a
+   simple in-class demo: open Lesson 09 in another tab, paste the
+   built-in JFK sample, trim to 8 s in any audio app, drop it in here.)
+3. Press **Synthesize**. After 5–15 s, a new audio player appears and
+   auto-plays the result.
+
+> **Verified during the writing of this lesson on Jetson Orin Nano.**
+> JFK's first 8 s (16 kHz mono WAV) + the prompt *"Hello from the Jetson
+> Orin Nano. Welcome to the zero-shot voice cloning lab."* →
+> **374 KB output WAV** (22 050 Hz mono, **8.5 s** of audio) synthesized
+> end-to-end through `/api/tts` → sidecar → NVCF in **11.2 s wall**
+> (server-side `X-Synth-Elapsed-Ms: 11213`). The `X-Synth-*` headers
+> traveled all the way back to the browser.
+
+### 10.8 What is the model doing?
+
+Zero-shot voice cloning is two networks stacked:
+
+1. A **speaker encoder** reads the 3–10 s reference voice and produces
+   a fixed-size *speaker embedding* — a few hundred numbers that capture
+   *who this person sounds like* (timbre, pitch range, accent) without
+   memorizing what they said.
+2. A **flow-matching TTS** generates speech from your input text,
+   *conditioned* on that speaker embedding. The text controls the
+   *content*, the embedding controls the *voice*.
+
+This is why the reference clip's *transcript* does not need to match
+the synthesized text — only its *acoustic identity* matters. It is also
+why the model performs best on a clean, anechoic reference: any
+background noise gets baked into the embedding and shows up in the
+output.
+
+### 10.9 Things to try in class
+
+- **Voice transfer across languages.** Record an English reference,
+  then synthesize Spanish text with `language_code=es-US`. The voice
+  *should* carry over even though the model has never heard *this*
+  speaker speaking Spanish.
+- **Quality slider sweep.** Run the same input with `quality=5`,
+  `quality=20`, and `quality=40`. Plot wall-clock time vs. perceived
+  quality. The slider is a literal compute/quality trade-off knob.
+- **Pipeline two labs together.** Voice → text via `/api/asr` →
+  reply text via `/api/chat` → speech via `/api/tts`, all reusing the
+  same reference voice. That is a complete spoken assistant in
+  one HTML page.
+- **Clone yourself.** Record 8 s of yourself reading from a book, drop
+  it in as the reference, then have the model say something the book
+  *did not* contain. Discuss what consent + watermarking should look
+  like for an edge deployment of this technology.
+
+### 10.10 Where to go next
+
+- 🎚️ **Streaming TTS.** Magpie also exposes `synthesize_online`, which
+  returns a generator of partial PCM chunks instead of one final blob.
+  Adapt `/synthesize` to use it and stream the audio bytes to the
+  browser via `Response.body.getReader()` + `MediaSource` for play-as-it-
+  arrives behaviour.
+- 🛡️ **Voice consent.** Add a simple opt-in step to the UI before
+  recording, and watermark the output WAV (e.g., LSB perturbation in the
+  PCM) so synthetic audio can be detected downstream.
+- 🤖 **A full spoken agent.** Wire the three speech labs together: ASR
+  → Chat → TTS → speaker. That's the same pipeline the voice assistants
+  in [Lesson 10b](./10b_voice_assistant_jetson.md) run locally, except
+  every model now lives in NVIDIA Build.
+
+---
+
+## 11. 🔐 Security checklist
 
 Before pushing anything to GitHub:
 
@@ -1692,14 +2043,21 @@ Before pushing anything to GitHub:
       `grep -r NVIDIA_API_KEY .next/static` after `npm run build`. Should
       return nothing.
 - [ ] If you expose the Jetson to the public internet, put `/api/chat`,
-      `/api/embed`, `/api/rerank`, `/api/omni`, **and the ASR sidecar
-      port 8001** behind authentication. Out of the box they are *open*,
-      so anyone on your LAN can spend your NVIDIA quota.
+      `/api/embed`, `/api/rerank`, `/api/omni`, `/api/asr`, `/api/tts`,
+      **and the FastAPI sidecar port 8001** behind authentication. Out
+      of the box they are *open*, so anyone on your LAN can spend your
+      NVIDIA quota.
 - [ ] Cap upload sizes (Omni Lab caps each file at 8 MB; ASR Lab caps
-      uploaded audio at 12 MB and live recordings at 60 s).
-- [ ] Bind the ASR sidecar to `127.0.0.1` instead of `0.0.0.0` if you do
-      not want it reachable on the LAN — edit `asr_sidecar.py`'s
-      `app.run(host=...)`.
+      uploaded audio at 12 MB and live recordings at 60 s; TTS Lab caps
+      reference voice at 12 MB and rejects refs outside 3–10 s).
+- [ ] Bind the sidecar to `127.0.0.1` instead of `0.0.0.0` if you do not
+      want it reachable on the LAN — edit `asr_sidecar.py`'s
+      `uvicorn.run(host=...)`.
+- [ ] **TTS-specific:** consider voice consent. Anyone who can reach
+      `/api/tts` can synthesize speech in a voice they uploaded — a
+      classroom lab is fine, a public web page is not. The model card
+      at [build.nvidia.com/nvidia/magpie-tts-zeroshot](https://build.nvidia.com/nvidia/magpie-tts-zeroshot)
+      lists NVIDIA's acceptable-use rules.
 
 ---
 

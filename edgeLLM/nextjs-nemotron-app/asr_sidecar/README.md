@@ -1,16 +1,16 @@
-# ASR sidecar (FastAPI + Uvicorn)
+# Riva speech sidecar (FastAPI + Uvicorn)
 
-A ~120-line FastAPI service that lets the Next.js app reach
-`nvidia/nemotron-asr-streaming` on NVIDIA Build. The model is exposed as an
-NVCF **gRPC** function — there is no production-quality pure-Node Riva
-client — so we run a tiny Python process that:
+A small FastAPI service that lets the Next.js app reach two NVIDIA Build
+models that are only available over **gRPC**:
 
-1. Accepts raw 16-bit LINEAR_PCM mono audio on `POST /transcribe`.
-2. Streams it to NVCF gRPC using the official `nvidia-riva-client`.
-3. Emits one **Server-Sent Event** per Riva result (`partial`, `final`,
-   `done`, `error`) using FastAPI's `StreamingResponse`.
+| Endpoint            | NVIDIA Build model                | Lab     | Wire format            |
+|---------------------|-----------------------------------|---------|------------------------|
+| `POST /transcribe`  | `nvidia/nemotron-asr-streaming`   | ASR (§9)| raw PCM in / SSE out   |
+| `POST /synthesize`  | `nvidia/magpie-tts-zeroshot`      | TTS (§10)| multipart in / WAV out |
 
-Next.js's `/api/asr` route just proxies that SSE stream to the browser.
+Both share the same gRPC connection setup (`grpc.nvcf.nvidia.com:443` +
+function-id metadata) and the same authentication path — adding a new
+Riva-backed model is mostly a copy-paste away.
 
 ## Why FastAPI?
 
@@ -69,10 +69,13 @@ audio file straight into the browser to test without going through Next.js.
 | `NVIDIA_API_KEY` | *(required)* | NVIDIA Build API key (nvapi-…) |
 | `ASR_SIDECAR_PORT` | `8001` | Port Uvicorn binds to |
 | `NEMOTRON_ASR_FUNCTION_ID` | `bb0837de-…` | NVCF function ID for `nemotron-asr-streaming` |
-| `NEMOTRON_ASR_URI` | `grpc.nvcf.nvidia.com:443` | gRPC endpoint |
+| `MAGPIE_TTS_FUNCTION_ID`   | `55cf67bf-…` | NVCF function ID for `magpie-tts-zeroshot` |
+| `NVCF_GRPC_URI` | `grpc.nvcf.nvidia.com:443` | gRPC endpoint (shared by both models) |
 | `ASR_CHUNK_MS` | `320` | gRPC chunk size — smaller = more partials, more network |
 
-## Quick test (no UI required)
+## Quick tests (no UI required)
+
+### ASR — `/transcribe`
 
 ```bash
 # any 16 kHz mono 16-bit WAV; the JFK sample is convenient:
@@ -85,13 +88,40 @@ curl -N -X POST 'http://localhost:8001/transcribe?sr=16000&lang=en-US' \
   --data-binary @/tmp/jfk.pcm
 ```
 
-Expected output:
+Expected SSE output:
 
 ```
 data: {"type":"partial","text":"And","stability":0.0,"elapsed_ms":420}
 data: {"type":"partial","text":"And so, my fellow","stability":0.0,...}
 data: {"type":"final","text":"And so, my fellow Americans ",...}
-...
 data: {"type":"done","elapsed_ms":2110}
 data: [DONE]
 ```
+
+### TTS — `/synthesize`
+
+```bash
+# Trim the JFK sample to 8 s (3-10 s reference is required) using Python's
+# stdlib wave module:
+python3 - <<'PY'
+import wave
+with wave.open('/tmp/jfk.wav','rb') as w, wave.open('/tmp/jfk_8s.wav','wb') as o:
+    o.setnchannels(w.getnchannels()); o.setsampwidth(w.getsampwidth())
+    o.setframerate(w.getframerate())
+    o.writeframes(w.readframes(min(w.getnframes(), w.getframerate()*8)))
+PY
+
+curl -s -o /tmp/synth.wav -D - --max-time 60 \
+  -X POST 'http://localhost:8001/synthesize' \
+  -F 'text=Hello from the Jetson Orin Nano.' \
+  -F 'language_code=en-US' \
+  -F 'sample_rate_hz=22050' \
+  -F 'quality=20' \
+  -F 'voice_ref=@/tmp/jfk_8s.wav;type=audio/wav' \
+  | head -20
+file /tmp/synth.wav        # → WAVE audio, Microsoft PCM, 16 bit, mono 22050 Hz
+```
+
+You should see `HTTP/1.1 200 OK`, `Content-Type: audio/wav`, and
+`X-Synth-Elapsed-Ms: <number>` in the response headers, plus a playable
+WAV at `/tmp/synth.wav`.

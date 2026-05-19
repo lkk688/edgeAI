@@ -26,30 +26,33 @@ app/
 ├── retrieval/page.js       # /retrieval → <RetrievalLab/>
 ├── omni/page.js            # /omni      → <OmniLab/>
 ├── asr/page.js             # /asr       → <AsrLab/>
+├── tts/page.js             # /tts       → <TtsLab/>
 ├── globals.css             # NVIDIA-green dark theme + nav styles
 ├── components/
 │   ├── NavBar.js           # client: shared top nav, active-link highlight
 │   ├── ChatUI.js           # client: streaming chat UI
 │   ├── RetrievalLab.js     # client: embed → rerank lab
 │   ├── OmniLab.js          # client: image + audio multimodal lab
-│   └── AsrLab.js           # client: file/mic ASR with browser PCM encoder
+│   ├── AsrLab.js           # client: file/mic ASR with browser PCM encoder
+│   └── TtsLab.js           # client: text + voice-ref zero-shot TTS UI
 └── api/
     ├── chat/route.js       # POST /api/chat    → SSE chat proxy
     ├── embed/route.js      # POST /api/embed   → batch embeddings proxy
     ├── rerank/route.js     # POST /api/rerank  → cross-encoder rerank proxy
     ├── omni/route.js       # POST /api/omni    → multimodal SSE proxy
     ├── asr/route.js        # POST /api/asr     → forwards SSE from sidecar
+    ├── tts/route.js        # POST /api/tts     → forwards multipart to sidecar
     └── models/route.js     # GET  /api/models  → returns model picker list
 
-asr_sidecar/                # Python service (ASR lab only) — see its README
-├── asr_sidecar.py          # FastAPI + Uvicorn: Riva gRPC → SSE on :8001
-└── requirements.txt        # fastapi + uvicorn + nvidia-riva-client
+asr_sidecar/                # Python service — used by ASR + TTS labs
+├── asr_sidecar.py          # FastAPI: /transcribe (SSE) + /synthesize (WAV)
+└── requirements.txt        # fastapi + uvicorn + python-multipart + nvidia-riva-client
 ```
 
-Four pages, five POST routes, one GET route, one shared NavBar, and a small
-Python sidecar that the ASR lab uses to bridge Riva gRPC. The browser only
-ever talks to this server — every `nvapi-…` key stays in `process.env` on
-the Jetson.
+Five pages, six POST routes, one GET route, one shared NavBar, and a small
+Python sidecar that bridges Riva gRPC for both the ASR and TTS labs. The
+browser only ever talks to this server — every `nvapi-…` key stays in
+`process.env` on the Jetson.
 
 ## Why a server route?
 
