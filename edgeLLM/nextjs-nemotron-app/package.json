@@ -1,0 +1,20 @@
+{
+  "name": "nextjs-nemotron-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A simple Next.js chat UI powered by NVIDIA Build (Nemotron) — Edge AI tutorial app.",
+  "scripts": {
+    "dev": "next dev -H 0.0.0.0 -p 3000",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p 3000",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "15.5.18",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

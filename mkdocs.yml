@@ -42,3 +42,4 @@ nav:
       - 🔎 RAG Applications with LangChain: curriculum/09_rag_app_langchain_jetson.md
       - 🤖 Local AI Agents: curriculum/10_local_ai_agents_jetson.md
       - 🎙️ Voice Assistant: curriculum/10b_voice_assistant_jetson.md
+      - 🌐 Next.js + NVIDIA Nemotron App: curriculum/11_nextjs_nemotron_app.md
