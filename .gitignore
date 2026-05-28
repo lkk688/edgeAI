@@ -165,3 +165,4 @@ my_*
 .devcontainer/
 .vscode/
 .vscode/*
+.claude
