@@ -1,0 +1,18 @@
+# Intentionally vulnerable requirements for the vulnerability-triage tutorial.
+# DO NOT use these versions in production.
+#
+# The companion app.py imports `requests` and `jinja2` directly, never
+# imports `pyyaml`, and never touches `urllib3` directly (it is a
+# transitive dependency of requests). This setup lets the LLM agent
+# practice three distinct triage outcomes:
+#
+#   requests==2.19.1   →  used in a vulnerable code path (exploitable here)
+#   jinja2==2.10       →  used only with a hard-coded template (not exploitable)
+#   pyyaml==5.3        →  declared but never imported (dead weight, not exploitable)
+#
+# urllib3 < 1.24 comes in transitively via requests; pip-audit reports
+# its CVEs separately. The agent must reason about transitive deps too.
+
+requests==2.19.1
+jinja2==2.10
+pyyaml==5.3

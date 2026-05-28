@@ -1,0 +1,3 @@
+openai>=1.40
+httpx>=0.27
+pip-audit>=2.7

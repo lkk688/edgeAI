@@ -43,3 +43,7 @@ nav:
       - 🤖 Local AI Agents: curriculum/10_local_ai_agents_jetson.md
       - 🎙️ Voice Assistant: curriculum/10b_voice_assistant_jetson.md
       - 🌐 Next.js + NVIDIA Nemotron App: curriculum/11_nextjs_nemotron_app.md
+      - 🛡️ Vuln Triage — Intro: curriculum/12_vulnerability_triage_intro.md
+      - 🛠️ Vuln Triage — Tool Calling: curriculum/12b_basic_tool_calling_triage.md
+      - 🔁 Vuln Triage — ReAct Loop: curriculum/12c_react_loop_triage.md
+      - 🔎 Vuln Triage — RAG: curriculum/12d_rag_cve_triage.md

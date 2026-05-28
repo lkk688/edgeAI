@@ -70,13 +70,7 @@ SSE in the browser), it must opt in with `"use client";` at the very top.
 
 That single distinction is the security backbone of this app:
 
-```
-┌──────────────┐   POST /api/chat        ┌───────────────────┐   POST /v1/chat/completions
-│  Browser     │ ───────────────────────▶│ Next.js Route     │ ─────────────────────────────▶ NVIDIA Build
-│  ChatUI.js   │ ◀── streamed tokens ────│ Handler (Node.js) │ ◀── streamed SSE chunks ──────
-│  "use client"│                         │ has NVIDIA_API_KEY│
-└──────────────┘                         └───────────────────┘
-```
+![Next.js Security Architecture](figures/security_architecture.svg)
 
 The browser **never sees the key**. It only talks to your Next.js server.
 
@@ -667,6 +661,8 @@ tokens · prompt 30 · completion 7 · total 37 · TTFT 0.21s · wall 0.34s
 If you toggle **Show thinking** and pick a Nemotron model, you will see a
 grey italic “Thinking” bubble appear *before* the answer bubble.
 
+![Next.js Chat UI with Nemotron](figures/chat_ui.png)
+
 ---
 
 ## 5. 🚀 Run on the Jetson Orin Nano
@@ -968,6 +964,8 @@ The bi-encoder *and* the cross-encoder agreed on the Jetson description as
 #1, but the cross-encoder made the gap between "Jetson Orin Nano" and
 "40 TOPS" much sharper — exactly what reranking is supposed to do.
 
+![Next.js Retrieval Lab UI with Embeddings and Reranking](figures/retrieval_ui.png)
+
 ### 7.6 Tying retrieval back into chat — your homework
 
 You now have all the pieces of a Build-API-only RAG agent. Five extra lines
@@ -1193,6 +1191,8 @@ Open <http://`<jetson-ip>`:3000/omni>:
 All three calls went through the exact same `/api/omni` route — only the
 JSON body changed. That is the value of the OpenAI-compatible content-block
 schema: one route handles three modalities.
+
+![Next.js Omni Lab UI with Multimodal Reasoning](figures/omni_ui.png)
 
 ### 8.6 Where to go next
 
@@ -1625,6 +1625,8 @@ Walk through the UI:
 > The Swagger UI at `/docs` also confirmed both endpoints register:
 > `paths: ['/health', '/transcribe']`.
 
+![Next.js ASR Lab UI with Speech-to-Text Transcription](figures/asr_ui.png)
+
 ### 9.8 Architecture: who streams to whom?
 
 ```
@@ -1979,6 +1981,8 @@ Open the UI at <http://`<jetson-ip>`:3000/tts>:
 > end-to-end through `/api/tts` → sidecar → NVCF in **11.2 s wall**
 > (server-side `X-Synth-Elapsed-Ms: 11213`). The `X-Synth-*` headers
 > traveled all the way back to the browser.
+
+![Next.js TTS Lab UI with Zero-Shot Voice Synthesis](figures/tts_ui.png)
 
 ### 10.8 What is the model doing?
 
