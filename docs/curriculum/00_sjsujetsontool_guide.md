@@ -367,6 +367,125 @@ The command will:
 
 Displays all available commands with usage examples.
 
+### 🌐 `sjsujetsontool tailscale`
+
+Manages the device's connection to the **SJSU headscale** (self-hosted Tailscale control server) at `headscale.forgengi.org`. This allows all Jetson devices to reach each other over a secure overlay network regardless of physical network location.
+
+**Subcommands:**
+
+| Subcommand | Description |
+|---|---|
+| `install` | Install Tailscale if not already present |
+| `up [--force]` | Join the headscale network (with conflict checking) |
+| `status` | Show current Tailscale connection status |
+| `down` | Disconnect from the Tailscale network |
+
+#### Check Status
+
+```bash
+sjsujetsontool tailscale status
+```
+
+Example output:
+```
+══════════════════════════════════════════════════
+🌐 Tailscale Status
+══════════════════════════════════════════════════
+📦 Version : 1.98.4
+🔧 Daemon  : active
+
+✅ State   : Running
+   Hostname  : sjsujetson-01
+   IPs       : 100.82.159.9, fd7a:115c:a1e0::a636:9f09
+   DNS Name  : sjsujetson-01.headscale.forgengi.org.
+   Peers     : 8 connected
+
+══════════════════════════════════════════════════
+```
+
+#### Install Tailscale (if not present)
+
+```bash
+sjsujetsontool tailscale install
+```
+
+Downloads and installs Tailscale from `https://tailscale.com/install.sh`. No action taken if already installed.
+
+#### Join the Headscale Network
+
+```bash
+sjsujetsontool tailscale up
+```
+
+This command performs the following safety checks before joining:
+
+1. ✅ **Verifies Tailscale is installed** (installs automatically if missing)
+2. ✅ **Starts `tailscaled` service** if not already running
+3. ⚠️ **Detects if already connected** to any Tailscale/Headscale network and warns:
+   - If already on this headscale server → exits cleanly
+   - If on a **different** network → asks for confirmation before switching
+4. 🔍 **Checks for hostname conflicts** on the headscale server via API before joining
+5. 🚀 **Joins the network** with `--accept-routes` for full mesh routing
+
+Example — fresh device joining successfully:
+```
+══════════════════════════════════════════════════
+🌐 Joining Headscale Network
+══════════════════════════════════════════════════
+✅ Tailscale already installed: 1.98.4
+🖥️  This device hostname : sjsujetson-03
+🌐 Headscale server     : https://headscale.forgengi.org
+
+🔍 Checking for hostname conflicts on headscale...
+  ✅ No hostname conflict: 'sjsujetson-03' is available on the headscale server.
+
+🚀 Joining headscale network...
+
+══════════════════════════════════════════════════
+✅ Successfully joined headscale network!
+   Hostname      : sjsujetson-03
+   Tailscale IPs : 100.82.160.12
+   Backend State : Running
+   Server        : https://headscale.forgengi.org
+══════════════════════════════════════════════════
+```
+
+Example — hostname conflict detected:
+```
+🔍 Checking for hostname conflicts on headscale...
+  ⚠️  Hostname conflict detected: 'sjsujetson-01' is already registered on the headscale server.
+  💡 To avoid conflicts, rename this device first:
+       sjsujetsontool set-hostname <new-unique-name>
+     Or force re-registration with:
+       sjsujetsontool tailscale up --force
+```
+
+#### Force Re-registration
+
+Use `--force` to disconnect from any current network and re-join even if a hostname conflict is detected:
+
+```bash
+sjsujetsontool tailscale up --force
+```
+
+> ⚠️ Use `--force` only when you intentionally want to replace an existing registration (e.g., after cloning a Jetson image). This will overwrite the old entry on the headscale server.
+
+#### Disconnect
+
+```bash
+sjsujetsontool tailscale down
+```
+
+#### 🔧 Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `❌ Failed to join headscale network` | Check `journalctl -u tailscaled -n 30 --no-pager` |
+| Auth key error | The pre-shared authkey may have expired — contact the TA for a new one |
+| Hostname conflict | Run `sjsujetsontool set-hostname <new-name>` then retry |
+| Can't reach headscale server | Check internet / VPN: `curl https://headscale.forgengi.org` |
+| iptables warnings | Known Jetson L4T kernel quirk — does not affect connectivity |
+
 ### 🟢 `sjsujetsontool jupyter`
 
 Launches JupyterLab on port 8888 from inside the Jetson's Docker container. It allows interactive Python notebooks for AI model testing, data exploration, and debugging.

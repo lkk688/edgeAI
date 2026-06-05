@@ -105,6 +105,10 @@ DEFAULT_REMOTE_TAG="latest"
 #REMOTE_IMAGE="sjsujetson/jetson-llm:latest"
 REMOTE_IMAGE="$DOCKERHUB_USER/$IMAGE_NAME:latest"
 
+# 🌐 Headscale / Tailscale settings
+HEADSCALE_LOGIN_SERVER="https://headscale.forgengi.org"
+HEADSCALE_AUTHKEY="2566b0d9607d5e78bda28311963463d358352133c32d94ae"
+
 #WORKSPACE_DIR="$(pwd)/workspace"
 #WORKSPACE_DIR="$(pwd)"
 WORKSPACE_DIR="$(realpath .)"
@@ -192,6 +196,11 @@ show_help() {
   echo "  update-script      - Update only this script from GitHub"
   echo "  healthcheck       - Deep system health check and diagnostics"
   echo "  sysupgrade        - Update apt packages (non-Jetson-critical only)"
+  echo "  tailscale <sub>   - Manage Tailscale / Headscale VPN"
+  echo "      install              - Install Tailscale if not present"
+  echo "      up [--force]         - Join headscale network (checks conflicts)"
+  echo "      status               - Show Tailscale connection status"
+  echo "      down                 - Disconnect from Tailscale network"
   echo "  build             - Rebuild Docker image"
   echo "  status            - Show container and service status"
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
@@ -896,6 +905,229 @@ case "$1" in
     ;;
   meshvpn)
     meshvpn
+    ;;
+  tailscale)
+    shift
+    SUBCMD="$1"
+    shift
+    FORCE=false
+    [[ "$1" == "--force" ]] && FORCE=true
+
+    _TS_INSTALL_URL="https://tailscale.com/install.sh"
+
+    # Helper: install tailscale if missing
+    _ts_ensure_installed() {
+      if command -v tailscale &>/dev/null; then
+        echo "✅ Tailscale already installed: $(tailscale version | head -1)"
+        return 0
+      fi
+      echo "📥 Tailscale not found. Installing..."
+      if curl -fsSL "$_TS_INSTALL_URL" | sudo sh; then
+        echo "✅ Tailscale installed: $(tailscale version | head -1)"
+      else
+        echo "❌ Tailscale installation failed. Check network and try again."
+        return 1
+      fi
+    }
+
+    # Helper: check headscale for hostname conflict via API
+    _ts_check_hostname_conflict() {
+      local hn="$1"
+      # Query headscale machines API (unauthenticated listing, best-effort)
+      local api_resp
+      api_resp=$(curl -sf --max-time 8 \
+        "${HEADSCALE_LOGIN_SERVER}/api/v1/machine" \
+        -H "Authorization: Bearer ${HEADSCALE_AUTHKEY}" 2>/dev/null)
+      if [[ -z "$api_resp" ]]; then
+        echo "  ℹ️  Could not reach headscale API — skipping hostname conflict check."
+        return 0
+      fi
+      # Check if hostname appears in the response
+      if echo "$api_resp" | grep -qi "\"$hn\""; then
+        echo "  ⚠️  Hostname conflict detected: '$hn' is already registered on the headscale server."
+        echo "  💡 To avoid conflicts, rename this device first:"
+        echo "       sjsujetsontool set-hostname <new-unique-name>"
+        echo "     Or force re-registration with:"
+        echo "       sjsujetsontool tailscale up --force"
+        return 1
+      else
+        echo "  ✅ No hostname conflict: '$hn' is available on the headscale server."
+        return 0
+      fi
+    }
+
+    case "$SUBCMD" in
+      install)
+        _ts_ensure_installed
+        ;;
+
+      up)
+        echo "══════════════════════════════════════════════════"
+        echo "🌐 Joining Headscale Network"
+        echo "══════════════════════════════════════════════════"
+        _ts_ensure_installed || exit 1
+
+        # --- Check if tailscaled is running ---
+        if ! systemctl is-active --quiet tailscaled 2>/dev/null; then
+          echo "🔄 Starting tailscaled service..."
+          sudo systemctl enable --now tailscaled
+        fi
+
+        CURRENT_HN=$(hostname)
+        echo "🖥️  This device hostname : $CURRENT_HN"
+        echo "🌐 Headscale server     : $HEADSCALE_LOGIN_SERVER"
+        echo
+
+        # --- Check if already connected to any Tailscale/Headscale network ---
+        BACKEND_STATE=$(tailscale status --json 2>/dev/null | python3 -c \
+          "import sys,json; d=json.load(sys.stdin); print(d.get('BackendState',''))" 2>/dev/null)
+        CURRENT_DNS=$(tailscale status --json 2>/dev/null | python3 -c \
+          "import sys,json; d=json.load(sys.stdin); print(d.get('Self',{}).get('DNSName',''))" 2>/dev/null)
+        CURRENT_IPS=$(tailscale status --json 2>/dev/null | python3 -c \
+          "import sys,json; d=json.load(sys.stdin); print(' '.join(d.get('TailscaleIPs',[])))" 2>/dev/null)
+
+        if [[ "$BACKEND_STATE" == "Running" && "$FORCE" != "true" ]]; then
+          echo "⚠️  This device is ALREADY connected to a Tailscale/Headscale network!"
+          echo "   Backend State : $BACKEND_STATE"
+          echo "   Tailscale IPs : $CURRENT_IPS"
+          echo "   DNS Name      : $CURRENT_DNS"
+          echo
+          # Check if already on headscale server
+          if echo "$CURRENT_DNS" | grep -qi "$(echo $HEADSCALE_LOGIN_SERVER | sed 's|https\?://||')"; then
+            echo "✅ Already connected to the headscale server at $HEADSCALE_LOGIN_SERVER."
+            echo "   Run 'sjsujetsontool tailscale status' for details."
+            exit 0
+          fi
+          echo "   ⚠️  Connected to a DIFFERENT network (not this headscale server)."
+          echo
+          read -r -p "❓ Disconnect and re-join headscale? [y/N] " _TSCONFIRM
+          if [[ ! "$_TSCONFIRM" =~ ^[Yy]$ ]]; then
+            echo "⏭️  Aborted. No changes made."
+            exit 0
+          fi
+          echo "🔌 Disconnecting from current network..."
+          sudo tailscale down
+        fi
+
+        if [[ "$FORCE" == "true" && "$BACKEND_STATE" == "Running" ]]; then
+          echo "⚡ --force specified. Disconnecting from current network..."
+          sudo tailscale down
+        fi
+
+        # --- Hostname conflict check against headscale ---
+        echo "🔍 Checking for hostname conflicts on headscale..."
+        if ! _ts_check_hostname_conflict "$CURRENT_HN"; then
+          if [[ "$FORCE" != "true" ]]; then
+            exit 1
+          fi
+          echo "⚡ --force specified. Proceeding despite hostname conflict."
+        fi
+        echo
+
+        # --- Join the headscale network ---
+        echo "🚀 Joining headscale network..."
+        if sudo tailscale up \
+          --login-server "$HEADSCALE_LOGIN_SERVER" \
+          --authkey "$HEADSCALE_AUTHKEY" \
+          --hostname "$CURRENT_HN" \
+          --accept-routes 2>&1; then
+          echo
+          echo "══════════════════════════════════════════════════"
+          echo "✅ Successfully joined headscale network!"
+          # Show resulting status
+          NEW_IPS=$(tailscale status --json 2>/dev/null | python3 -c \
+            "import sys,json; d=json.load(sys.stdin); print(' '.join(d.get('TailscaleIPs',[])))" 2>/dev/null)
+          NEW_STATE=$(tailscale status --json 2>/dev/null | python3 -c \
+            "import sys,json; d=json.load(sys.stdin); print(d.get('BackendState',''))" 2>/dev/null)
+          echo "   Hostname      : $CURRENT_HN"
+          echo "   Tailscale IPs : ${NEW_IPS:-'(pending — check again in a moment)'}"
+          echo "   Backend State : $NEW_STATE"
+          echo "   Server        : $HEADSCALE_LOGIN_SERVER"
+          echo "══════════════════════════════════════════════════"
+        else
+          echo
+          echo "══════════════════════════════════════════════════"
+          echo "❌ Failed to join headscale network."
+          echo "   Possible reasons:"
+          echo "     • Invalid or expired authkey"
+          echo "     • Headscale server unreachable: $HEADSCALE_LOGIN_SERVER"
+          echo "     • Hostname already registered (try --force or rename)"
+          echo "     • Network / firewall blocking UDP 41641"
+          echo "   Run: journalctl -u tailscaled -n 30 --no-pager"
+          echo "══════════════════════════════════════════════════"
+          exit 1
+        fi
+        ;;
+
+      status)
+        echo "══════════════════════════════════════════════════"
+        echo "🌐 Tailscale Status"
+        echo "══════════════════════════════════════════════════"
+        if ! command -v tailscale &>/dev/null; then
+          echo "❌ Tailscale is not installed."
+          echo "   Run: sjsujetsontool tailscale install"
+          exit 1
+        fi
+        echo "📦 Version : $(tailscale version | head -1)"
+        echo "🔧 Daemon  : $(systemctl is-active tailscaled 2>/dev/null || echo 'unknown')"
+        echo
+        # Parse JSON status
+        _TS_JSON=$(tailscale status --json 2>/dev/null)
+        if [[ -z "$_TS_JSON" ]]; then
+          echo "❌ Could not get Tailscale status (daemon not running?)."
+          exit 1
+        fi
+        _TS_STATE=$(echo "$_TS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('BackendState',''))" 2>/dev/null)
+        _TS_IPS=$(echo "$_TS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(', '.join(d.get('TailscaleIPs',[])))" 2>/dev/null)
+        _TS_HN=$(echo "$_TS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Self',{}).get('HostName',''))" 2>/dev/null)
+        _TS_DNS=$(echo "$_TS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('Self',{}).get('DNSName',''))" 2>/dev/null)
+        _TS_PEERS=$(echo "$_TS_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('Peer',{})))" 2>/dev/null)
+        if [[ "$_TS_STATE" == "Running" ]]; then
+          echo "✅ State   : $_TS_STATE"
+        elif [[ "$_TS_STATE" == "NeedsLogin" ]]; then
+          echo "🔐 State   : $_TS_STATE — run 'sjsujetsontool tailscale up'"
+        else
+          echo "❌ State   : $_TS_STATE"
+        fi
+        echo "   Hostname  : $_TS_HN"
+        echo "   IPs       : $_TS_IPS"
+        echo "   DNS Name  : $_TS_DNS"
+        echo "   Peers     : $_TS_PEERS connected"
+        echo
+        # Show health warnings
+        _TS_HEALTH=$(echo "$_TS_JSON" | python3 -c \
+          "import sys,json; d=json.load(sys.stdin); [print('  ⚠️ ',w) for w in d.get('Health',[])]" 2>/dev/null)
+        if [[ -n "$_TS_HEALTH" ]]; then
+          echo "⚠️  Health Warnings:"
+          echo "$_TS_HEALTH"
+          echo
+        fi
+        echo "══════════════════════════════════════════════════"
+        ;;
+
+      down)
+        echo "🔌 Disconnecting from Tailscale network..."
+        if ! command -v tailscale &>/dev/null; then
+          echo "❌ Tailscale is not installed."
+          exit 1
+        fi
+        if sudo tailscale down 2>&1; then
+          echo "✅ Tailscale disconnected successfully."
+        else
+          echo "❌ Failed to disconnect. Is tailscaled running?"
+          echo "   Run: systemctl status tailscaled"
+          exit 1
+        fi
+        ;;
+
+      *)
+        echo "❓ Usage: sjsujetsontool tailscale <subcommand>"
+        echo "   install          - Install Tailscale if not already installed"
+        echo "   up [--force]     - Join headscale network (checks hostname conflicts)"
+        echo "   status           - Show Tailscale connection status"
+        echo "   down             - Disconnect from Tailscale network"
+        ;;
+    esac
     ;;
   publish)
     shift
