@@ -147,10 +147,15 @@ nvcr.io/nvidia/l4t-base   r36.2.0          46b8e6a6a6a7   19 months ago   750MB
 sjsujetson@sjsujetson-01:~$ sjsujetsontool shell #enter into the container
 root@sjsujetson-01:/workspace#
 ```
-if you face errors like "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?", restart the docker:
+if you face errors like "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?", restart docker:
 ```bash
 sudo systemctl start docker
 sudo systemctl status docker
+```
+> [!NOTE]
+> On Jetson platforms running newer Ubuntu releases, Docker can fail to start due to an `iptables` mode mismatch (`nf_tables` instead of `iptables-legacy`). If Docker does not start, run the automatic fix tool:
+```bash
+sjsujetsontool dockerfix
 ```
 
 The `\Developer` and `\Developer\models` folders in the jetson host are mounted to the container in the path of `\Developer` and `\models`
