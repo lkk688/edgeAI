@@ -22,6 +22,27 @@ fi
 JETPACK_VERSION=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
 # Detect L4T BSP revision from /etc/nv_tegra_release (e.g. R36.4.7)
 L4T_REVISION=$(head -1 /etc/nv_tegra_release 2>/dev/null | sed 's/# R\([0-9]*\) (release), REVISION: \([0-9.]*\).*/R\1.\2/')
+_L4T_PKG=$(dpkg-query --show nvidia-l4t-core 2>/dev/null | awk '{print $2}')
+if [[ -z "$L4T_REVISION" && -n "$_L4T_PKG" ]]; then
+  L4T_REVISION="R$(echo "$_L4T_PKG" | cut -d- -f1 | cut -d: -f2)"
+fi
+if [[ -z "$JETPACK_VERSION" && -n "$L4T_REVISION" ]]; then
+  _L4T_MAJOR=$(echo "$L4T_REVISION" | grep -oE '[0-9]+' | head -1)
+  _L4T_MINOR=$(echo "$L4T_REVISION" | grep -oE '[0-9]+' | sed -n '2p')
+  case "$_L4T_MAJOR" in
+    32) JETPACK_VERSION="4.x (inferred)" ;;
+    35) JETPACK_VERSION="5.x (inferred)" ;;
+    36)
+      if [[ "$_L4T_MINOR" -ge 4 ]]; then
+        JETPACK_VERSION="6.1+ (inferred)"
+      else
+        JETPACK_VERSION="6.0 (inferred)"
+      fi
+      ;;
+    37|38) JETPACK_VERSION="7.x (inferred)" ;;
+  esac
+fi
+
 # Try nvcc first, then fall back to version file in CUDA install dir
 CUDA_VERSION=$(nvcc --version 2>/dev/null | grep release | sed -E 's/.*release ([0-9.]+),.*/\1/')
 if [[ -z "$CUDA_VERSION" ]]; then
@@ -41,16 +62,22 @@ if [[ -n "$CUDA_VERSION" ]]; then
   echo "⚙️  CUDA Version: $CUDA_VERSION"
 fi
 
-# 🧠 Detect cuDNN version (use sed to reliably extract only numeric values)
+# 🧠 Detect cuDNN version (use sed, then fall back to dpkg-query)
 CUDNN_VERSION=$(sed -n 's/^#define CUDNN_MAJOR \([0-9]*\)/\1/p; s/^#define CUDNN_MINOR \([0-9]*\)/\1/p; s/^#define CUDNN_PATCHLEVEL \([0-9]*\)/\1/p' /usr/include/cudnn_version.h 2>/dev/null | paste -sd.)
+if [[ -z "$CUDNN_VERSION" ]]; then
+  CUDNN_VERSION=$(dpkg-query -W -f='${Version}\n' 'libcudnn*' 2>/dev/null | grep -v '^$' | head -1 | cut -d- -f1)
+fi
 if [[ -n "$CUDNN_VERSION" ]]; then
   echo "🧬 cuDNN Version: $CUDNN_VERSION"
 fi
 
-# 🤖 Detect TensorRT version (try libnvinfer8 first, then libnvinfer-bin)
+# 🤖 Detect TensorRT version (try libnvinfer8, libnvinfer-bin, then tensorrt-libs fallback)
 TENSORRT_VERSION=$(dpkg-query --show libnvinfer8 2>/dev/null | awk '{print $2}')
 if [[ -z "$TENSORRT_VERSION" ]]; then
   TENSORRT_VERSION=$(dpkg-query --show libnvinfer-bin 2>/dev/null | awk '{print $2}')
+fi
+if [[ -z "$TENSORRT_VERSION" ]]; then
+  TENSORRT_VERSION=$(dpkg-query -W -f='${Version}\n' 'tensorrt-libs' 'libnvinfer*' 2>/dev/null | grep -v '^$' | head -1 | cut -d- -f1)
 fi
 if [[ -n "$TENSORRT_VERSION" ]]; then
   echo "🤖 TensorRT Version: $TENSORRT_VERSION"
