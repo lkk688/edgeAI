@@ -282,15 +282,15 @@ sjsujetsontool healthcheck
 
 Output covers:
 - 📟 **Hardware & OS**: Jetson model, kernel, Ubuntu version, architecture
-- 📦 **NVIDIA JetPack / L4T**: JetPack version, L4T BSP revision (`R36.4.7`), L4T package version
+- 📦 **NVIDIA JetPack / L4T**: JetPack version (inferred from L4T BSP version if the meta-package is missing), L4T BSP revision (`R36.4.7`), L4T package version
 - ⚙️ **CUDA**: Version detected via `nvcc` or via `/usr/local/cuda-*` directory, with PATH tip if nvcc is missing
-- 🧬 **cuDNN**: Parsed from `/usr/include/cudnn_version.h` headers
-- 🤖 **TensorRT**: Detected from installed `libnvinfer` packages
+- 🧬 **cuDNN**: Parsed from `/usr/include/cudnn_version.h` headers (with `dpkg-query` package fallback if development packages are missing)
+- 🤖 **TensorRT**: Detected from installed `libnvinfer`/`tensorrt-libs` packages (supports TensorRT 8.x/10.x)
 - 💾 **Memory**: RAM and Swap usage
 - 💿 **Disk**: Filesystem usage with warnings if >80% full
 - 🌡️ **Temperatures**: All thermal zones from `tegrastats`
 - ⚡ **Power**: Per-rail power via INA3221 sensors (`VDD_IN`, `VDD_CPU_GPU_CV`, `VDD_SOC`)
-- 🐳 **Docker**: Daemon status, version, NVIDIA runtime, available images, running containers
+- 🐳 **Docker**: Daemon status, version, NVIDIA runtime, available images, running containers, and active `iptables` driver mode
 - 🔌 **Key Services**: Port status for JupyterLab (8888), Ollama (11434), llama.cpp (8000), FastAPI (8001), Gradio (7860)
 - 📦 **Apt Upgrades**: Count and list of upgradable packages
 
@@ -367,6 +367,19 @@ The command will:
 2. Show you the list of upgradable packages
 3. Ask for confirmation before applying
 4. Upgrade only non-Jetson packages
+
+### 🐳 `sjsujetsontool dockerfix`
+
+Fixes the Docker daemon startup failure on Jetson by switching the system's `iptables` mode from `nf_tables` (default on Ubuntu 22.04+) to `iptables-legacy` (which the Jetson kernel supports).
+
+```bash
+sjsujetsontool dockerfix
+```
+
+The command will:
+1. Detect current `iptables` mode. If set to `nf_tables`, switches system settings via `update-alternatives` (requires sudo password).
+2. Restarts the Docker daemon service.
+3. Performs a test pull and execution using NVIDIA GPU runtimes to ensure containerized CUDA works.
 
 ### 📋 `sjsujetsontool list`
 
