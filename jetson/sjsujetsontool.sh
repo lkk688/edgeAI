@@ -2,7 +2,7 @@
 
 # === sjsujetsontool ===
 # Custom dev CLI for Jetson Orin Nano
-SCRIPT_VERSION="v0.9.0"
+SCRIPT_VERSION="v1.0.0"
 
 # ❗ Warn if run incorrectly via `bash sjsujetsontool version`
 if [[ "$0" == "bash" && "$1" == "${BASH_SOURCE[0]}" ]]; then
@@ -20,25 +20,40 @@ fi
 
 # 🧰 Detect JetPack and CUDA version
 JETPACK_VERSION=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
+# Detect L4T BSP revision from /etc/nv_tegra_release (e.g. R36.4.7)
+L4T_REVISION=$(head -1 /etc/nv_tegra_release 2>/dev/null | sed 's/# R\([0-9]*\) (release), REVISION: \([0-9.]*\).*/R\1.\2/')
+# Try nvcc first, then fall back to version file in CUDA install dir
 CUDA_VERSION=$(nvcc --version 2>/dev/null | grep release | sed -E 's/.*release ([0-9.]+),.*/\1/')
+if [[ -z "$CUDA_VERSION" ]]; then
+  CUDA_DIR=$(ls -d /usr/local/cuda-* 2>/dev/null | sort -V | tail -1)
+  if [[ -n "$CUDA_DIR" ]]; then
+    CUDA_VERSION=$(basename "$CUDA_DIR" | sed 's/cuda-//')
+  fi
+fi
 
 if [[ -n "$JETPACK_VERSION" ]]; then
   echo "📦 JetPack Version: $JETPACK_VERSION"
+fi
+if [[ -n "$L4T_REVISION" ]]; then
+  echo "🏷️  L4T BSP Revision: $L4T_REVISION"
 fi
 if [[ -n "$CUDA_VERSION" ]]; then
   echo "⚙️  CUDA Version: $CUDA_VERSION"
 fi
 
-# 🧠 Detect cuDNN version
-CUDNN_VERSION=$(cat /usr/include/cudnn_version.h 2>/dev/null | grep CUDNN_MAJOR -A 2 | awk '{print $3}' | paste -sd.)
+# 🧠 Detect cuDNN version (use sed to reliably extract only numeric values)
+CUDNN_VERSION=$(sed -n 's/^#define CUDNN_MAJOR \([0-9]*\)/\1/p; s/^#define CUDNN_MINOR \([0-9]*\)/\1/p; s/^#define CUDNN_PATCHLEVEL \([0-9]*\)/\1/p' /usr/include/cudnn_version.h 2>/dev/null | paste -sd.)
 if [[ -n "$CUDNN_VERSION" ]]; then
   echo "🧬 cuDNN Version: $CUDNN_VERSION"
 fi
 
-# 🤖 Detect TensorRT version
+# 🤖 Detect TensorRT version (try libnvinfer8 first, then libnvinfer-bin)
 TENSORRT_VERSION=$(dpkg-query --show libnvinfer8 2>/dev/null | awk '{print $2}')
+if [[ -z "$TENSORRT_VERSION" ]]; then
+  TENSORRT_VERSION=$(dpkg-query --show libnvinfer-bin 2>/dev/null | awk '{print $2}')
+fi
 if [[ -n "$TENSORRT_VERSION" ]]; then
-  echo "🧠 TensorRT Version: $TENSORRT_VERSION"
+  echo "🤖 TensorRT Version: $TENSORRT_VERSION"
 fi
 
 # Function to show a spinner during long-running operations
@@ -175,6 +190,8 @@ show_help() {
   echo "  update            - Update both script and container image"
   echo "  update-container   - Update only the Docker container image"
   echo "  update-script      - Update only this script from GitHub"
+  echo "  healthcheck       - Deep system health check and diagnostics"
+  echo "  sysupgrade        - Update apt packages (non-Jetson-critical only)"
   echo "  build             - Rebuild Docker image"
   echo "  status            - Show container and service status"
   echo "  mount-nfs [host] [remote_path] [local_path]  - Mount remote NFS share using .local name"
@@ -571,25 +588,25 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "ℹ️ The 'update' command has been split into two separate commands:"
-    echo "  - 'update-container': Updates only the Docker container"
-    echo "  - 'update-script': Updates only this script"
-    echo "\nRunning both updates sequentially..."
+    echo "🔄 Running full update (script + container)..."
+    echo "  Use 'update-container' or 'update-script' to update individually."
+    echo
     
-    # First update container
-    echo "\n🔄 Running container update..."
-    $0 update-container
-    
-    # Then update script (will exit after completion)
-    echo "\n🔄 Running script update..."
+    # First update script
+    echo "📜 Step 1/2: Updating script from GitHub..."
     $0 update-script
+    echo
+
+    # Then update container
+    echo "🐳 Step 2/2: Updating container image..."
+    $0 update-container
     exit 0
     ;;
     
   update-container)
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
-    echo "⬇️ Pulling latest image..."
+    echo "⬇️ Pulling latest image from Docker Hub..."
     
     # Pull with progress indicator
     if pull_with_progress $REMOTE_IMAGE "Downloading latest image... Please wait"; then
@@ -607,21 +624,209 @@ case "$1" in
     ;;
     
   update-script)
-    echo "⬇️ Updating sjsujetsontool script..."
+    echo "⬇️ Updating sjsujetsontool script from GitHub..."
     SCRIPT_PATH=$(realpath "$0")
     BACKUP_PATH="${SCRIPT_PATH}.bak"
     TMP_PATH="${SCRIPT_PATH}.tmp"
 
     cp "$SCRIPT_PATH" "$BACKUP_PATH"
+    echo "📂 Backup saved to: $BACKUP_PATH"
     echo "⬇️ Downloading latest script..."
-    curl -f#L https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$TMP_PATH"
-    chmod +x "$TMP_PATH"
-
-    echo "✅ Script downloaded. Replacing current script..."
-    mv "$TMP_PATH" "$SCRIPT_PATH"
-
-    echo "✅ Script updated."
+    if curl -f#L https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontool.sh -o "$TMP_PATH"; then
+      chmod +x "$TMP_PATH"
+      echo "✅ Script downloaded. Replacing current script..."
+      mv "$TMP_PATH" "$SCRIPT_PATH"
+      echo "✅ Script updated successfully. Re-run your command to use the new version."
+    else
+      echo "❌ Download failed. Restoring backup..."
+      cp "$BACKUP_PATH" "$SCRIPT_PATH"
+      exit 1
+    fi
     exit 0
+    ;;
+
+  healthcheck)
+    echo "════════════════════════════════════════════════════"
+    echo "🔬 Jetson Deep System Health Check"
+    echo "════════════════════════════════════════════════════"
+    echo
+
+    # --- Hardware & OS ---
+    echo "📟 Hardware & OS"
+    echo "  Model     : $(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo 'Unknown')"
+    echo "  Kernel    : $(uname -r)"
+    echo "  OS        : $(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
+    echo "  Arch      : $(uname -m)"
+    echo
+
+    # --- JetPack / L4T ---
+    echo "📦 NVIDIA JetPack / L4T"
+    _JP=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
+    _L4T=$(head -1 /etc/nv_tegra_release 2>/dev/null | sed 's/# R\([0-9]*\) (release), REVISION: \([0-9.]*\).*/R\1.\2/')
+    _L4T_PKG=$(dpkg-query --show nvidia-l4t-core 2>/dev/null | awk '{print $2}')
+    echo "  JetPack   : ${_JP:-Not found}"
+    echo "  L4T BSP   : ${_L4T:-Unknown} (pkg: ${_L4T_PKG:-N/A})"
+    # Warn if JetPack is old
+    _JP_MAJOR=$(echo "$_JP" | cut -d. -f1)
+    if [[ -n "$_JP_MAJOR" && "$_JP_MAJOR" -lt 6 ]]; then
+      echo "  ⚠️  JetPack $JP is below v6.x — consider upgrading via NVIDIA SDK Manager"
+    fi
+    echo
+
+    # --- CUDA ---
+    echo "⚙️  CUDA"
+    _NVCC_VER=$(nvcc --version 2>/dev/null | grep release | sed -E 's/.*release ([0-9.]+),.*/\1/')
+    if [[ -n "$_NVCC_VER" ]]; then
+      echo "  CUDA      : $_NVCC_VER (via nvcc)"
+    else
+      _CUDA_DIR=$(ls -d /usr/local/cuda-* 2>/dev/null | sort -V | tail -1)
+      if [[ -n "$_CUDA_DIR" ]]; then
+        echo "  CUDA      : $(basename $_CUDA_DIR | sed 's/cuda-//') (via $_CUDA_DIR, nvcc not in PATH)"
+        echo "  Tip       : Add to ~/.bashrc: export PATH=$_CUDA_DIR/bin:\$PATH"
+      else
+        echo "  CUDA      : ❌ Not found"
+      fi
+    fi
+    echo
+
+    # --- cuDNN ---
+    echo "🧬 cuDNN"
+    _CUDNN=$(sed -n 's/^#define CUDNN_MAJOR \([0-9]*\)/\1/p; s/^#define CUDNN_MINOR \([0-9]*\)/\1/p; s/^#define CUDNN_PATCHLEVEL \([0-9]*\)/\1/p' /usr/include/cudnn_version.h 2>/dev/null | paste -sd.)
+    echo "  cuDNN     : ${_CUDNN:-Not found}"
+    echo
+
+    # --- TensorRT ---
+    echo "🤖 TensorRT"
+    _TRT=$(dpkg-query --show libnvinfer8 2>/dev/null | awk '{print $2}')
+    [[ -z "$_TRT" ]] && _TRT=$(dpkg-query --show libnvinfer-bin 2>/dev/null | awk '{print $2}')
+    echo "  TensorRT  : ${_TRT:-Not found}"
+    echo
+
+    # --- Memory ---
+    echo "💾 Memory"
+    free -h | awk 'NR==1{print "  "$0} NR==2{print "  "$0} NR==3{print "  "$0}'
+    echo
+
+    # --- Disk ---
+    echo "💿 Disk Usage"
+    df -h --output=source,size,used,avail,pcent,target | awk 'NR==1{print "  "$0} /\/dev\//{ if ($6 != "/boot/efi") print "  "$0}'
+    # Warn if root > 80%
+    _DISK_PCT=$(df / | awk 'NR==2{print $5}' | tr -d '%')
+    if [[ "$_DISK_PCT" -gt 80 ]]; then
+      echo "  ⚠️  Root filesystem is ${_DISK_PCT}% full — consider cleanup"
+    fi
+    echo
+
+    # --- CPU Temperature ---
+    echo "🌡️  Temperatures"
+    if command -v tegrastats &>/dev/null; then
+      timeout 2s tegrastats 2>/dev/null | grep -oE '[a-z0-9_]+@[0-9.]+C' | while read t; do
+        echo "  $t"
+      done
+    else
+      for tz in /sys/class/thermal/thermal_zone*/; do
+        _tname=$(cat "${tz}type" 2>/dev/null)
+        _tval=$(cat "${tz}temp" 2>/dev/null)
+        if [[ -n "$_tval" ]]; then
+          printf "  %-20s %s°C\n" "$_tname" "$(echo "$_tval / 1000" | bc -l 2>/dev/null || echo "$_tval")"
+        fi
+      done
+    fi
+    echo
+
+    # --- Power ---
+    echo "⚡ Power"
+    if [[ -f /sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon1/in1_label ]]; then
+      for hwmon in /sys/bus/i2c/drivers/ina3221/*/hwmon/hwmon*/; do
+        for ch in 1 2 3; do
+          _lbl=$(cat "${hwmon}in${ch}_label" 2>/dev/null)
+          _cur=$(cat "${hwmon}curr${ch}_input" 2>/dev/null)
+          _volt=$(cat "${hwmon}in${ch}_input" 2>/dev/null)
+          if [[ -n "$_lbl" && -n "$_cur" && -n "$_volt" ]]; then
+            _mw=$(( _cur * _volt / 1000 ))
+            printf "  %-20s %smA @ %smV = %smW\n" "$_lbl" "$_cur" "$_volt" "$_mw"
+          fi
+        done
+      done
+    else
+      timeout 2s tegrastats 2>/dev/null | grep -oE 'VDD_[A-Z_]+ [0-9]+mW/[0-9]+mW' | while read p; do
+        echo "  $p"
+      done || echo "  (power info not available)"
+    fi
+    echo
+
+    # --- Docker ---
+    echo "🐳 Docker"
+    if docker info &>/dev/null; then
+      echo "  Status    : ✅ Running"
+      echo "  Version   : $(docker version --format '{{.Server.Version}}' 2>/dev/null)"
+      echo "  Runtime   : $(docker info 2>/dev/null | grep Runtimes | sed 's/.*Runtimes: //')"
+      printf "  Images    :"
+      docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | head -6 | while IFS= read -r img; do
+        printf " %s\n              " "$img"
+      done
+      echo
+      _C_STATUS=$(docker ps --format '{{.Names}}: {{.Status}}' 2>/dev/null)
+      if [[ -n "$_C_STATUS" ]]; then
+        echo "  Running   : $_C_STATUS"
+      else
+        echo "  Running   : (no running containers)"
+      fi
+    else
+      echo "  Status    : ❌ Docker not running"
+      echo "  Fix       : sudo systemctl start docker"
+    fi
+    echo
+
+    # --- Key Services / Ports ---
+    echo "🔌 Key Services"
+    check_service 8888 "JupyterLab"
+    check_service 11434 "Ollama"
+    check_service 8000 "llama.cpp / API"
+    check_service 8001 "FastAPI"
+    check_service 7860 "Gradio UI"
+    echo
+
+    # --- apt upgradable packages ---
+    echo "📦 Apt Upgradable Packages"
+    _UPG=$(apt list --upgradable 2>/dev/null | grep -v 'Listing' | wc -l)
+    echo "  Available : ${_UPG} package(s) upgradable"
+    if [[ "$_UPG" -gt 0 ]]; then
+      echo "  Top pkgs  :"
+      apt list --upgradable 2>/dev/null | grep -v 'Listing' | head -8 | awk '{print "              "$0}'
+      echo "  Run       : sjsujetsontool sysupgrade   (to apply safe upgrades)"
+    fi
+    echo
+
+    echo "════════════════════════════════════════════════════"
+    echo "✅ Health check complete."
+    echo "════════════════════════════════════════════════════"
+    ;;
+
+  sysupgrade)
+    echo "🔄 Checking for apt upgrades..."
+    echo "⚠️  Note: This upgrades generic Ubuntu packages only."
+    echo "⚠️  DO NOT run 'apt upgrade' blindly on Jetson — it can break JetPack/L4T."
+    echo
+    # Refresh package index
+    sudo apt-get update
+    echo
+    # Show what would be upgraded
+    echo "📋 Packages to be upgraded:"
+    apt list --upgradable 2>/dev/null | grep -v Listing
+    echo
+    read -r -p "❓ Proceed with upgrade? [y/N] " _CONFIRM
+    if [[ "$_CONFIRM" =~ ^[Yy]$ ]]; then
+      # Exclude Jetson/NVIDIA/L4T packages to avoid breaking BSP
+      sudo apt-get upgrade --yes \
+        -o 'APT::Get::List-Cleanup=false' \
+        $(apt list --upgradable 2>/dev/null | grep -v Listing \
+          | grep -v '^nvidia\|^libnv\|^cuda\|^libcuda\|^l4t\|^tensorrt\|^libnvinfer\|^libtensorrt' \
+          | awk -F/ '{print $1}' | tr '\n' ' ')
+      echo "✅ System packages upgraded."
+    else
+      echo "⏭️  Upgrade skipped."
+    fi
     ;;
   set-hostname)
     shift

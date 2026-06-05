@@ -75,7 +75,7 @@ A command-line tool for Jetson-based workflows: container management, model serv
 curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
 ```
 
-After the script installation, run `sjsujetsontool update` to update the local container and script. The container update takes long time.
+After the script installation, run `sjsujetsontool update` to update the local script and container image. The container update takes a long time.
 ```bash
 sjsujetson@sjsujetson-01:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
 ⬇️ Downloading sjsujetsontool from GitHub...
@@ -84,69 +84,36 @@ sjsujetson@sjsujetson-01:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/
 ✅ Installed successfully. You can now run: sjsujetsontool
 sjsujetson@sjsujetson-01:~$ sjsujetsontool update
 🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+📦 JetPack Version: 6.2.1+b38
+🏷️  L4T BSP Revision: R36.4.7
 ⚙️  CUDA Version: 12.6
-ℹ️ The 'update' command has been split into two separate commands:
-  - 'update-container': Updates only the Docker container
-  - 'update-script': Updates only this script
-\nRunning both updates sequentially...
-\n🔄 Running container update...
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
+🧬 cuDNN Version: 9.3.0
+🤖 TensorRT Version: 10.3.0.30-1+cuda12.5
+🔄 Running full update (script + container)...
+  Use 'update-container' or 'update-script' to update individually.
+
+📜 Step 1/2: Updating script from GitHub...
+📂 Backup saved to: /home/sjsujetson/.local/bin/sjsujetsontool.bak
+⬇️ Downloading latest script...
+#################################################################################################### 100.0%
+✅ Script downloaded. Replacing current script...
+✅ Script updated successfully. Re-run your command to use the new version.
+
+🐳 Step 2/2: Updating container image...
 🔍 Checking Docker image update...
-⬇️ Pulling latest image (this may take a while)...
+⬇️ Pulling latest image from Docker Hub...
 latest: Pulling from cmpelkk/jetson-llm
 ....
 ✓ Pull complete.
 📦 New version detected. Updating local image...
 ✅ Local container updated from Docker Hub.
-\n🔄 Running script update...
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
-⬇️ Updating sjsujetsontool script...
-⬇️ Downloading latest script...
-#################################################################################################### 100.0%
-✅ Script downloaded. Replacing current script...
-✅ Script updated. Please rerun your command.
 ```
 
-Another option is just run the update command for **two** times:
+You can also update just the script or just the container independently:
 ```bash
-student@sjsujetson-02:~$ hostname
-sjsujetson-02
-student@sjsujetson-02:~$ sjsujetsontool update
-⬇️  Updating sjsujetsontool from GitHub...
-🔁 Backing up current script to /home/student/.local/bin/sjsujetsontool.bak
-✅ Update complete. Backup saved at /home/student/.local/bin/sjsujetsontool.bak
-/home/student/.local/bin/sjsujetsontool: line 228: syntax error near unexpected token `('
-/home/student/.local/bin/sjsujetsontool: line 228: `    echo "❌ $name not running (port $port closed)"'
-student@sjsujetson-02:~$ sjsujetsontool update
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
-ℹ️ The 'update' command has been split into two separate commands:
-  - 'update-container': Updates only the Docker container
-  - 'update-script': Updates only this script
-\nRunning both updates sequentially...
-\n🔄 Running container update...
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
-🔍 Checking Docker image update...
-⬇️ Pulling latest image (this may take a while)...
-latest: Pulling from cmpelkk/jetson-llm
-Digest: sha256:8021643930669290377d9fc19741cd8c012dbfb7d5f25c7189651ec875b03a78
-Status: Image is up to date for cmpelkk/jetson-llm:latest
-docker.io/cmpelkk/jetson-llm:latest
-✓ Pull complete.
-✅ Local container is already up-to-date.
-\n🔄 Running script update...
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
-⬇️ Updating sjsujetsontool script...
-⬇️ Downloading latest script...
-#################################################################################################### 100.0%
-✅ Script downloaded. Replacing current script...
-✅ Script updated. Please rerun your command.
+sjsujetsontool update-script      # update only this CLI script from GitHub
+sjsujetsontool update-container   # update only the Docker container image
 ```
-
 
 Verify:
 
@@ -154,14 +121,18 @@ Verify:
 sjsujetsontool list
 ```
 
-You can check the script versions:
+You can check the script and system versions:
 ```bash
 sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool version
 🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+📦 JetPack Version: 6.2.1+b38
+🏷️  L4T BSP Revision: R36.4.7
 ⚙️  CUDA Version: 12.6
-🧾 sjsujetsontool Script Version: v0.9.0
+🧬 cuDNN Version: 9.3.0
+🤖 TensorRT Version: 10.3.0.30-1+cuda12.5
+🧾 sjsujetsontool Script Version: v1.0.0
 🧊 Docker Image: jetson-llm:v1
-🔍 Image ID: sha256:9868985d80e4d1d43309d72ba85b700f3ac064233fcbf58c8ec22555d85f8c2f
+🔍 Image ID: sha256:83e9d42c36f8cae3a1a61fd5aa488b14b9ac11922c512920652212795847280a
 ```
 
 The `sjsujetsontool` wraps python apps running via container and makes running code inside the container easy to use. `docker` without sudo is already setup in the jetson device. Check existing containers available in the Jetson:
@@ -292,7 +263,105 @@ CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 
 ### 🧾 `sjsujetsontool update`
 
-Downloads the latest version of `sjsujetsontool` from GitHub and replaces the local version, keeping a backup.
+Updates the script from GitHub (step 1) then pulls the latest Docker container image (step 2). A backup of the current script is saved automatically.
+
+Use `update-script` or `update-container` to update individually.
+
+### 🔬 `sjsujetsontool healthcheck`
+
+Runs a deep system health check and prints a comprehensive diagnostic report. This is the recommended first step when troubleshooting or after receiving a new Jetson device.
+
+```bash
+sjsujetsontool healthcheck
+```
+
+Output covers:
+- 📟 **Hardware & OS**: Jetson model, kernel, Ubuntu version, architecture
+- 📦 **NVIDIA JetPack / L4T**: JetPack version, L4T BSP revision (`R36.4.7`), L4T package version
+- ⚙️ **CUDA**: Version detected via `nvcc` or via `/usr/local/cuda-*` directory, with PATH tip if nvcc is missing
+- 🧬 **cuDNN**: Parsed from `/usr/include/cudnn_version.h` headers
+- 🤖 **TensorRT**: Detected from installed `libnvinfer` packages
+- 💾 **Memory**: RAM and Swap usage
+- 💿 **Disk**: Filesystem usage with warnings if >80% full
+- 🌡️ **Temperatures**: All thermal zones from `tegrastats`
+- ⚡ **Power**: Per-rail power via INA3221 sensors (`VDD_IN`, `VDD_CPU_GPU_CV`, `VDD_SOC`)
+- 🐳 **Docker**: Daemon status, version, NVIDIA runtime, available images, running containers
+- 🔌 **Key Services**: Port status for JupyterLab (8888), Ollama (11434), llama.cpp (8000), FastAPI (8001), Gradio (7860)
+- 📦 **Apt Upgrades**: Count and list of upgradable packages
+
+Example output snippet:
+```
+════════════════════════════════════════════════════
+🔬 Jetson Deep System Health Check
+════════════════════════════════════════════════════
+
+📟 Hardware & OS
+  Model     : NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+  Kernel    : 5.15.148-tegra
+  OS        : Ubuntu 22.04.5 LTS
+  Arch      : aarch64
+
+📦 NVIDIA JetPack / L4T
+  JetPack   : 6.2.1+b38
+  L4T BSP   : R36.4.7 (pkg: 36.4.7-20250918154033)
+
+⚙️  CUDA
+  CUDA      : 12.6 (via /usr/local/cuda-12.6, nvcc not in PATH)
+  Tip       : Add to ~/.bashrc: export PATH=/usr/local/cuda-12.6/bin:$PATH
+
+🧬 cuDNN
+  cuDNN     : 9.3.0
+
+🤖 TensorRT
+  TensorRT  : 10.3.0.30-1+cuda12.5
+
+💾 Memory
+               total        used        free      ...
+  Mem:         7.4Gi       1.8Gi       217Mi
+
+💿 Disk Usage
+  /dev/nvme0n1p1   1.8T   91G  1.7T   6% /
+
+🌡️  Temperatures
+  cpu@53.25C  soc2@51.09C  gpu@53.43C  tj@54.65C
+
+⚡ Power
+  VDD_IN               920mA @ 5048mV = 4644mW
+  VDD_CPU_GPU_CV       112mA @ 5040mV = 564mW
+  VDD_SOC              288mA @ 5040mV = 1451mW
+
+🐳 Docker
+  Status    : ✅ Running  (version 29.4.0)
+  Runtime   : io.containerd.runc.v2 nvidia runc
+
+🔌 Key Services
+✅ JupyterLab is running on port 8888
+❌ Ollama not running (port 11434 closed)
+
+📦 Apt Upgradable Packages
+  Available : 124 package(s) upgradable
+  Run       : sjsujetsontool sysupgrade   (to apply safe upgrades)
+
+════════════════════════════════════════════════════
+✅ Health check complete.
+════════════════════════════════════════════════════
+```
+
+### 🔄 `sjsujetsontool sysupgrade`
+
+Safely upgrades Ubuntu system packages while **excluding** Jetson/NVIDIA/L4T packages to prevent breaking the JetPack BSP.
+
+```bash
+sjsujetsontool sysupgrade
+```
+
+> ⚠️ **Important**: Never run bare `sudo apt upgrade` on a Jetson — it can overwrite NVIDIA L4T kernel modules and break GPU support. Always use `sysupgrade` which filters out `nvidia-*`, `cuda-*`, `l4t-*`, and `libnvinfer*` packages.
+
+The command will:
+1. Run `apt-get update` to refresh the package index
+2. Show you the list of upgradable packages
+3. Ask for confirmation before applying
+4. Upgrade only non-Jetson packages
 
 ### 📋 `sjsujetsontool list`
 
