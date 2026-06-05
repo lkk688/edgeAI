@@ -58,6 +58,32 @@ python3 -c "import urllib.request; print(urllib.request.urlopen('https://raw.git
 
 ---
 
+## 🐍 AI & Machine Learning Setup
+
+`gputool` provides helper utilities to set up localized machine learning virtual environments directly inside your user directory using Conda.
+
+### 🤖 Create Conda Env & Install LeRobot / PyTorch / HF
+Creates a new Conda environment with Python 3.10 and automatically configures it with the Blackwell-compatible CUDA 12.8 PyTorch build, LeRobot (with extra simulator dependencies), and Hugging Face packages:
+
+```bash
+gputool setup-lerobot [env_name]
+```
+*(If `env_name` is omitted, it defaults to `lerobot`).*
+
+**What it does:**
+1. Dynamically locates and sources the active Conda initialization profile (e.g. `miniconda3` or `anaconda3` paths).
+2. Creates the target environment with Python 3.10.
+3. Installs CUDA 12.8 Blackwell-compatible PyTorch wheels from the official PyTorch index (crucial for Blackwell GPUs like RTX 5080, which require compute capability `sm_120`).
+4. Installs the full LeRobot suite (`lerobot[all]`) and `huggingface_hub` via pip.
+5. Performs runtime verification of CUDA, device detection, and package imports.
+
+To activate the environment after setup:
+```bash
+conda activate <env_name>
+```
+
+---
+
 ## 🌐 Userspace Tailscale VPN
 
 Since `gputool` runs without root privileges, it cannot create a virtual network interface card (`tailscale0`). Instead, it uses **user-space networking (SOCKS5/HTTP Proxy)** to routing network traffic through the Headscale VPN.

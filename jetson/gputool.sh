@@ -89,6 +89,9 @@ show_help() {
   echo "  install                  - Install gputool script to ~/.local/bin/ and setup PATH"
   echo "  update-script            - Pull the latest gputool script from GitHub"
   echo
+  echo "AI & Machine Learning Commands:"
+  echo "  setup-lerobot [env_name] - Create Conda env and install PyTorch (RTX 5080), LeRobot, and HF"
+  echo
   echo "Tailscale Commands (🔒 Userspace VPN, NO ROOT/SUDO Required):"
   echo "  tailscale <sub>          - Manage userspace Tailscale client"
   echo "      setup                - Download and configure Tailscale static binaries"
@@ -100,7 +103,7 @@ show_help() {
   echo "Examples:"
   echo "  gputool tailscale setup"
   echo "  gputool tailscale up"
-  echo "  gputool tailscale status"
+  echo "  gputool setup-lerobot my_env"
 }
 
 # Spinner helper
@@ -445,6 +448,101 @@ down_tailscale() {
   success "Tailscale disconnected."
 }
 
+# Setup Conda Env and install PyTorch + LeRobot + Hugging Face
+setup_lerobot_env() {
+  local env_name="${1:-lerobot}"
+  
+  echo "══════════════════════════════════════════════════"
+  echo "🐍 Setting up LeRobot & PyTorch Environment"
+  echo "══════════════════════════════════════════════════"
+  
+  # --- Find Conda initialization script ---
+  local CONDA_SH=""
+  for path in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/anaconda3/etc/profile.d/conda.sh" \
+    "/opt/conda/etc/profile.d/conda.sh" \
+    "/home/010796032@SJSUAD/miniconda3/etc/profile.d/conda.sh" \
+    "/home/$USER/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$path" ]]; then
+      CONDA_SH="$path"
+      break
+    fi
+  done
+
+  if [[ -n "$CONDA_SH" ]]; then
+    info "Found conda at $CONDA_SH. Activating conda..."
+    source "$CONDA_SH"
+  elif command -v conda &>/dev/null; then
+    info "Conda is already in PATH."
+  else
+    error "Conda not found. Please make sure Miniconda/Anaconda is installed."
+    echo "   Suggested installation: https://docs.google.com/miniconda/"
+    exit 1
+  fi
+
+  # --- Create conda environment ---
+  info "Creating conda environment '$env_name' with Python 3.10..."
+  if ! conda env list | grep -q "^$env_name "; then
+    if ! conda create -y -n "$env_name" python=3.10; then
+      error "Failed to create conda environment '$env_name'."
+      exit 1
+    fi
+    success "Conda environment '$env_name' created."
+  else
+    warn "Conda environment '$env_name' already exists. Reusing it."
+  fi
+
+  # --- Install PyTorch ---
+  info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
+  # Blackwell RTX 5080 requires CUDA 12.8+; try PyTorch's cu128 wheel index first
+  if ! conda run -n "$env_name" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128; then
+    warn "Failed to install via cu128 wheel index. Retrying with default PyPI torch..."
+    if ! conda run -n "$env_name" pip install torch torchvision torchaudio; then
+      error "PyTorch installation failed."
+      exit 1
+    fi
+  fi
+  success "PyTorch installed."
+
+  # --- Install LeRobot and Hugging Face Hub ---
+  info "Installing LeRobot (with extra dependencies) and Hugging Face Hub..."
+  # 'lerobot[all]' installs standard aloha, pusht and other simulation/robotics dependencies
+  if ! conda run -n "$env_name" pip install "lerobot[all]" huggingface_hub; then
+    warn "Installing 'lerobot[all]' failed. Trying base 'lerobot'..."
+    if ! conda run -n "$env_name" pip install lerobot huggingface_hub; then
+      error "LeRobot installation failed."
+      exit 1
+    fi
+  fi
+  success "LeRobot and Hugging Face packages installed."
+
+  # --- Verification ---
+  info "Running verification script..."
+  echo
+  conda run -n "$env_name" python3 -c "
+import torch
+import lerobot
+import huggingface_hub
+
+print('==================================================')
+print('🧬 PyTorch Version    :', torch.__version__)
+print('🟢 CUDA Available      :', torch.cuda.is_available())
+if torch.cuda.is_available():
+    print('🖥️  GPU Device Name    :', torch.cuda.get_device_name(0))
+    print('⚙️  CUDA Device Arch   :', torch.cuda.get_arch_list())
+print('🤗 HF Hub Version     :', huggingface_hub.__version__)
+print('🤖 LeRobot Version    :', lerobot.__version__)
+print('==================================================')
+"
+
+  echo
+  success "Environment setup complete!"
+  echo "👉 To activate this environment, run:"
+  echo "   conda activate $env_name"
+  echo "══════════════════════════════════════════════════"
+}
+
 # Main command dispatcher
 CMD="${1:-help}"
 case "$CMD" in
@@ -459,6 +557,10 @@ case "$CMD" in
     ;;
   update-script)
     update_script
+    ;;
+  setup-lerobot)
+    shift
+    setup_lerobot_env "${1:-}"
     ;;
   tailscale)
     shift
