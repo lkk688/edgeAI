@@ -196,6 +196,7 @@ show_help() {
   echo "  update-script      - Update only this script from GitHub"
   echo "  healthcheck       - Deep system health check and diagnostics"
   echo "  sysupgrade        - Update apt packages (non-Jetson-critical only)"
+  echo "  dockerfix         - Fix Docker daemon (iptables-legacy for Jetson)"
   echo "  tailscale <sub>   - Manage Tailscale / Headscale VPN"
   echo "      install              - Install Tailscale if not present"
   echo "      up [--force]         - Join headscale network (checks conflicts)"
@@ -392,6 +393,66 @@ snapfix() {
   sudo snap refresh --hold snapd
 
   echo "[✅] Snap daemon reverted and held. This helps prevent browser launch issues on Jetson."
+}
+
+dockerfix() {
+  echo "════════════════════════════════════════════════════"
+  echo "🐳 Jetson Docker Fix — iptables-legacy"
+  echo "════════════════════════════════════════════════════"
+  echo
+  echo "📋 Problem: Docker on Jetson fails to start because the system"
+  echo "   iptables is set to 'nf_tables' mode, but the Jetson L4T kernel"
+  echo "   only supports 'iptables-legacy'. This causes:"
+  echo "     iptables v1.8.7 (nf_tables): Couldn't load match 'addrtype'"
+  echo
+
+  # Detect current iptables mode
+  CURRENT_IPT=$(iptables --version 2>/dev/null)
+  if echo "$CURRENT_IPT" | grep -q "legacy"; then
+    echo "✅ iptables is already set to legacy mode: $CURRENT_IPT"
+    echo
+  else
+    echo "⚠️  Current iptables mode: $CURRENT_IPT"
+    echo "🔧 Switching to iptables-legacy..."
+    sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+    sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    echo "✅ Switched: $(iptables --version)"
+    echo
+  fi
+
+  # Check if Docker is running; restart if not
+  if systemctl is-active --quiet docker; then
+    echo "✅ Docker is already running."
+  else
+    echo "🔄 Starting Docker daemon..."
+    sudo systemctl restart docker
+    sleep 3
+    if systemctl is-active --quiet docker; then
+      echo "✅ Docker started successfully."
+    else
+      echo "❌ Docker failed to start. Check logs:"
+      echo "   journalctl -u docker -n 30 --no-pager"
+      return 1
+    fi
+  fi
+
+  echo
+  echo "🧪 Testing Docker + GPU access..."
+  if docker run --rm --runtime=nvidia \
+    -e NVIDIA_VISIBLE_DEVICES=all \
+    nvcr.io/nvidia/l4t-base:r36.2.0 \
+    nvidia-smi 2>/dev/null | grep -q "NVIDIA-SMI"; then
+    echo "✅ Docker GPU test passed."
+  else
+    echo "⚠️  GPU test skipped (base image may not be cached — run 'sjsujetsontool update-container' first)."
+    echo "   Quick test: docker run --rm hello-world"
+    docker run --rm hello-world 2>&1 | tail -3
+  fi
+
+  echo
+  echo "════════════════════════════════════════════════════"
+  echo "✅ Docker fix complete. Run 'sjsujetsontool status' to verify."
+  echo "════════════════════════════════════════════════════"
 }
 
 meshvpn() {
@@ -613,6 +674,27 @@ case "$1" in
     ;;
     
   update-container)
+    # --- Pre-check: ensure Docker daemon is running ---
+    if ! docker info &>/dev/null; then
+      echo "❌ Docker daemon is not running."
+      _IPT=$(iptables --version 2>/dev/null)
+      if echo "$_IPT" | grep -q "nf_tables"; then
+        echo "🔍 Detected iptables in nf_tables mode (known Jetson issue)."
+        echo "🔧 Auto-fixing: switching to iptables-legacy..."
+        sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+        sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+        echo "✅ Switched to: $(iptables --version)"
+        sudo systemctl restart docker
+        sleep 3
+      fi
+      if ! docker info &>/dev/null; then
+        echo "❌ Docker still not running after fix attempt."
+        echo "   Run: sjsujetsontool dockerfix"
+        echo "   Or:  journalctl -u docker -n 30 --no-pager"
+        exit 1
+      fi
+      echo "✅ Docker is now running."
+    fi
     echo "🔍 Checking Docker image update..."
     LOCAL_ID=$(docker image inspect $LOCAL_IMAGE --format '{{.Id}}' 2>/dev/null)
     echo "⬇️ Pulling latest image from Docker Hub..."
@@ -766,6 +848,12 @@ case "$1" in
 
     # --- Docker ---
     echo "🐳 Docker"
+    _IPT_VER=$(iptables --version 2>/dev/null)
+    echo "  iptables  : $_IPT_VER"
+    if echo "$_IPT_VER" | grep -q "nf_tables"; then
+      echo "  ⚠️  WARNING: iptables is in nf_tables mode. Docker will fail to start on Jetson!"
+      echo "              Run 'sjsujetsontool dockerfix' to resolve this."
+    fi
     if docker info &>/dev/null; then
       echo "  Status    : ✅ Running"
       echo "  Version   : $(docker version --format '{{.Server.Version}}' 2>/dev/null)"
@@ -783,7 +871,11 @@ case "$1" in
       fi
     else
       echo "  Status    : ❌ Docker not running"
-      echo "  Fix       : sudo systemctl start docker"
+      if echo "$_IPT_VER" | grep -q "nf_tables"; then
+        echo "  Fix       : Run 'sjsujetsontool dockerfix' to switch to legacy iptables"
+      else
+        echo "  Fix       : sudo systemctl start docker"
+      fi
     fi
     echo
 
@@ -902,6 +994,9 @@ case "$1" in
     ;;
   snapfix)
     snapfix
+    ;;
+  dockerfix)
+    dockerfix
     ;;
   meshvpn)
     meshvpn
