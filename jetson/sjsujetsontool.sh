@@ -755,12 +755,32 @@ case "$1" in
     _JP=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
     _L4T=$(head -1 /etc/nv_tegra_release 2>/dev/null | sed 's/# R\([0-9]*\) (release), REVISION: \([0-9.]*\).*/R\1.\2/')
     _L4T_PKG=$(dpkg-query --show nvidia-l4t-core 2>/dev/null | awk '{print $2}')
+    if [[ -z "$_L4T" && -n "$_L4T_PKG" ]]; then
+      _L4T="R$(echo "$_L4T_PKG" | cut -d- -f1 | cut -d: -f2)"
+    fi
+    if [[ -z "$_JP" && -n "$_L4T" ]]; then
+      _L4T_MAJOR=$(echo "$_L4T" | grep -oE '[0-9]+' | head -1)
+      _L4T_MINOR=$(echo "$_L4T" | grep -oE '[0-9]+' | sed -n '2p')
+      case "$_L4T_MAJOR" in
+        32) _JP="4.x (inferred from L4T $_L4T)" ;;
+        35) _JP="5.x (inferred from L4T $_L4T)" ;;
+        36)
+          if [[ "$_L4T_MINOR" -ge 4 ]]; then
+            _JP="6.1+ (inferred from L4T $_L4T)"
+          else
+            _JP="6.0 (inferred from L4T $_L4T)"
+          fi
+          ;;
+        37|38) _JP="7.x (inferred from L4T $_L4T)" ;;
+        *) _JP="Unknown (L4T $_L4T)" ;;
+      esac
+    fi
     echo "  JetPack   : ${_JP:-Not found}"
     echo "  L4T BSP   : ${_L4T:-Unknown} (pkg: ${_L4T_PKG:-N/A})"
     # Warn if JetPack is old
-    _JP_MAJOR=$(echo "$_JP" | cut -d. -f1)
+    _JP_MAJOR=$(echo "$_JP" | grep -oE '^[0-9]+')
     if [[ -n "$_JP_MAJOR" && "$_JP_MAJOR" -lt 6 ]]; then
-      echo "  ⚠️  JetPack $JP is below v6.x — consider upgrading via NVIDIA SDK Manager"
+      echo "  ⚠️  JetPack $_JP is below v6.x — consider upgrading via NVIDIA SDK Manager"
     fi
     echo
 
@@ -783,6 +803,9 @@ case "$1" in
     # --- cuDNN ---
     echo "🧬 cuDNN"
     _CUDNN=$(sed -n 's/^#define CUDNN_MAJOR \([0-9]*\)/\1/p; s/^#define CUDNN_MINOR \([0-9]*\)/\1/p; s/^#define CUDNN_PATCHLEVEL \([0-9]*\)/\1/p' /usr/include/cudnn_version.h 2>/dev/null | paste -sd.)
+    if [[ -z "$_CUDNN" ]]; then
+      _CUDNN=$(dpkg-query -W -f='${Version}\n' 'libcudnn*' 2>/dev/null | grep -v '^$' | head -1 | cut -d- -f1)
+    fi
     echo "  cuDNN     : ${_CUDNN:-Not found}"
     echo
 
@@ -790,6 +813,9 @@ case "$1" in
     echo "🤖 TensorRT"
     _TRT=$(dpkg-query --show libnvinfer8 2>/dev/null | awk '{print $2}')
     [[ -z "$_TRT" ]] && _TRT=$(dpkg-query --show libnvinfer-bin 2>/dev/null | awk '{print $2}')
+    if [[ -z "$_TRT" ]]; then
+      _TRT=$(dpkg-query -W -f='${Version}\n' 'tensorrt-libs' 'libnvinfer*' 2>/dev/null | grep -v '^$' | head -1 | cut -d- -f1)
+    fi
     echo "  TensorRT  : ${_TRT:-Not found}"
     echo
 
