@@ -35,6 +35,42 @@ success() { echo -e "${GREEN}[✅]${NC} $*"; }
 warn() { echo -e "${YELLOW}[⚠️]${NC} $*"; }
 error() { echo -e "${RED}[❌]${NC} $*"; }
 
+# Helper download functions (with Python 3 fallback if curl/wget are missing)
+download_file() {
+  local url="$1"
+  local dest="$2"
+  if command -v curl &>/dev/null; then
+    curl -fsSL "$url" -o "$dest"
+  elif command -v wget &>/dev/null; then
+    wget -qO "$dest" "$url"
+  elif command -v python3 &>/dev/null; then
+    python3 -c "import urllib.request; urllib.request.urlretrieve('$url', '$dest')" &>/dev/null
+  else
+    return 1
+  fi
+}
+
+http_get_auth() {
+  local url="$1"
+  local token="$2"
+  if command -v curl &>/dev/null; then
+    curl -sf --max-time 8 "$url" -H "Authorization: Bearer $token"
+  elif command -v wget &>/dev/null; then
+    wget -qO- --timeout=8 --header="Authorization: Bearer $token" "$url" 2>/dev/null
+  elif command -v python3 &>/dev/null; then
+    python3 -c "
+import urllib.request
+try:
+    req = urllib.request.Request('$url', headers={'Authorization': 'Bearer $token'})
+    print(urllib.request.urlopen(req, timeout=8).read().decode())
+except Exception:
+    pass
+" 2>/dev/null
+  else
+    return 1
+  fi
+}
+
 # ❗ Warn if run incorrectly via `bash gputool version`
 if [[ "$0" == "bash" && "$1" == "${BASH_SOURCE[0]}" ]]; then
   warn "Please run this script directly, not via 'bash'."
@@ -116,7 +152,7 @@ update_script() {
   info "Updating gputool script from GitHub..."
   local TEMP_FILE
   TEMP_FILE=$(mktemp)
-  if curl -fsSL "$SCRIPT_URL" -o "$TEMP_FILE"; then
+  if download_file "$SCRIPT_URL" "$TEMP_FILE"; then
     chmod +x "$TEMP_FILE"
     mv "$TEMP_FILE" "$SCRIPT_PATH"
     success "gputool has been updated successfully to latest version."
@@ -150,9 +186,7 @@ is_daemon_running() {
 check_hostname_conflict() {
   local hn="$1"
   local api_resp
-  api_resp=$(curl -sf --max-time 8 \
-    "${HEADSCALE_LOGIN_SERVER}/api/v1/machine" \
-    -H "Authorization: Bearer ${HEADSCALE_AUTHKEY}" 2>/dev/null)
+  api_resp=$(http_get_auth "${HEADSCALE_LOGIN_SERVER}/api/v1/machine" "${HEADSCALE_AUTHKEY}")
   if [[ -z "$api_resp" ]]; then
     info "Could not reach headscale API — skipping hostname conflict check."
     return 0
@@ -191,7 +225,7 @@ setup_tailscale() {
 
   info "Downloading static package from Tailscale..."
   echo "   URL: $DOWNLOAD_URL"
-  if ! curl -L "$DOWNLOAD_URL" -o "$TMP_TGZ"; then
+  if ! download_file "$DOWNLOAD_URL" "$TMP_TGZ"; then
     error "Download failed. Please check internet connection."
     exit 1
   fi
