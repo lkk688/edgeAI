@@ -1034,7 +1034,7 @@ serve_llamacpp() {
         --model "$model_path" \
         --port "$port" \
         --ctx-size 4096 \
-        --ngl 99 \
+        -ngl 99 \
         > "$log_file" 2>&1 &
       
       local server_pid=$!
