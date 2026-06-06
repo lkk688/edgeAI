@@ -502,6 +502,8 @@ setup_lerobot_env() {
 
   # --- Install PyTorch ---
   info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
+  warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
+  warn "   depending on your network connection speed. Please do not close the terminal..."
   # Blackwell RTX 5080 requires CUDA 12.8+; try PyTorch's cu128 wheel index first
   if ! conda run -n "$env_name" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128; then
     warn "Failed to install via cu128 wheel index. Retrying with default PyPI torch..."
@@ -514,6 +516,7 @@ setup_lerobot_env() {
 
   # --- Install LeRobot and Hugging Face Hub ---
   info "Installing LeRobot (with extra dependencies) and Hugging Face Hub..."
+  warn "⏳ Downloading LeRobot simulation libraries. This may also take a few minutes..."
   # 'lerobot[all]' installs standard aloha, pusht and other simulation/robotics dependencies
   if ! conda run -n "$env_name" pip install "lerobot[all]" huggingface_hub; then
     warn "Installing 'lerobot[all]' failed. Trying base 'lerobot'..."
