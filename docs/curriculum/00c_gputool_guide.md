@@ -71,15 +71,29 @@ gputool setup-lerobot [env_name]
 *(If `env_name` is omitted, it defaults to `lerobot`).*
 
 **What it does:**
-1. Dynamically locates and sources the active Conda initialization profile (e.g. `miniconda3` or `anaconda3` paths).
-2. Creates the target environment with Python 3.10.
-3. Installs CUDA 12.8 Blackwell-compatible PyTorch wheels from the official PyTorch index (crucial for Blackwell GPUs like RTX 5080, which require compute capability `sm_120`).
-4. Installs the full LeRobot suite (`lerobot[all]`) and `huggingface_hub` via pip.
-5. Performs runtime verification of CUDA, device detection, and package imports.
+1. **Locates Conda:** Dynamically scans for and sources the active Conda initialization profile (e.g. `miniconda3`, `anaconda3`, or system paths).
+2. **Creates Environment:** Initializes the target Conda virtual environment using Python 3.10.
+3. **Installs CMake < 4:** Automatically configures the environment with `cmake<4` from `conda-forge`. This is a critical fallback that prevents build isolation compile failures (`Compatibility with CMake < 3.5 has been removed from CMake`) when compiling older robotics simulation packages like `egl_probe`/`hf-egl-probe` under newer system environments.
+4. **Installs PyTorch (Blackwell Support):** Installs PyTorch built with CUDA 12.8 (`cu128` wheel index). This compute capability (`sm_120`) is required to run CUDA programs on Blackwell GPUs (like the RTX 5080), as older PyTorch wheels will raise "no kernel image available" exceptions.
+5. **Installs LeRobot & HF:** Performs a Pip installation of `huggingface_hub` and the complete LeRobot suite with simulation extras (`lerobot[all]`).
+6. **Runs Verification:** Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.
 
 To activate the environment after setup:
 ```bash
 conda activate <env_name>
+```
+
+#### Example Verification Output
+Upon successful installation, `gputool` outputs the active versions and hardware state:
+```
+==================================================
+🧬 PyTorch Version    : 2.10.0+cu128
+🟢 CUDA Available      : True
+🖥️  GPU Device Name    : NVIDIA GeForce RTX 5080
+⚙️  CUDA Device Arch   : ['sm_70', 'sm_75', 'sm_80', 'sm_86', 'sm_90', 'sm_100', 'sm_120']
+🤗 HF Hub Version     : 0.35.3
+🤖 LeRobot Version    : 0.4.4
+==================================================
 ```
 
 ---
