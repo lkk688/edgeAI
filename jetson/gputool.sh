@@ -521,11 +521,13 @@ setup_lerobot_env() {
   warn "⏳ Downloading LeRobot simulation libraries. This may also take a few minutes..."
   # 'lerobot[all]' installs standard aloha, pusht and other simulation/robotics dependencies
   if ! conda run -n "$env_name" pip install "lerobot[all]" huggingface_hub; then
-    warn "Installing 'lerobot[all]' failed. Trying base 'lerobot'..."
+    warn "Installing 'lerobot[all]' failed. Trying base 'lerobot' and manual simulation libraries (mujoco, h5py)..."
     if ! conda run -n "$env_name" pip install lerobot huggingface_hub; then
       error "LeRobot installation failed."
       exit 1
     fi
+    info "Attempting to install standard simulation libraries (mujoco, h5py) separately..."
+    conda run -n "$env_name" pip install mujoco h5py
   fi
   success "LeRobot and Hugging Face packages installed."
 
