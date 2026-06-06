@@ -55,6 +55,10 @@ python3 -c "import urllib.request; print(urllib.request.urlopen('https://raw.git
   ```bash
   gputool update-script
   ```
+* **Run complete system check:**
+  ```bash
+  gputool check [env_name]
+  ```
 
 ---
 
@@ -94,6 +98,67 @@ Upon successful installation, `gputool` outputs the active versions and hardware
 🤗 HF Hub Version     : 0.35.3
 🤖 LeRobot Version    : 0.4.4
 ==================================================
+```
+
+### 🔍 Run Complete System Diagnostic Check
+To verify that the system hardware, Conda environment, PyTorch with CUDA, Hugging Face Hub, LeRobot installation, and Userspace Tailscale VPN/Proxy are all correctly configured, run:
+
+```bash
+gputool check [env_name]
+```
+*(If `env_name` is omitted, it defaults to `lerobot`).*
+
+**What it verifies:**
+1. **GPU & Driver:** Checks if `nvidia-smi` is available and reports the active GPU name, NVIDIA driver version, and host system CUDA version.
+2. **Conda environment:** Verifies if Conda is installed and detects if the target environment (e.g. `lerobot`) exists.
+3. **PyTorch & CUDA:** Performs in-environment checks to verify PyTorch is installed, CUDA is active, and prints the compute capability of the GPU (e.g. Blackwell RTX 5080 capability details).
+4. **Hugging Face Hub:** Checks Hugging Face Hub library setup, authentication status, and tests network connectivity to `huggingface.co`.
+5. **LeRobot:** Confirms `lerobot` package version and checks key simulation backends (`gymnasium`, `mujoco`, `h5py`).
+6. **Tailscale & Proxy:** Queries tailscaled daemon status, checks whether proxy port `1055` is active and listening, and displays assigned Tailscale IPs.
+
+#### Example Output:
+```
+══════════════════════════════════════════════════
+🖥️  System Hardware Check
+══════════════════════════════════════════════════
+[✅] NVIDIA Driver found via nvidia-smi.
+   • GPU Name       : NVIDIA GeForce RTX 5080
+   • Driver Version : 550.54.14
+   • CUDA Version   : 12.8
+
+══════════════════════════════════════════════════
+🐍 Conda Environment Check
+══════════════════════════════════════════════════
+[✅] Conda is installed.
+   • Conda Path    : /home/student/miniconda3/bin/conda
+   • Conda Version : 24.1.2
+[✅] Conda environment 'lerobot' exists.
+[⚙️] Running Python diagnostic checks in Conda env 'lerobot'...
+
+════ PyTorch & CUDA Diagnostic ════
+   • PyTorch Installed      : 2.10.0+cu128                   ✅
+   • CUDA Available         : True                           ✅
+   • CUDA Backend Ver       : 12.8                           ✅
+   • GPU Device Name        : NVIDIA GeForce RTX 5080        ✅
+   • Compute Capability     : ('12', '0')                    ✅
+
+════ Hugging Face Hub Diagnostic ════
+   • HF Hub Installed       : 0.35.3                         ✅
+   • HF Auth Status         : Logged In                      ✅
+   • HF Hub Connectivity    : Connected                      ✅
+
+════ LeRobot Diagnostic ════
+   • LeRobot Installed      : 0.4.4                          ✅
+   • Simulation Packages    : gymnasium(OK), mujoco(OK)...   ✅
+
+══════════════════════════════════════════════════
+🌐 Userspace Tailscale VPN & Proxy Check
+══════════════════════════════════════════════════
+[✅] tailscaled background daemon is running.
+   • Daemon PID      : 29841
+[✅] Proxy port 1055 is listening.
+   • Tailscale IPs   : 100.64.0.15
+══════════════════════════════════════════════════
 ```
 
 ---

@@ -91,6 +91,7 @@ show_help() {
   echo
   echo "AI & Machine Learning Commands:"
   echo "  setup-lerobot [env_name] - Create Conda env and install PyTorch (RTX 5080), LeRobot, and HF"
+  echo "  check [env_name]         - Run a complete diagnostic check of GPU, PyTorch, HF, LeRobot & Tailscale"
   echo
   echo "Tailscale Commands (🔒 Userspace VPN, NO ROOT/SUDO Required):"
   echo "  tailscale <sub>          - Manage userspace Tailscale client"
@@ -104,6 +105,7 @@ show_help() {
   echo "  gputool tailscale setup"
   echo "  gputool tailscale up"
   echo "  gputool setup-lerobot my_env"
+  echo "  gputool check my_env"
 }
 
 # Spinner helper
@@ -553,6 +555,225 @@ print('==================================================')
   echo "══════════════════════════════════════════════════"
 }
 
+# Run system diagnostic checks (GPU, Conda, PyTorch, Hugging Face, LeRobot, Tailscale)
+system_check() {
+  local env_name="${1:-lerobot}"
+
+  echo "══════════════════════════════════════════════════"
+  echo "🖥️  System Hardware Check"
+  echo "══════════════════════════════════════════════════"
+  if command -v nvidia-smi &>/dev/null; then
+    success "NVIDIA Driver found via nvidia-smi."
+    local nv_info
+    nv_info=$(nvidia-smi 2>/dev/null)
+    if [[ -n "$nv_info" ]]; then
+      local gpu_name
+      gpu_name=$(nvidia-smi --query-gpu=name --format=csv,noheader | head -n 1)
+      local drv_ver
+      drv_ver=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n 1)
+      local cuda_ver
+      cuda_ver=$(echo "$nv_info" | grep -o "CUDA Version: [0-9.]*" | head -n 1 | awk '{print $3}')
+      echo "   • GPU Name       : $gpu_name"
+      echo "   • Driver Version : $drv_ver"
+      echo "   • CUDA Version   : $cuda_ver"
+    else
+      warn "NVIDIA driver is present but nvidia-smi query failed."
+    fi
+  else
+    warn "nvidia-smi not found. GPU driver might not be installed or in PATH."
+  fi
+
+  echo
+  echo "══════════════════════════════════════════════════"
+  echo "🐍 Conda Environment Check"
+  echo "══════════════════════════════════════════════════"
+
+  # Find Conda
+  local CONDA_SH=""
+  for path in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/anaconda3/etc/profile.d/conda.sh" \
+    "/opt/conda/etc/profile.d/conda.sh" \
+    "/home/010796032@SJSUAD/miniconda3/etc/profile.d/conda.sh" \
+    "/home/$USER/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$path" ]]; then
+      CONDA_SH="$path"
+      break
+    fi
+  done
+
+  if [[ -n "$CONDA_SH" ]]; then
+    source "$CONDA_SH"
+  fi
+
+  if ! command -v conda &>/dev/null; then
+    error "Conda command not found. Environment cannot be checked."
+    exit 1
+  fi
+
+  success "Conda is installed."
+  echo "   • Conda Path    : $(which conda)"
+  echo "   • Conda Version : $(conda --version | awk '{print $2}')"
+
+  if ! conda env list | grep -q "^$env_name "; then
+    error "Conda environment '$env_name' does not exist."
+    echo "   👉 You can set it up using: gputool setup-lerobot $env_name"
+    exit 1
+  fi
+  success "Conda environment '$env_name' exists."
+
+  info "Running Python diagnostic checks in Conda env '$env_name'..."
+
+  # Run Python verification script via temporary file because conda run doesn't handle stdin redirection well
+  local py_check_file="$GPUTOOL_DIR/syscheck.py"
+  mkdir -p "$GPUTOOL_DIR"
+  cat << 'EOF' > "$py_check_file"
+import sys
+
+def print_section(title):
+    print(f"\n\033[1;35m════ {title} ════\033[0m")
+
+def print_row(label, value, success=True):
+    color = "\033[0;32m" if success else "\033[0;31m"
+    icon = "✅" if success else "❌"
+    print(f"   • {label:<22} : {color}{value:<30}\033[0m {icon}")
+
+# 1. Check PyTorch & CUDA
+print_section("PyTorch & CUDA Diagnostic")
+try:
+    import torch
+    torch_ok = True
+    torch_version = torch.__version__
+    cuda_ok = torch.cuda.is_available()
+    cuda_version = torch.version.cuda if cuda_ok else "N/A"
+    gpu_name = torch.cuda.get_device_name(0) if cuda_ok else "N/A"
+    gpu_capability = str(torch.cuda.get_device_capability(0)) if cuda_ok else "N/A"
+except ImportError:
+    torch_ok = False
+    torch_version = "Not Installed"
+    cuda_ok = False
+    cuda_version = "N/A"
+    gpu_name = "N/A"
+    gpu_capability = "N/A"
+
+print_row("PyTorch Installed", torch_version, torch_ok)
+print_row("CUDA Available", str(cuda_ok), cuda_ok)
+if cuda_ok:
+    print_row("CUDA Backend Ver", cuda_version, True)
+    print_row("GPU Device Name", gpu_name, True)
+    print_row("Compute Capability", gpu_capability, True)
+
+# 2. Check Hugging Face Hub
+print_section("Hugging Face Hub Diagnostic")
+try:
+    import huggingface_hub
+    hf_ok = True
+    hf_version = huggingface_hub.__version__
+    try:
+        token = huggingface_hub.get_token()
+        hf_logged_in = "Logged In" if token else "Not Logged In"
+    except Exception:
+        hf_logged_in = "Not Logged In"
+    
+    # Check connectivity to HF
+    import urllib.request
+    try:
+        urllib.request.urlopen("https://huggingface.co", timeout=3)
+        hf_conn = "Connected"
+        hf_conn_ok = True
+    except Exception:
+        hf_conn = "Offline / Connection Failed"
+        hf_conn_ok = False
+except ImportError:
+    hf_ok = False
+    hf_version = "Not Installed"
+    hf_logged_in = "N/A"
+    hf_conn = "N/A"
+    hf_conn_ok = False
+
+print_row("HF Hub Installed", hf_version, hf_ok)
+print_row("HF Auth Status", hf_logged_in, hf_ok)
+print_row("HF Hub Connectivity", hf_conn, hf_conn_ok if hf_ok else False)
+
+# 3. Check LeRobot
+print_section("LeRobot Diagnostic")
+try:
+    import lerobot
+    lerobot_ok = True
+    lerobot_version = lerobot.__version__
+    
+    # Check simulator imports
+    sims = []
+    for sim_pkg in ['gymnasium', 'mujoco', 'h5py']:
+        try:
+            __import__(sim_pkg)
+            sims.append(f"{sim_pkg}(OK)")
+        except ImportError:
+            sims.append(f"{sim_pkg}(Missing)")
+    sim_status = ", ".join(sims)
+except ImportError:
+    lerobot_ok = False
+    lerobot_version = "Not Installed"
+    sim_status = "N/A"
+
+print_row("LeRobot Installed", lerobot_version, lerobot_ok)
+if lerobot_ok:
+    print_row("Simulation Packages", sim_status, "Missing" not in sim_status)
+EOF
+
+  conda run -n "$env_name" python3 "$py_check_file"
+  rm -f "$py_check_file"
+  echo
+  echo "══════════════════════════════════════════════════"
+  echo "🌐 Userspace Tailscale VPN & Proxy Check"
+  echo "══════════════════════════════════════════════════"
+  if is_daemon_running; then
+    success "tailscaled background daemon is running."
+    local TS_PID
+    TS_PID=$(cat "$TS_PID_FILE" 2>/dev/null)
+    echo "   • Daemon PID      : $TS_PID"
+    
+    # Check if proxy port 1055 is active
+    local proxy_listening=false
+    if command -v ss &>/dev/null; then
+      if ss -tuln | grep -q ":1055 "; then
+        proxy_listening=true
+      fi
+    elif command -v netstat &>/dev/null; then
+      if netstat -tuln | grep -q ":1055 "; then
+        proxy_listening=true
+      fi
+    fi
+    # Python fallback check for port 1055
+    if [[ "$proxy_listening" == "false" ]]; then
+      if python3 -c "import socket; s = socket.socket(); s.settimeout(1); s.connect(('127.0.0.1', 1055))" &>/dev/null; then
+        proxy_listening=true
+      fi
+    fi
+
+    if [[ "$proxy_listening" == "true" ]]; then
+      success "Proxy port 1055 is listening."
+    else
+      warn "Proxy port 1055 is NOT listening."
+    fi
+    
+    # Get tailscale IP
+    if [[ -f "$TAILSCALE_DIR/tailscale" ]]; then
+      local TS_IPS
+      TS_IPS=$("$TAILSCALE_DIR/tailscale" --socket="$TS_SOCKET" status --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(', '.join(d.get('TailscaleIPs',[])))" 2>/dev/null)
+      if [[ -n "$TS_IPS" ]]; then
+        echo "   • Tailscale IPs   : $TS_IPS"
+      else
+        warn "Could not retrieve Tailscale IPs (disconnected or starting)."
+      fi
+    fi
+  else
+    warn "tailscaled daemon is not running."
+    echo "   💡 Start with: gputool tailscale up"
+  fi
+  echo "══════════════════════════════════════════════════"
+}
+
 # Main command dispatcher
 CMD="${1:-help}"
 case "$CMD" in
@@ -571,6 +792,10 @@ case "$CMD" in
   setup-lerobot)
     shift
     setup_lerobot_env "${1:-}"
+    ;;
+  check|system-check)
+    shift
+    system_check "${1:-}"
     ;;
   tailscale)
     shift
