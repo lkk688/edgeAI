@@ -93,6 +93,11 @@ show_help() {
   echo "  setup-lerobot [env_name] - Create Conda env and install PyTorch (RTX 5080), LeRobot, and HF"
   echo "  check [env_name]         - Run a complete diagnostic check of GPU, PyTorch, HF, LeRobot & Tailscale"
   echo
+  echo "Llama.cpp & LLM Commands (RTX GPU Offloading):"
+  echo "  setup-llamacpp [env_name] - Compile llama.cpp with CUDA support inside Conda env"
+  echo "  download-model [repo] [file] [env] - Download a GGUF model from Hugging Face"
+  echo "  serve-llamacpp <action> [model] [port] - Manage background llama-server (start|stop|status)"
+  echo
   echo "Tailscale Commands (🔒 Userspace VPN, NO ROOT/SUDO Required):"
   echo "  tailscale <sub>          - Manage userspace Tailscale client"
   echo "      setup                - Download and configure Tailscale static binaries"
@@ -106,6 +111,9 @@ show_help() {
   echo "  gputool tailscale up"
   echo "  gputool setup-lerobot my_env"
   echo "  gputool check my_env"
+  echo "  gputool setup-llamacpp my_env"
+  echo "  gputool download-model unsloth/Qwen3.5-9B-GGUF Qwen3.5-9B-UD-Q6_K_XL.gguf my_env"
+  echo "  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080"
 }
 
 # Spinner helper
@@ -776,6 +784,353 @@ EOF
   echo "══════════════════════════════════════════════════"
 }
 
+# Compile and set up llama.cpp with CUDA support
+setup_llamacpp() {
+  local env_name="${1:-lerobot}"
+  
+  echo "══════════════════════════════════════════════════"
+  echo "🔧 Compiling & Setting up llama.cpp"
+  echo "══════════════════════════════════════════════════"
+  
+  # Find Conda
+  local CONDA_SH=""
+  for path in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/anaconda3/etc/profile.d/conda.sh" \
+    "/opt/conda/etc/profile.d/conda.sh" \
+    "/home/010796032@SJSUAD/miniconda3/etc/profile.d/conda.sh" \
+    "/home/$USER/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$path" ]]; then
+      CONDA_SH="$path"
+      break
+    fi
+  done
+
+  if [[ -n "$CONDA_SH" ]]; then
+    source "$CONDA_SH"
+  fi
+
+  if ! command -v conda &>/dev/null; then
+    error "Conda command not found. Cannot configure build environment."
+    exit 1
+  fi
+
+  if ! conda env list | grep -q "^$env_name "; then
+    error "Conda environment '$env_name' does not exist."
+    echo "   💡 Please create it or specify a valid env name."
+    exit 1
+  fi
+
+  # Clone llama.cpp
+  mkdir -p "$GPUTOOL_DIR"
+  local src_dir="$GPUTOOL_DIR/llamacpp-src"
+  if [[ ! -d "$src_dir" ]]; then
+    info "Cloning llama.cpp repository..."
+    if ! git clone --depth=1 https://github.com/ggerganov/llama.cpp.git "$src_dir"; then
+      error "Failed to clone llama.cpp repository."
+      exit 1
+    fi
+  else
+    info "llama.cpp source directory already exists at $src_dir. Updating..."
+    cd "$src_dir" && git pull && cd - &>/dev/null
+  fi
+
+  # Setup CUDA path for compiler config
+  export PATH="/usr/local/cuda/bin:$PATH"
+  export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+  export CUDA_TOOLKIT_ROOT_DIR="/usr/local/cuda"
+
+  # Find nvcc
+  local nvcc_bin=""
+  if command -v nvcc &>/dev/null; then
+    nvcc_bin=$(command -v nvcc)
+  elif [[ -f "/usr/local/cuda/bin/nvcc" ]]; then
+    nvcc_bin="/usr/local/cuda/bin/nvcc"
+  fi
+
+  if [[ -z "$nvcc_bin" ]]; then
+    error "nvcc compiler not found in PATH or /usr/local/cuda/bin."
+    echo "   👉 Please ensure NVIDIA CUDA Toolkit is installed."
+    exit 1
+  fi
+  success "Found CUDA compiler: $nvcc_bin"
+
+  # Configure build using cmake inside conda env
+  info "Configuring build with CUDA support enabled..."
+  if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$src_dir/build" \
+    -DGGML_CUDA=ON \
+    -DCMAKE_CUDA_COMPILER="$nvcc_bin"; then
+    error "CMake configuration failed."
+    exit 1
+  fi
+
+  # Compile release target
+  info "Compiling llama.cpp Release binaries using all CPU cores..."
+  local num_jobs
+  num_jobs=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+  if ! conda run -n "$env_name" cmake --build "$src_dir/build" --config Release -j"$num_jobs"; then
+    error "llama.cpp compilation failed."
+    exit 1
+  fi
+
+  # Copy binaries to GPUTOOL bin directory
+  mkdir -p "$GPUTOOL_DIR/bin"
+  if [[ -f "$src_dir/build/bin/llama-cli" && -f "$src_dir/build/bin/llama-server" ]]; then
+    cp "$src_dir/build/bin/llama-cli" "$GPUTOOL_DIR/bin/"
+    cp "$src_dir/build/bin/llama-server" "$GPUTOOL_DIR/bin/"
+    chmod +x "$GPUTOOL_DIR/bin/llama-cli" "$GPUTOOL_DIR/bin/llama-server"
+    success "llama.cpp compiled successfully!"
+    echo "   Installed binaries:"
+    echo "   • $GPUTOOL_DIR/bin/llama-cli"
+    echo "   • $GPUTOOL_DIR/bin/llama-server"
+  else
+    error "Compiled binaries not found where expected in build output."
+    exit 1
+  fi
+  echo "══════════════════════════════════════════════════"
+}
+
+# Download GGUF models using huggingface_hub inside conda env
+download_model() {
+  local repo_id="${1:-unsloth/Qwen3.5-9B-GGUF}"
+  local filename="${2:-Qwen3.5-9B-UD-Q6_K_XL.gguf}"
+  local env_name="${3:-lerobot}"
+  
+  echo "══════════════════════════════════════════════════"
+  echo "📥 Downloading GGUF Model from Hugging Face"
+  echo "══════════════════════════════════════════════════"
+  echo "   Repo ID    : $repo_id"
+  echo "   Filename   : $filename"
+  echo "   Target Dir : $GPUTOOL_DIR/models"
+  echo
+  
+  # Find Conda
+  local CONDA_SH=""
+  for path in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/anaconda3/etc/profile.d/conda.sh" \
+    "/opt/conda/etc/profile.d/conda.sh" \
+    "/home/010796032@SJSUAD/miniconda3/etc/profile.d/conda.sh" \
+    "/home/$USER/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$path" ]]; then
+      CONDA_SH="$path"
+      break
+    fi
+  done
+
+  if [[ -n "$CONDA_SH" ]]; then
+    source "$CONDA_SH"
+  fi
+
+  if ! command -v conda &>/dev/null; then
+    error "Conda command not found. Cannot run huggingface downloader."
+    exit 1
+  fi
+
+  # Check if env exists
+  if ! conda env list | grep -q "^$env_name "; then
+    error "Conda environment '$env_name' does not exist."
+    exit 1
+  fi
+
+  # Ensure huggingface_hub is installed in the conda environment
+  if ! conda run -n "$env_name" python3 -c "import huggingface_hub" &>/dev/null; then
+    info "Installing huggingface_hub in Conda env '$env_name' first..."
+    conda run -n "$env_name" pip install huggingface_hub
+  fi
+
+  # Create models directory
+  local models_dir="$GPUTOOL_DIR/models"
+  mkdir -p "$models_dir"
+
+  info "Starting download via huggingface_hub API (with symlink resolution)..."
+  warn "⏳ This model is large. Download speed depends on the network interface."
+  warn "   Please do not interrupt or close the terminal."
+  
+  local download_py="$GPUTOOL_DIR/hf_download.py"
+  cat << EOF > "$download_py"
+import sys
+from huggingface_hub import hf_hub_download
+try:
+    path = hf_hub_download(
+        repo_id="${repo_id}",
+        filename="${filename}",
+        local_dir="${models_dir}",
+        local_dir_use_symlinks=False
+    )
+    print("SUCCESS_PATH:" + path)
+except Exception as e:
+    print("ERROR:" + str(e), file=sys.stderr)
+    sys.exit(1)
+EOF
+
+  local download_out
+  if download_out=$(conda run -n "$env_name" python3 "$download_py" 2>&1); then
+    rm -f "$download_py"
+    local actual_path
+    actual_path=$(echo "$download_out" | grep "SUCCESS_PATH:" | cut -d':' -f2-)
+    success "Download complete!"
+    echo "   Model saved at: $actual_path"
+  else
+    rm -f "$download_py"
+    error "Download failed."
+    echo "$download_out"
+    exit 1
+  fi
+  echo "══════════════════════════════════════════════════"
+}
+
+# Start, stop, or check status of llama-server
+serve_llamacpp() {
+  local action="${1:-status}"
+  local model_param="${2:-Qwen3.5-9B-UD-Q6_K_XL.gguf}"
+  local port="${3:-8080}"
+  
+  local pid_file="$GPUTOOL_DIR/llama-server.pid"
+  local log_file="$GPUTOOL_DIR/llama-server.log"
+  local server_bin="$GPUTOOL_DIR/bin/llama-server"
+
+  case "$action" in
+    start)
+      echo "══════════════════════════════════════════════════"
+      echo "🚀 Starting llama-server"
+      echo "══════════════════════════════════════════════════"
+      
+      if [[ ! -f "$server_bin" ]]; then
+        error "llama-server binary not found. Please run: gputool setup-llamacpp"
+        exit 1
+      fi
+
+      # Check if already running
+      if [[ -f "$pid_file" ]]; then
+        local old_pid
+        old_pid=$(cat "$pid_file" 2>/dev/null)
+        if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+          warn "llama-server is already running (PID: $old_pid)."
+          echo "   If you want to restart, run: gputool serve-llamacpp stop"
+          exit 0
+        fi
+      fi
+
+      # Resolve model path
+      local model_path=""
+      if [[ -f "$model_param" ]]; then
+        model_path="$model_param"
+      elif [[ -f "$GPUTOOL_DIR/models/$model_param" ]]; then
+        model_path="$GPUTOOL_DIR/models/$model_param"
+      else
+        error "Model file not found: '$model_param'"
+        echo "   Looked locally and in: $GPUTOOL_DIR/models/"
+        echo "   👉 You can download the default model using: gputool download-model"
+        exit 1
+      fi
+
+      info "Serving model: $model_path"
+      info "Port          : $port"
+      info "Logging to    : $log_file"
+
+      # Start daemon offloading all layers (-ngl 99)
+      nohup "$server_bin" \
+        --model "$model_path" \
+        --port "$port" \
+        --ctx-size 4096 \
+        --ngl 99 \
+        > "$log_file" 2>&1 &
+      
+      local server_pid=$!
+      echo "$server_pid" > "$pid_file"
+      sleep 2
+
+      if kill -0 "$server_pid" 2>/dev/null; then
+        success "llama-server started successfully (PID: $server_pid)."
+        echo "   🔗 API Base URL: http://localhost:$port/v1"
+        echo "   💡 Try querying model completions via curl:"
+        echo "      curl http://localhost:$port/v1/chat/completions \\"
+        echo "        -H \"Content-Type: application/json\" \\"
+        echo "        -d '{\"messages\": [{\"role\": \"user\", \"content\": \"Hello!\"}]}'"
+      else
+        error "llama-server failed to start immediately. Check logs:"
+        tail -n 20 "$log_file"
+        rm -f "$pid_file"
+        exit 1
+      fi
+      echo "══════════════════════════════════════════════════"
+      ;;
+      
+    stop)
+      echo "══════════════════════════════════════════════════"
+      echo "🔌 Stopping llama-server"
+      echo "══════════════════════════════════════════════════"
+      if [[ -f "$pid_file" ]]; then
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null)
+        if [[ -n "$pid" ]]; then
+          info "Stopping llama-server daemon (PID: $pid)..."
+          kill "$pid" 2>/dev/null
+          
+          local timeout=10
+          while kill -0 "$pid" 2>/dev/null && [[ $timeout -gt 0 ]]; do
+            sleep 0.5
+            ((timeout--))
+          done
+          
+          if kill -0 "$pid" 2>/dev/null; then
+            warn "Process did not exit cleanly. Force killing..."
+            kill -9 "$pid" 2>/dev/null
+          fi
+          success "llama-server stopped."
+        else
+          warn "PID file empty."
+        fi
+        rm -f "$pid_file"
+      else
+        warn "llama-server PID file not found (likely not running)."
+      fi
+      echo "══════════════════════════════════════════════════"
+      ;;
+      
+    status)
+      echo "══════════════════════════════════════════════════"
+      echo "📊 llama-server Status Check"
+      echo "══════════════════════════════════════════════════"
+      if [[ -f "$pid_file" ]]; then
+        local pid
+        pid=$(cat "$pid_file" 2>/dev/null)
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+          success "llama-server is running (PID: $pid)."
+          
+          # Check health endpoint
+          if command -v curl &>/dev/null; then
+            local health_resp
+            health_resp=$(curl -s --connect-timeout 2 "http://localhost:$port/health")
+            if [[ "$health_resp" == *'"status":'* || "$health_resp" == *"ok"* ]]; then
+              success "Server API health check: Responsive (OK)"
+            else
+              warn "Server process active but health check returned: $health_resp"
+            fi
+          fi
+          
+          echo "   • Log Location : $log_file"
+          echo "   • CLI Command  : ps -p $pid -o command"
+          ps -p "$pid" -o command 2>/dev/null | tail -n 1
+        else
+          error "llama-server process is NOT running, but PID file exists."
+          rm -f "$pid_file"
+        fi
+      else
+        warn "llama-server is NOT running."
+      fi
+      echo "══════════════════════════════════════════════════"
+      ;;
+      
+    *)
+      error "Unknown serve-llamacpp action: '$action'"
+      echo "Usage: gputool serve-llamacpp <start|stop|status> [model_name_or_path] [port]"
+      exit 1
+      ;;
+  esac
+}
+
 # Main command dispatcher
 CMD="${1:-help}"
 case "$CMD" in
@@ -798,6 +1153,18 @@ case "$CMD" in
   check|system-check)
     shift
     system_check "${1:-}"
+    ;;
+  setup-llamacpp)
+    shift
+    setup_llamacpp "${1:-}"
+    ;;
+  download-model)
+    shift
+    download_model "${1:-}" "${2:-}" "${3:-}"
+    ;;
+  serve-llamacpp)
+    shift
+    serve_llamacpp "${1:-}" "${2:-}" "${3:-}"
     ;;
   tailscale)
     shift
