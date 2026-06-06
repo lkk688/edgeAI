@@ -493,6 +493,13 @@ setup_lerobot_env() {
     warn "Conda environment '$env_name' already exists. Reusing it."
   fi
 
+  # --- Install CMake ---
+  info "Installing CMake < 4 via Conda (required for compiling LeRobot simulation libraries)..."
+  if ! conda install -y -n "$env_name" -c conda-forge "cmake<4"; then
+    warn "Conda installation of CMake failed. Trying fallback pip installation..."
+    conda run -n "$env_name" pip install "cmake<4"
+  fi
+
   # --- Install PyTorch ---
   info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
   # Blackwell RTX 5080 requires CUDA 12.8+; try PyTorch's cu128 wheel index first
