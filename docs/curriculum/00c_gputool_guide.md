@@ -163,6 +163,69 @@ gputool check [env_name]
 
 ---
 
+## 🦙 Llama.cpp & Local LLM Serving
+
+`gputool` provides fully integrated commands to compile `llama.cpp` with NVIDIA CUDA support, download optimized GGUF model quantizations from Hugging Face, and manage background `llama-server` instances for local API serving with maximum GPU offloading.
+
+### 1. Compile llama.cpp with CUDA Support
+This command clones `llama.cpp` from source, locates the active CUDA compilers, and builds the binaries (`llama-cli` and `llama-server`) with GPU acceleration enabled. It uses the `cmake` compiler present inside the specified conda environment:
+
+```bash
+gputool setup-llamacpp [env_name]
+```
+*(If `env_name` is omitted, it defaults to `lerobot`).*
+
+This automatically detects your system's GPU architecture (e.g. Blackwell RTX 5080/`sm_120`) and configures nvcc compilation. Binaries are compiled and installed into `~/.gputool/bin/`.
+
+### 2. Download a GGUF Model
+Use Python's native `huggingface_hub` downloader to fetch a GGUF model directly to `~/.gputool/models/`. This avoids symlink compilation issues and handles large file streaming smoothly.
+
+```bash
+gputool download-model [repo_id] [filename] [env_name]
+```
+* **Default Model:** If arguments are omitted, it defaults to the unsloth Q6_K_XL quantization of **Qwen3.5 9B**:
+  * Repo ID: `unsloth/Qwen3.5-9B-GGUF`
+  * Filename: `Qwen3.5-9B-UD-Q6_K_XL.gguf`
+
+### 3. Serve the LLM via Llama Server
+Start, stop, or check status of the local OpenAPI-compatible background serving daemon:
+
+* **Start the server:**
+  Offloads all model layers (`-ngl 99`) to the GPU.
+  ```bash
+  gputool serve-llamacpp start [model_filename_or_path] [port]
+  ```
+  *(Defaults: model = `Qwen3.5-9B-UD-Q6_K_XL.gguf`, port = `8080`)*
+
+* **Check server status:**
+  ```bash
+  gputool serve-llamacpp status
+  ```
+  *(This prints process PID details and runs a connection health check to `/health`).*
+
+* **Stop the server:**
+  ```bash
+  gputool serve-llamacpp stop
+  ```
+
+#### Example Usage & Inference Query:
+```bash
+# 1. Start the server
+gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080
+
+# 2. Query completions via the OpenAI-compatible endpoint
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What GPU architecture is NVIDIA Blackwell?"}
+    ]
+  }'
+```
+
+---
+
 ## 🌐 Userspace Tailscale VPN
 
 Since `gputool` runs without root privileges, it cannot create a virtual network interface card (`tailscale0`). Instead, it uses **user-space networking (SOCKS5/HTTP Proxy)** to routing network traffic through the Headscale VPN.
