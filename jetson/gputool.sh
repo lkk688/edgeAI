@@ -503,6 +503,11 @@ install_conda() {
     "$target_path/bin/conda" init zsh &>/dev/null
   fi
 
+  # Auto-accept Anaconda Terms of Service to prevent CondaToSNonInteractiveError
+  info "Accepting Anaconda Terms of Service for default channels..."
+  "$target_path/bin/conda" tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main &>/dev/null
+  "$target_path/bin/conda" tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &>/dev/null
+
   success "Conda initialization completed."
   echo "👉 To configure your active shell, please run: source ~/.bashrc"
   echo "══════════════════════════════════════════════════"
