@@ -55,6 +55,10 @@ python3 -c "import urllib.request; print(urllib.request.urlopen('https://raw.git
   ```bash
   gputool update-script
   ```
+* **Install Miniconda:**
+  ```bash
+  gputool install-conda [install_path]
+  ```
 * **Run complete system check:**
   ```bash
   gputool check [env_name]
@@ -65,6 +69,23 @@ python3 -c "import urllib.request; print(urllib.request.urlopen('https://raw.git
 ## 🐍 AI & Machine Learning Setup
 
 `gputool` provides helper utilities to set up localized machine learning virtual environments directly inside your user directory using Conda.
+
+### 📦 Install Miniconda
+On a brand new/empty machine (where Conda is not present), you can download and install Miniconda to user space:
+
+```bash
+gputool install-conda [install_path]
+```
+*(If `install_path` is omitted, it defaults to `$HOME/miniconda3`).*
+
+**What it does:**
+1. **Downloads Installer:** Downloads the latest Miniconda installer from Anaconda's repositories.
+2. **Silent Install:** Performs a silent batch installation in user space (no root required).
+3. **ToS Auto-Acceptance:** Automatically accepts the Anaconda Terms of Service to prevent `CondaToSNonInteractiveError` during package setups.
+4. **Shell configuration:** Runs `conda init` to automatically configure your `.bashrc` and/or `.zshrc`.
+
+> [!TIP]
+> If you run `gputool setup-lerobot` directly on a system where Conda is missing, `gputool` will automatically detect this and trigger the Miniconda auto-installation fallback for you!
 
 ### 🤖 Create Conda Env & Install LeRobot / PyTorch / HF
 Creates a new Conda environment with Python 3.10 and automatically configures it with the Blackwell-compatible CUDA 12.8 PyTorch build, LeRobot (with extra simulator dependencies), and Hugging Face packages:
