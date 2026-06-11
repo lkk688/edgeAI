@@ -90,6 +90,7 @@ show_help() {
   echo "  update-script            - Pull the latest gputool script from GitHub"
   echo
   echo "AI & Machine Learning Commands:"
+  echo "  install-conda [path]     - Download and silently install Miniconda (default: ~/miniconda3)"
   echo "  setup-lerobot [env_name] - Create Conda env and install PyTorch (RTX 5080), LeRobot, and HF"
   echo "  check [env_name]         - Run a complete diagnostic check of GPU, PyTorch, HF, LeRobot & Tailscale"
   echo
@@ -109,6 +110,7 @@ show_help() {
   echo "Examples:"
   echo "  gputool tailscale setup"
   echo "  gputool tailscale up"
+  echo "  gputool install-conda"
   echo "  gputool setup-lerobot my_env"
   echo "  gputool check my_env"
   echo "  gputool setup-llamacpp my_env"
@@ -458,6 +460,54 @@ down_tailscale() {
   success "Tailscale disconnected."
 }
 
+# Download and install Miniconda silently
+install_conda() {
+  local target_path="${1:-$HOME/miniconda3}"
+  
+  echo "══════════════════════════════════════════════════"
+  echo "📦 Installing Miniconda"
+  echo "══════════════════════════════════════════════════"
+  
+  # Check if already installed
+  if [[ -f "$target_path/bin/conda" ]]; then
+    success "Miniconda is already installed at $target_path"
+    "$target_path/bin/conda" init bash &>/dev/null
+    return 0
+  fi
+
+  local miniconda_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+  local temp_installer="/tmp/Miniconda3-latest-Linux-x86_64.sh"
+
+  info "Downloading Miniconda installer..."
+  echo "   URL: $miniconda_url"
+  if ! download_file "$miniconda_url" "$temp_installer"; then
+    error "Failed to download Miniconda installer. Please check network connection."
+    exit 1
+  fi
+
+  info "Running Miniconda silent installer..."
+  echo "   Destination: $target_path"
+  if ! bash "$temp_installer" -b -u -p "$target_path"; then
+    error "Miniconda silent installation failed."
+    rm -f "$temp_installer"
+    exit 1
+  fi
+
+  rm -f "$temp_installer"
+  success "Miniconda installed successfully at $target_path."
+
+  # Initialize conda for the current shell context & config files
+  info "Initializing Conda for your shell profiles..."
+  "$target_path/bin/conda" init bash &>/dev/null
+  if [ -n "$ZSH_VERSION" ] || [ -f "$HOME/.zshrc" ]; then
+    "$target_path/bin/conda" init zsh &>/dev/null
+  fi
+
+  success "Conda initialization completed."
+  echo "👉 To configure your active shell, please run: source ~/.bashrc"
+  echo "══════════════════════════════════════════════════"
+}
+
 # Setup Conda Env and install PyTorch + LeRobot + Hugging Face
 setup_lerobot_env() {
   local env_name="${1:-lerobot}"
@@ -486,9 +536,14 @@ setup_lerobot_env() {
   elif command -v conda &>/dev/null; then
     info "Conda is already in PATH."
   else
-    error "Conda not found. Please make sure Miniconda/Anaconda is installed."
-    echo "   Suggested installation: https://docs.google.com/miniconda/"
-    exit 1
+    warn "Conda not found. Automatically triggering Miniconda installation..."
+    install_conda "$HOME/miniconda3"
+    if [[ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+      source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    else
+      error "Failed to locate Conda profile script after auto-installation."
+      exit 1
+    fi
   fi
 
   # --- Create conda environment ---
@@ -1149,6 +1204,10 @@ case "$CMD" in
   setup-lerobot)
     shift
     setup_lerobot_env "${1:-}"
+    ;;
+  install-conda)
+    shift
+    install_conda "${1:-}"
     ;;
   check|system-check)
     shift
