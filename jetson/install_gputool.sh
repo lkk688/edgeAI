@@ -6,7 +6,21 @@ INSTALL_PATH="$HOME/.local/bin/gputool"
 echo "⬇️ Downloading gputool from GitHub..."
 TEMP_SCRIPT="$(mktemp)"
 
-if curl -fsSL "$SCRIPT_URL" -o "$TEMP_SCRIPT"; then
+download_file() {
+  local url="$1"
+  local dest="$2"
+  if command -v curl &>/dev/null; then
+    curl -fsSL "$url" -o "$dest"
+  elif command -v wget &>/dev/null; then
+    wget -qO "$dest" "$url"
+  elif command -v python3 &>/dev/null; then
+    python3 -c "import urllib.request; urllib.request.urlretrieve('$url', '$dest')" &>/dev/null
+  else
+    return 1
+  fi
+}
+
+if download_file "$SCRIPT_URL" "$TEMP_SCRIPT"; then
   echo "✅ Downloaded script."
 
   echo "📦 Installing to $INSTALL_PATH"
