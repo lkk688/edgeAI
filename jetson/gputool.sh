@@ -92,6 +92,7 @@ show_help() {
   echo "AI & Machine Learning Commands:"
   echo "  install-conda [path]     - Download and silently install Miniconda (default: ~/miniconda3)"
   echo "  setup-lerobot [env_name] - Create Conda env and install PyTorch (RTX 5080), LeRobot, and HF"
+  echo "  setup-env [env_name] [python_ver] - Create Conda env with custom python, PyTorch (RTX 5080) & HF"
   echo "  check [env_name]         - Run a complete diagnostic check of GPU, PyTorch, HF, LeRobot & Tailscale"
   echo
   echo "Llama.cpp & LLM Commands (RTX GPU Offloading):"
@@ -112,6 +113,7 @@ show_help() {
   echo "  gputool tailscale up"
   echo "  gputool install-conda"
   echo "  gputool setup-lerobot my_env"
+  echo "  gputool setup-env py312 3.12"
   echo "  gputool check my_env"
   echo "  gputool setup-llamacpp my_env"
   echo "  gputool download-model unsloth/Qwen3.5-9B-GGUF Qwen3.5-9B-UD-Q6_K_XL.gguf my_env"
@@ -510,6 +512,102 @@ install_conda() {
 
   success "Conda initialization completed."
   echo "👉 To configure your active shell, please run: source ~/.bashrc"
+  echo "══════════════════════════════════════════════════"
+}
+
+# Setup general Python ML environment with PyTorch (CUDA 12.8+ / Blackwell) & Hugging Face
+setup_ml_env() {
+  local env_name="${1:-py312}"
+  local python_ver="${2:-3.12}"
+  
+  echo "══════════════════════════════════════════════════"
+  echo "🐍 Setting up Python ML Environment ($env_name, Python $python_ver)"
+  echo "══════════════════════════════════════════════════"
+  
+  # Find Conda
+  local CONDA_SH=""
+  for path in \
+    "$HOME/miniconda3/etc/profile.d/conda.sh" \
+    "$HOME/anaconda3/etc/profile.d/conda.sh" \
+    "/opt/conda/etc/profile.d/conda.sh" \
+    "/home/010796032@SJSUAD/miniconda3/etc/profile.d/conda.sh" \
+    "/home/$USER/miniconda3/etc/profile.d/conda.sh"; do
+    if [[ -f "$path" ]]; then
+      CONDA_SH="$path"
+      break
+    fi
+  done
+
+  if [[ -n "$CONDA_SH" ]]; then
+    info "Found conda at $CONDA_SH. Activating conda..."
+    source "$CONDA_SH"
+  elif command -v conda &>/dev/null; then
+    info "Conda is already in PATH."
+  else
+    warn "Conda not found. Automatically triggering Miniconda installation..."
+    install_conda "$HOME/miniconda3"
+    if [[ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+      source "$HOME/miniconda3/etc/profile.d/conda.sh"
+    else
+      error "Failed to locate Conda profile script after auto-installation."
+      exit 1
+    fi
+  fi
+
+  # Create conda environment
+  info "Creating conda environment '$env_name' with Python $python_ver..."
+  if ! conda env list | grep -q "^$env_name "; then
+    if ! conda create -y -n "$env_name" python="$python_ver"; then
+      error "Failed to create conda environment '$env_name'."
+      exit 1
+    fi
+    success "Conda environment '$env_name' created."
+  else
+    warn "Conda environment '$env_name' already exists. Reusing it."
+  fi
+
+  # Install PyTorch
+  info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
+  warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
+  warn "   depending on your network connection speed. Please do not close the terminal..."
+  if ! conda run -n "$env_name" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128; then
+    warn "Failed to install via cu128 wheel index. Retrying with default PyPI torch..."
+    if ! conda run -n "$env_name" pip install torch torchvision torchaudio; then
+      error "PyTorch installation failed."
+      exit 1
+    fi
+  fi
+  success "PyTorch installed."
+
+  # Install Hugging Face Hub
+  info "Installing Hugging Face Hub..."
+  if ! conda run -n "$env_name" pip install huggingface_hub; then
+    error "Hugging Face Hub installation failed."
+    exit 1
+  fi
+  success "Hugging Face Hub installed."
+
+  # Verification
+  info "Running verification script..."
+  echo
+  conda run -n "$env_name" python3 -c "
+import torch
+import huggingface_hub
+
+print('==================================================')
+print('🧬 PyTorch Version    :', torch.__version__)
+print('🟢 CUDA Available      :', torch.cuda.is_available())
+if torch.cuda.is_available():
+    print('🖥️  GPU Device Name    :', torch.cuda.get_device_name(0))
+    print('⚙️  CUDA Device Arch   :', torch.cuda.get_arch_list())
+print('🤗 HF Hub Version     :', huggingface_hub.__version__)
+print('==================================================')
+"
+
+  echo
+  success "Environment setup complete!"
+  echo "👉 To activate this environment, run:"
+  echo "   conda activate $env_name"
   echo "══════════════════════════════════════════════════"
 }
 
@@ -1209,6 +1307,10 @@ case "$CMD" in
   setup-lerobot)
     shift
     setup_lerobot_env "${1:-}"
+    ;;
+  setup-env)
+    shift
+    setup_ml_env "${1:-}" "${2:-}"
     ;;
   install-conda)
     shift
