@@ -63,6 +63,14 @@ python3 -c "import urllib.request; print(urllib.request.urlopen('https://raw.git
   ```bash
   gputool check [env_name]
   ```
+* **Create customized Conda env (PyTorch + HF):**
+  ```bash
+  gputool setup-env [env_name] [python_ver]
+  ```
+* **Create LeRobot / PyTorch / HF Conda env:**
+  ```bash
+  gputool setup-lerobot [env_name]
+  ```
 
 ---
 
@@ -118,6 +126,38 @@ Upon successful installation, `gputool` outputs the active versions and hardware
 ⚙️  CUDA Device Arch   : ['sm_70', 'sm_75', 'sm_80', 'sm_86', 'sm_90', 'sm_100', 'sm_120']
 🤗 HF Hub Version     : 0.35.3
 🤖 LeRobot Version    : 0.4.4
+==================================================
+```
+
+### 🐍 Create Customized Conda Env & Install PyTorch / HF
+Creates a new Conda environment with a custom Python version (defaulting to name `py312` and Python `3.12`) and automatically configures it with the Blackwell-compatible CUDA 12.8 PyTorch build and Hugging Face:
+
+```bash
+gputool setup-env [env_name] [python_ver]
+```
+*(If parameters are omitted, it defaults to environment name `py312` and Python version `3.12`).*
+
+**What it does:**
+1. **Locates Conda:** Dynamically scans for and sources the active Conda initialization profile (e.g., `miniconda3`, `anaconda3`, or system paths).
+2. **Creates Environment:** Initializes the target Conda virtual environment using the specified Python version (e.g., `3.12`).
+3. **Installs PyTorch (Blackwell Support):** Installs PyTorch built with CUDA 12.8 (`cu128` wheel index). This compute capability (`sm_120`) is required to run CUDA programs on Blackwell GPUs (like the RTX 5080), as older PyTorch wheels will raise "no kernel image available" exceptions.
+4. **Installs Hugging Face:** Performs a Pip installation of `huggingface_hub`.
+5. **Runs Verification:** Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.
+
+To activate the environment after setup:
+```bash
+conda activate <env_name>
+```
+
+#### Example Verification Output
+Upon successful installation, `gputool` outputs the active versions and hardware state:
+```
+==================================================
+🧬 PyTorch Version    : 2.10.0+cu128
+🟢 CUDA Available      : True
+🖥️  GPU Device Name    : NVIDIA GeForce RTX 5080
+⚙️  CUDA Device Arch   : ['sm_70', 'sm_75', 'sm_80', 'sm_86', 'sm_90', 'sm_100', 'sm_120']
+🤗 HF Hub Version     : 0.35.3
 ==================================================
 ```
 
