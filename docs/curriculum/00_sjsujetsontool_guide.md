@@ -660,28 +660,55 @@ sjsujetsontool ollama ask --model mistral "Give me a Jetson-themed poem."
 
 Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Loads a `.gguf` model and serves an HTTP API for tokenized prompt completion.
 
-After entering into the container, you can run a local downloaded model ('build_cuda' folder is the cuda build):
+#### ⚙️ Compiling & Updating `llama.cpp` inside Container
+To support the latest features (such as direct Hugging Face model loading via `-hf` which avoids manual GGUF file downloads), compile `llama.cpp` with CUDA support inside the `jetson-dev` container:
+
+1. **Pull the latest source code**:
+   ```bash
+   cd /Developer/llama.cpp
+   git reset --hard
+   git pull
+   ```
+2. **Build with CUDA enabled**:
+   ```bash
+   rm -rf build_cuda
+   cmake -B build_cuda -DGGML_CUDA=ON
+   cmake --build build_cuda --config Release -j$(nproc)
+   ```
+3. **Install to PATH**:
+   ```bash
+   cp build_cuda/bin/llama-cli /usr/local/bin/llama-cli
+   cp build_cuda/bin/llama-server /usr/local/bin/llama-server
+   chmod +x /usr/local/bin/llama-cli /usr/local/bin/llama-server
+   ```
+
+#### 🚀 Serving Gemma 4 E2B via Llama Server
+Using the updated `llama.cpp`, you can download and serve Google's compact frontier model **Gemma 4 E2B** directly from Hugging Face using the `-hf` flag:
+
 ```bash
-root@sjsujetson-01:/Developer/llama.cpp# llama-cli -m /models/mistral.gguf -p "Explain what is Nvidia jetson"
-....
-llama_perf_sampler_print:    sampling time =      34.98 ms /   532 runs   (    0.07 ms per token, 15210.86 tokens per second)
-llama_perf_context_print:        load time =    3498.72 ms
-llama_perf_context_print: prompt eval time =    2193.93 ms /    17 tokens (  129.05 ms per token,     7.75 tokens per second)
-llama_perf_context_print:        eval time =   84805.65 ms /   514 runs   (  164.99 ms per token,     6.06 tokens per second)
-llama_perf_context_print:       total time =   92930.78 ms /   531 tokens
+# Start server loading Gemma 4 E2B Q4_K_S GGUF from Hugging Face
+llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --port 8080
+```
+Basic web UI can be accessed via browser at `http://localhost:8080`.
+
+#### 💬 Querying the Model via HTTP API (OpenAI Compatible)
+You can run a local chat completion query in another terminal using `curl`:
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Explain what is Nvidia Jetson?"}
+    ]
+  }'
 ```
 
-`llama-server` is a lightweight, OpenAI API compatible, HTTP server for serving LLMs. Start a local HTTP server with default configuration on port 8080: `llama-server -m model.gguf --port 8080`, Basic web UI can be accessed via browser: `http://localhost:8080`. Chat completion endpoint: `http://localhost:8080/v1/chat/completions`
+#### 🖥️ Running CLI Inference
+Alternatively, run local CLI inference directly inside `/Developer/llama.cpp`:
 ```bash
-root@sjsujetson-01:/Developer/llama.cpp# llama-server -m /models/mistral.gguf --port 8080
+llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -p "Explain what is Nvidia Jetson"
 ```
-
-Send request via curl in another terminal (in the host machine or container):
-```bash
-sjsujetson@sjsujetson-01:~$ curl http://localhost:8080/completion -d '{
-  "prompt": "Explain what is Nvidia jetson?",
-  "n_predict": 100
-}'
 
 
 ### 📦 `sjsujetsontool status`
