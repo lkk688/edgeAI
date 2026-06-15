@@ -159,16 +159,24 @@ xhost +local:docker >/dev/null 2>&1 || echo "Warning: xhost command failed. X11 
 
 EXTRA_BINDS="-v /usr/bin/tegrastats:/usr/bin/tegrastats:ro -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev:/dev"
 VOLUME_FLAGS="-v $WORKSPACE_DIR:/workspace -v $MODELS_DIR:/models -v $DEV_DIR:/Developer"
-CREATE_CMD="docker create -it --runtime=nvidia --network host \
+
+# Detect TTY for non-interactive execution support
+if [ -t 0 ]; then
+  TTY_FLAGS="-it"
+else
+  TTY_FLAGS=""
+fi
+
+CREATE_CMD="docker create $TTY_FLAGS --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
   --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
   -e DISPLAY=$DISPLAY \
   --name $CONTAINER_NAME $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 #EXEC_CMD is used after ensure_container_started() function
 #Executes commands inside an already running container
-EXEC_CMD="docker exec -it $CONTAINER_NAME" 
+EXEC_CMD="docker exec $TTY_FLAGS $CONTAINER_NAME" 
 #Creates and starts a new container instance, starts fresh each time (stateless)
-CONTAINER_CMD="docker run --rm -it --runtime=nvidia --network host \
+CONTAINER_CMD="docker run --rm $TTY_FLAGS --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
   --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
   -e DISPLAY=$DISPLAY \
@@ -629,14 +637,42 @@ case "$1" in
     ;;
   llama)
     ensure_container_started
+    # Locate llama-server inside the container, preferring build_cuda or build directories to use the custom-built CUDA binary
+    LLAMA_SERVER="llama-server"
+    LD_ENV=""
+    if $EXEC_CMD test -f /opt/llama.cpp/build_cuda/bin/llama-server; then
+      LLAMA_SERVER="/opt/llama.cpp/build_cuda/bin/llama-server"
+      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin"
+    elif $EXEC_CMD test -f /opt/llama.cpp/build/bin/llama-server; then
+      LLAMA_SERVER="/opt/llama.cpp/build/bin/llama-server"
+      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build/bin"
+    fi
     echo "🧠 Launching Gemma 4 E2B llama.cpp server inside persistent container (port 8080)..."
-    $EXEC_CMD llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+    if [ -n "$LD_ENV" ]; then
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+    else
+      $EXEC_CMD "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+    fi
     ;;
   llama-cli)
     shift
     ensure_container_started
+    # Locate llama-cli inside the container, preferring build_cuda or build directories to use the custom-built CUDA binary
+    LLAMA_CLI="llama-cli"
+    LD_ENV=""
+    if $EXEC_CMD test -f /opt/llama.cpp/build_cuda/bin/llama-cli; then
+      LLAMA_CLI="/opt/llama.cpp/build_cuda/bin/llama-cli"
+      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin"
+    elif $EXEC_CMD test -f /opt/llama.cpp/build/bin/llama-cli; then
+      LLAMA_CLI="/opt/llama.cpp/build/bin/llama-cli"
+      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build/bin"
+    fi
     echo "🧠 Running Gemma 4 E2B llama.cpp CLI inside persistent container..."
-    $EXEC_CMD llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+    if [ -n "$LD_ENV" ]; then
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+    else
+      $EXEC_CMD "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+    fi
     ;;
   ollama-serve)
     ensure_container_started
@@ -659,7 +695,7 @@ case "$1" in
     # Ensure Hugging Face cache directory exists on host
     mkdir -p "$HOME/.cache/huggingface"
     
-    docker run -it --rm --runtime=nvidia --network host \
+    docker run $TTY_FLAGS --rm --runtime=nvidia --network host \
       -v $HOME/.cache/huggingface:/root/.cache/huggingface \
       --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 \
       ghcr.io/nvidia-ai-iot/vllm:latest-jetson-orin \
