@@ -544,6 +544,10 @@ This section introduces its integrated `ollama` command group, which allows you 
 
 `sjsujetsontool ollama <subcommand>` enables local management and interaction with Ollama models from inside a persistent Jetson container.
 
+Alternatively, you can run these top-level **shortcut commands** directly from the host terminal:
+* `sjsujetsontool ollama-serve` (Starts the Ollama REST API server)
+* `sjsujetsontool ollama-run [model]` (Runs the model interactively; defaults to `gemma4`)
+
 Supported subcommands:
 
 | Subcommand       | Description                                  |
@@ -560,18 +564,27 @@ Supported subcommands:
 🚀 Commands and Usage
 
 1. Start the Ollama Server
+Using the subcommand:
 ```bash
 sjsujetsontool ollama serve
+```
+Or directly from the host using the shortcut:
+```bash
+sjsujetsontool ollama-serve
 ```
 
 Starts the Ollama REST server inside the container, listening on http://localhost:11434.
 
 
 2. Run a Model in CLI Mode
+Using the subcommand:
 ```bash
-$ sjsujetsontool ollama run mistral
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-⚙️  CUDA Version: 12.6
+sjsujetsontool ollama run mistral
+```
+Or directly from the host using the shortcut (defaults to `gemma4`):
+```bash
+sjsujetsontool ollama-run gemma4
+```
 💬 Launching model 'mistral' in CLI...
 pulling manifest 
 pulling ff82381e2bea: 100% ▕██████████████████▏ 4.1 GB                         
@@ -683,19 +696,20 @@ To support the latest features (such as direct Hugging Face model loading via `-
    ```
 
 #### 🚀 Serving Gemma 4 E2B via Llama Server
-Using the updated `llama.cpp` (which must be run **inside the `jetson-dev` container environment** where CUDA libraries and hardware mappings are fully mounted), you can download and serve Google's compact frontier model **Gemma 4 E2B** directly from Hugging Face:
+You can launch the Gemma 4 E2B `llama-server` directly from the host system using the top-level shortcut:
 
-To run these commands, first enter the container from the host:
 ```bash
-sjsujetsontool shell
+# From the host:
+sjsujetsontool llama
 ```
 
-Then start the server:
-```bash
-# Inside the container: Start server loading Gemma 4 E2B Q4_K_S GGUF from Hugging Face
-llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --port 8080
-```
+This shortcut automatically starts the persistent container and launches `llama-server` with CUDA acceleration on port `8080` (configured with the required batch sizes). 
+
 Basic web UI can be accessed via browser at `http://localhost:8080`.
+
+*(Alternatively, to run manually inside the container)*:
+1. Enter the container: `sjsujetsontool shell`
+2. Start the server: `llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048`
 
 #### 💬 Querying the Model via HTTP API (OpenAI Compatible)
 You can run a local chat completion query in another terminal (on the host machine or from within the container) using `curl`:
@@ -710,13 +724,159 @@ curl http://localhost:8080/v1/chat/completions \
   }'
 ```
 
-#### 🖥️ Running CLI Inference (Inside Container)
-Alternatively, run local CLI inference directly inside the container under the `/Developer/llama.cpp` directory:
+#### 🖥️ Running CLI Inference
+You can run Gemma 4 E2B CLI inference directly from the host using the `llama-cli` shortcut:
 ```bash
-# Inside the container:
-llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -p "Explain what is Nvidia Jetson"
+# From the host:
+sjsujetsontool llama-cli -p "Explain what is Nvidia Jetson"
 ```
 
+*(Alternatively, to run manually inside the container)*:
+1. Enter the container: `sjsujetsontool shell`
+2. Run inference: `llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -p "Explain what is Nvidia Jetson"`
+
+#### 👁️ Multimodal (Vision) Inference with Gemma 4 E2B
+Gemma 4 E2B is a natively multimodal Vision-Language Model (VLM) supporting image input.
+
+##### 1. CLI Inference with Image Input
+First, download the example image inside the container to the `/Developer` folder (or download it to `/Developer` on the host, as it maps directly):
+```bash
+# On the host or inside container:
+wget -O /Developer/LoveSJ-hero-4.png https://www.sjsu.edu/visit/pics/LoveSJ-hero-4.png
+```
+
+To analyze the image using the host shortcut command:
+> [!IMPORTANT]
+> Because Gemma 4's vision encoder uses non-causal attention, the `sjsujetsontool llama-cli` shortcut pre-configures `--ubatch-size 2048` and `--batch-size 2048` to prevent the engine from crashing when processing image tokens.
+
+```bash
+# From the host:
+sjsujetsontool llama-cli --image /Developer/LoveSJ-hero-4.png -p "Describe this image and identify its main components."
+```
+
+*(Alternatively, to run manually inside the container)*:
+```bash
+# Inside the container:
+llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S \
+  --image /Developer/LoveSJ-hero-4.png \
+  --ubatch-size 2048 --batch-size 2048 \
+  -p "Describe this image and identify its main components."
+```
+
+##### 2. Serving VLM via Llama Server
+Simply start the server using the host shortcut:
+```bash
+# From the host:
+sjsujetsontool llama
+```
+
+*(Alternatively, to run manually inside the container)*:
+```bash
+# Inside the container:
+llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S \
+  --ubatch-size 2048 --batch-size 2048 \
+  --port 8080
+```
+
+##### 3. Querying the VLM Server via HTTP API (OpenAI Format)
+You can query the server by passing a direct public URL to the image, or by base64-encoding a local image.
+
+**Option A: Direct Public Image URL**
+If the image is hosted publicly, pass the image URL directly in the payload:
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "https://www.sjsu.edu/visit/pics/LoveSJ-hero-4.png"
+            }
+          },
+          {
+            "type": "text",
+            "text": "What text is shown in this picture and what are the main elements?"
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+**Option B: Base64-Encoded Local Image**
+If using a local file, convert it to a base64-encoded string:
+```bash
+# Get base64 string portably using python:
+export IMG_B64=$(python3 -c "import base64; print(base64.b64encode(open('/Developer/LoveSJ-hero-4.png', 'rb').read()).decode('utf-8'))")
+
+# Query the server:
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,'"$IMG_B64"'"
+            }
+          },
+          {
+            "type": "text",
+            "text": "Identify the main text and design features in this image."
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+
+
+### 🚀 `sjsujetsontool vllm`
+
+This section introduces high-performance, production-grade serving using **vLLM** on NVIDIA Jetson platforms. Compared to Ollama and `llama.cpp` which are highly optimized for CPU/GPU edge hardware, **vLLM** utilizes **PagedAttention** and advanced parallel speculative decoding to maximize GPU throughput and reduce latency under heavy model workloads.
+
+#### ⚙️ How Speculative Decoding Works
+Speculative decoding speeds up inference by running a smaller, faster **draft model** (the *speculator*) in parallel with a larger **target model** (the *verifier*). The speculator guesses multiple draft tokens in a single forward pass, which the verifier validates in parallel. 
+
+For example, using `RedHatAI/Qwen3-8B-speculator.eagle3`, the EAGLE-3 method generates candidates rapidly, accelerating generation speed by up to 2x–3x on Jetson platforms.
+
+#### 🚀 Serving with vLLM Host Shortcut
+You can start the vLLM server directly from the host system:
+
+```bash
+# Start vLLM with the default Qwen3 EAGLE-3 speculator model:
+sjsujetsontool vllm RedHatAI/Qwen3-8B-speculator.eagle3
+```
+
+> [!TIP]
+> **GPU Memory Allocation:** vLLM allocates up to 90% of GPU memory by default. On resource-constrained edge devices (like the 8GB Jetson Orin Nano), the shortcut pre-configures `--gpu-memory-utilization 0.8` to leave headroom. You can customize the memory utilization or add other flags by passing them to the command:
+> ```bash
+> sjsujetsontool vllm RedHatAI/Qwen3-8B-speculator.eagle3 --gpu-memory-utilization 0.5 --max-model-len 2048
+> ```
+
+The server launches inside the optimized NVIDIA Jetson vLLM container (`ghcr.io/nvidia-ai-iot/vllm:latest-jetson-orin`) and runs on port `8000`.
+
+#### 💬 Querying the vLLM Server via API
+Once the vLLM server is running, you can perform queries using the OpenAI-compatible HTTP API:
+
+```bash
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "RedHatAI/Qwen3-8B-speculator.eagle3",
+    "messages": [
+      {"role": "user", "content": "What are the benefits of speculative decoding?"}
+    ]
+  }'
+```
 
 ### 📦 `sjsujetsontool status`
 

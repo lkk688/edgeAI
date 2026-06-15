@@ -41,31 +41,31 @@ A quick reference guide for using the `sjsujetsontool` utility on NVIDIA Jetson 
 
 | Command | Description |
 |---------|-------------|
-| `sjsujetsontool ollama serve` | Start server (port 11434) |
-| `sjsujetsontool ollama run qwen2` | Run CLI mode (use `\exit`) |
+| `sjsujetsontool ollama-serve` | Start server (shortcut for `ollama serve`, port 11434) |
+| `sjsujetsontool ollama-run gemma4` | Run model interactively (shortcut for `ollama run`) |
 | `sjsujetsontool ollama list` | List installed models |
-| `sjsujetsontool ollama pull mistral` | Download model |
-| `sjsujetsontool ollama delete mistral` | Remove model |
+| `sjsujetsontool ollama pull gemma4` | Download model |
+| `sjsujetsontool ollama delete gemma4` | Remove model |
 | `sjsujetsontool ollama status` | Check server status |
 | `sjsujetsontool ollama ask "What is NVIDIA Jetson?"` | Ask question (auto-pulls) |
-| `sjsujetsontool ollama ask --model mistral "Explain transformers."` | Ask with specific model |
 
-### 🔬 Llama.cpp Commands
-
-| Command | Description |
-|---------|-------------|
-| `sjsujetsontool llama` | Start server (port 8000) |
-| `./build_cuda/bin/llama-cli -m /models/mistral.gguf -p "prompt"` | Run model directly |
-| `./build_cuda/bin/llama-server -m /models/mistral.gguf --port 8080` | Start HTTP server |
-| `curl http://localhost:8080/completion -d '{"prompt":"...","n_predict":100}'` | Query API |
-| `http://localhost:8080` | Access web UI |
-
-### 🔧 System Management
+### 🔬 Llama.cpp & Gemma 4 E2B (VLM) Commands
 
 | Command | Description |
 |---------|-------------|
-| `sjsujetsontool set-hostname new-hostname` | Change hostname (sudo) |
-| `sjsujetsontool mount-nfs <host> <path> <mount>` | Mount NFS share |
+| `sjsujetsontool llama` | Start Gemma 4 E2B `llama-server` (port 8080) |
+| `sjsujetsontool llama-cli -p "prompt"` | Run Gemma 4 E2B `llama-cli` text query |
+| `sjsujetsontool llama-cli --image /Developer/LoveSJ-hero-4.png -p "Describe"` | Run Gemma 4 E2B `llama-cli` image query |
+| `curl http://localhost:8080/v1/chat/completions -d '...'` | Query OpenAI-compatible Chat completions API |
+| `http://localhost:8080` | Access web UI dashboard |
+
+### 🚀 vLLM Speculative Decoding Commands
+
+| Command | Description |
+|---------|-------------|
+| `sjsujetsontool vllm [model]` | Start vLLM serve engine (defaults to Qwen3-8B-speculator on port 8000) |
+| `curl http://localhost:8000/v1/chat/completions -d '...'` | Query vLLM OpenAI-compatible REST API |
+
 
 ## 📂 Important Information
 

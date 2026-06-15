@@ -211,9 +211,12 @@ show_help() {
   echo "      delete <model>       - Delete model from disk"
   echo "      status               - Check if REST server is running"
   echo "      ask [--model xxx]    - Ask model with auto pull/cache"
-  echo "  llama             - Start llama.cpp server (port 8000)"
+  echo "  llama             - Start Gemma 4 E2B llama-server (port 8080)"
+  echo "  llama-cli         - Run Gemma 4 E2B llama-cli inference"
+  echo "  ollama-serve      - Start Ollama REST API server (port 11434)"
+  echo "  ollama-run        - Run Ollama model interactively (defaults to gemma4)"
+  echo "  vllm [model]      - Start vLLM serve engine (defaults to Qwen3-8B-speculator)"
   echo "  fastapi           - Start a FastAPI app on port 8001"
-  echo "  rag               - Launch LangChain-based RAG server"
   echo "  convert           - Convert HF model to GGUF (custom script)"
   echo "  run <file.py>     - Run a Python file inside the container"
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
@@ -258,14 +261,23 @@ show_list() {
   echo "     ▶ sjsujetsontool ollama ask --model phi3 \"Explain LLMs\""
   echo "     ▶ sjsujetsontool ollama pull llama3"
   echo
-  echo "  llama        → Start llama.cpp REST server (port 8000)"
+  echo "  llama        → Start Gemma 4 E2B llama-server (port 8080)"
   echo "     ▶ sjsujetsontool llama"
+  echo
+  echo "  llama-cli    → Run Gemma 4 E2B llama-cli inference"
+  echo "     ▶ sjsujetsontool llama-cli -p \"Describe this image\" --image /Developer/LoveSJ-hero-4.png"
+  echo
+  echo "  ollama-serve → Start Ollama REST API server (port 11434)"
+  echo "     ▶ sjsujetsontool ollama-serve"
+  echo
+  echo "  ollama-run   → Run Ollama model interactively"
+  echo "     ▶ sjsujetsontool ollama-run gemma4"
+  echo
+  echo "  vllm         → Start vLLM serve engine (port 8000)"
+  echo "     ▶ sjsujetsontool vllm RedHatAI/Qwen3-8B-speculator.eagle3"
   echo
   echo "  fastapi      → Start a FastAPI app (port 8001)"
   echo "     ▶ sjsujetsontool fastapi"
-  echo
-  echo "  rag          → Run a LangChain-based RAG server"
-  echo "     ▶ sjsujetsontool rag"
   echo
   echo "  convert      → Convert HF model to GGUF"
   echo "     ▶ sjsujetsontool convert"
@@ -616,8 +628,44 @@ case "$1" in
     esac
     ;;
   llama)
-    echo "🧠 Launching llama.cpp server inside container (port 8000)..."
-    eval "$CONTAINER_CMD llama-server -m /models/mistral.gguf --host 0.0.0.0 --port 8000"
+    ensure_container_started
+    echo "🧠 Launching Gemma 4 E2B llama.cpp server inside persistent container (port 8080)..."
+    $EXEC_CMD llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+    ;;
+  llama-cli)
+    shift
+    ensure_container_started
+    echo "🧠 Running Gemma 4 E2B llama.cpp CLI inside persistent container..."
+    $EXEC_CMD llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+    ;;
+  ollama-serve)
+    ensure_container_started
+    echo "🧠 Starting Ollama server inside persistent container (port 11434)..."
+    $EXEC_CMD ollama serve
+    ;;
+  ollama-run)
+    shift
+    ensure_container_started
+    MODEL="${1:-gemma4}"
+    echo "💬 Launching Ollama model '$MODEL' inside persistent container..."
+    $EXEC_CMD ollama run "$MODEL"
+    ;;
+  vllm)
+    shift
+    MODEL="${1:-RedHatAI/Qwen3-8B-speculator.eagle3}"
+    echo "🚀 Launching vLLM server inside vllm container (port 8000)..."
+    echo "💬 Model: $MODEL"
+    
+    # Ensure Hugging Face cache directory exists on host
+    mkdir -p "$HOME/.cache/huggingface"
+    
+    docker run -it --rm --runtime=nvidia --network host \
+      -v $HOME/.cache/huggingface:/root/.cache/huggingface \
+      --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 \
+      ghcr.io/nvidia-ai-iot/vllm:latest-jetson-orin \
+      vllm serve "$MODEL" \
+      --gpu-memory-utilization 0.8 \
+      "$@"
     ;;
   gradio)
     ensure_container_started
@@ -627,10 +675,6 @@ case "$1" in
   fastapi)
     echo "🚀 Launching FastAPI server on port 8001..."
     eval "$CONTAINER_CMD uvicorn app.main:app --host 0.0.0.0 --port 8001"
-    ;;
-  rag)
-    echo "📚 Starting LangChain RAG demo..."
-    eval "$CONTAINER_CMD python3 rag_server.py"
     ;;
   convert)
     echo "🔁 Converting HF model to GGUF..."
@@ -1291,8 +1335,11 @@ case "$1" in
       exit 1
     fi
     docker tag $LOCAL_IMAGE $REMOTE_TAGGED
-    docker login || exit 1
-    docker push $REMOTE_TAGGED
+    docker push $REMOTE_TAGGED || {
+      echo "🔑 Docker push failed. Attempting login..."
+      docker login || exit 1
+      docker push $REMOTE_TAGGED
+    }
     echo "✅ Pushed image to Docker Hub: $REMOTE_TAGGED"
     ;;
   commit-and-publish)
@@ -1307,9 +1354,12 @@ case "$1" in
     docker commit "$CONTAINER_NAME" "$LOCAL_IMAGE"
     echo "🔖 Tagging image as '$REMOTE_TAGGED'..."
     docker tag "$LOCAL_IMAGE" "$REMOTE_TAGGED"
-    docker login || exit 1
     echo "📤 Pushing to Docker Hub..."
-    docker push "$REMOTE_TAGGED"
+    docker push "$REMOTE_TAGGED" || {
+      echo "🔑 Docker push failed. Attempting login..."
+      docker login || exit 1
+      docker push "$REMOTE_TAGGED"
+    }
     echo "✅ Committed and pushed image: $REMOTE_TAGGED"
     ;;
   force_git_pull)
