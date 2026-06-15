@@ -106,8 +106,12 @@ latest: Pulling from cmpelkk/jetson-llm
 ....
 ✓ Pull complete.
 📦 New version detected. Updating local image...
+🗑️  Removing old container 'jetson-dev' to force recreation from the new image...
 ✅ Local container updated from Docker Hub.
 ```
+
+> [!TIP]
+> **Zero-Downtime Updates:** When a new version of the container image is downloaded, `sjsujetsontool` automatically removes the existing `jetson-dev` container. The next time you run any tool subcommand (such as `shell`, `llama-cli`, etc.), a new container is automatically recreated from the updated image—making updates completely seamless.
 
 You can also update just the script or just the container independently:
 ```bash
@@ -725,15 +729,23 @@ curl http://localhost:8080/v1/chat/completions \
 ```
 
 #### 🖥️ Running CLI Inference
-You can run Gemma 4 E2B CLI inference directly from the host using the `llama-cli` shortcut:
+#### 🖥️ Running CLI Inference
+You can run Gemma 4 E2B CLI inference directly from the host using the `llama-cli` shortcut. By default, it runs the **Gemma 4** architecture with full **GPU/CUDA hardware acceleration** enabled (`-ngl 99`):
 ```bash
 # From the host:
 sjsujetsontool llama-cli -p "Explain what is Nvidia Jetson"
 ```
 
+The output will automatically show model loading and GPU status logs (e.g. `offloaded 27/27 layers to GPU`), print the thinking process/final response, and output token performance stats at the end of execution:
+```text
+Thinking Process:
+...
+[Prompt: 39.0 t/s | Generation: 19.8 t/s]
+```
+
 *(Alternatively, to run manually inside the container)*:
 1. Enter the container: `sjsujetsontool shell`
-2. Run inference: `llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -p "Explain what is Nvidia Jetson"`
+2. Run inference on the GPU: `env LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -ngl 99 -p "Explain what is Nvidia Jetson"`
 
 #### 👁️ Multimodal (Vision) Inference with Gemma 4 E2B
 Gemma 4 E2B is a natively multimodal Vision-Language Model (VLM) supporting image input.
@@ -745,21 +757,22 @@ First, download the example image inside the container to the `/Developer` folde
 wget -O /Developer/LoveSJ-hero-4.png https://www.sjsu.edu/visit/pics/LoveSJ-hero-4.png
 ```
 
-To analyze the image using the host shortcut command:
+To analyze the image using the host shortcut command (which defaults to GPU offloading and correct attention batch sizes):
 > [!IMPORTANT]
 > Because Gemma 4's vision encoder uses non-causal attention, the `sjsujetsontool llama-cli` shortcut pre-configures `--ubatch-size 2048` and `--batch-size 2048` to prevent the engine from crashing when processing image tokens.
 
 ```bash
-# From the host:
+# From the host (fully GPU-accelerated by default):
 sjsujetsontool llama-cli --image /Developer/LoveSJ-hero-4.png -p "Describe this image and identify its main components."
 ```
 
 *(Alternatively, to run manually inside the container)*:
 ```bash
-# Inside the container:
-llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S \
+# Inside the container (manually offloading to GPU):
+env LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S \
   --image /Developer/LoveSJ-hero-4.png \
   --ubatch-size 2048 --batch-size 2048 \
+  -ngl 99 \
   -p "Describe this image and identify its main components."
 ```
 

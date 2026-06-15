@@ -649,9 +649,9 @@ case "$1" in
     fi
     echo "🧠 Launching Gemma 4 E2B llama.cpp server inside persistent container (port 8080)..."
     if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
     else
-      $EXEC_CMD "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048
+      $EXEC_CMD "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
     fi
     ;;
   llama-cli)
@@ -669,9 +669,9 @@ case "$1" in
     fi
     echo "🧠 Running Gemma 4 E2B llama.cpp CLI inside persistent container..."
     if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
     else
-      $EXEC_CMD "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 "$@"
+      $EXEC_CMD "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
     fi
     ;;
   ollama-serve)
@@ -811,6 +811,10 @@ case "$1" in
       REMOTE_ID=$(docker image inspect $REMOTE_IMAGE --format '{{.Id}}' 2>/dev/null)
       if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
         echo "📦 New version detected. Updating local image..."
+        if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+          echo "🗑️  Removing old container '$CONTAINER_NAME' to force recreation from the new image..."
+          docker rm -f $CONTAINER_NAME
+        fi
         docker tag $REMOTE_IMAGE $LOCAL_IMAGE
         echo "✅ Local container updated from Docker Hub."
       else
