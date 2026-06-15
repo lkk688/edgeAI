@@ -683,16 +683,22 @@ To support the latest features (such as direct Hugging Face model loading via `-
    ```
 
 #### 🚀 Serving Gemma 4 E2B via Llama Server
-Using the updated `llama.cpp`, you can download and serve Google's compact frontier model **Gemma 4 E2B** directly from Hugging Face using the `-hf` flag:
+Using the updated `llama.cpp` (which must be run **inside the `jetson-dev` container environment** where CUDA libraries and hardware mappings are fully mounted), you can download and serve Google's compact frontier model **Gemma 4 E2B** directly from Hugging Face:
 
+To run these commands, first enter the container from the host:
 ```bash
-# Start server loading Gemma 4 E2B Q4_K_S GGUF from Hugging Face
+sjsujetsontool shell
+```
+
+Then start the server:
+```bash
+# Inside the container: Start server loading Gemma 4 E2B Q4_K_S GGUF from Hugging Face
 llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --port 8080
 ```
 Basic web UI can be accessed via browser at `http://localhost:8080`.
 
 #### 💬 Querying the Model via HTTP API (OpenAI Compatible)
-You can run a local chat completion query in another terminal using `curl`:
+You can run a local chat completion query in another terminal (on the host machine or from within the container) using `curl`:
 
 ```bash
 curl http://localhost:8080/v1/chat/completions \
@@ -704,9 +710,10 @@ curl http://localhost:8080/v1/chat/completions \
   }'
 ```
 
-#### 🖥️ Running CLI Inference
-Alternatively, run local CLI inference directly inside `/Developer/llama.cpp`:
+#### 🖥️ Running CLI Inference (Inside Container)
+Alternatively, run local CLI inference directly inside the container under the `/Developer/llama.cpp` directory:
 ```bash
+# Inside the container:
 llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -p "Explain what is Nvidia Jetson"
 ```
 
