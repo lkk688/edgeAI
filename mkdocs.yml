@@ -25,6 +25,8 @@ nav:
   - 🔰 Getting Started with Jetson:
       - ✅ sjsujetsontool Guide: curriculum/00_sjsujetsontool_guide.md
       - 📋 sjsujetsontool Cheatsheet: curriculum/00b_sjsujetsontool_cheatsheet.md
+      - 💻 gputool Guide: curriculum/00c_gputool_guide.md
+      - ⚙️ JetPack 7 Setup Guide: curriculum/01_jetpack7_setup_guide.md
       - 🔧 Introduction to NVIDIA Jetson: curriculum/01a_nvidia_jetson.md
       - 🚀 CUDA Programming on Jetson: curriculum/01b_jetson_cuda.md
   - 🐧 Linux Fundamentals:

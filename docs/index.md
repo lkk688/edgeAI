@@ -56,6 +56,8 @@ INFO    -  Your documentation should shortly be available at:
 
 * [✅ sjsujetsontool Guide](curriculum/00_sjsujetsontool_guide.md)
 * [📋 sjsujetsontool Cheatsheet](curriculum/00b_sjsujetsontool_cheatsheet.md)
+* [💻 gputool Guide](curriculum/00c_gputool_guide.md)
+* [⚙️ JetPack 7 Setup Guide](curriculum/01_jetpack7_setup_guide.md)
 * [🔧 Introduction to NVIDIA Jetson](curriculum/01a_nvidia_jetson.md)
 * [🚀 CUDA Programming on Jetson](curriculum/01b_jetson_cuda.md)
 
@@ -76,6 +78,14 @@ INFO    -  Your documentation should shortly be available at:
 * [🔎 RAG Applications with LangChain](curriculum/09_rag_app_langchain_jetson.md)
 * [🤖 Local AI Agents on Jetson](curriculum/10_local_ai_agents_jetson.md)
 * [🎙️ Voice Assistant on Jetson](curriculum/10b_voice_assistant_jetson.md)
+* [🌐 Next.js AI App with NVIDIA Nemotron](curriculum/11_nextjs_nemotron_app.md)
+
+### 🛡️ Cyber-AI Security & Agent Triage
+
+* [🔍 Intro to Vulnerability Triage](curriculum/12_vulnerability_triage_intro.md)
+* [🛠️ Basic Tool-Calling Triage](curriculum/12b_basic_tool_calling_triage.md)
+* [🔄 ReAct Loop Triage](curriculum/12c_react_loop_triage.md)
+* [🔎 RAG CVE Triage](curriculum/12d_rag_cve_triage.md)
 
 <!-- ### 🧪 Final Project
 
