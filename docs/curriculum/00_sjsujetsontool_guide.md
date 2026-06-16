@@ -944,7 +944,7 @@ Similar to the local `llama` and `llama-cli` shortcuts, `sjsujetsontool` provide
 #### ⚙️ Usage Modes
 
 ##### 1. Interactive Chat Mode
-Run `nv-chat` without any arguments to launch an interactive session. You will be prompted to select from a list of five curated NVIDIA models:
+Run `nv-chat` without any arguments to launch an interactive session. You will be prompted to select from a list of curated NVIDIA models:
 ```bash
 sjsujetsontool nv-chat
 ```
@@ -957,7 +957,8 @@ Upon launching, the interactive menu presents:
   3) Llama 3.1 Nemotron Ultra (253B)
   4) Nemotron 3 Nano Omni (30B reasoning)
   5) Nemotron 3 Ultra (550B reasoning)
-Select [1-5]:
+  6) Nemotron 3 Super (120B reasoning)
+Select [1-6]:
 ```
 
 Once selected, you can type your prompts interactively. Type `exit` or `quit` to end the session.
@@ -989,7 +990,9 @@ User > What is NVIDIA Jetson?
 ```
 
 > [!NOTE]
-> For reasoning models (e.g., `nemotron-3-nano-omni-30b-a3b-reasoning`), the tool streams the model's internal thinking process under a `🧠 [Thinking Process]` header before streaming the final answer under a `💬 [Response]` header.
+> * **Reasoning Models:** For reasoning models (e.g., `nemotron-3-nano-omni-30b-a3b-reasoning` or `nemotron-3-super-120b-a12b`), the tool streams the model's internal thinking process under a `🧠 [Thinking Process]` header before streaming the final answer under a `💬 [Response]` header.
+> * **Robustness and Timeouts:** To prevent execution from hanging indefinitely on slow or cold-starting cloud endpoints, the tool imposes a strict **15-second request timeout**. If a connection cannot be established or a model is unresponsive, the query fails gracefully with a timeout error.
+> * **HTTP 403 Forbidden Errors:** If you receive a `403 Forbidden` error, this indicates that the specific model name is either restricted/unavailable under your free account plan, deprecated/renamed on the NVIDIA Build platform, or your API key's free credit quota has run out. You can resolve this by checking model availability in the [NVIDIA API Catalog](https://build.nvidia.com) or updating/renewing your API key using `sjsujetsontool setup-nvapi`.
 
 ---
 

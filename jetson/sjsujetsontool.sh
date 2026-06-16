@@ -1253,12 +1253,14 @@ except Exception as e:
       echo "  3) Llama 3.1 Nemotron Ultra (253B)"
       echo "  4) Nemotron 3 Nano Omni (30B reasoning)"
       echo "  5) Nemotron 3 Ultra (550B reasoning)"
-      read -r -p "Select [1-5]: " MODEL_SEL
+      echo "  6) Nemotron 3 Super (120B reasoning)"
+      read -r -p "Select [1-6]: " MODEL_SEL
       case "$MODEL_SEL" in
         2) MODEL="nvidia/llama-3.3-nemotron-super-49b-v1" ;;
         3) MODEL="nvidia/llama-3.1-nemotron-ultra-253b-v1" ;;
         4) MODEL="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
         5) MODEL="nvidia/nemotron-3-ultra-550b-a55b" ;;
+        6) MODEL="nvidia/nemotron-3-super-120b-a12b" ;;
         *) MODEL="nvidia/llama-3.1-nemotron-nano-8b-v1" ;;
       esac
       echo
@@ -1304,7 +1306,7 @@ reasoning_tokens = 0
 content_tokens = 0
 
 try:
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req, timeout=15) as response:
         while True:
             line_bytes = response.readline()
             if not line_bytes:
@@ -1394,7 +1396,7 @@ reasoning_tokens = 0
 content_tokens = 0
 
 try:
-    with urllib.request.urlopen(req) as response:
+    with urllib.request.urlopen(req, timeout=15) as response:
         while True:
             line_bytes = response.readline()
             if not line_bytes:
