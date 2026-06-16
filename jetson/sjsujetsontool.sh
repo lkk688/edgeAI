@@ -123,6 +123,95 @@ pull_with_progress() {
   fi
 }
 
+setup_check_internal() {
+  echo "══════════════════════════════════════════════════"
+  echo "⚙️  Checking /Developer folder and edgeAI git repository..."
+  echo "══════════════════════════════════════════════════"
+
+  # 1. Check if /Developer directory exists, if not, create it
+  if [ ! -d "/Developer" ]; then
+    echo "📂 Directory '/Developer' does not exist. Creating it..."
+    if [ "$EUID" -ne 0 ]; then
+      sudo mkdir -p /Developer
+      sudo chmod 777 /Developer
+    else
+      mkdir -p /Developer
+      chmod 777 /Developer
+    fi
+    echo "✅ Created '/Developer' with write permissions for all users."
+  else
+    echo "✅ Directory '/Developer' exists."
+    # Check if writable. If not, fix it
+    if [ ! -w "/Developer" ]; then
+      echo "🔑 Directory '/Developer' is not writable by current user. Adjusting permissions..."
+      if [ "$EUID" -ne 0 ]; then
+        sudo chmod 777 /Developer
+      else
+        chmod 777 /Developer
+      fi
+      echo "✅ Adjusted '/Developer' permissions to 777."
+    else
+      echo "✅ Directory '/Developer' is writable."
+    fi
+  fi
+
+  # Check if /Developer/models exists, if not, create it
+  if [ ! -d "/Developer/models" ]; then
+    echo "📂 Creating '/Developer/models' for local model storage..."
+    mkdir -p /Developer/models
+    chmod 777 /Developer/models
+  fi
+
+  # 2. Check if git is installed
+  if ! command -v git &>/dev/null; then
+    echo "📦 Git is not installed. Installing Git..."
+    if [ "$EUID" -ne 0 ]; then
+      sudo apt-get update && sudo apt-get install -y git
+    else
+      apt-get update && apt-get install -y git
+    fi
+  fi
+
+  # 3. Check/clone edgeAI git repository
+  REPO_DIR="/Developer/edgeAI"
+  if [ ! -d "$REPO_DIR" ]; then
+    echo "📥 Cloning edgeAI repository from GitHub into $REPO_DIR..."
+    if git clone https://github.com/lkk688/edgeAI.git "$REPO_DIR"; then
+      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      echo "✅ Successfully cloned edgeAI repository."
+    else
+      echo "❌ Failed to clone edgeAI repository. Check network or git settings."
+      exit 1
+    fi
+  elif [ ! -d "$REPO_DIR/.git" ]; then
+    echo "⚠️  $REPO_DIR exists but is not a valid git repository. Re-initializing..."
+    sudo rm -rf "$REPO_DIR"
+    if git clone https://github.com/lkk688/edgeAI.git "$REPO_DIR"; then
+      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      echo "✅ Successfully re-cloned edgeAI repository."
+    else
+      echo "❌ Failed to clone edgeAI repository."
+      exit 1
+    fi
+  else
+    echo "✅ edgeAI repository already exists."
+    echo "🔄 Pulling latest changes from origin..."
+    if ( cd "$REPO_DIR" && git pull ); then
+      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      echo "✅ Repository updated successfully."
+    else
+      echo "⚠️  git pull failed. Trying to force reset..."
+      if ( cd "$REPO_DIR" && git fetch --all && git reset --hard origin/main ); then
+        chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+        echo "✅ Repository force-reset to origin/main successfully."
+      else
+        echo "❌ Failed to pull or reset repository. Please check manually."
+      fi
+    fi
+  fi
+  echo "══════════════════════════════════════════════════"
+}
+
 #IMAGE_NAME="jetson-llm-v1"
 DOCKERHUB_USER="cmpelkk"
 IMAGE_NAME="jetson-llm"
@@ -185,6 +274,12 @@ CONTAINER_CMD="docker run --rm $TTY_FLAGS --runtime=nvidia --network host \
 
 
 ensure_container_started() {
+  # Ensure /Developer is set up and edgeAI is cloned before starting container
+  if [ ! -d "/Developer/edgeAI/.git" ] || [ ! -w "/Developer" ]; then
+    echo "⚠️  /Developer or edgeAI repository is not correctly configured. Running setup-check..."
+    setup_check_internal
+  fi
+
   if ! docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
     echo "🛠️  Creating persistent container '$CONTAINER_NAME'..."
     
@@ -231,7 +326,8 @@ show_help() {
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
   echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
   echo "  nv-chat           - Chat with NVIDIA Build API models interactively"
-  echo "  update            - Update both script and container image"
+  echo "  setup-check       - Check and configure host /Developer folder and edgeAI repository"
+  echo "  update            - Update script, container image, and check /Developer setup"
   echo "  update-container   - Update only the Docker container image"
   echo "  update-script      - Update only this script from GitHub"
   echo "  healthcheck       - Deep system health check and diagnostics"
@@ -307,8 +403,11 @@ show_list() {
   echo "  nv-chat      → Chat with NVIDIA Build API models interactively"
   echo "     ▶ sjsujetsontool nv-chat"
   echo "     ▶ sjsujetsontool nv-chat -p \"Explain Orin Nano\" -m nvidia/llama-3.1-nemotron-nano-8b-v1"
-  echo
-  echo "  update       → Update both script and container image"
+  echo 
+  echo "  setup-check  → Configure host /Developer folder & clone/pull edgeAI git repo"
+  echo "     ▶ sjsujetsontool setup-check"
+  echo 
+  echo "  update       → Run full update (script + setup-check + container image)"
   echo "     ▶ sjsujetsontool update"
   echo
   echo "  update-container → Update only the Docker container image"
@@ -774,17 +873,22 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "🔄 Running full update (script + container)..."
-    echo "  Use 'update-container' or 'update-script' to update individually."
+    echo "🔄 Running full update (script + setup-check + container)..."
+    echo "  Use 'update-container', 'update-script', or 'setup-check' to run individually."
     echo
     
     # First update script
-    echo "📜 Step 1/2: Updating script from GitHub..."
+    echo "📜 Step 1/3: Updating script from GitHub..."
     $0 update-script
     echo
 
+    # Run setup-check
+    echo "⚙️ Step 2/3: Checking /Developer setup and edgeAI repository..."
+    $0 setup-check
+    echo
+
     # Then update container
-    echo "🐳 Step 2/2: Updating container image..."
+    echo "🐳 Step 3/3: Updating container image..."
     $0 update-container
     exit 0
     ;;
@@ -1774,6 +1878,9 @@ EOF
     git reset --hard origin/main
 
     echo "Update complete. Local repository is now synced with origin/main."
+    ;;
+  setup-check|setup_check)
+    setup_check_internal
     ;;
   help)
     show_help

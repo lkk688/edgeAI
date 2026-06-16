@@ -994,6 +994,36 @@ User > What is NVIDIA Jetson?
 > * **Robustness and Timeouts:** To prevent execution from hanging indefinitely on slow or cold-starting cloud endpoints, the tool imposes a strict **15-second request timeout**. If a connection cannot be established or a model is unresponsive, the query fails gracefully with a timeout error.
 > * **HTTP 403 Forbidden Errors:** If you receive a `403 Forbidden` error, this indicates that the specific model name is either restricted/unavailable under your free account plan, deprecated/renamed on the NVIDIA Build platform, or your API key's free credit quota has run out. You can resolve this by checking model availability in the [NVIDIA API Catalog](https://build.nvidia.com) or updating/renewing your API key using `sjsujetsontool setup-nvapi`.
 
+### ⚙️ `sjsujetsontool setup-check`
+
+Used to verify and configure the host `/Developer` directory environment and retrieve/update the `edgeAI` curriculum codebase. This is crucial when setting up brand new Jetson nodes or checking cloned systems to ensure correct container mounts.
+
+#### ⚙️ Why It Is Needed
+When you launch the Jetson container shell (`sjsujetsontool shell`), `sjsujetsontool` automatically mounts the host `/Developer` folder inside the container as `/Developer`. 
+* **Permission Alignment:** If `/Developer` does not exist on the host, the Docker daemon creates it as `root`-owned with restricted write permissions, preventing students from running git clones, code edits, or saving model weights.
+* **Auto Setup Check:** `setup-check` ensures `/Developer` exists on the host, sets permissions to `777` (world-writable), ensures the `/Developer/models` weights directory is set up, and downloads/pulls the `edgeAI` codebase.
+
+> [!TIP]
+> The `setup-check` command runs automatically as a lifecycle step inside the **`sjsujetsontool update`** subcommand and whenever **`sjsujetsontool shell`** is launched on a fresh node where the directory structure is missing.
+
+#### 🛠️ How to Run
+```bash
+sjsujetsontool setup-check
+```
+
+Example Output on success:
+```text
+══════════════════════════════════════════════════
+⚙️  Checking /Developer folder and edgeAI git repository...
+══════════════════════════════════════════════════
+✅ Directory '/Developer' exists.
+✅ Directory '/Developer' is writable.
+✅ edgeAI repository already exists.
+🔄 Pulling latest changes from origin...
+✅ Repository updated successfully.
+══════════════════════════════════════════════════
+```
+
 ---
 
 ## ⚠️ Safety Guidelines

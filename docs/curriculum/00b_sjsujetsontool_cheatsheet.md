@@ -21,6 +21,7 @@ A quick reference guide for using the `sjsujetsontool` utility on NVIDIA Jetson 
 | `sjsujetsontool version` | Show versions |
 | `sjsujetsontool status` | Show container & GPU stats |
 | `sjsujetsontool debug` | Run diagnostics |
+| `sjsujetsontool setup-check` | Check /Developer folder and clone/pull edgeAI git repo |
 
 ### 🐳 Container Management
 
