@@ -245,6 +245,11 @@ gputool setup-llamacpp [env_name]
 ```
 *(If `env_name` is omitted, it defaults to `lerobot`).*
 
+For example:
+```bash
+(py312) 010796032@coe-cmpe-288-05:~$ gputool setup-llamacpp py312
+```
+
 This automatically detects your system's GPU architecture (e.g. Blackwell RTX 5080/`sm_120`) and configures nvcc compilation. Binaries are compiled and installed into `~/.gputool/bin/`.
 
 ### 2. Download a GGUF Model
