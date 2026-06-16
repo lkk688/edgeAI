@@ -1168,8 +1168,26 @@ case "$1" in
 
     if [ "$HTTP_CODE" -eq 200 ]; then
       echo "✅ API Test Succeeded (HTTP 200)!"
-      CONTENT=$(echo "$BODY" | python3 -c "import sys, json; print(json.load(sys.stdin)['choices'][0]['message']['content'])" 2>/dev/null || echo "$BODY")
-      echo "💬 Model response: $CONTENT"
+      # Parse response and thinking process
+      python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    msg = data['choices'][0]['message']
+    reasoning = msg.get('reasoning_content') or msg.get('reasoning')
+    content = msg.get('content')
+    if reasoning:
+        print('🧠 [Thinking Process]:')
+        print(reasoning.strip())
+        print()
+    if content:
+        print('💬 [Final Response]:')
+        print(content.strip())
+    elif not reasoning:
+        print(json.dumps(msg, indent=2))
+except Exception as e:
+    print('Failed to parse response JSON:', e)
+" <<< "$BODY"
     else
       echo "❌ API Test Failed with HTTP status $HTTP_CODE!"
       echo "📜 Error details: $BODY"
