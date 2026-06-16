@@ -27,6 +27,15 @@ Choose the command that fits your system's network tools:
 curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh | bash
 ```
 
+or 
+```bash
+wget https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh
+chmod +x install_gputool.sh
+./install_gputool.sh
+source ~/.bashrc
+gputool version
+```
+
 ### Option B: Locked-down Lab Machines (No `curl` or `wget`)
 If the computer has neither `curl` nor `wget` (or they are blocked), use Python 3 to stream the installer:
 ```bash
