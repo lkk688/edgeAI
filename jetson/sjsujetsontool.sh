@@ -230,6 +230,7 @@ show_help() {
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
   echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
+  echo "  nv-chat           - Chat with NVIDIA Build API models interactively"
   echo "  update            - Update both script and container image"
   echo "  update-container   - Update only the Docker container image"
   echo "  update-script      - Update only this script from GitHub"
@@ -302,6 +303,10 @@ show_list() {
   echo
   echo "  setup-nvapi  → Setup NVIDIA NGC/Build API Key in local .env.local"
   echo "     ▶ sjsujetsontool setup-nvapi"
+  echo
+  echo "  nv-chat      → Chat with NVIDIA Build API models interactively"
+  echo "     ▶ sjsujetsontool nv-chat"
+  echo "     ▶ sjsujetsontool nv-chat -p \"Explain Orin Nano\" -m nvidia/llama-3.1-nemotron-nano-8b-v1"
   echo
   echo "  update       → Update both script and container image"
   echo "     ▶ sjsujetsontool update"
@@ -1192,6 +1197,257 @@ except Exception as e:
       echo "❌ API Test Failed with HTTP status $HTTP_CODE!"
       echo "📜 Error details: $BODY"
       exit 1
+    fi
+    ;;
+  nv-chat)
+    shift
+    # Find .env.local
+    TARGET_DIR=""
+    if [ -d "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app" ]; then
+      TARGET_DIR="/Developer/edgeAI/edgeLLM/nextjs-nemotron-app"
+    elif [ -d "./edgeLLM/nextjs-nemotron-app" ]; then
+      TARGET_DIR="./edgeLLM/nextjs-nemotron-app"
+    else
+      TARGET_DIR="."
+    fi
+    ENV_PATH="${TARGET_DIR}/.env.local"
+    
+    # Read NVIDIA_API_KEY from environment or .env.local
+    NV_KEY="$NVIDIA_API_KEY"
+    if [ -z "$NV_KEY" ] && [ -f "$ENV_PATH" ]; then
+      NV_KEY=$(grep -E "^NVIDIA_API_KEY=" "$ENV_PATH" | cut -d= -f2- | tr -d '"' | tr -d "'")
+    fi
+    
+    if [ -z "$NV_KEY" ]; then
+      echo "❌ NVIDIA API Key is not set. Please run: sjsujetsontool setup-nvapi"
+      exit 1
+    fi
+
+    # Parse arguments for model or prompt
+    MODEL="nvidia/llama-3.1-nemotron-nano-8b-v1"
+    PROMPT=""
+    while [[ "$#" -gt 0 ]]; do
+      case $1 in
+        --model|-m)
+          shift
+          MODEL="$1"
+          ;;
+        -p|--prompt)
+          shift
+          PROMPT="$1"
+          ;;
+        *)
+          # Any other argument is part of the prompt
+          PROMPT="$*"
+          break
+          ;;
+      esac
+      shift
+    done
+
+    # If no prompt, start interactive chat session or show selection menu
+    if [ -z "$PROMPT" ]; then
+      echo "🤖 Select NVIDIA Build Model:"
+      echo "  1) Llama 3.1 Nemotron Nano (8B) [Default]"
+      echo "  2) Llama 3.3 Nemotron Super (49B)"
+      echo "  3) Llama 3.1 Nemotron Ultra (253B)"
+      echo "  4) Nemotron 3 Nano Omni (30B reasoning)"
+      echo "  5) Nemotron 3 Ultra (550B reasoning)"
+      read -r -p "Select [1-5]: " MODEL_SEL
+      case "$MODEL_SEL" in
+        2) MODEL="nvidia/llama-3.3-nemotron-super-49b-v1" ;;
+        3) MODEL="nvidia/llama-3.1-nemotron-ultra-253b-v1" ;;
+        4) MODEL="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning" ;;
+        5) MODEL="nvidia/nemotron-3-ultra-550b-a55b" ;;
+        *) MODEL="nvidia/llama-3.1-nemotron-nano-8b-v1" ;;
+      esac
+      echo
+      echo "💬 Starting interactive chat with $MODEL..."
+      echo "   Type 'exit' to quit."
+      echo "══════════════════════════════════════════════════"
+      while true; do
+        read -r -p "User > " USER_INPUT
+        if [ "$USER_INPUT" = "exit" ] || [ "$USER_INPUT" = "quit" ]; then
+          break
+        fi
+        if [ -n "$USER_INPUT" ]; then
+          # Call Python script for single streaming query
+          python3 - "$MODEL" "$USER_INPUT" "$NV_KEY" << 'EOF'
+import sys
+import time
+import json
+import urllib.request
+
+model = sys.argv[1]
+prompt = sys.argv[2]
+api_key = sys.argv[3]
+
+url = "https://integrate.api.nvidia.com/v1/chat/completions"
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream"
+}
+
+payload = {
+    "model": model,
+    "messages": [{"role": "user", "content": prompt}],
+    "stream": True
+}
+
+req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
+
+start_time = time.time()
+first_token_time = None
+total_tokens = 0
+reasoning_tokens = 0
+content_tokens = 0
+
+try:
+    with urllib.request.urlopen(req) as response:
+        while True:
+            line_bytes = response.readline()
+            if not line_bytes:
+                break
+            line = line_bytes.decode('utf-8', errors='ignore').strip()
+            if line.startswith("data:"):
+                data_str = line[5:].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    data = json.loads(data_str)
+                    choice = data['choices'][0]
+                    delta = choice.get('delta', {})
+                    
+                    reasoning = delta.get('reasoning_content') or delta.get('reasoning')
+                    if reasoning:
+                        if first_token_time is None:
+                            first_token_time = time.time()
+                            print("🧠 [Thinking Process]: ", end="", flush=True)
+                        print(reasoning, end="", flush=True)
+                        reasoning_tokens += 1
+                        total_tokens += 1
+                        
+                    content = delta.get('content')
+                    if content:
+                        if first_token_time is None:
+                            first_token_time = time.time()
+                        if reasoning_tokens > 0 and content_tokens == 0:
+                            print("\n\n💬 [Response]: ", end="", flush=True)
+                        elif content_tokens == 0 and reasoning_tokens == 0:
+                            print("💬 [Response]: ", end="", flush=True)
+                        print(content, end="", flush=True)
+                        content_tokens += 1
+                        total_tokens += 1
+                except Exception as e:
+                    pass
+        
+        end_time = time.time()
+        print()
+        
+        total_time = end_time - start_time
+        if first_token_time:
+            time_to_first = first_token_time - start_time
+            gen_time = end_time - first_token_time
+            gen_speed = total_tokens / gen_time if gen_time > 0 else 0
+            print(f"\n⚡ [Performance]: Time-to-first-token: {time_to_first:.2f}s | Generation: {gen_speed:.1f} tokens/sec ({total_tokens} tokens generated in {gen_time:.2f}s)")
+        else:
+            print(f"\n⚡ [Performance]: Total time: {total_time:.2f}s")
+            
+except Exception as e:
+    print(f"\n❌ Error during API call: {e}")
+EOF
+          echo
+        fi
+      done
+    else
+      # Single prompt run
+      python3 - "$MODEL" "$PROMPT" "$NV_KEY" << 'EOF'
+import sys
+import time
+import json
+import urllib.request
+
+model = sys.argv[1]
+prompt = sys.argv[2]
+api_key = sys.argv[3]
+
+url = "https://integrate.api.nvidia.com/v1/chat/completions"
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json",
+    "Accept": "text/event-stream"
+}
+
+payload = {
+    "model": model,
+    "messages": [{"role": "user", "content": prompt}],
+    "stream": True
+}
+
+req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
+
+start_time = time.time()
+first_token_time = None
+total_tokens = 0
+reasoning_tokens = 0
+content_tokens = 0
+
+try:
+    with urllib.request.urlopen(req) as response:
+        while True:
+            line_bytes = response.readline()
+            if not line_bytes:
+                break
+            line = line_bytes.decode('utf-8', errors='ignore').strip()
+            if line.startswith("data:"):
+                data_str = line[5:].strip()
+                if data_str == "[DONE]":
+                    break
+                try:
+                    data = json.loads(data_str)
+                    choice = data['choices'][0]
+                    delta = choice.get('delta', {})
+                    
+                    reasoning = delta.get('reasoning_content') or delta.get('reasoning')
+                    if reasoning:
+                        if first_token_time is None:
+                            first_token_time = time.time()
+                            print("🧠 [Thinking Process]: ", end="", flush=True)
+                        print(reasoning, end="", flush=True)
+                        reasoning_tokens += 1
+                        total_tokens += 1
+                        
+                    content = delta.get('content')
+                    if content:
+                        if first_token_time is None:
+                            first_token_time = time.time()
+                        if reasoning_tokens > 0 and content_tokens == 0:
+                            print("\n\n💬 [Response]: ", end="", flush=True)
+                        elif content_tokens == 0 and reasoning_tokens == 0:
+                            print("💬 [Response]: ", end="", flush=True)
+                        print(content, end="", flush=True)
+                        content_tokens += 1
+                        total_tokens += 1
+                except Exception as e:
+                    pass
+        
+        end_time = time.time()
+        print()
+        
+        total_time = end_time - start_time
+        if first_token_time:
+            time_to_first = first_token_time - start_time
+            gen_time = end_time - first_token_time
+            gen_speed = total_tokens / gen_time if gen_time > 0 else 0
+            print(f"\n⚡ [Performance]: Time-to-first-token: {time_to_first:.2f}s | Generation: {gen_speed:.1f} tokens/sec ({total_tokens} tokens generated in {gen_time:.2f}s)")
+        else:
+            print(f"\n⚡ [Performance]: Total time: {total_time:.2f}s")
+            
+except Exception as e:
+    print(f"\n❌ Error during API call: {e}")
+EOF
+      echo
     fi
     ;;
   stop)

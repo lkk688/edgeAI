@@ -937,6 +937,60 @@ The script automatically:
 💬 Model response: Hello! How can I assist you today?
 ```
 
+### 💬 `sjsujetsontool nv-chat`
+
+Similar to the local `llama` and `llama-cli` shortcuts, `sjsujetsontool` provides a convenient `nv-chat` utility for students to interact directly with the NVIDIA Build API backend. It supports both **interactive chat** and **single-prompt modes**, offers a selection of optimized reasoning and chat models, and returns real-time streaming tokens along with performance statistics (such as token generation speed and Time-To-First-Token).
+
+#### ⚙️ Usage Modes
+
+##### 1. Interactive Chat Mode
+Run `nv-chat` without any arguments to launch an interactive session. You will be prompted to select from a list of five curated NVIDIA models:
+```bash
+sjsujetsontool nv-chat
+```
+
+Upon launching, the interactive menu presents:
+```text
+🤖 Select NVIDIA Build Model:
+  1) Llama 3.1 Nemotron Nano (8B) [Default]
+  2) Llama 3.3 Nemotron Super (49B)
+  3) Llama 3.1 Nemotron Ultra (253B)
+  4) Nemotron 3 Nano Omni (30B reasoning)
+  5) Nemotron 3 Ultra (550B reasoning)
+Select [1-5]:
+```
+
+Once selected, you can type your prompts interactively. Type `exit` or `quit` to end the session.
+
+##### 2. Single-Prompt Mode
+You can pass a prompt directly as arguments to perform a single query:
+```bash
+sjsujetsontool nv-chat "Explain the architecture of Nvidia Jetson Orin Nano"
+```
+Or use the explicit flags to specify a different model or prompt:
+```bash
+sjsujetsontool nv-chat -p "Explain the architecture of Nvidia Jetson Orin Nano" -m nvidia/llama-3.3-nemotron-super-49b-v1
+```
+
+#### ⚡ Performance Metrics
+Every response is streamed in real-time. Upon completion, the tool outputs performance statistics:
+* **Time-to-first-token (TTFT):** Measures the initial server latency.
+* **Generation speed:** Tokens generated per second, along with total generation time and token count.
+
+##### Example Output (Streaming + Performance Logs):
+```text
+💬 Starting interactive chat with nvidia/llama-3.1-nemotron-nano-8b-v1...
+   Type 'exit' to quit.
+══════════════════════════════════════════════════
+User > What is NVIDIA Jetson?
+💬 [Response]: NVIDIA Jetson is a series of embedded computing boards from NVIDIA designed for bringing accelerated AI to the edge. It combines a powerful ARM CPU with an integrated NVIDIA GPU (based on architectures like Ampere, Maxwell, or Pascal) to enable high-performance deep learning inference...
+
+⚡ [Performance]: Time-to-first-token: 0.45s | Generation: 68.4 tokens/sec (124 tokens generated in 1.81s)
+```
+
+> [!NOTE]
+> For reasoning models (e.g., `nemotron-3-nano-omni-30b-a3b-reasoning`), the tool streams the model's internal thinking process under a `🧠 [Thinking Process]` header before streaming the final answer under a `💬 [Response]` header.
+
 ---
 
 ## ⚠️ Safety Guidelines

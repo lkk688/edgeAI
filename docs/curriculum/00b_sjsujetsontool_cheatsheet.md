@@ -66,6 +66,15 @@ A quick reference guide for using the `sjsujetsontool` utility on NVIDIA Jetson 
 | `sjsujetsontool vllm [model]` | Start vLLM serve engine (defaults to Qwen3-8B-speculator on port 8000) |
 | `curl http://localhost:8000/v1/chat/completions -d '...'` | Query vLLM OpenAI-compatible REST API |
 
+### 🔑 NVIDIA Build API / NGC Cloud Inference
+
+| Command | Description |
+|---------|-------------|
+| `sjsujetsontool setup-nvapi` | Setup NVIDIA NGC API Key in `.env.local` & perform validation test |
+| `sjsujetsontool nv-chat` | Start interactive chat with curated model selection (Llama 3.x, Nemotron) |
+| `sjsujetsontool nv-chat "prompt"` | Run single prompt query with default model and performance metrics |
+| `sjsujetsontool nv-chat -p "prompt" -m [model]` | Run single query with a customized model (e.g. Nemotron Omni) |
+
 
 ## 📂 Important Information
 
