@@ -229,6 +229,7 @@ show_help() {
   echo "  run <file.py>     - Run a Python file inside the container"
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
+  echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
   echo "  update            - Update both script and container image"
   echo "  update-container   - Update only the Docker container image"
   echo "  update-script      - Update only this script from GitHub"
@@ -298,6 +299,9 @@ show_list() {
   echo
   echo "  setup-ssh    → Add GitHub SSH public key to Jetson"
   echo "     ▶ sjsujetsontool setup-ssh your_github_username"
+  echo
+  echo "  setup-nvapi  → Setup NVIDIA NGC/Build API Key in local .env.local"
+  echo "     ▶ sjsujetsontool setup-nvapi"
   echo
   echo "  update       → Update both script and container image"
   echo "     ▶ sjsujetsontool update"
@@ -1102,6 +1106,75 @@ case "$1" in
     curl -fsSL https://github.com/$GH_USER.keys >> ~/.ssh/authorized_keys
     chmod 600 ~/.ssh/authorized_keys
     echo "✅ SSH key added. You can now login from any of $GH_USER's devices using SSH."
+    ;;
+  setup-nvapi)
+    echo "══════════════════════════════════════════════════"
+    echo "🔑 NVIDIA Build API Key Setup"
+    echo "══════════════════════════════════════════════════"
+    echo "To get your NVIDIA NGC API Key:"
+    echo "  1. Visit https://build.nvidia.com"
+    echo "  2. Sign in with a free NVIDIA developer account."
+    echo "  3. Open a model card (e.g. Nemotron-3 Nano Omni) and click 'Get API Key'."
+    echo "  4. Copy the API key starting with 'nvapi-'."
+    echo
+    echo "This key will be saved locally to the .env.local file in the Next.js project."
+    echo "══════════════════════════════════════════════════"
+    echo
+    read -r -p "🔑 Paste your NVIDIA API Key (nvapi-...): " NV_KEY
+    if [[ ! "$NV_KEY" =~ ^nvapi- ]]; then
+      echo "❌ Invalid API Key. It must start with 'nvapi-'."
+      exit 1
+    fi
+
+    # Find the Next.js app directory to write the key to .env.local
+    TARGET_DIR=""
+    if [ -d "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app" ]; then
+      TARGET_DIR="/Developer/edgeAI/edgeLLM/nextjs-nemotron-app"
+    elif [ -d "./edgeLLM/nextjs-nemotron-app" ]; then
+      TARGET_DIR="./edgeLLM/nextjs-nemotron-app"
+    else
+      TARGET_DIR="."
+    fi
+    ENV_PATH="${TARGET_DIR}/.env.local"
+    
+    echo "Writing to $ENV_PATH..."
+    if [ -f "$ENV_PATH" ] && grep -q "NVIDIA_API_KEY=" "$ENV_PATH"; then
+      # Update existing key
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i.bak "s|NVIDIA_API_KEY=.*|NVIDIA_API_KEY=${NV_KEY}|" "$ENV_PATH"
+      else
+        sed -i "s|NVIDIA_API_KEY=.*|NVIDIA_API_KEY=${NV_KEY}|" "$ENV_PATH"
+      fi
+      echo "✅ Updated existing NVIDIA_API_KEY in $ENV_PATH"
+    else
+      # Append new key
+      echo "NVIDIA_API_KEY=${NV_KEY}" >> "$ENV_PATH"
+      echo "✅ Saved NVIDIA_API_KEY to $ENV_PATH"
+    fi
+
+    echo
+    echo "🧪 Testing connection to NVIDIA Build API using model 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'..."
+    TEST_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://integrate.api.nvidia.com/v1/chat/completions" \
+      -H "Authorization: Bearer $NV_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+        "messages": [{"role": "user", "content": "Hello, write a 5-word greeting."}],
+        "max_tokens": 50
+      }')
+
+    HTTP_CODE=$(echo "$TEST_RESPONSE" | tail -n 1)
+    BODY=$(echo "$TEST_RESPONSE" | sed '$d')
+
+    if [ "$HTTP_CODE" -eq 200 ]; then
+      echo "✅ API Test Succeeded (HTTP 200)!"
+      CONTENT=$(echo "$BODY" | python3 -c "import sys, json; print(json.load(sys.stdin)['choices'][0]['message']['content'])" 2>/dev/null || echo "$BODY")
+      echo "💬 Model response: $CONTENT"
+    else
+      echo "❌ API Test Failed with HTTP status $HTTP_CODE!"
+      echo "📜 Error details: $BODY"
+      exit 1
+    fi
     ;;
   stop)
     echo "🛑 Stopping container..."

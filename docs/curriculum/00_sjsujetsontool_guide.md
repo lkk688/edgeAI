@@ -909,6 +909,34 @@ Changes device hostname, regenerates system identity, writes `/etc/device-id`.
 Stops the running Docker container started by previous commands.
 
 
+### 🔑 `sjsujetsontool setup-nvapi`
+
+Used in [Lesson 11: Building a Next.js AI App with NVIDIA Nemotron](./11_nextjs_nemotron_app.md) to set up and verify the NVIDIA NGC Build API key. 
+
+Running this command will guide you through acquiring your free NGC API Key from [build.nvidia.com](https://build.nvidia.com) and saving it locally into the `.env.local` file inside the Next.js application directory.
+
+#### ⚙️ How to Setup
+```bash
+sjsujetsontool setup-nvapi
+```
+
+During execution, it will prompt you:
+```text
+🔑 Paste your NVIDIA API Key (nvapi-...): <paste your key here>
+```
+
+The script automatically:
+1. Validates the prefix format of the key.
+2. Identifies the directory structure of the Next.js application and writes or updates the key as `NVIDIA_API_KEY=nvapi-...` in `edgeLLM/nextjs-nemotron-app/.env.local`.
+3. Performs a test API query using `curl` against the **Nemotron 3 Nano Omni** reasoning model to verify authentication.
+
+#### 🧪 Connection Test Example output on success:
+```text
+🧪 Testing connection to NVIDIA Build API using model 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning'...
+✅ API Test Succeeded (HTTP 200)!
+💬 Model response: Hello! How can I assist you today?
+```
+
 ---
 
 ## ⚠️ Safety Guidelines
