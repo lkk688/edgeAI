@@ -26,7 +26,15 @@ from collections import deque
 from pathlib import Path
 import json
 import logging
+import os
 from typing import List, Dict, Tuple, Optional, Union
+
+# Set up unified model cache paths to /models (inside container) or /Developer/models (on host)
+MODELS_DIR = "/models" if Path("/models").exists() else ("/Developer/models" if Path("/Developer/models").exists() else ".")
+os.environ["HF_HOME"] = str(Path(MODELS_DIR) / "huggingface")
+os.environ["TORCH_HOME"] = str(Path(MODELS_DIR) / "torch")
+os.environ["ULTRALYTICS_CONFIG_DIR"] = str(Path(MODELS_DIR) / "ultralytics")
+
 from transformers import DetrImageProcessor, DetrForObjectDetection, RTDetrImageProcessor, RTDetrForObjectDetection
 
 # Configure logging
@@ -147,7 +155,12 @@ class YOLODetector(BaseDetector):
             from ultralytics import YOLO
         except ImportError:
             raise ImportError("Please install ultralytics: pip install ultralytics")
-        
+        # Prepend MODELS_DIR/yolo to relative model paths
+        if not os.path.isabs(model_path):
+            yolo_dir = Path(MODELS_DIR) / "yolo"
+            yolo_dir.mkdir(parents=True, exist_ok=True)
+            model_path = str(yolo_dir / model_path)
+            
         self.model = YOLO(model_path)
         self.model.to(device)
         self.use_tensorrt = use_tensorrt
