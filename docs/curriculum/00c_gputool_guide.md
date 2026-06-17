@@ -372,58 +372,76 @@ curl http://localhost:8080/v1/chat/completions \
 > **Reasoning models (Qwen3.5):** Qwen3.5 is a "thinking" model. By default it spends tokens on internal reasoning (returned in the `reasoning_content` field) before producing the final `content`, so a small `max_tokens` may return empty `content` with `finish_reason: "length"`. Either raise `max_tokens`, or disable thinking for a direct answer by adding `"chat_template_kwargs": {"enable_thinking": false}` to the request body.
 
 ### 4. Chat from the Terminal (`gputool chat`)
-Instead of crafting raw `curl`/`urllib` requests, `gputool` ships a built-in terminal chat client that talks to any OpenAI-compatible endpoint (your local `llama-server` by default), **streams the response token-by-token**, and shows a clean colored UI with per-turn token/throughput stats. It is written in pure-stdlib Python, so it works even on locked-down machines without `curl` or extra `pip` packages.
+`gputool` ships a built-in terminal chat client that talks to any OpenAI-compatible endpoint (your local `llama-server` by default) and **streams the response token-by-token** with per-turn token/throughput stats.
 
+* **Rich UI (Claude-Code style):** if the [`rich`](https://github.com/Textualize/rich) library is installed, the client renders **streaming Markdown** — headings, **bold**, lists, and syntax-highlighted code blocks — inside a clean panel.
+* **Stdlib fallback:** if `rich` is not available, it automatically falls back to a pure-stdlib ANSI renderer, so it still works on locked-down machines without extra `pip` packages or `curl`.
+
+To get the Rich UI, install it once into your environment:
 ```bash
-gputool chat [message] [--host <ip>] [--port <port>] [--api-key <token>] [--system <text>] [--think] [--no-stream] [--no-color]
+pip install rich      # optional — enables Markdown/syntax-highlighted rendering
 ```
 
-* **Interactive session** (multi-turn, keeps conversation history):
-  ```bash
-  gputool chat
-  ```
-* **One-shot question** (prints the streamed answer and exits):
+```bash
+gputool chat [message] [--host <ip>] [--port <port>] [--api-key <token>] [--system <text>] [--think] [--no-stream] [--no-color] [--plain]
+```
+
+#### Just type `gputool chat`
+With no arguments, the client **walks you through a short setup** and then drops you into an interactive session. Your answers (server and API key) are **saved to `~/.gputool/chat_config.json`** (with `0600` permissions), so on the next run you can just press Enter to reuse them — **you only enter the key once**.
+
+```
+$ gputool chat
+Server IP or URL [127.0.0.1:8080]: 10.31.96.155
+API key [blank if none]: ********
+╭───────────────── 🦙 gputool chat — local LLM ──────────────────╮
+│                                                                │
+│  Endpoint  http://10.31.96.155:8080/v1/chat/completions        │
+│  Model     Qwen3.5-9B-UD-Q6_K_XL.gguf                          │
+│  Auth on   Streaming on   Thinking off                         │
+│                                                                │
+│  Type a message and press Enter.  /help for commands · /exit … │
+╰────────────────────────────────────────────────────────────────╯
+You ▸ What GPU architecture is NVIDIA Blackwell?
+╭─ Assistant ▸ ──────────────────────────────────────────────────╮
+│ NVIDIA **Blackwell** is the company's latest GPU architecture,  │
+│ succeeding Hopper — it powers the RTX 50-series and GB200.      │
+╰────────────────────────────────────────────────────────────────╯
+(24 prompt + 38 completion tokens · 92.4 tok/s · 0.5s)
+You ▸ /save notes.md
+💾 Saved conversation to /home/you/notes.md
+You ▸ /exit
+Bye!
+```
+
+#### Other ways to launch
+* **One-shot question** (prints the streamed answer and exits — no prompts):
   ```bash
   gputool chat "What GPU architecture is NVIDIA Blackwell?"
   ```
-* **Talk to a server on another machine, with an API key:**
+* **Skip the prompts with flags** (also saved for next time):
   ```bash
   gputool chat --host 10.31.96.155 --port 8080 --api-key sjsugputool
-  # or set it once: export GPUTOOL_LLAMA_API_KEY=sjsugputool
+  # or set it once via env: export GPUTOOL_LLAMA_API_KEY=sjsugputool
   ```
 
 **Defaults & options:**
-* `--host` / `--port` default to `127.0.0.1:8080`; or pass a full base URL with `--url http://10.31.96.155:8080/v1`.
-* `--api-key` defaults to the `GPUTOOL_LLAMA_API_KEY` environment variable (so you don't have to type the token each time).
+* The saved config provides defaults; first-time defaults are `127.0.0.1:8080`. Use `--url http://10.31.96.155:8080/v1` for a full base URL, or `--reset-config` to ignore/overwrite saved values.
+* `--api-key` falls back to the `GPUTOOL_LLAMA_API_KEY` environment variable, then the saved config.
 * `--model` is auto-detected from the server's `/v1/models` endpoint if omitted.
 * Thinking/reasoning output is **off by default** for snappy answers; enable it with `--think` (or `/think on` during a session).
+* `--plain` forces the stdlib renderer even when `rich` is installed; `--no-color` disables colors.
 
 **Interactive slash commands:**
 
 | Command | Action |
 |---|---|
 | `/exit`, `/quit`, `/q` | Leave the chat |
+| `/server` | Connect to a different server IP / API key (re-runs setup and saves it) |
+| `/save [file]` | Save the conversation to a file — Markdown by default, or JSON if the name ends in `.json` (defaults to `gputool_chat_<timestamp>.md` in the current directory) |
 | `/reset`, `/clear` | Clear the conversation history (keeps the system prompt) |
 | `/system <text>` | Set (or clear, if empty) the system prompt |
 | `/think on\|off` | Toggle the model's reasoning output |
 | `/help`, `/?` | Show the command help |
-
-#### Example session
-```
-══════════════════════════════════════════════════
- 🦙 gputool chat — local OpenAI-compatible LLM
-══════════════════════════════════════════════════
-  Endpoint : http://127.0.0.1:8080/v1/chat/completions
-  Model    : Qwen3.5-9B-UD-Q6_K_XL.gguf
-  Auth     : on   Streaming: on   Thinking: off
-  Commands : /exit  /reset  /system <text>  /think on|off  /help
-
-You ▸ What GPU architecture is NVIDIA Blackwell?
-Assistant ▸ NVIDIA Blackwell is the company's latest GPU architecture, succeeding Hopper...
-(24 prompt + 38 completion tokens · 92.4 tok/s · 0.5s)
-You ▸ /exit
-Bye!
-```
 
 ---
 
