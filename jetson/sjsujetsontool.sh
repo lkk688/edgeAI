@@ -271,8 +271,6 @@ CONTAINER_CMD="docker run --rm $TTY_FLAGS --runtime=nvidia --network host \
   -e DISPLAY=$DISPLAY \
   $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 
-
-
 ensure_container_started() {
   # Ensure /Developer is set up and edgeAI is cloned before starting container
   if [ ! -d "/Developer/edgeAI/.git" ] || [ ! -w "/Developer" ]; then
@@ -284,7 +282,7 @@ ensure_container_started() {
     echo "🛠️  Creating persistent container '$CONTAINER_NAME'..."
     
     # Check if image exists locally
-    if ! docker image inspect $LOCAL_IMAGE >/dev/null 2>&1; then
+    if ! docker image inspect $LOCAL_IMAGE > /dev/null 2>&1; then
       echo "📥 Image not found locally. Pulling $REMOTE_IMAGE..."
       
       # Pull with progress indicator
@@ -299,6 +297,32 @@ ensure_container_started() {
     eval "$CREATE_CMD"
   fi
   docker start $CONTAINER_NAME >/dev/null
+
+  # Fix TensorRT library stubs inside the container (needed on fresh Jetsons without JetPack host libs)
+  fix_tensorrt_libs_internal
+}
+
+fix_tensorrt_libs_internal() {
+  # On fresh Jetson nodes, the container may have 0-byte stub files for CUDA/TRT libs.
+  # Fix them by symlinking to the real l4t-gpu-libs versions that exist inside the container.
+  docker exec $CONTAINER_NAME bash -c '
+    # Fix libcuda.so.1.1 stub -> real l4t-gpu-libs version
+    REAL_CUDA="/opt/nvidia/l4t-gpu-libs/nvgpu/libcuda.so.1.1"
+    STUB_CUDA="/usr/lib/aarch64-linux-gnu/nvidia/libcuda.so.1.1"
+    if [ -f "$REAL_CUDA" ] && { [ ! -s "$STUB_CUDA" ] || [ "$(stat -c%s "$STUB_CUDA" 2>/dev/null)" = "0" ]; }; then
+      rm -f "$STUB_CUDA"
+      ln -sf "$REAL_CUDA" "$STUB_CUDA"
+      echo "  ✅ Fixed libcuda.so.1.1 -> l4t-gpu-libs"
+    fi
+
+    # Fix libnvdla_compiler.so stub if 0-byte (restore from /models cache if available)
+    STUB_DLA="/usr/lib/aarch64-linux-gnu/nvidia/libnvdla_compiler.so"
+    CACHED_DLA="/models/libnvdla_compiler.so"
+    if [ -f "$STUB_DLA" ] && [ "$(stat -c%s "$STUB_DLA" 2>/dev/null)" = "0" ] && [ -s "$CACHED_DLA" ]; then
+      cp "$CACHED_DLA" "$STUB_DLA"
+      echo "  ✅ Restored libnvdla_compiler.so from /models cache"
+    fi
+  ' 2>/dev/null || true
 }
 
 show_help() {
