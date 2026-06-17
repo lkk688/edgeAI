@@ -120,6 +120,8 @@ def iter_events(resp):
             continue
         if obj.get("usage"):
             yield ("usage", obj["usage"])
+        if obj.get("timings"):
+            yield ("timings", obj["timings"])
         for ch in obj.get("choices") or []:
             d = ch.get("delta", {})
             if d.get("reasoning_content"):
@@ -127,13 +129,30 @@ def iter_events(resp):
             if d.get("content"):
                 yield ("content", d["content"])
 
-def stats_line(usage, dt):
-    if not usage:
-        return "(%.1fs)" % dt
-    ct = usage.get("completion_tokens", 0)
-    tps = (ct / dt) if dt > 0 else 0
-    return "(%d prompt + %d completion tokens · %.1f tok/s · %.1fs)" % (
-        usage.get("prompt_tokens", 0), ct, tps, dt)
+def stats_line(usage, timings, dt):
+    # Prefer llama.cpp's `timings` (separate prefill vs generation rates); fall back to usage.
+    if timings:
+        pn = timings.get("prompt_n")
+        gn = timings.get("predicted_n")
+        pps = timings.get("prompt_per_second")
+        gps = timings.get("predicted_per_second")
+        if pps is None and pn and timings.get("prompt_ms"):
+            pps = pn / (timings["prompt_ms"] / 1000.0)
+        if gps is None and gn and timings.get("predicted_ms"):
+            gps = gn / (timings["predicted_ms"] / 1000.0)
+        seg = []
+        if pn is not None:
+            seg.append("prefill %d tok @ %.0f tok/s" % (pn, pps or 0))
+        if gn is not None:
+            seg.append("gen %d tok @ %.1f tok/s" % (gn, gps or 0))
+        seg.append("%.1fs" % dt)
+        return "(" + " · ".join(seg) + ")"
+    if usage:
+        ct = usage.get("completion_tokens", 0)
+        tps = (ct / dt) if dt > 0 else 0
+        return "(%d prompt + %d completion tokens · %.1f tok/s · %.1fs)" % (
+            usage.get("prompt_tokens", 0), ct, tps, dt)
+    return "(%.1fs)" % dt
 
 HELP_ROWS = [
     ("/exit", "Quit the chat (also /quit, /q)"),
@@ -205,7 +224,8 @@ class PlainRenderer:
 
     def ask_user(self):
         try:
-            return input("%s%sYou ▸ %s" % (C['green'], C['bold'], C['reset']))
+            return input("%s/help · /exit%s  %s%sYou ▸ %s" % (
+                C['dim'], C['reset'], C['green'], C['bold'], C['reset']))
         except (EOFError, KeyboardInterrupt):
             return None
 
@@ -271,72 +291,104 @@ class RichRenderer:
 
     def ask_user(self):
         try:
-            return self.console.input("[bold green]You ▸ [/]")
+            # Dim command hint sits right next to the input bar.
+            return self.console.input("[dim]/help · /exit[/]  [bold green]You ▸ [/]")
         except (EOFError, KeyboardInterrupt):
             return None
 
-    def _render(self):
+    def _spinner_panel(self):
         from rich.panel import Panel
-        from rich.markdown import Markdown
         from rich.spinner import Spinner
         from rich.text import Text
+        return Panel(Spinner("dots", text=Text(" thinking…", style="dim")),
+                     title="Assistant ▸", border_style="blue", padding=(0, 1))
+
+    def _stream_panel(self):
+        # Plain Text while streaming — cheap to re-render, so fast token rates
+        # don't peg the CPU (re-parsing Markdown every frame is what caused the
+        # flicker/freeze). The Markdown is rendered once at the end.
+        from rich.panel import Panel
+        from rich.text import Text
         if not self._cbuf and not self._rbuf:
-            return Panel(Spinner("dots", text=Text(" thinking…", style="dim")),
-                         title="Assistant ▸", border_style="blue", padding=(0, 1))
+            return self._spinner_panel()
+        txt = Text()
+        if self._rbuf and self.show_think:
+            txt.append(self._rbuf, style="dim")
+            if self._cbuf:
+                txt.append("\n\n")
+        txt.append(self._cbuf)
+        return Panel(txt, title="Assistant ▸", border_style="blue", padding=(0, 1))
+
+    def _final_panel(self):
+        from rich.panel import Panel
+        from rich.markdown import Markdown
+        from rich.text import Text
         md = ""
         if self._rbuf and self.show_think:
             quoted = "\n".join("> " + ln for ln in self._rbuf.strip().splitlines())
             md += "> 💭 *thinking…*\n" + quoted + "\n\n"
         md += self._cbuf
-        return Panel(Markdown(md) if md.strip() else Text("…"),
-                     title="Assistant ▸", border_style="blue", padding=(0, 1))
+        body = Markdown(md) if md.strip() else Text("…")
+        return Panel(body, title="Assistant ▸", border_style="blue", padding=(0, 1))
 
     def begin(self):
         from rich.live import Live
-        self._cbuf = ""; self._rbuf = ""
-        self._live = Live(self._render(), console=self.console,
-                          refresh_per_second=12, transient=False)
-        self._live.start()
+        self._cbuf = ""; self._rbuf = ""; self._last = 0.0
+        # auto_refresh=False + manual throttled refresh avoids flicker; vertical
+        # overflow "visible" keeps long replies scrollable instead of freezing.
+        self._live = Live(self._spinner_panel(), console=self.console,
+                          auto_refresh=False, vertical_overflow="visible")
+        self._live.start(); self._live.refresh()
+
+    def _tick(self, force=False):
+        if not self._live:
+            return
+        now = time.monotonic()
+        if force or (now - self._last) >= 0.1:   # cap refreshes at ~10/s
+            self._live.update(self._stream_panel())
+            self._live.refresh()
+            self._last = now
+
     def reasoning(self, t):
-        self._rbuf += t
-        if self._live:
-            self._live.update(self._render())
+        self._rbuf += t; self._tick()
     def content(self, t):
-        self._cbuf += t
-        if self._live:
-            self._live.update(self._render())
+        self._cbuf += t; self._tick()
     def end(self):
         if self._live:
-            self._live.update(self._render())
+            self._live.update(self._final_panel())  # single Markdown render
+            self._live.refresh()
             self._live.stop(); self._live = None
+            self.console.print()  # separate the panel from the stats line
 
 # ----------------------------------------------------------------------------- chat turn
 def chat_turn(endpoint, headers, payload, renderer):
-    """Run one request. Returns (assistant_text, usage) or (None, None) on error."""
+    """Run one request. Returns (assistant_text, usage, timings) or (None, None, None) on error."""
     try:
         resp = request(endpoint, headers, payload)
     except Exception as e:
-        renderer.error(err_for(e)); return None, None
+        renderer.error(err_for(e)); return None, None, None
 
     if not payload.get("stream"):
         try:
             obj = json.load(resp)
         except Exception as e:
-            renderer.error(err_for(e)); return None, None
+            renderer.error(err_for(e)); return None, None, None
         msg = (obj.get("choices") or [{}])[0].get("message", {})
         renderer.begin()
         if renderer.show_think and msg.get("reasoning_content"):
             renderer.reasoning(msg["reasoning_content"])
         renderer.content(msg.get("content") or "")
         renderer.end()
-        return msg.get("content") or "", obj.get("usage")
+        return msg.get("content") or "", obj.get("usage"), obj.get("timings")
 
     renderer.begin()
-    parts = []; usage = None
+    parts = []; usage = None; timings = None
     try:
         for kind, val in iter_events(resp):
             if kind == "usage":
                 usage = val
+            elif kind == "timings":
+                timings = val
             elif kind == "reasoning":
                 renderer.reasoning(val)
             elif kind == "content":
@@ -344,7 +396,7 @@ def chat_turn(endpoint, headers, payload, renderer):
     except KeyboardInterrupt:
         pass
     renderer.end()
-    return "".join(parts), usage
+    return "".join(parts), usage, timings
 
 # ----------------------------------------------------------------------------- main
 def main():
@@ -446,12 +498,12 @@ def main():
         messages.append({"role": "user", "content": user_text})
         renderer.show_think = think["enabled"]
         t = time.time()
-        text, usage = chat_turn(endpoint, headers, build_payload(), renderer)
+        text, usage, timings = chat_turn(endpoint, headers, build_payload(), renderer)
         if text is None:
             messages.pop()
             return False
         messages.append({"role": "assistant", "content": text})
-        renderer.stats(stats_line(usage, time.time() - t))
+        renderer.stats(stats_line(usage, timings, time.time() - t))
         return True
 
     def info_block():

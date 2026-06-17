@@ -374,7 +374,7 @@ curl http://localhost:8080/v1/chat/completions \
 ### 4. Chat from the Terminal (`gputool chat`)
 `gputool` ships a built-in terminal chat client that talks to any OpenAI-compatible endpoint (your local `llama-server` by default) and **streams the response token-by-token** with per-turn token/throughput stats.
 
-* **Rich UI (Claude-Code style):** if the [`rich`](https://github.com/Textualize/rich) library is installed, the client renders **streaming Markdown** — headings, **bold**, lists, and syntax-highlighted code blocks — inside a clean panel.
+* **Rich UI (Claude-Code style):** if the [`rich`](https://github.com/Textualize/rich) library is installed, tokens stream smoothly into a panel (refreshes are throttled and long replies stay scrollable — no flicker/freeze at high token rates), and the completed reply is rendered as **Markdown** — headings, **bold**, lists, and syntax-highlighted code blocks.
 * **Stdlib fallback:** if `rich` is not available, it automatically falls back to a pure-stdlib ANSI renderer, so it still works on locked-down machines without extra `pip` packages or `curl`.
 
 To get the Rich UI, install it once into your environment:
@@ -401,17 +401,19 @@ API key [blank if none]: ********
 │                                                                │
 │  Type a message and press Enter.  /help for commands · /exit … │
 ╰────────────────────────────────────────────────────────────────╯
-You ▸ What GPU architecture is NVIDIA Blackwell?
+/help · /exit  You ▸ What GPU architecture is NVIDIA Blackwell?
 ╭─ Assistant ▸ ──────────────────────────────────────────────────╮
-│ NVIDIA **Blackwell** is the company's latest GPU architecture,  │
+│ NVIDIA Blackwell is the company's latest GPU architecture,      │
 │ succeeding Hopper — it powers the RTX 50-series and GB200.      │
 ╰────────────────────────────────────────────────────────────────╯
-(24 prompt + 38 completion tokens · 92.4 tok/s · 0.5s)
-You ▸ /save notes.md
+(prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s · 0.5s)
+/help · /exit  You ▸ /save notes.md
 💾 Saved conversation to /home/you/notes.md
-You ▸ /exit
+/help · /exit  You ▸ /exit
 Bye!
 ```
+
+The stats line after each reply reports **prefill** (prompt-processing) and **generation** speeds separately, e.g. `prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s`, taken from llama.cpp's `timings` (it falls back to a combined `tok/s` if the server doesn't report them). A dim `/help · /exit` hint sits next to the `You ▸` input bar.
 
 #### Other ways to launch
 * **One-shot question** (prints the streamed answer and exits — no prompts):
