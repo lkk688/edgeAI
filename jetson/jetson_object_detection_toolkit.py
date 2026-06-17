@@ -227,9 +227,15 @@ class YOLODetector(BaseDetector):
                     '--fp16'
                 ]
                 env = os.environ.copy()
-                # Remove LD_LIBRARY_PATH completely for trtexec to avoid desktop stubs/compatibility
-                # libraries overriding native Tegra drivers on Jetson devices.
-                env.pop("LD_LIBRARY_PATH", None)
+                # Ensure Jetson Tegra NVIDIA libraries are found by trtexec.
+                # Previously LD_LIBRARY_PATH was cleared entirely, but on Jetson containers
+                # the nvidia path is needed for libnvdla_compiler.so and libnvinfer_plugin.so.
+                nvidia_lib_path = "/usr/lib/aarch64-linux-gnu/nvidia"
+                cuda_lib_path = "/usr/local/cuda/lib64"
+                existing_ldpath = env.get("LD_LIBRARY_PATH", "")
+                # Prepend nvidia paths, deduplicate
+                paths = [nvidia_lib_path, cuda_lib_path] + [p for p in existing_ldpath.split(":") if p and p not in (nvidia_lib_path, cuda_lib_path)]
+                env["LD_LIBRARY_PATH"] = ":".join(paths)
                 subprocess.run(cmd, env=env, check=True)
             
             logger.info(f"TensorRT engine ready: {engine_path}")
