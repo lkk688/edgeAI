@@ -876,13 +876,20 @@ def main():
         
         if model_type == 'owl-vit':
             # OWL-ViT works better with simple, clear object names
-            # Remove articles and make singular
+            # Remove articles and make singular (with safe word protection)
+            # Words that end in 's' but are NOT plural (do not strip 's')
+            NON_PLURAL_S = {
+                'bus', 'glass', 'grass', 'class', 'dress', 'press', 'chess',
+                'cross', 'moss', 'loss', 'boss', 'mass', 'pass', 'gas',
+                'canvas', 'bonus', 'focus', 'minus', 'plus', 'virus', 'status',
+                'campus', 'corpus', 'nexus', 'radius', 'chorus', 'circus'
+            }
             optimized = []
             for prompt in prompt_list:
                 # Remove common articles
                 prompt = prompt.lower().replace('a ', '').replace('an ', '').replace('the ', '')
-                # Convert plural to singular for common cases
-                if prompt.endswith('s') and not prompt.endswith('ss'):
+                # Convert plural to singular only if word is not in the safe list
+                if prompt.endswith('s') and not prompt.endswith('ss') and prompt not in NON_PLURAL_S:
                     prompt = prompt[:-1]
                 # Capitalize first letter
                 prompt = prompt.capitalize()
