@@ -72,6 +72,7 @@ INFO    -  Your documentation should shortly be available at:
 * [🧠 Deep Learning & CNN](curriculum/04_deeplearning_cnn.md)
 * [🖼️ CNN Image Processing on Jetson](curriculum/04b_cnn_image_processing_jetson.md)
 * [🧠 Transformers & NLP Applications](curriculum/05_transformers_nlp_applications.md)
+* [🎯 Deep Learning Object Detection](curriculum/05b_yolo_vlm_object_detection.md)
 * [🚀 Large Language Models on Jetson](curriculum/06_llms_jetson.md)
 * [📚 NLP Applications & LLM Optimization](curriculum/07_nlp_applications_llm_optimization.md)
 * [✍️ Prompt Engineering & LangChain](curriculum/08_prompt_engineering_langchain_jetson.md)
