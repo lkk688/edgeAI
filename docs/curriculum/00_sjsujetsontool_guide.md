@@ -1011,7 +1011,7 @@ User > What is NVIDIA Jetson?
 |---|---------|---------|-------|
 | **1** | **Local Jetson llama.cpp** | this Jetson (`http://localhost:8080`) | a local server — start it with `sjsujetsontool llama` |
 | **2** | **NVIDIA Build API** | NVIDIA cloud (`integrate.api.nvidia.com`) | an API key — set it with `sjsujetsontool setup-nvapi` |
-| **3** | **Our LLM server** | a shared GPU node (e.g. an RTX board) via `https://llm.forgengi.org/<node>` | network access (over Headscale) + the server's API key |
+| **3** | **Our LLM server** | a shared GPU node (e.g. an RTX board) via `https://llm.forgengi.org/<node>` | network access (over Headscale) + the server's API key (sjsugputool) |
 
 It uses the same engine as `gputool chat`: it renders **streaming Markdown** with the [`rich`](https://github.com/Textualize/rich) library when installed (and falls back to a plain pure-stdlib renderer otherwise), and prints per-turn **prefill / generation** token speeds.
 
