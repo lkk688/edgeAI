@@ -28,12 +28,153 @@ HEADSCALE_LOGIN_SERVER="https://headscale.forgengi.org"
 HEADSCALE_AUTHKEY="2566b0d9607d5e78bda28311963463d358352133c32d94ae"
 TAILSCALE_DEFAULT_VERSION="1.68.1"
 SCRIPT_URL="https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/gputool.sh"
+CHAT_PY_URL="https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/chat.py"
+CHAT_PY_PATH="$GPUTOOL_DIR/chat.py"
 
 # Helper print functions
 info() { echo -e "${BLUE}[⚙️]${NC} $*"; }
 success() { echo -e "${GREEN}[✅]${NC} $*"; }
 warn() { echo -e "${YELLOW}[⚠️]${NC} $*"; }
 error() { echo -e "${RED}[❌]${NC} $*"; }
+
+# === GPU / CUDA detection helpers ===
+# These probe the host for an NVIDIA GPU and a CUDA toolkit so that other
+# commands can pick a compatible PyTorch build and compile llama.cpp.
+
+# Locate the nvcc binary: PATH first, then common CUDA install locations.
+detect_nvcc_bin() {
+  if command -v nvcc &>/dev/null; then command -v nvcc; return 0; fi
+  if [[ -x "/usr/local/cuda/bin/nvcc" ]]; then echo "/usr/local/cuda/bin/nvcc"; return 0; fi
+  local candidate
+  for candidate in /usr/local/cuda-*/bin/nvcc; do
+    [[ -x "$candidate" ]] && { echo "$candidate"; return 0; }
+  done
+  return 1
+}
+
+# nvcc toolkit version as MAJOR.MINOR (e.g. "13.0"); empty if nvcc is absent.
+detect_nvcc_version() {
+  local nb; nb=$(detect_nvcc_bin) || return 1
+  "$nb" --version 2>/dev/null | grep -oE 'release [0-9]+\.[0-9]+' | awk '{print $2}' | head -n1
+}
+
+# Max CUDA runtime version supported by the installed driver (via nvidia-smi).
+detect_driver_cuda_version() {
+  command -v nvidia-smi &>/dev/null || return 1
+  nvidia-smi 2>/dev/null | grep -oE 'CUDA Version: [0-9]+\.[0-9]+' | awk '{print $3}' | head -n1
+}
+
+# GPU compute capability as MAJOR.MINOR (e.g. "12.0" for Blackwell, "6.1" for Pascal).
+detect_gpu_compute_cap() {
+  command -v nvidia-smi &>/dev/null || return 1
+  local cc
+  cc=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d ' ')
+  [[ -n "$cc" && "$cc" != "[N/A]" ]] && { echo "$cc"; return 0; }
+  return 1
+}
+
+# Friendly GPU name (e.g. "NVIDIA GeForce RTX 5080").
+detect_gpu_name() {
+  command -v nvidia-smi &>/dev/null || return 1
+  nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | head -n1
+}
+
+# Convert a MAJOR.MINOR version into an integer*10 for easy comparison (12.0 -> 120, 6.1 -> 61).
+_ver_to_int() { awk -v v="${1:-0}" 'BEGIN{printf "%d", v*10}'; }
+
+# Decide which PyTorch CUDA wheel index to use based on GPU arch + CUDA toolkit/driver.
+# Echoes a single token on stdout (cu128 | cu126 | cu121 | cu118 | cpu) and logs reasoning to stderr.
+#   - Modern GPUs (compute capability >= 7.0, incl. Blackwell sm_120) -> cu128
+#   - Older GPUs (compute capability  < 7.0, e.g. Pascal/Maxwell)     -> cu118
+#   - No GPU but a toolkit present -> map from the toolkit/driver CUDA version
+#   - Nothing CUDA-related found   -> default to cu128 (CUDA 12.8)
+select_torch_cuda_tag() {
+  local cc nvcc_ver drv_ver tag reason cc_num
+  cc=$(detect_gpu_compute_cap 2>/dev/null || true)
+  nvcc_ver=$(detect_nvcc_version 2>/dev/null || true)
+  drv_ver=$(detect_driver_cuda_version 2>/dev/null || true)
+  cc_num=$(_ver_to_int "${cc:-0}")
+
+  if [[ -z "$cc" && -z "$nvcc_ver" && -z "$drv_ver" ]]; then
+    tag="cu128"; reason="No GPU or CUDA toolkit detected; defaulting to CUDA 12.8 wheels."
+  elif [[ -n "$cc" ]]; then
+    if (( cc_num < 70 )); then
+      tag="cu118"; reason="GPU compute capability $cc is older than 7.0; using CUDA 11.8 wheels for compatibility."
+    else
+      tag="cu128"; reason="GPU compute capability $cc supports modern wheels; using CUDA 12.8 (Blackwell-ready)."
+      # If the driver is too old for the 12.8 runtime, step down to a build it can run.
+      if [[ -n "$drv_ver" ]]; then
+        local drv_num; drv_num=$(_ver_to_int "$drv_ver")
+        if (( drv_num < 121 && drv_num >= 118 )); then
+          tag="cu118"; reason="GPU is modern but the driver supports only up to CUDA $drv_ver; capping to CUDA 11.8 wheels."
+        fi
+      fi
+    fi
+  else
+    # No GPU capability info, but a toolkit/driver exists: choose from its CUDA version.
+    local ref ref_num
+    ref="${nvcc_ver:-$drv_ver}"
+    ref_num=$(_ver_to_int "$ref")
+    if   (( ref_num >= 124 )); then tag="cu128"; reason="CUDA toolkit $ref detected; using CUDA 12.8 wheels."
+    elif (( ref_num >= 121 )); then tag="cu121"; reason="CUDA toolkit $ref detected; using CUDA 12.1 wheels."
+    else                            tag="cu118"; reason="CUDA toolkit $ref detected; using CUDA 11.8 wheels."
+    fi
+  fi
+  echo "$reason" >&2
+  echo "$tag"
+}
+
+# Detect GPU/CUDA and install the best-matching PyTorch build into the given conda env.
+# Falls back to the chosen index -> plain PyPI on failure. Returns non-zero only if all attempts fail.
+install_pytorch_auto() {
+  local env_name="$1"
+  local gpu_name cc nvcc_ver drv_ver tag
+  gpu_name=$(detect_gpu_name 2>/dev/null || true)
+  cc=$(detect_gpu_compute_cap 2>/dev/null || true)
+  nvcc_ver=$(detect_nvcc_version 2>/dev/null || true)
+  drv_ver=$(detect_driver_cuda_version 2>/dev/null || true)
+
+  echo "   • GPU Detected      : ${gpu_name:-None}"
+  echo "   • Compute Capability: ${cc:-Unknown}"
+  echo "   • nvcc Toolkit      : ${nvcc_ver:-Not found}"
+  echo "   • Driver CUDA Max   : ${drv_ver:-Unknown}"
+
+  tag=$(select_torch_cuda_tag)
+  info "Selected PyTorch build: $tag"
+  warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
+  warn "   depending on your network connection speed. Please do not close the terminal..."
+
+  if conda run -n "$env_name" pip install torch torchvision torchaudio \
+      --index-url "https://download.pytorch.org/whl/$tag"; then
+    return 0
+  fi
+  warn "Failed to install via the '$tag' wheel index. Retrying with default PyPI torch..."
+  conda run -n "$env_name" pip install torch torchvision torchaudio
+}
+
+# Ensure a build tool is available inside the conda env; install via conda-forge (pip fallback).
+# Usage: ensure_conda_tool <env_name> <command> <conda_pkg> [pip_pkg]
+ensure_conda_tool() {
+  local env_name="$1" cmd="$2" conda_pkg="$3" pip_pkg="${4:-}"
+  if conda run -n "$env_name" bash -lc "command -v $cmd" &>/dev/null; then
+    success "Found '$cmd' in conda env '$env_name'."
+    return 0
+  fi
+  info "'$cmd' is missing in env '$env_name'. Installing '$conda_pkg' from conda-forge..."
+  if conda install -y -n "$env_name" -c conda-forge "$conda_pkg" &>/dev/null; then
+    success "Installed '$conda_pkg'."
+    return 0
+  fi
+  if [[ -n "$pip_pkg" ]]; then
+    warn "Conda install of '$conda_pkg' failed. Trying pip install '$pip_pkg'..."
+    if conda run -n "$env_name" pip install "$pip_pkg" &>/dev/null; then
+      success "Installed '$pip_pkg' via pip."
+      return 0
+    fi
+  fi
+  error "Failed to install '$cmd' (tried conda pkg '$conda_pkg'${pip_pkg:+ and pip pkg '$pip_pkg'})."
+  return 1
+}
 
 # Helper download functions (with Python 3 fallback if curl/wget are missing)
 download_file() {
@@ -48,6 +189,19 @@ download_file() {
   else
     return 1
   fi
+}
+
+# Download the chat client (chat.py) from GitHub into ~/.gputool/.
+# Non-fatal: chat.py is also fetched on demand by `gputool chat` if missing.
+download_chat_py() {
+  mkdir -p "$GPUTOOL_DIR"
+  if download_file "$CHAT_PY_URL" "$CHAT_PY_PATH"; then
+    chmod +x "$CHAT_PY_PATH" 2>/dev/null
+    success "Chat client installed: $CHAT_PY_PATH"
+    return 0
+  fi
+  warn "Could not download chat client (chat.py). 'gputool chat' will retry the download when first run."
+  return 1
 }
 
 http_get_auth() {
@@ -98,7 +252,14 @@ show_help() {
   echo "Llama.cpp & LLM Commands (RTX GPU Offloading):"
   echo "  setup-llamacpp [env_name] - Compile llama.cpp with CUDA support inside Conda env"
   echo "  download-model [repo] [file] [env] - Download a GGUF model from Hugging Face"
-  echo "  serve-llamacpp <action> [model] [port] - Manage background llama-server (start|stop|status)"
+  echo "  serve-llamacpp <action> [model] [port] [--foreground|--background] - Manage llama-server"
+  echo "      start [model] [port] [-d|--background]  - Serve in background (default); detached daemon"
+  echo "      start [model] [port] [-f|--foreground]  - Serve in foreground (attached, Ctrl+C to stop)"
+  echo "      start ... [--host <addr>]                - Bind address (default 0.0.0.0 = LAN-accessible; 127.0.0.1 = local-only)"
+  echo "      start ... [--api-key <token>]            - Require 'Authorization: Bearer <token>' on all requests"
+  echo "      stop                                     - Stop tracked + any stray llama-server services"
+  echo "      status                                   - Show running server and API health"
+  echo "  chat [message] [--host <ip>] [--port <p>] [--api-key <token>] [--system <txt>] [--think] - Terminal chat client (streaming)"
   echo
   echo "Tailscale Commands (🔒 Userspace VPN, NO ROOT/SUDO Required):"
   echo "  tailscale <sub>          - Manage userspace Tailscale client"
@@ -117,7 +278,11 @@ show_help() {
   echo "  gputool check my_env"
   echo "  gputool setup-llamacpp my_env"
   echo "  gputool download-model unsloth/Qwen3.5-9B-GGUF Qwen3.5-9B-UD-Q6_K_XL.gguf my_env"
-  echo "  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080"
+  echo "  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080            # background daemon (default)"
+  echo "  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --foreground # attached, Ctrl+C to stop"
+  echo "  gputool serve-llamacpp stop                                             # stop all llama-server services"
+  echo "  gputool chat                                                            # interactive chat with local server"
+  echo "  gputool chat \"What is CUDA?\" --host 10.31.96.155 --api-key sjsugputool   # one-shot query to a remote peer"
 }
 
 # Spinner helper
@@ -161,6 +326,10 @@ install_gputool() {
   else
     success "gputool is already in your PATH."
   fi
+
+  # Fetch the companion chat client so 'gputool chat' works out of the box.
+  download_chat_py
+
   success "Installation complete! You can now run: gputool help"
 }
 
@@ -173,6 +342,8 @@ update_script() {
     chmod +x "$TEMP_FILE"
     mv "$TEMP_FILE" "$SCRIPT_PATH"
     success "gputool has been updated successfully to latest version."
+    # Keep the companion chat client in sync with the updated script.
+    download_chat_py
   else
     error "Failed to download update from GitHub."
     rm -f "$TEMP_FILE"
@@ -566,16 +737,12 @@ setup_ml_env() {
     warn "Conda environment '$env_name' already exists. Reusing it."
   fi
 
-  # Install PyTorch
-  info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
-  warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
-  warn "   depending on your network connection speed. Please do not close the terminal..."
-  if ! conda run -n "$env_name" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128; then
-    warn "Failed to install via cu128 wheel index. Retrying with default PyPI torch..."
-    if ! conda run -n "$env_name" pip install torch torchvision torchaudio; then
-      error "PyTorch installation failed."
-      exit 1
-    fi
+  # Install PyTorch (auto-detect GPU/CUDA to choose the matching wheel)
+  echo
+  info "Detecting GPU and CUDA toolkit to choose the best PyTorch build..."
+  if ! install_pytorch_auto "$env_name"; then
+    error "PyTorch installation failed."
+    exit 1
   fi
   success "PyTorch installed."
 
@@ -668,17 +835,12 @@ setup_lerobot_env() {
     conda run -n "$env_name" pip install "cmake<4"
   fi
 
-  # --- Install PyTorch ---
-  info "Installing PyTorch (with CUDA 12.8 / Blackwell support)..."
-  warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
-  warn "   depending on your network connection speed. Please do not close the terminal..."
-  # Blackwell RTX 5080 requires CUDA 12.8+; try PyTorch's cu128 wheel index first
-  if ! conda run -n "$env_name" pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128; then
-    warn "Failed to install via cu128 wheel index. Retrying with default PyPI torch..."
-    if ! conda run -n "$env_name" pip install torch torchvision torchaudio; then
-      error "PyTorch installation failed."
-      exit 1
-    fi
+  # --- Install PyTorch (auto-detect GPU/CUDA to choose the matching wheel) ---
+  echo
+  info "Detecting GPU and CUDA toolkit to choose the best PyTorch build..."
+  if ! install_pytorch_auto "$env_name"; then
+    error "PyTorch installation failed."
+    exit 1
   fi
   success "PyTorch installed."
 
@@ -1011,36 +1173,99 @@ setup_llamacpp() {
     echo "   👉 Please ensure NVIDIA CUDA Toolkit is installed."
     exit 1
   fi
-  success "Found CUDA compiler: $nvcc_bin"
+  local nvcc_ver gpu_name gpu_cc
+  nvcc_ver=$(detect_nvcc_version 2>/dev/null || true)
+  gpu_name=$(detect_gpu_name 2>/dev/null || true)
+  gpu_cc=$(detect_gpu_compute_cap 2>/dev/null || true)
+  success "Found CUDA compiler: $nvcc_bin (CUDA ${nvcc_ver:-unknown})"
+  echo "   • GPU Detected      : ${gpu_name:-None}"
+  echo "   • Compute Capability: ${gpu_cc:-Unknown}"
+
+  # --- Ensure required build tools are present inside the conda env ---
+  info "Checking build dependencies (cmake, ninja) in env '$env_name'..."
+  if ! ensure_conda_tool "$env_name" cmake "cmake" "cmake"; then
+    error "Cannot continue without cmake."
+    exit 1
+  fi
+  # Ninja is optional but greatly speeds up the build; a failure is non-fatal.
+  local use_ninja=0
+  if ensure_conda_tool "$env_name" ninja "ninja"; then
+    use_ninja=1
+  else
+    warn "Proceeding without Ninja; will use the default Make generator."
+  fi
 
   # Configure build using cmake inside conda env
-  info "Configuring build with CUDA support enabled..."
-  if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$src_dir/build" \
+  local build_dir="$src_dir/build"
+  local generator_args=()
+  [[ "$use_ninja" -eq 1 ]] && generator_args=(-G Ninja)
+
+  # A pre-existing build dir created with a different generator makes cmake abort.
+  # Wipe it if the cached generator no longer matches what we are about to use.
+  if [[ -f "$build_dir/CMakeCache.txt" ]]; then
+    local cached_gen want_gen
+    cached_gen=$(grep -E '^CMAKE_GENERATOR:' "$build_dir/CMakeCache.txt" 2>/dev/null | cut -d= -f2-)
+    want_gen=$([[ "$use_ninja" -eq 1 ]] && echo "Ninja" || echo "Unix Makefiles")
+    if [[ -n "$cached_gen" && "$cached_gen" != "$want_gen" ]]; then
+      warn "Build generator changed ('$cached_gen' -> '$want_gen'). Clearing stale build directory..."
+      rm -rf "$build_dir"
+    fi
+  fi
+
+  info "Configuring build with CUDA support enabled${use_ninja:+ (Ninja generator)}..."
+  if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
+    -DCMAKE_BUILD_TYPE=Release \
     -DGGML_CUDA=ON \
+    -DLLAMA_CURL=OFF \
     -DCMAKE_CUDA_COMPILER="$nvcc_bin"; then
-    error "CMake configuration failed."
-    exit 1
+    warn "CMake configuration failed. Wiping build directory and retrying once..."
+    rm -rf "$build_dir"
+    if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DGGML_CUDA=ON \
+      -DLLAMA_CURL=OFF \
+      -DCMAKE_CUDA_COMPILER="$nvcc_bin"; then
+      error "CMake configuration failed."
+      exit 1
+    fi
   fi
 
   # Compile release target
   info "Compiling llama.cpp Release binaries using all CPU cores..."
   local num_jobs
   num_jobs=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-  if ! conda run -n "$env_name" cmake --build "$src_dir/build" --config Release -j"$num_jobs"; then
+  if ! conda run -n "$env_name" cmake --build "$build_dir" --config Release -j"$num_jobs"; then
     error "llama.cpp compilation failed."
     exit 1
   fi
 
-  # Copy binaries to GPUTOOL bin directory
+  # Install binaries AND their shared libraries so they run standalone
+  # (the build tree bakes in absolute RPATHs; copying the .so files next to the
+  #  binaries plus exporting LD_LIBRARY_PATH at serve time keeps them portable).
   mkdir -p "$GPUTOOL_DIR/bin"
-  if [[ -f "$src_dir/build/bin/llama-cli" && -f "$src_dir/build/bin/llama-server" ]]; then
-    cp "$src_dir/build/bin/llama-cli" "$GPUTOOL_DIR/bin/"
-    cp "$src_dir/build/bin/llama-server" "$GPUTOOL_DIR/bin/"
+  if [[ -f "$build_dir/bin/llama-cli" && -f "$build_dir/bin/llama-server" ]]; then
+    cp "$build_dir/bin/llama-cli" "$build_dir/bin/llama-server" "$GPUTOOL_DIR/bin/"
+    # Copy any shared libraries produced by the build (libllama, libggml*, etc.).
+    local lib_count=0
+    shopt -s nullglob
+    for so in "$build_dir/bin/"*.so*; do
+      cp -P "$so" "$GPUTOOL_DIR/bin/" && ((lib_count++))
+    done
+    shopt -u nullglob
     chmod +x "$GPUTOOL_DIR/bin/llama-cli" "$GPUTOOL_DIR/bin/llama-server"
     success "llama.cpp compiled successfully!"
     echo "   Installed binaries:"
     echo "   • $GPUTOOL_DIR/bin/llama-cli"
     echo "   • $GPUTOOL_DIR/bin/llama-server"
+    echo "   • Shared libraries copied: $lib_count"
+    # Quick sanity check: confirm the CUDA backend can enumerate the GPU.
+    info "Verifying CUDA backend (listing devices)..."
+    if LD_LIBRARY_PATH="$GPUTOOL_DIR/bin:${LD_LIBRARY_PATH:-}" \
+        "$GPUTOOL_DIR/bin/llama-cli" --list-devices 2>/dev/null | grep -qiE 'CUDA[0-9]'; then
+      success "CUDA backend active — GPU is visible to llama.cpp."
+    else
+      warn "Could not confirm a CUDA device via --list-devices. The binary built, but verify GPU drivers."
+    fi
   else
     error "Compiled binaries not found where expected in build output."
     exit 1
@@ -1141,9 +1366,28 @@ EOF
 # Start, stop, or check status of llama-server
 serve_llamacpp() {
   local action="${1:-status}"
-  local model_param="${2:-Qwen3.5-9B-UD-Q6_K_XL.gguf}"
-  local port="${3:-8080}"
-  
+  shift 2>/dev/null || true
+
+  # Parse remaining args: flags control run mode / bind host / auth; positionals are [model] [port].
+  local run_mode="background"
+  local host="0.0.0.0"   # bind all interfaces by default so peers on the LAN can reach it
+  local api_key="${GPUTOOL_LLAMA_API_KEY:-}"   # optional bearer token; env var provides a default
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f|--foreground) run_mode="foreground" ;;
+      -d|--background) run_mode="background" ;;
+      --host) host="${2:-0.0.0.0}"; shift ;;
+      --host=*) host="${1#*=}" ;;
+      --api-key) api_key="${2:-}"; shift ;;
+      --api-key=*) api_key="${1#*=}" ;;
+      *) positional+=("$1") ;;
+    esac
+    shift
+  done
+  local model_param="${positional[0]:-Qwen3.5-9B-UD-Q6_K_XL.gguf}"
+  local port="${positional[1]:-8080}"
+
   local pid_file="$GPUTOOL_DIR/llama-server.pid"
   local log_file="$GPUTOOL_DIR/llama-server.log"
   local server_bin="$GPUTOOL_DIR/bin/llama-server"
@@ -1184,27 +1428,68 @@ serve_llamacpp() {
       fi
 
       info "Serving model: $model_path"
+      info "Bind host     : $host"
       info "Port          : $port"
-      info "Logging to    : $log_file"
+      info "Run mode      : $run_mode"
+      if [[ -n "$api_key" ]]; then
+        info "API key auth  : enabled (clients must send 'Authorization: Bearer <key>')"
+      else
+        info "API key auth  : disabled (open access)"
+      fi
 
-      # Start daemon offloading all layers (-ngl 99)
+      # Optional bearer-token auth: only added when a key is provided.
+      local auth_args=()
+      [[ -n "$api_key" ]] && auth_args=(--api-key "$api_key")
+
+      # Resolve a friendly URL host for display (0.0.0.0 isn't dialable directly).
+      local url_host="$host"
+      if [[ "$host" == "0.0.0.0" ]]; then
+        url_host=$(hostname -I 2>/dev/null | awk '{print $1}')
+        [[ -z "$url_host" ]] && url_host="localhost"
+      fi
+
+      # Export LD_LIBRARY_PATH so the server finds the shared libraries installed
+      # alongside it in ~/.gputool/bin (libllama, libggml-cuda, etc.).
+      export LD_LIBRARY_PATH="$GPUTOOL_DIR/bin:${LD_LIBRARY_PATH:-}"
+
+      if [[ "$run_mode" == "foreground" ]]; then
+        # Attached mode: blocks the terminal and streams logs live (Ctrl+C to stop).
+        info "Starting in FOREGROUND (press Ctrl+C to stop)."
+        echo "   🔗 API Base URL: http://$url_host:$port/v1"
+        echo "══════════════════════════════════════════════════"
+        exec "$server_bin" \
+          --model "$model_path" \
+          --host "$host" \
+          --port "$port" \
+          --ctx-size 4096 \
+          -ngl 99 \
+          "${auth_args[@]}"
+      fi
+
+      # Background (daemon) mode: detach via nohup, log to file (-ngl 99 offloads all layers).
+      info "Logging to    : $log_file"
       nohup "$server_bin" \
         --model "$model_path" \
+        --host "$host" \
         --port "$port" \
         --ctx-size 4096 \
         -ngl 99 \
+        "${auth_args[@]}" \
         > "$log_file" 2>&1 &
-      
+
       local server_pid=$!
       echo "$server_pid" > "$pid_file"
       sleep 2
 
       if kill -0 "$server_pid" 2>/dev/null; then
-        success "llama-server started successfully (PID: $server_pid)."
-        echo "   🔗 API Base URL: http://localhost:$port/v1"
+        success "llama-server started in background (PID: $server_pid)."
+        echo "   🔗 API Base URL: http://$url_host:$port/v1"
+        [[ "$host" == "0.0.0.0" ]] && echo "   🌐 Reachable from LAN peers at the address above (bound to all interfaces)."
+        echo "   🛑 Stop it with : gputool serve-llamacpp stop"
         echo "   💡 Try querying model completions via curl:"
-        echo "      curl http://localhost:$port/v1/chat/completions \\"
+        echo "      curl http://$url_host:$port/v1/chat/completions \\"
         echo "        -H \"Content-Type: application/json\" \\"
+        [[ -n "$api_key" ]] && echo "        -H \"Authorization: Bearer $api_key\" \\"
         echo "        -d '{\"messages\": [{\"role\": \"user\", \"content\": \"Hello!\"}]}'"
       else
         error "llama-server failed to start immediately. Check logs:"
@@ -1219,31 +1504,56 @@ serve_llamacpp() {
       echo "══════════════════════════════════════════════════"
       echo "🔌 Stopping llama-server"
       echo "══════════════════════════════════════════════════"
+
+      # Gather candidate PIDs from the tracked PID file AND any stray background
+      # instances (matched by our binary path and by process name), so this stops
+      # both the daemon we started and any orphaned llama-server services.
+      local candidates=()
       if [[ -f "$pid_file" ]]; then
-        local pid
-        pid=$(cat "$pid_file" 2>/dev/null)
-        if [[ -n "$pid" ]]; then
-          info "Stopping llama-server daemon (PID: $pid)..."
-          kill "$pid" 2>/dev/null
-          
-          local timeout=10
-          while kill -0 "$pid" 2>/dev/null && [[ $timeout -gt 0 ]]; do
-            sleep 0.5
-            ((timeout--))
-          done
-          
-          if kill -0 "$pid" 2>/dev/null; then
-            warn "Process did not exit cleanly. Force killing..."
-            kill -9 "$pid" 2>/dev/null
-          fi
-          success "llama-server stopped."
-        else
-          warn "PID file empty."
-        fi
-        rm -f "$pid_file"
-      else
-        warn "llama-server PID file not found (likely not running)."
+        local fpid
+        fpid=$(cat "$pid_file" 2>/dev/null)
+        [[ -n "$fpid" ]] && candidates+=("$fpid")
       fi
+      local p
+      for p in $(pgrep -f "$server_bin" 2>/dev/null) $(pgrep -x llama-server 2>/dev/null); do
+        candidates+=("$p")
+      done
+
+      # Deduplicate, drop this script (and its parent), and keep only live PIDs.
+      local uniq_pids=()
+      declare -A _seen=()
+      for p in "${candidates[@]}"; do
+        [[ -z "$p" || -n "${_seen[$p]:-}" ]] && continue
+        _seen[$p]=1
+        [[ "$p" == "$$" || "$p" == "$PPID" ]] && continue
+        kill -0 "$p" 2>/dev/null && uniq_pids+=("$p")
+      done
+
+      if [[ ${#uniq_pids[@]} -eq 0 ]]; then
+        warn "No running llama-server processes found."
+        rm -f "$pid_file"
+        echo "══════════════════════════════════════════════════"
+        return 0 2>/dev/null || exit 0
+      fi
+
+      info "Found ${#uniq_pids[@]} llama-server process(es) to stop: ${uniq_pids[*]}"
+      for p in "${uniq_pids[@]}"; do
+        info "Stopping llama-server (PID: $p)..."
+        kill "$p" 2>/dev/null
+
+        local timeout=10
+        while kill -0 "$p" 2>/dev/null && [[ $timeout -gt 0 ]]; do
+          sleep 0.5
+          ((timeout--))
+        done
+
+        if kill -0 "$p" 2>/dev/null; then
+          warn "PID $p did not exit cleanly. Force killing..."
+          kill -9 "$p" 2>/dev/null
+        fi
+        success "Stopped PID $p."
+      done
+      rm -f "$pid_file"
       echo "══════════════════════════════════════════════════"
       ;;
       
@@ -1276,20 +1586,57 @@ serve_llamacpp() {
           rm -f "$pid_file"
         fi
       else
-        warn "llama-server is NOT running."
+        # No tracked PID file — check for any stray/foreground instances.
+        local stray
+        stray=$(pgrep -f "$server_bin" 2>/dev/null | tr '\n' ' ')
+        if [[ -n "$stray" ]]; then
+          warn "No tracked PID file, but found running llama-server process(es): $stray"
+          echo "   🛑 Stop them with: gputool serve-llamacpp stop"
+        else
+          warn "llama-server is NOT running."
+        fi
       fi
       echo "══════════════════════════════════════════════════"
       ;;
       
     *)
       error "Unknown serve-llamacpp action: '$action'"
-      echo "Usage: gputool serve-llamacpp <start|stop|status> [model_name_or_path] [port]"
+      echo "Usage: gputool serve-llamacpp <start|stop|status> [model_name_or_path] [port] [-f|--foreground|-d|--background]"
       exit 1
       ;;
   esac
 }
 
+# Interactive / one-shot terminal chat client for any OpenAI-compatible endpoint
+# (defaults to the locally served llama.cpp server). Streams the response with a
+# colored terminal UI. The actual client lives in chat.py (fetched to
+# ~/.gputool/chat.py by `gputool install` / `gputool update`); if it is missing
+# we download it on demand so the command is self-healing.
+chat_llamacpp() {
+  if [[ ! -f "$CHAT_PY_PATH" ]]; then
+    info "Chat client not found locally; downloading it now..."
+    if ! download_chat_py; then
+      error "Could not obtain the chat client (chat.py)."
+      echo "   👉 Check your network, or run: gputool update"
+      exit 1
+    fi
+  fi
+
+  local py
+  py=$(command -v python3 2>/dev/null || command -v python 2>/dev/null)
+  if [[ -z "$py" ]]; then
+    error "Python 3 is required for 'gputool chat' but was not found in PATH."
+    exit 1
+  fi
+  "$py" "$CHAT_PY_PATH" "$@"
+}
+
 # Main command dispatcher
+# Only run when executed directly, not when sourced (allows reusing the helper functions).
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0 2>/dev/null || true
+fi
+
 CMD="${1:-help}"
 case "$CMD" in
   help)
@@ -1330,7 +1677,11 @@ case "$CMD" in
     ;;
   serve-llamacpp)
     shift
-    serve_llamacpp "${1:-}" "${2:-}" "${3:-}"
+    serve_llamacpp "$@"
+    ;;
+  chat)
+    shift
+    chat_llamacpp "$@"
     ;;
   tailscale)
     shift

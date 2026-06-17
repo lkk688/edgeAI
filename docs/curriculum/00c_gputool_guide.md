@@ -116,7 +116,11 @@ gputool setup-lerobot [env_name]
 1. **Locates Conda:** Dynamically scans for and sources the active Conda initialization profile (e.g. `miniconda3`, `anaconda3`, or system paths).
 2. **Creates Environment:** Initializes the target Conda virtual environment using Python 3.10.
 3. **Installs CMake < 4:** Automatically configures the environment with `cmake<4` from `conda-forge`. This is a critical fallback that prevents build isolation compile failures (`Compatibility with CMake < 3.5 has been removed from CMake`) when compiling older robotics simulation packages like `egl_probe`/`hf-egl-probe` under newer system environments.
-4. **Installs PyTorch (Blackwell Support):** Installs PyTorch built with CUDA 12.8 (`cu128` wheel index). This compute capability (`sm_120`) is required to run CUDA programs on Blackwell GPUs (like the RTX 5080), as older PyTorch wheels will raise "no kernel image available" exceptions.
+4. **Installs PyTorch (Auto-Detected CUDA Build):** Probes the host with `nvidia-smi` and `nvcc`, then automatically selects the matching PyTorch wheel index:
+   * **Modern GPUs** (compute capability ≥ 7.0, including Blackwell `sm_120` RTX 5080) → CUDA 12.8 (`cu128`). This is required on Blackwell, as older wheels raise "no kernel image available" exceptions.
+   * **Older GPUs** (compute capability < 7.0, e.g. Pascal/Maxwell) → CUDA 11.8 (`cu118`) for compatibility.
+   * **No GPU / no CUDA toolkit** → defaults to CUDA 12.8 (`cu128`).
+   * If the chosen wheel index fails, it falls back to the default PyPI `torch` build. The detected GPU name, compute capability, nvcc version, and selected build are printed before installation.
 5. **Installs LeRobot & HF:** Performs a Pip installation of `huggingface_hub` and the complete LeRobot suite with simulation extras (`lerobot[all]`).
 6. **Runs Verification:** Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.
 
@@ -149,7 +153,7 @@ gputool setup-env [env_name] [python_ver]
 **What it does:**
 1. **Locates Conda:** Dynamically scans for and sources the active Conda initialization profile (e.g., `miniconda3`, `anaconda3`, or system paths).
 2. **Creates Environment:** Initializes the target Conda virtual environment using the specified Python version (e.g., `3.12`).
-3. **Installs PyTorch (Blackwell Support):** Installs PyTorch built with CUDA 12.8 (`cu128` wheel index). This compute capability (`sm_120`) is required to run CUDA programs on Blackwell GPUs (like the RTX 5080), as older PyTorch wheels will raise "no kernel image available" exceptions.
+3. **Installs PyTorch (Auto-Detected CUDA Build):** Probes the host GPU and CUDA toolkit and selects the matching PyTorch wheel automatically — CUDA 12.8 (`cu128`) for modern GPUs like the Blackwell `sm_120` RTX 5080, CUDA 11.8 (`cu118`) for older GPUs (compute capability < 7.0), and `cu128` as the default when no GPU/CUDA is found. Falls back to the default PyPI `torch` if the selected index fails.
 4. **Installs Hugging Face:** Performs a Pip installation of `huggingface_hub`.
 5. **Runs Verification:** Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.
 
@@ -238,7 +242,7 @@ gputool check [env_name]
 `gputool` provides fully integrated commands to compile `llama.cpp` with NVIDIA CUDA support, download optimized GGUF model quantizations from Hugging Face, and manage background `llama-server` instances for local API serving with maximum GPU offloading.
 
 ### 1. Compile llama.cpp with CUDA Support
-This command clones `llama.cpp` from source, locates the active CUDA compilers, and builds the binaries (`llama-cli` and `llama-server`) with GPU acceleration enabled. It uses the `cmake` compiler present inside the specified conda environment:
+This command clones `llama.cpp` from source, locates the active CUDA compiler (`nvcc`), and builds the binaries (`llama-cli` and `llama-server`) with GPU acceleration enabled:
 
 ```bash
 gputool setup-llamacpp [env_name]
@@ -250,7 +254,15 @@ For example:
 (py312) 010796032@coe-cmpe-288-05:~$ gputool setup-llamacpp py312
 ```
 
-This automatically detects your system's GPU architecture (e.g. Blackwell RTX 5080/`sm_120`) and configures nvcc compilation. Binaries are compiled and installed into `~/.gputool/bin/`.
+**What it does (robust, self-healing build):**
+1. **Locates `nvcc`:** Searches `PATH`, then `/usr/local/cuda/bin`, then any `/usr/local/cuda-*/bin`, and reports the detected CUDA toolkit version, GPU name, and compute capability.
+2. **Auto-installs build tools:** Detects whether `cmake` and `ninja` are present *inside the conda env* and installs any that are missing from `conda-forge` (with a `pip` fallback for `cmake`). This means envs created by `gputool setup-env` (which ship PyTorch + HF only) no longer fail with `cmake: command not found`.
+3. **Detects GPU architecture:** Auto-configures `nvcc` for your GPU (e.g. Blackwell RTX 5080 → `sm_120a`). Uses the Ninja generator when available for a faster build, and automatically wipes a stale build directory if the generator changed.
+4. **Installs binaries + libraries:** Copies `llama-cli`, `llama-server`, **and all shared libraries** (`libllama`, `libggml-cuda`, …) into `~/.gputool/bin/` so the binaries run standalone.
+5. **Verifies CUDA:** Runs `llama-cli --list-devices` and confirms the GPU is visible to llama.cpp before finishing.
+
+> [!NOTE]
+> On fully locked-down machines with no network during the build, llama.cpp may print a warning that it could not download the embedded web UI assets — this is harmless and the server still builds and serves the API normally.
 
 ### 2. Download a GGUF Model
 Use Python's native `huggingface_hub` downloader to fetch a GGUF model directly to `~/.gputool/models/`. This avoids symlink compilation issues and handles large file streaming smoothly.
@@ -268,24 +280,70 @@ Start, stop, or check status of the local OpenAPI-compatible background serving 
 * **Start the server:**
   Offloads all model layers (`-ngl 99`) to the GPU.
   ```bash
-  gputool serve-llamacpp start [model_filename_or_path] [port]
+  gputool serve-llamacpp start [model_filename_or_path] [port] [--background|--foreground]
   ```
-  *(Defaults: model = `Qwen3.5-9B-UD-Q6_K_XL.gguf`, port = `8080`)*
+  *(Defaults: model = `Qwen3.5-9B-UD-Q6_K_XL.gguf`, port = `8080`, run mode = background)*
+
+  By default the server **binds to `0.0.0.0`**, so it is reachable from other machines on the same network (e.g. lab peers) at `http://<server-ip>:<port>`. To restrict it to the local machine only, pass `--host 127.0.0.1`.
+  ```bash
+  gputool serve-llamacpp start                       # LAN-accessible on 0.0.0.0:8080 (default)
+  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --host 127.0.0.1   # local-only
+  ```
+  > [!WARNING]
+  > Binding to `0.0.0.0` exposes the model API to every host that can route to this machine. On shared or untrusted networks, either protect it with `--api-key` (below), use `--host 127.0.0.1`, or reach it over an SSH tunnel / the Tailscale VPN.
+
+  **Protect the API with a token (`--api-key`):** Require every request to carry an `Authorization: Bearer <token>` header. Requests without the correct token are rejected with HTTP `401`.
+  ```bash
+  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --api-key sjsugputool
+  ```
+  You can also set the token via the `GPUTOOL_LLAMA_API_KEY` environment variable instead of passing it on the command line (which keeps it out of your shell history):
+  ```bash
+  export GPUTOOL_LLAMA_API_KEY=sjsugputool
+  gputool serve-llamacpp start
+  ```
+  Clients then include the bearer token. With `curl`:
+  ```bash
+  curl http://10.31.96.155:8080/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer sjsugputool" \
+    -d '{"messages": [{"role": "user", "content": "Hello!"}]}'
+  ```
+  Or, on machines without `curl`, with Python:
+  ```python
+  import json, urllib.request
+  req = urllib.request.Request(
+      "http://<server-ip>:8080/v1/chat/completions",
+      data=json.dumps({"messages": [{"role": "user", "content": "Hello!"}]}).encode(),
+      headers={"Content-Type": "application/json", "Authorization": "Bearer sjsugputool"})
+  print(json.load(urllib.request.urlopen(req))["choices"][0]["message"]["content"])
+  ```
+
+  The run mode controls whether the server detaches from your terminal:
+  * **`--background` / `-d` (default):** Runs as a detached `nohup` daemon, writes its PID to `~/.gputool/llama-server.pid`, and logs to `~/.gputool/llama-server.log`. The command returns immediately so you can keep using the shell (or close the SSH session) while the server keeps running.
+    ```bash
+    gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080            # background (default)
+    gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 -d         # explicit background
+    ```
+  * **`--foreground` / `-f`:** Runs attached to your terminal and streams server logs live. Useful for debugging. Press `Ctrl+C` to stop it.
+    ```bash
+    gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --foreground
+    ```
 
 * **Check server status:**
   ```bash
   gputool serve-llamacpp status
   ```
-  *(This prints process PID details and runs a connection health check to `/health`).*
+  *(Prints process PID details and runs a connection health check to `/health`. If no tracked PID file exists, it still detects stray/foreground `llama-server` instances via `pgrep`.)*
 
 * **Stop the server:**
   ```bash
   gputool serve-llamacpp stop
   ```
+  This stops **the tracked daemon and any stray/orphaned `llama-server` processes** — it collects PIDs from the PID file plus a `pgrep` match on the installed binary, terminates each gracefully (`SIGTERM`, then `SIGKILL` after a 10s grace period), and clears the PID file. Running it when nothing is active simply reports that no servers were found.
 
 #### Example Usage & Inference Query:
 ```bash
-# 1. Start the server
+# 1. Start the server (offloads all layers to the GPU with -ngl 99)
 gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080
 
 # 2. Query completions via the OpenAI-compatible endpoint
@@ -297,6 +355,74 @@ curl http://localhost:8080/v1/chat/completions \
       {"role": "user", "content": "What GPU architecture is NVIDIA Blackwell?"}
     ]
   }'
+```
+
+> [!TIP]
+> **No `curl` on locked-down machines?** Many lab nodes ship without `curl`/`wget`. Query the server with Python's built-in `urllib` instead:
+> ```python
+> import json, urllib.request
+> req = urllib.request.Request(
+>     "http://localhost:8080/v1/chat/completions",
+>     data=json.dumps({"messages": [{"role": "user", "content": "What GPU architecture is NVIDIA Blackwell?"}]}).encode(),
+>     headers={"Content-Type": "application/json"})
+> print(json.load(urllib.request.urlopen(req))["choices"][0]["message"]["content"])
+> ```
+
+> [!NOTE]
+> **Reasoning models (Qwen3.5):** Qwen3.5 is a "thinking" model. By default it spends tokens on internal reasoning (returned in the `reasoning_content` field) before producing the final `content`, so a small `max_tokens` may return empty `content` with `finish_reason: "length"`. Either raise `max_tokens`, or disable thinking for a direct answer by adding `"chat_template_kwargs": {"enable_thinking": false}` to the request body.
+
+### 4. Chat from the Terminal (`gputool chat`)
+Instead of crafting raw `curl`/`urllib` requests, `gputool` ships a built-in terminal chat client that talks to any OpenAI-compatible endpoint (your local `llama-server` by default), **streams the response token-by-token**, and shows a clean colored UI with per-turn token/throughput stats. It is written in pure-stdlib Python, so it works even on locked-down machines without `curl` or extra `pip` packages.
+
+```bash
+gputool chat [message] [--host <ip>] [--port <port>] [--api-key <token>] [--system <text>] [--think] [--no-stream] [--no-color]
+```
+
+* **Interactive session** (multi-turn, keeps conversation history):
+  ```bash
+  gputool chat
+  ```
+* **One-shot question** (prints the streamed answer and exits):
+  ```bash
+  gputool chat "What GPU architecture is NVIDIA Blackwell?"
+  ```
+* **Talk to a server on another machine, with an API key:**
+  ```bash
+  gputool chat --host 10.31.96.155 --port 8080 --api-key sjsugputool
+  # or set it once: export GPUTOOL_LLAMA_API_KEY=sjsugputool
+  ```
+
+**Defaults & options:**
+* `--host` / `--port` default to `127.0.0.1:8080`; or pass a full base URL with `--url http://10.31.96.155:8080/v1`.
+* `--api-key` defaults to the `GPUTOOL_LLAMA_API_KEY` environment variable (so you don't have to type the token each time).
+* `--model` is auto-detected from the server's `/v1/models` endpoint if omitted.
+* Thinking/reasoning output is **off by default** for snappy answers; enable it with `--think` (or `/think on` during a session).
+
+**Interactive slash commands:**
+
+| Command | Action |
+|---|---|
+| `/exit`, `/quit`, `/q` | Leave the chat |
+| `/reset`, `/clear` | Clear the conversation history (keeps the system prompt) |
+| `/system <text>` | Set (or clear, if empty) the system prompt |
+| `/think on\|off` | Toggle the model's reasoning output |
+| `/help`, `/?` | Show the command help |
+
+#### Example session
+```
+══════════════════════════════════════════════════
+ 🦙 gputool chat — local OpenAI-compatible LLM
+══════════════════════════════════════════════════
+  Endpoint : http://127.0.0.1:8080/v1/chat/completions
+  Model    : Qwen3.5-9B-UD-Q6_K_XL.gguf
+  Auth     : on   Streaming: on   Thinking: off
+  Commands : /exit  /reset  /system <text>  /think on|off  /help
+
+You ▸ What GPU architecture is NVIDIA Blackwell?
+Assistant ▸ NVIDIA Blackwell is the company's latest GPU architecture, succeeding Hopper...
+(24 prompt + 38 completion tokens · 92.4 tok/s · 0.5s)
+You ▸ /exit
+Bye!
 ```
 
 ---
