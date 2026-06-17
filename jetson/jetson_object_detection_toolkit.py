@@ -848,7 +848,7 @@ def main():
                        help='Input source: camera, image path, or video path')
     parser.add_argument('--output', type=str, default='./output', help='Output path for results')
     parser.add_argument('--device', type=str, default='cuda', help='Device to use (cuda/cpu)')
-    parser.add_argument('--tensorrt', default=True, help='Use TensorRT acceleration (YOLO only)') #action='store_true'
+    parser.add_argument('--tensorrt', action='store_true', default=False, help='Use TensorRT acceleration for YOLO (compiles FP16 engine on first run)')
     parser.add_argument('--confidence', type=float, default=0.1, help='Confidence threshold')
     parser.add_argument('--iou', type=float, default=0.45, help='IoU threshold for NMS')
     
@@ -904,7 +904,7 @@ def main():
     if args.model == 'yolo':
         if args.model_path:
             model_kwargs['model_path'] = args.model_path
-        model_kwargs['use_tensorrt'] = args.tensorrt
+        model_kwargs['use_tensorrt'] = bool(args.tensorrt)
     elif args.model == 'owl-vit':
         if args.model_path:
             model_kwargs['model_name'] = args.model_path
