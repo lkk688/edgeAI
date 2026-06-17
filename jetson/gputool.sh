@@ -264,6 +264,7 @@ show_help() {
   echo "      start [model] [port] [-f|--foreground]  - Serve in foreground (attached, Ctrl+C to stop)"
   echo "      start ... [--host <addr>]                - Bind address (default 0.0.0.0 = LAN-accessible; 127.0.0.1 = local-only)"
   echo "      start ... [--api-key <token>]            - Require 'Authorization: Bearer <token>' on all requests"
+  echo "      start ... [--mmproj <file>|--no-mmproj]  - Vision: auto-detects mmproj*.gguf in models dir (image input)"
   echo "      stop                                     - Stop tracked + any stray llama-server services"
   echo "      status                                   - Show running server and API health"
   echo "  chat [message] [--host <ip>] [--port <p>] [--api-key <token>] [--system <txt>] [--think] - Terminal chat client (streaming)"
@@ -1375,10 +1376,12 @@ serve_llamacpp() {
   local action="${1:-status}"
   shift 2>/dev/null || true
 
-  # Parse remaining args: flags control run mode / bind host / auth; positionals are [model] [port].
+  # Parse remaining args: flags control run mode / bind host / auth / vision; positionals are [model] [port].
   local run_mode="background"
   local host="0.0.0.0"   # bind all interfaces by default so peers on the LAN can reach it
   local api_key="${GPUTOOL_LLAMA_API_KEY:-}"   # optional bearer token; env var provides a default
+  local mmproj=""        # multimodal projector path; "" = auto-detect, "none" = disable
+  local ctx_size="32768" # context window (tuned for RTX 5080 16GB; override with --ctx-size)
   local positional=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1388,6 +1391,11 @@ serve_llamacpp() {
       --host=*) host="${1#*=}" ;;
       --api-key) api_key="${2:-}"; shift ;;
       --api-key=*) api_key="${1#*=}" ;;
+      --mmproj) mmproj="${2:-}"; shift ;;
+      --mmproj=*) mmproj="${1#*=}" ;;
+      --no-mmproj) mmproj="none" ;;
+      --ctx-size|-c) ctx_size="${2:-32768}"; shift ;;
+      --ctx-size=*) ctx_size="${1#*=}" ;;
       *) positional+=("$1") ;;
     esac
     shift
@@ -1434,10 +1442,38 @@ serve_llamacpp() {
         exit 1
       fi
 
+      # Resolve the multimodal projector (vision). Auto-detect an mmproj*.gguf next
+      # to the model unless the user passed --mmproj <path> or --no-mmproj.
+      # A model + matching mmproj turns llama-server into a vision (image) server.
+      local mmproj_path=""
+      if [[ "$mmproj" == "none" ]]; then
+        :
+      elif [[ -n "$mmproj" ]]; then
+        if [[ -f "$mmproj" ]]; then
+          mmproj_path="$mmproj"
+        elif [[ -f "$GPUTOOL_DIR/models/$mmproj" ]]; then
+          mmproj_path="$GPUTOOL_DIR/models/$mmproj"
+        else
+          warn "Specified mmproj not found: '$mmproj' (serving text-only)."
+        fi
+      else
+        # Auto-detect: prefer F16, then any mmproj in the model's directory.
+        local model_dir; model_dir=$(dirname "$model_path")
+        local cand
+        for cand in "$model_dir"/*mmproj*F16*.gguf "$model_dir"/*mmproj*.gguf; do
+          [[ -f "$cand" ]] && { mmproj_path="$cand"; break; }
+        done
+      fi
+
       info "Serving model: $model_path"
       info "Bind host     : $host"
       info "Port          : $port"
       info "Run mode      : $run_mode"
+      if [[ -n "$mmproj_path" ]]; then
+        info "Vision (mmproj): enabled — $(basename "$mmproj_path")"
+      else
+        info "Vision (mmproj): disabled (text-only)"
+      fi
       if [[ -n "$api_key" ]]; then
         info "API key auth  : enabled (clients must send 'Authorization: Bearer <key>')"
       else
@@ -1447,6 +1483,24 @@ serve_llamacpp() {
       # Optional bearer-token auth: only added when a key is provided.
       local auth_args=()
       [[ -n "$api_key" ]] && auth_args=(--api-key "$api_key")
+      # Optional multimodal projector: only added when resolved.
+      local mmproj_args=()
+      [[ -n "$mmproj_path" ]] && mmproj_args=(--mmproj "$mmproj_path")
+
+      # Performance flags tuned for an RTX 5080 (16 GB) serving Qwen3.5-9B:
+      #  - flash-attn on    : faster + required for quantized KV cache
+      #  - q8_0 KV cache    : ~half the memory of f16, so 32k context fits in 16 GB
+      #  - batch/ubatch     : larger batches improve prompt-processing throughput
+      # (On smaller GPUs, lower --ctx-size, e.g. --ctx-size 8192.)
+      local perf_args=(
+        --ctx-size "$ctx_size"
+        --batch-size 4096
+        --ubatch-size 2048
+        --flash-attn on
+        --cache-type-k q8_0
+        --cache-type-v q8_0
+      )
+      info "Context size  : $ctx_size  (flash-attn on, KV cache q8_0)"
 
       # Resolve a friendly URL host for display (0.0.0.0 isn't dialable directly).
       local url_host="$host"
@@ -1468,8 +1522,9 @@ serve_llamacpp() {
           --model "$model_path" \
           --host "$host" \
           --port "$port" \
-          --ctx-size 4096 \
           -ngl 99 \
+          "${perf_args[@]}" \
+          "${mmproj_args[@]}" \
           "${auth_args[@]}"
       fi
 
@@ -1479,8 +1534,9 @@ serve_llamacpp() {
         --model "$model_path" \
         --host "$host" \
         --port "$port" \
-        --ctx-size 4096 \
         -ngl 99 \
+        "${perf_args[@]}" \
+        "${mmproj_args[@]}" \
         "${auth_args[@]}" \
         > "$log_file" 2>&1 &
 

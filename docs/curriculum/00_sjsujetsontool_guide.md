@@ -728,7 +728,16 @@ curl http://localhost:8080/v1/chat/completions \
   }'
 ```
 
-#### 🖥️ Running CLI Inference
+#### 🖼️ Vision: ask about an image
+Gemma 4 E2B is **multimodal**. Because `sjsujetsontool llama` loads the model with `-hf`, `llama-server` automatically downloads and loads the matching **mmproj** (multimodal projector), so image input works with no extra setup. Send an image with the OpenAI vision format (a base64 `image_url`); the helper script does the encoding:
+
+```bash
+# describe your own image (or omit --image to use a generated test image)
+python3 jetson/jetson-llm/vision_test.py --image my_photo.jpg -p "What is in this image?"
+# → VISION REPLY: A yellow circle on a blue square background.   (built-in test image)
+```
+See [`jetson/jetson-llm/vision_test.py`](../../jetson/jetson-llm/vision_test.py). The same client also works against a `gputool` server (Qwen3.5) — see the [gputool guide → vision](00c_gputool_guide.md). *(Pass images as base64 data URIs; the CUDA build does not fetch remote image URLs.)*
+
 #### 🖥️ Running CLI Inference
 You can run Gemma 4 E2B CLI inference directly from the host using the `llama-cli` shortcut. By default, it runs the **Gemma 4** architecture with full **GPU/CUDA hardware acceleration** enabled (`-ngl 99`):
 ```bash
@@ -1044,7 +1053,13 @@ API key (blank if none): ********
 | `/reset` | Clear history (keeps the system prompt) |
 | `/system <text>` | Set/clear the system prompt |
 | `/think on\|off` | Toggle the model's reasoning output |
+| `/temp <v>` | Set sampling temperature (e.g. `/temp 0.7`) |
+| `/set <k> <v>` | Set `top_p` / `top_k` / `min_p` / `presence` / `max_tokens` |
+| `/preset <name>` | Apply Qwen3.5 presets: `thinking` · `coding` · `instruct` |
+| `/config` | Show current sampling settings |
 | `/help` | Show the command help |
+
+> **Test different settings live.** Reasoning models like Qwen3.5 behave very differently by temperature and thinking mode. Use `/preset thinking` (creative: temp 1.0) vs `/preset coding` (precise: temp 0.6) vs `/preset instruct` (no thinking: temp 0.7), or fine-tune with `/temp 0.6` and `/set top_p 0.95`. These match [Unsloth's recommended Qwen3.5 settings](https://unsloth.ai/docs/models/qwen3.5).
 
 > [!NOTE]
 > **What is "our LLM server"?** A GPU node (e.g. an RTX 5080 board) runs `llama.cpp` and joins the **Headscale** network. The Headscale host (`headscale.forgengi.org`) reverse-proxies it under a friendly name at `https://llm.forgengi.org/<node>/v1` (TLS-terminated, the node's API key still required). This lets every Jetson use a big shared model **by name, over HTTPS — no IP addresses**. See [the gputool guide](00c_gputool_guide.md) for how a node serves the model and how the gateway maps it.

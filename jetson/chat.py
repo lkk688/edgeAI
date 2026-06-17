@@ -161,6 +161,10 @@ HELP_ROWS = [
     ("/reset", "Clear conversation history (keeps system prompt)"),
     ("/system <text>", "Set (or clear) the system prompt"),
     ("/think on|off", "Toggle the model's reasoning output"),
+    ("/temp <v>", "Set sampling temperature (e.g. /temp 0.7)"),
+    ("/set <k> <v>", "Set top_p | top_k | min_p | presence | max_tokens"),
+    ("/preset <name>", "Apply Qwen3.5 presets: thinking | coding | instruct"),
+    ("/config", "Show current sampling settings"),
     ("/help", "Show this help (also /?)"),
 ]
 
@@ -411,6 +415,10 @@ def main():
     ap.add_argument("--system", default=None, help="system prompt")
     ap.add_argument("--max-tokens", type=int, default=1024)
     ap.add_argument("--temperature", type=float, default=0.7)
+    ap.add_argument("--top-p", type=float, default=None, help="nucleus sampling (e.g. 0.95)")
+    ap.add_argument("--top-k", type=int, default=None, help="top-k sampling (e.g. 20)")
+    ap.add_argument("--min-p", type=float, default=None, help="min-p sampling (e.g. 0.0)")
+    ap.add_argument("--presence-penalty", type=float, default=None, help="presence penalty (e.g. 1.5)")
     ap.add_argument("--think", action="store_true", help="enable model reasoning/thinking output")
     ap.add_argument("--no-stream", dest="stream", action="store_false", help="disable token streaming")
     ap.add_argument("--no-color", dest="color", action="store_false", help="disable colored output")
@@ -485,13 +493,20 @@ def main():
     base, endpoint, headers, model = connect(host, port, url, key)
 
     think = {"enabled": args.think}
+    # Live sampling settings — adjustable in-session via /temp, /set, /preset.
+    sampling = {"temperature": args.temperature, "max_tokens": args.max_tokens,
+                "top_p": args.top_p, "top_k": args.top_k, "min_p": args.min_p,
+                "presence_penalty": args.presence_penalty}
     messages = []
     if args.system:
         messages.append({"role": "system", "content": args.system})
 
     def build_payload():
-        p = {"model": model, "messages": messages, "max_tokens": args.max_tokens,
-             "temperature": args.temperature, "stream": args.stream}
+        p = {"model": model, "messages": messages, "stream": args.stream,
+             "temperature": sampling["temperature"], "max_tokens": sampling["max_tokens"]}
+        for k in ("top_p", "top_k", "min_p", "presence_penalty"):
+            if sampling[k] is not None:
+                p[k] = sampling[k]
         if args.stream:
             p["stream_options"] = {"include_usage": True}
         # `chat_template_kwargs` is a llama.cpp feature (controls Qwen thinking);
@@ -570,6 +585,54 @@ def main():
             a = low[len("/think"):].strip()
             think["enabled"] = (a == "on") if a in ("on", "off") else (not think["enabled"])
             renderer.notice("🧠 Thinking %s." % ("enabled" if think["enabled"] else "disabled"))
+            continue
+        if low.startswith("/temp"):
+            v = user[len("/temp"):].strip()
+            try:
+                sampling["temperature"] = float(v)
+                renderer.notice("🌡️  temperature = %s" % sampling["temperature"])
+            except ValueError:
+                renderer.error("usage: /temp <number>   e.g. /temp 0.7")
+            continue
+        if low.startswith("/set"):
+            parts = user.split()
+            alias = {"temp": "temperature", "temperature": "temperature",
+                     "top_p": "top_p", "top-p": "top_p", "top_k": "top_k", "top-k": "top_k",
+                     "min_p": "min_p", "min-p": "min_p",
+                     "presence": "presence_penalty", "presence_penalty": "presence_penalty",
+                     "max_tokens": "max_tokens", "max-tokens": "max_tokens"}
+            if len(parts) != 3 or parts[1].lower() not in alias:
+                renderer.error("usage: /set <temp|top_p|top_k|min_p|presence|max_tokens> <value>")
+                continue
+            k = alias[parts[1].lower()]
+            try:
+                sampling[k] = int(parts[2]) if k in ("top_k", "max_tokens") else float(parts[2])
+                renderer.notice("✓ %s = %s" % (k, sampling[k]))
+            except ValueError:
+                renderer.error("invalid value: %s" % parts[2])
+            continue
+        if low.startswith("/preset"):
+            # Unsloth-recommended Qwen3.5 sampling presets.
+            presets = {
+                "thinking": dict(temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=1.5, _think=True),
+                "coding":   dict(temperature=0.6, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, _think=True),
+                "instruct": dict(temperature=0.7, top_p=0.8,  top_k=20, min_p=0.0, presence_penalty=1.5, _think=False),
+            }
+            name = low[len("/preset"):].strip()
+            if name not in presets:
+                renderer.error("presets: thinking | coding | instruct")
+                continue
+            for k, v in presets[name].items():
+                if k == "_think":
+                    think["enabled"] = v
+                else:
+                    sampling[k] = v
+            renderer.notice("🎚️  preset '%s' applied (thinking %s)" % (name, "on" if think["enabled"] else "off"))
+            continue
+        if low in ("/config", "/cfg"):
+            renderer.notice("temp=%s top_p=%s top_k=%s min_p=%s presence=%s max_tokens=%s · thinking=%s" % (
+                sampling["temperature"], sampling["top_p"], sampling["top_k"], sampling["min_p"],
+                sampling["presence_penalty"], sampling["max_tokens"], "on" if think["enabled"] else "off"))
             continue
         ask(user)
 

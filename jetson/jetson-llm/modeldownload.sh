@@ -1,9 +1,24 @@
+#!/bin/bash
+# Download recommended GGUF models for Jetson Orin Nano into ./models
+#
+# NOTE: With llama.cpp you usually DON'T need to pre-download — `llama-server`
+# and `llama-cli` can pull straight from Hugging Face with the `-hf` flag, e.g.:
+#     llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 -ngl 99
+# (this is exactly what `sjsujetsontool llama` runs). Use this script only if you
+# want the files on local disk (e.g. for offline use or llama-cpp-python).
+
+set -e
 mkdir -p models && cd models
 
-wget -c https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf -O mistral.gguf
+# Gemma 4 E2B (instruction-tuned) — default served by `sjsujetsontool llama`
+huggingface-cli download unsloth/gemma-4-E2B-it-GGUF \
+  gemma-4-E2B-it-Q4_K_S.gguf --local-dir . --local-dir-use-symlinks False
 
-wget -c https://huggingface.co/TheBloke/Qwen1.5-7B-Chat-GGUF/resolve/main/qwen1_5-7b-chat.Q4_K_M.gguf -O qwen.gguf
+# NVIDIA Nemotron-3 Nano 4B (reasoning/chat)
+huggingface-cli download nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF \
+  NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf --local-dir . --local-dir-use-symlinks False
 
-wget -c https://huggingface.co/TheBloke/Llama-3-8B-Instruct-GGUF/resolve/main/llama-3-8b-instruct.Q4_K_M.gguf -O llama3.gguf
+# Qwen3 8B (larger, multilingual) — optional
+# huggingface-cli download unsloth/Qwen3-8B-GGUF Qwen3-8B-Q4_K_M.gguf --local-dir . --local-dir-use-symlinks False
 
-wget -c https://huggingface.co/TheBloke/deepseek-coder-6.7B-instruct-GGUF/resolve/main/deepseek-coder-6.7b-instruct.Q4_K_M.gguf -O deepseek.gguf
+echo "✅ Models downloaded into $(pwd)"

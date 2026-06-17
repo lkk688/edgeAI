@@ -284,6 +284,14 @@ Start, stop, or check status of the local OpenAPI-compatible background serving 
   ```
   *(Defaults: model = `Qwen3.5-9B-UD-Q6_K_XL.gguf`, port = `8080`, run mode = background)*
 
+  **Performance defaults (tuned for RTX 5080 / 16 GB + Qwen3.5-9B):** the server launches with
+  `-ngl 99 --ctx-size 32768 --batch-size 4096 --ubatch-size 2048 --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0`.
+  Flash-Attention plus a **q8_0 KV cache** roughly halves cache memory, so a **32K** context fits comfortably (~10 GB VRAM used, leaving headroom). The `32768` context matches Unsloth's recommended output length (the model supports up to 262K). Tune the context for other GPUs:
+  ```bash
+  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --ctx-size 8192   # smaller GPUs
+  ```
+  > If you hit instability with the quantized cache, Unsloth suggests `--cache-type-k bf16 --cache-type-v bf16` (uses more VRAM).
+
   By default the server **binds to `0.0.0.0`**, so it is reachable from other machines on the same network (e.g. lab peers) at `http://<server-ip>:<port>`. To restrict it to the local machine only, pass `--host 127.0.0.1`.
   ```bash
   gputool serve-llamacpp start                       # LAN-accessible on 0.0.0.0:8080 (default)
@@ -317,6 +325,24 @@ Start, stop, or check status of the local OpenAPI-compatible background serving 
       headers={"Content-Type": "application/json", "Authorization": "Bearer sjsugputool"})
   print(json.load(urllib.request.urlopen(req))["choices"][0]["message"]["content"])
   ```
+
+  **Enable vision / image input (`--mmproj`):** Qwen3.5 is multimodal. To accept images, `llama-server` needs the model's **multimodal projector** (`mmproj`) file in addition to the main GGUF. Download it once, and `serve-llamacpp` auto-detects any `mmproj*.gguf` sitting next to the model:
+  ```bash
+  # one-time: fetch the projector into ~/.gputool/models/
+  gputool download-model unsloth/Qwen3.5-9B-GGUF mmproj-F16.gguf py312
+
+  # start — vision is enabled automatically when an mmproj is present
+  gputool serve-llamacpp start Qwen3.5-9B-UD-Q6_K_XL.gguf 8080 --api-key sjsugputool
+  #  [⚙️] Vision (mmproj): enabled — mmproj-F16.gguf
+  ```
+  Use `--mmproj <file>` to point at a specific projector, or `--no-mmproj` to force text-only. Then send an image using the OpenAI vision format (`image_url` with a base64 data URI — the build has `LLAMA_CURL=OFF`, so remote image URLs are not fetched):
+  ```bash
+  python3 jetson/jetson-llm/vision_test.py \
+    --url http://localhost:8080/v1 --api-key sjsugputool --image photo.jpg \
+    -p "What is in this image?"
+  # → "A yellow circle on a blue square background."  (for the built-in test image)
+  ```
+  See [`jetson/jetson-llm/vision_test.py`](../../jetson/jetson-llm/vision_test.py) for the raw request shape.
 
   The run mode controls whether the server detaches from your terminal:
   * **`--background` / `-d` (default):** Runs as a detached `nohup` daemon, writes its PID to `~/.gputool/llama-server.pid`, and logs to `~/.gputool/llama-server.log`. The command returns immediately so you can keep using the shell (or close the SSH session) while the server keeps running.
@@ -443,7 +469,21 @@ The stats line after each reply reports **prefill** (prompt-processing) and **ge
 | `/reset`, `/clear` | Clear the conversation history (keeps the system prompt) |
 | `/system <text>` | Set (or clear, if empty) the system prompt |
 | `/think on\|off` | Toggle the model's reasoning output |
+| `/temp <v>` | Set sampling temperature (e.g. `/temp 0.7`) |
+| `/set <k> <v>` | Set `top_p` / `top_k` / `min_p` / `presence` / `max_tokens` |
+| `/preset <name>` | Apply Qwen3.5 sampling presets: `thinking` · `coding` · `instruct` |
+| `/config` | Show the current sampling settings |
 | `/help`, `/?` | Show the command help |
+
+**Tuning generation (Unsloth's recommended Qwen3.5 settings):** the `/preset` command applies these in one step, or set them individually with `/temp` and `/set`:
+
+| Preset | temperature | top_p | top_k | min_p | presence | thinking |
+|---|---|---|---|---|---|---|
+| `thinking` (general) | 1.0 | 0.95 | 20 | 0.0 | 1.5 | on |
+| `coding` (precise) | 0.6 | 0.95 | 20 | 0.0 | 0.0 | on |
+| `instruct` (non-thinking) | 0.7 | 0.8 | 20 | 0.0 | 1.5 | off |
+
+You can also start the client with these flags: `gputool chat --temperature 0.6 --top-p 0.95 --top-k 20 --think`.
 
 ### 5. Share the server by name (Headscale + `llm.forgengi.org`)
 Once a node serves a model and joins the **Headscale** network (`gputool tailscale up`), you can make it reachable from any other node **by a friendly HTTPS name instead of an IP**. The Headscale host (`headscale.forgengi.org`, an edge gateway) runs nginx and reverse-proxies each LLM node under a path:
