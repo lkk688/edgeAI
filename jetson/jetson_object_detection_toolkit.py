@@ -34,6 +34,7 @@ MODELS_DIR = "/models" if Path("/models").exists() else ("/Developer/models" if 
 os.environ["HF_HOME"] = str(Path(MODELS_DIR) / "huggingface")
 os.environ["TORCH_HOME"] = str(Path(MODELS_DIR) / "torch")
 os.environ["ULTRALYTICS_CONFIG_DIR"] = str(Path(MODELS_DIR) / "ultralytics")
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 from transformers import DetrImageProcessor, DetrForObjectDetection, RTDetrImageProcessor, RTDetrForObjectDetection
 
@@ -155,23 +156,49 @@ class YOLODetector(BaseDetector):
             from ultralytics import YOLO
         except ImportError:
             raise ImportError("Please install ultralytics: pip install ultralytics")
+        
         # Prepend MODELS_DIR/yolo to relative model paths
         if not os.path.isabs(model_path):
             yolo_dir = Path(MODELS_DIR) / "yolo"
             yolo_dir.mkdir(parents=True, exist_ok=True)
             model_path = str(yolo_dir / model_path)
             
-        self.model = YOLO(model_path)
-        self.model.to(device)
         self.use_tensorrt = use_tensorrt
         
-        # Convert to TensorRT if requested and on Jetson
+        # Determine engine path
+        if model_path.endswith('.pt'):
+            engine_path = model_path.replace('.pt', '_fp16.engine')
+        else:
+            engine_path = model_path
+            
         if use_tensorrt:
-            self._setup_tensorrt(model_path)
-        
-        logger.info(f"YOLOv8 model loaded successfully (TensorRT: {use_tensorrt})")
+            # Check if engine exists, if not generate it
+            if not Path(engine_path).exists():
+                logger.info(f"TensorRT engine {engine_path} not found. Generating it first...")
+                # We need the PyTorch model to export/setup
+                temp_model = YOLO(model_path)
+                self._setup_tensorrt(temp_model, model_path, engine_path)
+                del temp_model
+                import gc
+                torch.cuda.empty_cache()
+                gc.collect()
+            
+            if Path(engine_path).exists():
+                logger.info(f"Loading YOLO TensorRT engine: {engine_path}")
+                # Explicitly pass task='detect' to suppress auto-guessing warnings for engines
+                self.model = YOLO(engine_path, task='detect')
+            else:
+                logger.warning(f"Failed to generate TensorRT engine. Falling back to PyTorch model: {model_path}")
+                self.model = YOLO(model_path)
+                self.model.to(device)
+                self.use_tensorrt = False
+        else:
+            self.model = YOLO(model_path)
+            self.model.to(device)
+            
+        logger.info(f"YOLOv8 model loaded successfully (TensorRT: {self.use_tensorrt})")
     
-    def _setup_tensorrt(self, model_path: str):
+    def _setup_tensorrt(self, model_obj, model_path: str, engine_path: str):
         """Setup TensorRT optimization for Jetson"""
         try:
             try:
@@ -186,22 +213,24 @@ class YOLODetector(BaseDetector):
             onnx_path = model_path.replace('.pt', '.onnx')
             if not Path(onnx_path).exists():
                 logger.info("Exporting model to ONNX...")
-                self.model.export(format='onnx', dynamic=True, simplify=True)
+                model_obj.export(format='onnx', dynamic=False, imgsz=640, simplify=True)
             
             # Convert to TensorRT engine
-            engine_path = model_path.replace('.pt', '_fp16.trt')
             if not Path(engine_path).exists():
                 logger.info("Converting to TensorRT engine...")
                 import subprocess
                 cmd = [
                     'trtexec',
+                    '--device=0',
                     f'--onnx={onnx_path}',
                     f'--saveEngine={engine_path}',
-                    '--fp16',
-                    '--workspace=2048',
-                    '--verbose'
+                    '--fp16'
                 ]
-                subprocess.run(cmd, check=True)
+                env = os.environ.copy()
+                # Remove LD_LIBRARY_PATH completely for trtexec to avoid desktop stubs/compatibility
+                # libraries overriding native Tegra drivers on Jetson devices.
+                env.pop("LD_LIBRARY_PATH", None)
+                subprocess.run(cmd, env=env, check=True)
             
             logger.info(f"TensorRT engine ready: {engine_path}")
             
@@ -227,7 +256,26 @@ class YOLODetector(BaseDetector):
             boxes = results[0].boxes.xyxy.cpu().numpy()
             scores = results[0].boxes.conf.cpu().numpy()
             classes = results[0].boxes.cls.cpu().numpy()
-            class_names = [results[0].names[int(cls)] for cls in classes]
+            # Map default class0, class1... to actual COCO names for TensorRT engine metadata loss
+            if hasattr(results[0], 'names') and results[0].names:
+                names_map = results[0].names
+                if 'class0' in names_map.values() or (0 in names_map and names_map[0] == 'class0'):
+                    coco_classes = [
+                        'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+                        'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+                        'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+                        'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard',
+                        'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+                        'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch',
+                        'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard',
+                        'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
+                        'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+                    ]
+                    class_names = [coco_classes[int(cls)] if int(cls) < len(coco_classes) else f"class{int(cls)}" for cls in classes]
+                else:
+                    class_names = [names_map[int(cls)] for cls in classes]
+            else:
+                class_names = [f"class{int(cls)}" for cls in classes]
         else:
             boxes = np.array([])
             scores = np.array([])
@@ -393,7 +441,11 @@ class GroundingDINODetector(BaseDetector):
             # Post-process results
             target_sizes = torch.tensor([pil_image.size[::-1]]).to(self.device)  # (height, width)
             results = self.processor.post_process_grounded_object_detection(
-                outputs, target_sizes=target_sizes, threshold=box_threshold
+                outputs,
+                input_ids=inputs["input_ids"],
+                target_sizes=target_sizes,
+                box_threshold=box_threshold,
+                text_threshold=text_threshold
             )[0]
             
             boxes = results["boxes"].cpu().numpy()
