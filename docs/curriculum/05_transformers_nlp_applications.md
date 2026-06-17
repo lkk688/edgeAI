@@ -25,6 +25,21 @@ Transformers are a type of deep learning model designed to handle sequential dat
 | T5         | Encoder-Decoder           | Translation, summarization     |
 | LLaMA/Qwen | Open-source LLMs          | General language modeling      |
 
+## 🚀 Getting Started: the Jetson container
+
+Run everything inside the `jetson-dev` container, which ships with PyTorch (CUDA) and the HuggingFace `transformers`, `datasets`, `accelerate`, `sentencepiece`, and `sacremoses` libraries preinstalled:
+
+```bash
+sjsujetsontool shell                 # /Developer is mounted into the container
+cd /Developer/edgeAI/jetson          # toolkits live here
+python3 -c "import transformers, torch; print(transformers.__version__, torch.cuda.is_available())"
+```
+
+The course repo is at **`/Developer/edgeAI`** (mounted from the host). Models download from HuggingFace on first use and are cached. Pass `device=0` to a pipeline to run on the GPU.
+
+> [!TIP]
+> Missing a package? `pip install <pkg>` inside the container; an instructor can then commit/publish the image so all nodes get it via `sjsujetsontool update`.
+
 ## 🤗 HuggingFace Transformers on Jetson
 
 While large LLMs require quantization, many HuggingFace models (BERT, DistilBERT, TinyGPT) can run on Jetson using PyTorch + Transformers with ONNX export or quantized alternatives.
@@ -53,6 +68,84 @@ Natural Language Processing (NLP) is a subfield of AI that enables machines to r
 * **Chatbots & Conversational AI** (interactive dialogue systems)
 * **Text Generation** (creating human-like text)
 * **Information Extraction** (structured data from unstructured text)
+
+---
+
+## 🧪 Hands-on: HuggingFace `pipeline` examples
+
+The `pipeline` API is the fastest way to run a task — it loads a suitable model + tokenizer and handles pre/post-processing. Run these inside the container (start `python3` and paste, or save to a file). Each downloads a small model on first run; add `device=0` to use the GPU.
+
+### 1. Sentiment analysis (text classification)
+```python
+from transformers import pipeline
+clf = pipeline("sentiment-analysis", device=0)
+print(clf("Jetson is amazing for edge AI!"))
+# [{'label': 'POSITIVE', 'score': 0.9998}]
+```
+
+### 2. Zero-shot classification (no training, your own labels)
+```python
+clf = pipeline("zero-shot-classification", model="valhalla/distilbart-mnli-12-1", device=0)
+print(clf("The new GPU drivers improved frame rates a lot.",
+          candidate_labels=["hardware", "food", "politics"]))
+# highest score on 'hardware'
+```
+
+### 3. Named Entity Recognition (NER)
+```python
+ner = pipeline("ner", model="dslim/bert-base-NER", aggregation_strategy="simple", device=0)
+print(ner("Dr. Liu teaches at San Jose State University in California."))
+# entities: PER 'Dr. Liu', ORG 'San Jose State University', LOC 'California'
+```
+
+### 4. Question answering (extractive)
+```python
+qa = pipeline("question-answering", model="distilbert-base-cased-distilled-squad", device=0)
+print(qa(question="How many CUDA cores does it have?",
+         context="The Jetson Orin Nano has 1024 CUDA cores and 32 Tensor cores."))
+# {'answer': '1024', 'score': ...}
+```
+
+### 5. Summarization
+```python
+summarizer = pipeline("summarization", model="t5-small", device=0)
+text = ("The NVIDIA Jetson Orin Nano is a compact edge AI computer with an "
+        "Ampere GPU, ideal for running CNNs and small language models locally.")
+print(summarizer(text, max_length=40, min_length=10)[0]["summary_text"])
+```
+
+### 6. Translation (English → French)
+```python
+tr = pipeline("translation_en_to_fr", model="Helsinki-NLP/opus-mt-en-fr", device=0)
+print(tr("Edge AI runs models directly on the device.")[0]["translation_text"])
+# requires sentencepiece + sacremoses (preinstalled)
+```
+
+### 7. Fill-mask (masked language modeling)
+```python
+fill = pipeline("fill-mask", model="distilbert-base-uncased", device=0)
+print([r["token_str"] for r in fill("The Jetson is great for [MASK] AI.")][:3])
+```
+
+### 8. Text generation
+```python
+gen = pipeline("text-generation", model="distilgpt2", device=0)
+print(gen("Edge AI on the Jetson lets you", max_new_tokens=30)[0]["generated_text"])
+```
+
+### 9. Sentence embeddings (semantic similarity)
+```python
+import numpy as np
+emb = pipeline("feature-extraction", model="sentence-transformers/all-MiniLM-L6-v2", device=0)
+def vec(s):
+    a = np.array(emb(s)[0]).mean(axis=0)      # mean-pool token vectors
+    return a / np.linalg.norm(a)
+a, b = vec("How fast is the Jetson?"), vec("What is the speed of the Orin Nano?")
+print("cosine similarity:", float(a @ b))     # ~0.5 for related sentences, lower for unrelated
+```
+
+> [!TIP]
+> **Loading a model directly** (more control than `pipeline`): use `AutoTokenizer`/`AutoModelForSequenceClassification`, move it to `cuda`, and call it with `torch.no_grad()`. For Jetson, add `torch_dtype=torch.float16` to halve memory.
 
 ---
 

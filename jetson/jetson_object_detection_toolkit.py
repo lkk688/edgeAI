@@ -147,6 +147,88 @@ class FasterRCNNDetector(BaseDetector):
             'fps': fps
         }
 
+# COCO instance categories (index 0 = background), shared by torchvision detectors.
+COCO_INSTANCE_CATEGORY_NAMES = [
+    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
+    'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant',
+    'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse',
+    'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack',
+    'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis',
+    'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove',
+    'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass',
+    'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich',
+    'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake',
+    'chair', 'couch', 'potted plant', 'bed', 'dining table', 'toilet',
+    'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book',
+    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+]
+
+
+class MaskRCNNDetector(BaseDetector):
+    """Mask R-CNN detector: object boxes + per-instance segmentation masks.
+
+    Same two-stage backbone+RPN+RoI design as Faster R-CNN, plus a parallel
+    mask head (a small FCN) that predicts a binary mask for each detection.
+    """
+
+    def __init__(self, device: str = 'cuda', min_size: int = 512, max_size: int = 800):
+        super().__init__(device)
+        from torchvision.models.detection import maskrcnn_resnet50_fpn
+
+        # Lower the internal resize (default is 800/1333) so the mask head fits in
+        # the Orin Nano's limited GPU memory. Raise these on a larger GPU for accuracy.
+        self.model = maskrcnn_resnet50_fpn(pretrained=True, min_size=min_size, max_size=max_size)
+        self.model.to(device)
+        self.model.eval()
+        self.classes = COCO_INSTANCE_CATEGORY_NAMES
+        self.transform = transforms.Compose([transforms.ToTensor()])
+        logger.info(f"Mask R-CNN model loaded successfully (min_size={min_size}, max_size={max_size})")
+
+    def detect(self, image: np.ndarray, confidence_threshold: float = 0.5) -> Dict:
+        """Detect objects and produce a segmentation mask per object."""
+        start_time = time.time()
+
+        if isinstance(image, np.ndarray):
+            pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+        else:
+            pil_image = image
+
+        image_tensor = self.transform(pil_image).unsqueeze(0).to(self.device)
+
+        if self.device == 'cuda':
+            torch.cuda.empty_cache()
+        with torch.no_grad():
+            predictions = self.model(image_tensor)
+
+        boxes = predictions[0]['boxes'].cpu().numpy()
+        scores = predictions[0]['scores'].cpu().numpy()
+        labels = predictions[0]['labels'].cpu().numpy()
+        masks = predictions[0]['masks'].cpu().numpy()  # (N, 1, H, W) soft masks in [0,1]
+
+        keep = scores > confidence_threshold
+        boxes, scores, labels, masks = boxes[keep], scores[keep], labels[keep], masks[keep]
+        if masks.ndim == 4:
+            masks = masks[:, 0]  # -> (N, H, W)
+
+        class_names = [self.classes[label] for label in labels]
+
+        inference_time = time.time() - start_time
+        fps = 1.0 / inference_time if inference_time > 0 else 0
+        self.inference_times.append(inference_time * 1000)
+        self.fps_history.append(fps)
+
+        return {
+            'boxes': boxes,
+            'scores': scores,
+            'labels': labels,
+            'class_names': class_names,
+            'masks': masks,
+            'inference_time': inference_time * 1000,
+            'fps': fps
+        }
+
+
 class YOLODetector(BaseDetector):
     """YOLOv8 detector with optional TensorRT acceleration"""
     
@@ -610,6 +692,8 @@ class ObjectDetectionToolkit:
         """Create detector based on model type"""
         if self.model_type == 'faster-rcnn':
             return FasterRCNNDetector(self.device)
+        elif self.model_type == 'maskrcnn':
+            return MaskRCNNDetector(self.device)
         elif self.model_type == 'yolo':
             return YOLODetector(
                 model_path=kwargs.get('model_path', 'yolov8n.pt'),
@@ -661,10 +745,19 @@ class ObjectDetectionToolkit:
     def visualize_results(self, image: np.ndarray, results: Dict) -> np.ndarray:
         """Visualize detection results"""
         image_copy = image.copy()
-        
+
         if len(results['boxes']) == 0:
             return image_copy
-        
+
+        # Overlay instance masks (Mask R-CNN) once, then draw boxes on top.
+        masks = results.get('masks')
+        if masks is not None and len(masks) > 0:
+            overlay = image_copy.copy()
+            for i in range(len(masks)):
+                binary = masks[i] > 0.5
+                overlay[binary] = self.colors[i % len(self.colors)]
+            image_copy = cv2.addWeighted(image_copy, 0.6, overlay, 0.4, 0)
+
         for i, (box, score, class_name) in enumerate(zip(
             results['boxes'], results['scores'], results['class_names']
         )):
@@ -845,10 +938,74 @@ class ObjectDetectionToolkit:
 #When CUDA is installed via conda, it does not get installed in the system-wide default location (like /usr/local/cuda). Instead, it is installed in the conda environment directory.
 #export CUDA_HOME=$CONDA_PREFIX
 # pip install -e .
+def run_offload(args) -> int:
+    """Offload detection to a remote HTTP server (no SSH, no per-device keys).
+
+    POSTs the input image to a jetson_detection_server.py running on a GPU box
+    (e.g. lkk-alienware51:8000), then saves the returned annotated image to
+    --output and prints the detections. Pure-stdlib client (urllib).
+
+    --offload accepts a full URL (http://host:8000) or just a host (default
+    http, port 8000). Optional bearer token via the OFFLOAD_API_KEY env var.
+    """
+    import base64, json, urllib.request, urllib.error
+
+    server = args.offload
+    if not (server.startswith("http://") or server.startswith("https://")):
+        server = f"http://{server}:8000"
+    url = server.rstrip("/") + "/detect"
+
+    if args.source == 'camera' or args.source.isdigit():
+        logger.error("HTTP offload does not support a 'camera' source (the camera is on the Jetson).")
+        return 1
+    if not os.path.isfile(args.source):
+        logger.error(f"Source image not found locally: {args.source}")
+        return 1
+
+    logger.info(f"🛰️  Offloading '{args.model}' detection → {server}")
+    with open(args.source, 'rb') as f:
+        img_b64 = base64.b64encode(f.read()).decode()
+    body = {"model": args.model, "image_b64": img_b64,
+            "confidence": args.confidence, "iou": args.iou, "return_image": True}
+    if args.prompts:
+        body["prompts"] = args.prompts
+
+    headers = {"Content-Type": "application/json"}
+    key = os.environ.get("OFFLOAD_API_KEY", "")
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers=headers)
+    try:
+        resp = json.load(urllib.request.urlopen(req, timeout=180))
+    except urllib.error.HTTPError as e:
+        logger.error(f"Server error {e.code}: {e.read().decode('utf-8', 'ignore')[:300]}")
+        return 1
+    except urllib.error.URLError as e:
+        logger.error(f"Cannot reach offload server {server}: {e.reason}")
+        logger.error("Is jetson_detection_server.py running there? (see setup_offload_server.sh)")
+        return 1
+
+    if resp.get("image_b64"):
+        out = args.output
+        if os.path.isdir(out):
+            name, ext = os.path.splitext(os.path.basename(args.source))
+            out = os.path.join(out, f"{name}_detected{ext or '.jpg'}")
+        os.makedirs(os.path.dirname(os.path.abspath(out)) or ".", exist_ok=True)
+        with open(out, 'wb') as f:
+            f.write(base64.b64decode(resp["image_b64"]))
+        logger.info(f"✅ Saved annotated result to {out}")
+
+    logger.info(f"Found {resp.get('num_objects', 0)} objects "
+                f"(server inference {resp.get('inference_time_ms', 0):.1f} ms)")
+    for i, d in enumerate(resp.get("detections", [])[:20], 1):
+        logger.info(f"  {i}. {d['class']}: {d['score']:.3f}")
+    return 0
+
 def main():
     parser = argparse.ArgumentParser(description='Jetson Object Detection Toolkit')
     parser.add_argument('--model', type=str, default='owl-vit',
-                       choices=['faster-rcnn', 'yolo', 'owl-vit', 'grounding-dino', 'detr', 'detr-resnet-101', 'conditional-detr', 'rt-detr'],
+                       choices=['faster-rcnn', 'maskrcnn', 'yolo', 'owl-vit', 'grounding-dino', 'detr', 'detr-resnet-101', 'conditional-detr', 'rt-detr'],
                        help='Detection model to use')
     parser.add_argument('--source', type=str, default='VisionLangAnnotateModels/sampledata/sjsupeople.jpg',
                        help='Input source: camera, image path, or video path')
@@ -863,9 +1020,21 @@ def main():
     parser.add_argument('--prompts', type=str, default="people", help='Text prompts for zero-shot models (comma-separated)')
     parser.add_argument('--config-path', type=str, help='Config path for GroundingDINO (optional, falls back to Hugging Face if not provided)')
     parser.add_argument('--checkpoint-path', type=str, help='Checkpoint path for GroundingDINO (optional, falls back to Hugging Face if not provided)')
+    parser.add_argument('--offload', type=str, default=None, metavar='HOST|URL',
+                       help='Offload detection to a remote GPU server over HTTP (no SSH). '
+                            'e.g. --offload lkk-alienware51  or  --offload http://host:8000. '
+                            'The server runs jetson_detection_server.py. Optional bearer token '
+                            'via the OFFLOAD_API_KEY env var.')
     
     args = parser.parse_args()
-    
+
+    # GPU offload: forward this exact command to a remote server and return early.
+    # Done before any local model loading or prompt rewriting so the server runs
+    # the identical command (it re-optimizes prompts on its side).
+    if args.offload:
+        import sys
+        sys.exit(run_offload(args))
+
     def optimize_prompts_for_model(prompts: str, model_type: str) -> str:
         """Optimize prompts for specific zero-shot detection models"""
         if not prompts:
@@ -940,6 +1109,8 @@ def main():
     if args.model == 'yolo':
         detect_kwargs['conf_threshold'] = args.confidence
         detect_kwargs['iou_threshold'] = args.iou
+    elif args.model in ['faster-rcnn', 'maskrcnn']:
+        detect_kwargs['confidence_threshold'] = args.confidence
     elif args.model in ['owl-vit', 'grounding-dino']:
         if not args.prompts:
             raise ValueError(f"{args.model} requires --prompts argument")

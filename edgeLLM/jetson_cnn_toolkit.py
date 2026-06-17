@@ -16,17 +16,22 @@ Features:
 - Model comparison and analysis tools
 
 Usage:
-    # Train a model
+    # Fast demo (no training, no downloads) — build models + time inference
+    python jetson_cnn_toolkit.py --mode demo --model all
+
+    # Benchmark inference speed (synthetic data if dataset != cifar10)
+    python jetson_cnn_toolkit.py --mode benchmark --model all --dataset custom
+
+    # Train a model (SLOW — downloads CIFAR-10)
     python jetson_cnn_toolkit.py --mode train --model resnet --dataset cifar10 --epochs 50
-    
-    # Run inference
+
+    # Run inference with trained weights
     python jetson_cnn_toolkit.py --mode inference --model mobilenet --weights model.pth --input image.jpg
-    
+
     # Optimize with TensorRT
     python jetson_cnn_toolkit.py --mode optimize --model efficientnet --weights model.pth --precision fp16
-    
-    # Benchmark performance
-    python jetson_cnn_toolkit.py --mode benchmark --model all --dataset cifar10
+
+Models: basiccnn, resnet, mobilenet, efficientnet (or 'all')
 
 Version: 2.0.0
 """
@@ -977,12 +982,12 @@ def parse_arguments():
     
     # Basic operation modes
     parser.add_argument('--mode', type=str, required=True,
-                        choices=['train', 'inference', 'benchmark', 'optimize'],
-                        help='What do you want to do?')
-    
-    # Model selection
+                        choices=['demo', 'train', 'inference', 'benchmark', 'optimize'],
+                        help='What do you want to do? (demo = fast, no training)')
+
+    # Model selection (names must match ModelFactory)
     parser.add_argument('--model', type=str, default='basiccnn',
-                        choices=['basiccnn', 'resnet18', 'resnet50', 'mobilenetv2', 'efficientnetb0', 'all'],
+                        choices=['basiccnn', 'resnet', 'mobilenet', 'efficientnet', 'all'],
                         help='Which AI model to use?')
     
     # Dataset selection
@@ -1058,6 +1063,41 @@ def main():
     args.device = device
     logger.info(f"Ready to run AI on: {device}")
     
+    if args.mode == 'demo':
+        # Fast demonstration — NO training, NO dataset download.
+        # Builds the model(s), prints architecture size, runs a forward pass on
+        # synthetic data, and times inference (img/s). Great for the tutorials.
+        import time
+        logger.info("Demo mode — building model(s) and timing inference (no training).")
+        names = ModelFactory.get_available_models() if args.model == 'all' else [args.model]
+        input_size = (3, 32, 32) if args.dataset == 'cifar10' else (3, 224, 224)
+        logger.info(f"Input size: {input_size}, batch size: {args.batch_size}, device: {device}")
+        for name in names:
+            try:
+                model = ModelFactory.create_model(name, num_classes=args.num_classes)
+                n_params = sum(p.numel() for p in model.parameters())
+                model = model.to(device).eval()
+                x = torch.randn(args.batch_size, *input_size, device=device)
+                with torch.no_grad():
+                    for _ in range(3):          # warmup
+                        out = model(x)
+                    if device == 'cuda':
+                        torch.cuda.synchronize()
+                    t0 = time.time()
+                    for _ in range(20):
+                        out = model(x)
+                    if device == 'cuda':
+                        torch.cuda.synchronize()
+                    dt = (time.time() - t0) / 20
+                fps = args.batch_size / dt if dt > 0 else 0
+                logger.info(f"  {name:12s} | params={n_params:>11,} | out={tuple(out.shape)} "
+                            f"| {dt*1000:6.1f} ms/batch | {fps:6.0f} img/s")
+            except Exception as e:
+                logger.error(f"  {name}: failed ({e})")
+        logger.info("Demo complete. To actually train (slow, downloads CIFAR-10): --mode train")
+        logger.info("🎉 All done!")
+        return
+
     if args.mode == 'train':
         # Simple training mode
         logger.info("Starting training - this will teach the AI to recognize images!")

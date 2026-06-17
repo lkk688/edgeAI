@@ -90,6 +90,22 @@ Input Image → Backbone (ResNet/VGG) → RPN → ROI Pooling → Classification
 2. **ROI Pooling**: Extracts fixed-size features from proposals
 3. **Classification Head**: Final object classification and bbox regression
 
+#### 📚 Theory
+
+**Paper:** Ren et al., *Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks*, NeurIPS 2015 ([arXiv:1506.01497](https://arxiv.org/abs/1506.01497)).
+
+The key innovation is the **RPN**: a small network that slides over the backbone feature map and, at each location, predicts objectness and box refinements for `k` reference boxes ("anchors") of different scales/aspect ratios. The RPN *shares* features with the detection head, so proposals are nearly free — this is what made it "faster" than predecessors (R-CNN, Fast R-CNN).
+
+**Multi-task loss** (used for both the RPN and the detection head):
+
+$$ L(\{p_i\},\{t_i\}) = \frac{1}{N_{cls}}\sum_i L_{cls}(p_i, p_i^*) + \lambda\,\frac{1}{N_{reg}}\sum_i p_i^*\,L_{reg}(t_i, t_i^*) $$
+
+- $p_i$ = predicted objectness/class probability, $p_i^*$ = ground-truth label (1 if anchor is positive).
+- $L_{cls}$ = log loss; $L_{reg}$ = **smooth-L1** on the 4 parameterized box offsets $t_i$ (only for positive anchors, hence the $p_i^*$ gate).
+- smooth-L1 is quadratic for small errors and linear for large ones, making it robust to outliers:
+
+$$ \text{smooth}_{L1}(x) = \begin{cases} 0.5x^2 & |x| < 1 \\ |x| - 0.5 & \text{otherwise} \end{cases} $$
+
 #### 🛠️ Faster R-CNN Implementation on Jetson
 
 The Jetson Object Detection Toolkit provides a comprehensive implementation of Faster R-CNN with optimized performance for Jetson devices.
@@ -115,9 +131,9 @@ python3 /Developer/edgeAI/jetson/jetson_object_detection_toolkit.py --model fast
 ```
 
 ##### 🖥️ Containerized Verification & Terminal Output
-Running Faster R-CNN inside the container:
+Running Faster R-CNN inside the container (`--confidence 0.5` keeps only high-confidence boxes):
 ```bash
-python3 /Developer/edgeAI/jetson/jetson_object_detection_toolkit.py --model faster-rcnn --source /Developer/models/bus.jpg --output /Developer/models/bus_rcnn.jpg
+python3 /Developer/edgeAI/jetson/jetson_object_detection_toolkit.py --model faster-rcnn --source /Developer/models/bus.jpg --output /Developer/models/bus_rcnn.jpg --confidence 0.5
 ```
 **Terminal Output:**
 ```text
@@ -142,33 +158,52 @@ python3 /Developer/edgeAI/jetson/jetson_object_detection_toolkit.py --model fast
 
 ### 🎭 Mask R-CNN for Instance Segmentation
 
-```python
-from torchvision.models.detection import maskrcnn_resnet50_fpn
-import matplotlib.pyplot as plt
+**Paper:** He et al., *Mask R-CNN*, ICCV 2017 ([arXiv:1703.06870](https://arxiv.org/abs/1703.06870)).
 
-class MaskRCNNDetector:
-    def __init__(self, device='cuda'):
-        self.device = device
-        self.model = maskrcnn_resnet50_fpn(pretrained=True)
-        self.model.to(device)
-        self.model.eval()
-    
-    def detect_with_masks(self, image, confidence_threshold=0.5):
-        """Detect objects and generate segmentation masks"""
-        image_tensor = transforms.ToTensor()(image).unsqueeze(0).to(self.device)
-        
-        with torch.no_grad():
-            predictions = self.model(image_tensor)
-        
-        boxes = predictions[0]['boxes'].cpu().numpy()
-        scores = predictions[0]['scores'].cpu().numpy()
-        labels = predictions[0]['labels'].cpu().numpy()
-        masks = predictions[0]['masks'].cpu().numpy()
-        
-        # Filter by confidence
-        mask = scores > confidence_threshold
-        return boxes[mask], scores[mask], labels[mask], masks[mask]
+Mask R-CNN extends Faster R-CNN with a **third branch** that outputs a binary segmentation mask for *each* detected object — giving **instance segmentation** (which pixels belong to each object), not just boxes.
+
+#### 🏗️ Architecture
 ```
+Image → Backbone+FPN → RPN → RoIAlign → ┬→ box-classification head (class + bbox)
+                                        └→ mask head (small FCN) → K × (m×m) masks
+```
+Two key ideas:
+- **RoIAlign** replaces RoIPool: it uses bilinear interpolation instead of quantizing RoI boundaries to the feature grid, removing misalignment that badly hurts pixel-accurate masks.
+- The **mask head** is a small fully-convolutional network predicting one `m×m` mask per class (`K` classes); at inference only the predicted class's mask is used.
+
+#### 📐 Loss function
+Mask R-CNN adds a mask term to the Faster R-CNN multi-task loss:
+
+$$ L = L_{cls} + L_{box} + L_{mask} $$
+
+- $L_{cls}$: classification log-loss; $L_{box}$: smooth-L1 box regression (as in Faster R-CNN).
+- $L_{mask}$: **average binary cross-entropy** over the `m×m` mask, applied **only to the ground-truth class** channel `k`:
+
+$$ L_{mask} = -\frac{1}{m^2}\sum_{i,j}\Big[ y_{ij}\log \hat{y}^{k}_{ij} + (1-y_{ij})\log(1-\hat{y}^{k}_{ij}) \Big] $$
+
+Decoupling mask and class prediction (per-class masks + a separate classifier) is what makes the masks crisp and class-agnostic in shape.
+
+#### 🛠️ Run it with the toolkit
+Mask R-CNN is built into [`jetson_object_detection_toolkit.py`](../../jetson/jetson_object_detection_toolkit.py) as the `maskrcnn` model. It overlays a colored mask per instance on the output image. On the Orin Nano the internal image size is reduced (`min_size=512`) so the mask head fits in GPU memory.
+
+```bash
+python3 /Developer/edgeAI/jetson/jetson_object_detection_toolkit.py \
+    --model maskrcnn --source /Developer/models/bus.jpg \
+    --output /Developer/models/bus_maskrcnn.jpg --confidence 0.5
+```
+**Terminal output (verified in the container):**
+```text
+INFO - Mask R-CNN model loaded successfully (min_size=512, max_size=800)
+INFO - Result saved to /Developer/models/bus_maskrcnn.jpg
+INFO -   Found 7 objects
+INFO -   Inference time: 1190.21ms
+INFO -   1. person: 0.999
+INFO -   2. person: 0.999
+INFO -   3. person: 0.994
+INFO -   4. bus: 0.987
+INFO -   5. person: 0.911
+```
+The saved image shows each person/bus filled with a translucent instance mask plus its box and label.
 
 ---
 
@@ -185,6 +220,20 @@ One-stage detectors perform detection in a single forward pass, trading some acc
 | **YOLOv5** | 2020 | Efficient architecture | 140 | 56.8 |
 | **YOLOv8** | 2023 | Anchor-free design | 80 | 53.9 |
 | **YOLOv10** | 2024 | NMS-free training | 120 | 54.4 |
+
+#### 📚 Theory
+
+**Paper:** Redmon et al., *You Only Look Once: Unified, Real-Time Object Detection*, CVPR 2016 ([arXiv:1506.02640](https://arxiv.org/abs/1506.02640)).
+
+Unlike two-stage detectors, YOLO is a **single CNN** that, in one forward pass, divides the image into an `S×S` grid and directly regresses boxes + class probabilities — which is why it is so fast. The original loss is a **sum of squared errors** over three terms (localization, confidence, classification):
+
+$$ L = \lambda_{coord}\sum_{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{obj}_{ij}\big[(x_i-\hat{x}_i)^2+(y_i-\hat{y}_i)^2+(\sqrt{w_i}-\sqrt{\hat{w}_i})^2+(\sqrt{h_i}-\sqrt{\hat{h}_i})^2\big] $$
+$$ +\sum_{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{obj}_{ij}(C_i-\hat{C}_i)^2 + \lambda_{noobj}\sum_{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{noobj}_{ij}(C_i-\hat{C}_i)^2 + \sum_{i}^{S^2}\mathbb{1}^{obj}_{i}\sum_{c}(p_i(c)-\hat{p}_i(c))^2 $$
+
+- $\mathbb{1}^{obj}_{ij}$ = 1 if object center falls in cell `i` and box `j` is responsible; $\sqrt{w},\sqrt{h}$ make errors on large/small boxes comparable.
+- $\lambda_{coord}=5$, $\lambda_{noobj}=0.5$ balance the many empty cells against the few with objects.
+
+Modern versions (v8/v10) replace this with **anchor-free** prediction, **distribution focal loss** + **CIoU** for boxes, and **BCE** for classification, and v10 drops NMS via one-to-one matching — but the "one-shot dense prediction" idea is unchanged.
 
 ---
 
@@ -327,6 +376,18 @@ Engine size: 8 MiB (FP16 precision)
 Instead of training on fixed classes, VLMs detect objects based on text prompts like:
 
 > "a red backpack next to a bicycle"
+
+#### 📚 Theory: DETR (the transformer detector behind these models)
+
+**Paper:** Carion et al., *End-to-End Object Detection with Transformers* (DETR), ECCV 2020 ([arXiv:2005.12872](https://arxiv.org/abs/2005.12872)).
+
+DETR reframes detection as **direct set prediction**: a CNN backbone feeds a Transformer encoder-decoder, and `N` learned "object queries" each emit one box + class — **no anchors and no NMS**. Training uses a **bipartite (Hungarian) matching** between the `N` predictions and the ground-truth objects, then a loss on the matched pairs:
+
+$$ \hat{\sigma} = \arg\min_{\sigma}\sum_{i}^{N} L_{match}\big(y_i, \hat{y}_{\sigma(i)}\big), \qquad
+L = \sum_{i}^{N}\Big[-\log \hat{p}_{\hat{\sigma}(i)}(c_i) + \mathbb{1}_{c_i\neq\varnothing}\,L_{box}(b_i,\hat{b}_{\hat{\sigma}(i)})\Big] $$
+
+- $L_{box}$ combines **L1** distance and **generalized IoU** so it is scale-invariant.
+- The toolkit exposes DETR variants (`detr`, `detr-resnet-101`, `conditional-detr`, `rt-detr`). **RT-DETR** is the real-time variant; **GroundingDINO** adds text conditioning on top of a DETR-style decoder, which is what makes it *open-vocabulary*. **OWL-ViT** similarly pairs a ViT with text embeddings for zero-shot boxes.
 
 ### 📦 Popular Models
 
@@ -809,6 +870,46 @@ python3 jetson_object_detection_toolkit.py --export-results --formats json,csv,h
 ## Use Case Recommendations
 [AI-generated recommendations based on results]
 ```
+
+---
+
+## 🛰️ GPU Offload via an HTTP Server (`--offload`)
+
+The Jetson Orin Nano is great for deployment, but heavier models (Mask R-CNN, large DETR) can be slow or run out of its 8 GB. If you have a bigger GPU box on the **same Tailscale/Headscale network** (e.g. a workstation with GTX/RTX cards), run a small **HTTP detection server** on it and let any number of Jetsons offload with one flag — **no SSH, no per-device keys** (safer for a classroom of many devices).
+
+```bash
+# runs locally on the Jetson ...
+python3 jetson_object_detection_toolkit.py --model maskrcnn --source bus.jpg --output out.jpg
+# ... or on the remote GPU server, returning the same annotated out.jpg:
+python3 jetson_object_detection_toolkit.py --model maskrcnn --source bus.jpg --output out.jpg --offload lkk-alienware51
+```
+
+**How it works:** [`jetson_detection_server.py`](../../jetson/jetson_detection_server.py) is a FastAPI service (OpenAI-style) that loads the **same detector classes** as the toolkit. With `--offload <host>`, the Jetson base64-encodes the image, `POST`s it to `http://<host>:8000/detect`, and saves the returned annotated image + prints the detections. The server's GPU does all the work.
+
+```
+Jetson:  toolkit.py --offload host   ──HTTP POST /detect (image_b64)──▶  Server :8000 (GPU)
+                                      ◀──── JSON {detections, image_b64} ──  runs the same detectors
+```
+
+**API** (bearer auth when `DETECT_API_KEY` is set on the server):
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | status, GPU info, loaded models |
+| `GET /v1/models` | supported detector types |
+| `POST /detect` | `{model, image_b64, confidence, iou, prompts?}` → `{num_objects, detections[], image_b64}` |
+
+Client config: `--offload` takes a host (→ `http://host:8000`) or a full URL; set `OFFLOAD_API_KEY` to send a bearer token. The `camera` source isn't offloadable (it's physically on the Jetson) — use an image file.
+
+### One-time server setup (on the GPU box)
+Copy the two scripts to the server and run the setup, which builds a conda env (CUDA 11.8 wheels for the Pascal GTX 1080 Ti) and starts the service:
+```bash
+# on the server, e.g. lkk-alienware51 (files: jetson_detection_server.py, jetson_object_detection_toolkit.py)
+DETECT_API_KEY=sjsudetect ./setup_offload_server.sh --run     # installs deps + launches on :8000
+# verify:
+curl http://localhost:8000/health
+```
+The server binds `0.0.0.0:8000` and is reachable by every Jetson on the Headscale network at `http://<server>:8000`. See [`jetson/setup_offload_server.sh`](../../jetson/setup_offload_server.sh). For a permanent deployment, wrap the `uvicorn` command in a `systemd` service.
 
 ---
 

@@ -10,6 +10,27 @@ By the end of this tutorial, you will:
 
 ---
 
+## 🚀 Getting Started: the Jetson container
+
+All hands-on examples run **inside the `jetson-dev` container**, which already has PyTorch (CUDA), torchvision, matplotlib, OpenCV, and the rest preinstalled. Start it with one command from the host:
+
+```bash
+sjsujetsontool shell
+```
+
+This launches/attaches the persistent container and drops you into a shell. The host folder **`/Developer` is mounted into the container at the same path**, and this course repo lives at **`/Developer/edgeAI`**, so your edits on the host are instantly visible inside the container (and vice-versa). The CNN toolkit used below is at `/Developer/edgeAI/edgeLLM/jetson_cnn_toolkit.py`:
+
+```bash
+# inside the container (after `sjsujetsontool shell`)
+cd /Developer/edgeAI/edgeLLM
+python3 jetson_cnn_toolkit.py --help
+```
+
+> [!TIP]
+> If a Python package is missing, install it once inside the container (`pip install <pkg>`); an instructor can then `commit` the container image and publish it so every node picks it up via `sjsujetsontool update`.
+
+---
+
 ## 🧠 Deep Learning Theoretical Foundations
 
 ### **What is Deep Learning?**
@@ -153,16 +174,34 @@ The toolkit includes comprehensive visualization capabilities:
 - **Model Visualization**: Architecture diagrams and feature map visualization
 - **Export Options**: Save training history and model checkpoints automatically
 
-#### **Usage Example**
+### **Hands-on: run the toolkit (no training required)**
 
-The Jetson CNN Toolkit provides a simple command-line interface for training:
+The toolkit has four models — `basiccnn`, `resnet`, `mobilenet`, `efficientnet` — and several modes: `demo`, `benchmark`, `train`, `inference`, `optimize`. Training downloads CIFAR-10 and takes a long time, so for this lab we use the **`demo`** mode, which builds each model, runs a forward pass on synthetic data, and times GPU inference — **instantly, with no training and no downloads**.
 
 ```bash
-# Train a BasicCNN on CIFAR-10
-python jetson_cnn_toolkit.py --mode train --model BasicCNN --dataset cifar10 --epochs 20
-
-# Train with custom parameters
-python jetson_cnn_toolkit.py --mode train --model CustomResNet --dataset imagenet --batch-size 64 --lr 0.001
+# inside the container, in /Developer/edgeAI/edgeLLM
+python3 jetson_cnn_toolkit.py --mode demo --model all --device cuda
 ```
+Example output on an Orin Nano (your numbers will vary):
+```text
+Input size: (3, 32, 32), batch size: 32, device: cuda
+  basiccnn     | params=  1,147,914 | out=(32, 10) |   2.9 ms/batch | 10965 img/s
+  resnet       | params= 11,181,642 | out=(32, 10) |   8.6 ms/batch |  3707 img/s
+  mobilenet    | params=  2,155,338 | out=(32, 10) |   6.0 ms/batch |  5333 img/s
+  efficientnet | params=  3,472,714 | out=(32, 10) |   9.6 ms/batch |  3330 img/s
+```
+This single command teaches the core trade-off: **`basiccnn`** is smallest/fastest, **`resnet`** has the most parameters, and **`mobilenet`** gives a strong speed-to-size balance — exactly why it's favored on edge devices.
+
+**Benchmark inference** (synthetic 224×224 data, still no training):
+```bash
+python3 jetson_cnn_toolkit.py --mode benchmark --model mobilenet --dataset custom
+```
+
+> [!NOTE]
+> **Training is optional and slow.** It downloads CIFAR-10 (~170 MB) and runs many epochs — run it on your own time, not during the lab:
+> ```bash
+> python3 jetson_cnn_toolkit.py --mode train --model basiccnn --dataset cifar10 --epochs 10
+> ```
+> Then test the saved weights with `--mode inference --model basiccnn --weights outputs/basiccnn_cifar10_best.pth`.
 
 ---
