@@ -349,7 +349,8 @@ show_help() {
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
   echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
-  echo "  nv-chat           - Chat with NVIDIA Build API models interactively"
+  echo "  chat              - Unified streaming chat (pick: local llama.cpp / NVIDIA API / our LLM server)"
+  echo "  nv-chat           - Chat with NVIDIA Build API models interactively (legacy)"
   echo "  setup-check       - Check and configure host /Developer folder and edgeAI repository"
   echo "  update            - Update script, container image, and check /Developer setup"
   echo "  update-container   - Update only the Docker container image"
@@ -424,10 +425,17 @@ show_list() {
   echo "  setup-nvapi  → Setup NVIDIA NGC/Build API Key in local .env.local"
   echo "     ▶ sjsujetsontool setup-nvapi"
   echo
-  echo "  nv-chat      → Chat with NVIDIA Build API models interactively"
+  echo "  chat         → Unified streaming chat (Rich UI) with a backend picker"
+  echo "     ▶ sjsujetsontool chat                 # menu: local / NVIDIA / our server"
+  echo "     ▶ sjsujetsontool chat --local         # local Jetson llama.cpp (:8080)"
+  echo "     ▶ sjsujetsontool chat --nvidia        # NVIDIA Build API (model menu)"
+  echo "     ▶ sjsujetsontool chat --server        # our LLM server via llm.forgengi.org"
+  echo "       In-chat commands: /help /exit /server /save /reset /system /think"
+  echo
+  echo "  nv-chat      → Chat with NVIDIA Build API models interactively (legacy)"
   echo "     ▶ sjsujetsontool nv-chat"
   echo "     ▶ sjsujetsontool nv-chat -p \"Explain Orin Nano\" -m nvidia/llama-3.1-nemotron-nano-8b-v1"
-  echo 
+  echo
   echo "  setup-check  → Configure host /Developer folder & clone/pull edgeAI git repo"
   echo "     ▶ sjsujetsontool setup-check"
   echo 
@@ -976,6 +984,16 @@ case "$1" in
       echo "✅ Script downloaded. Replacing current script..."
       mv "$TMP_PATH" "$SCRIPT_PATH"
       echo "✅ Script updated successfully. Re-run your command to use the new version."
+      # Keep the companion chat client (chat.py) in sync.
+      CHAT_PY="$(dirname "$SCRIPT_PATH")/sjsujetsontool-chat.py"
+      if curl -fsSL -H "Cache-Control: no-cache" \
+           https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/chat.py -o "${CHAT_PY}.tmp" 2>/dev/null; then
+        mv "${CHAT_PY}.tmp" "$CHAT_PY"
+        echo "✅ Chat client updated: $CHAT_PY"
+      else
+        rm -f "${CHAT_PY}.tmp"
+        echo "⚠️  Could not update chat client (will be fetched on first 'sjsujetsontool chat')."
+      fi
     else
       echo "❌ Download failed. Restoring backup..."
       cp "$BACKUP_PATH" "$SCRIPT_PATH"
@@ -1326,6 +1344,80 @@ except Exception as e:
       echo "📜 Error details: $BODY"
       exit 1
     fi
+    ;;
+  chat)
+    shift
+    # Unified streaming chat client (Rich UI) over any OpenAI-compatible backend.
+    # Reuses the shared chat.py engine; pick a backend, then chat.
+    CHAT_PY="$(dirname "$(realpath "$0")")/sjsujetsontool-chat.py"
+    if [ ! -f "$CHAT_PY" ]; then
+      echo "⬇️  Fetching chat client (chat.py)..."
+      curl -fsSL -H "Cache-Control: no-cache" \
+        https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/chat.py -o "$CHAT_PY" 2>/dev/null
+    fi
+    if [ ! -f "$CHAT_PY" ]; then
+      echo "❌ Could not obtain chat client. Check network or run: sjsujetsontool update-script"
+      exit 1
+    fi
+
+    # Explicit backend flags skip the menu: chat --local|--nvidia|--server [chat.py args]
+    BACKEND=""
+    case "${1:-}" in
+      --local)  BACKEND=1; shift ;;
+      --nvidia) BACKEND=2; shift ;;
+      --server) BACKEND=3; shift ;;
+    esac
+    if [ -z "$BACKEND" ]; then
+      echo "🤖 Select chat backend:"
+      echo "  1) Local Jetson llama.cpp   (http://localhost:8080 — start it with: sjsujetsontool llama)"
+      echo "  2) NVIDIA Build API         (cloud — needs NVIDIA_API_KEY; setup: sjsujetsontool setup-nvapi)"
+      echo "  3) Our LLM server           (https://llm.forgengi.org/<node> over Headscale)"
+      read -r -p "Select [1-3]: " BACKEND
+    fi
+
+    case "$BACKEND" in
+      2)
+        # --- NVIDIA Build API ---
+        TARGET_DIR="."
+        if [ -d "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app" ]; then
+          TARGET_DIR="/Developer/edgeAI/edgeLLM/nextjs-nemotron-app"
+        elif [ -d "./edgeLLM/nextjs-nemotron-app" ]; then
+          TARGET_DIR="./edgeLLM/nextjs-nemotron-app"
+        fi
+        NV_KEY="$NVIDIA_API_KEY"
+        if [ -z "$NV_KEY" ] && [ -f "${TARGET_DIR}/.env.local" ]; then
+          NV_KEY=$(grep -E "^NVIDIA_API_KEY=" "${TARGET_DIR}/.env.local" | cut -d= -f2- | tr -d '"' | tr -d "'")
+        fi
+        if [ -z "$NV_KEY" ]; then
+          echo "❌ NVIDIA API key not set. Run: sjsujetsontool setup-nvapi"
+          exit 1
+        fi
+        echo "🧠 Select NVIDIA model:"
+        echo "  1) Llama 3.1 Nemotron Nano 8B  [default]"
+        echo "  2) Llama 3.3 Nemotron Super 49B"
+        echo "  3) Llama 3.1 Nemotron Ultra 253B"
+        read -r -p "Select [1-3]: " NVM
+        case "$NVM" in
+          2) NVMODEL="nvidia/llama-3.3-nemotron-super-49b-v1" ;;
+          3) NVMODEL="nvidia/llama-3.1-nemotron-ultra-253b-v1" ;;
+          *) NVMODEL="nvidia/llama-3.1-nemotron-nano-8b-v1" ;;
+        esac
+        exec python3 "$CHAT_PY" --url "https://integrate.api.nvidia.com/v1" \
+          --api-key "$NV_KEY" --model "$NVMODEL" --no-template-kwargs "$@"
+        ;;
+      3)
+        # --- Our shared LLM server (over the Headscale gateway) ---
+        DEF_URL="https://llm.forgengi.org/node05/v1"
+        read -r -p "Server base URL [${DEF_URL}]: " SURL
+        SURL="${SURL:-$DEF_URL}"
+        read -r -p "API key (blank if none): " SKEY
+        exec python3 "$CHAT_PY" --url "$SURL" ${SKEY:+--api-key "$SKEY"} "$@"
+        ;;
+      *)
+        # --- Local Jetson llama.cpp (default) ---
+        exec python3 "$CHAT_PY" --url "http://localhost:8080/v1" "$@"
+        ;;
+    esac
     ;;
   nv-chat)
     shift

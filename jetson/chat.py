@@ -414,6 +414,8 @@ def main():
     ap.add_argument("--think", action="store_true", help="enable model reasoning/thinking output")
     ap.add_argument("--no-stream", dest="stream", action="store_false", help="disable token streaming")
     ap.add_argument("--no-color", dest="color", action="store_false", help="disable colored output")
+    ap.add_argument("--no-template-kwargs", action="store_true",
+                    help="don't send llama.cpp chat_template_kwargs (use for NVIDIA/other APIs)")
     ap.add_argument("--plain", action="store_true", help="force the plain stdlib renderer (no rich)")
     ap.add_argument("--reset-config", action="store_true", help="ignore and overwrite the saved chat config")
     args = ap.parse_args()
@@ -466,13 +468,15 @@ def main():
         model = args.model or fetch_model(base, headers) or "local-model"
         return base, endpoint, headers, model
 
-    # Resolve the connection: prompt interactively for a bare `gputool chat`,
-    # otherwise (one-shot message) use flags / saved config without prompting.
-    if args.message:
+    # Resolve the connection. Prompt interactively only for a bare `gputool chat`
+    # (no message, no connection flags). When the server/key are given on the
+    # command line — e.g. `sjsujetsontool chat` picking a backend — skip prompts.
+    flags_given = bool(args.url or args.host or args.api_key is not None)
+    if args.message or flags_given:
         host = args.host or cfg.get("host") or "127.0.0.1"
         port = args.port or cfg.get("port") or "8080"
         url = args.url or (cfg.get("url") or None)
-        key = args.api_key or env_key or cfg.get("api_key") or ""
+        key = args.api_key if args.api_key is not None else (env_key or cfg.get("api_key") or "")
     else:
         host, port, url = prompt_server()
         key = prompt_key()
@@ -490,7 +494,9 @@ def main():
              "temperature": args.temperature, "stream": args.stream}
         if args.stream:
             p["stream_options"] = {"include_usage": True}
-        if not think["enabled"]:
+        # `chat_template_kwargs` is a llama.cpp feature (controls Qwen thinking);
+        # skip it for backends that reject unknown fields (e.g. NVIDIA's API).
+        if not think["enabled"] and not args.no_template_kwargs:
             p["chat_template_kwargs"] = {"enable_thinking": False}
         return p
 

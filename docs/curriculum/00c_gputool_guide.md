@@ -445,6 +445,31 @@ The stats line after each reply reports **prefill** (prompt-processing) and **ge
 | `/think on\|off` | Toggle the model's reasoning output |
 | `/help`, `/?` | Show the command help |
 
+### 5. Share the server by name (Headscale + `llm.forgengi.org`)
+Once a node serves a model and joins the **Headscale** network (`gputool tailscale up`), you can make it reachable from any other node **by a friendly HTTPS name instead of an IP**. The Headscale host (`headscale.forgengi.org`, an edge gateway) runs nginx and reverse-proxies each LLM node under a path:
+
+```
+https://llm.forgengi.org/<name>/v1   ->   http://<node-tailscale-ip>:8080/v1
+```
+
+For example, the RTX 5080 board `coe-cmpe-288-05` is published as **`node05`**:
+```bash
+curl https://llm.forgengi.org/node05/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sjsugputool" \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}'
+```
+
+**How the gateway is built (on the Headscale host):**
+1. **DNS:** a single record `llm.forgengi.org` → the gateway's IP (Cloudflare *DNS-only*; no per-node records needed).
+2. **TLS:** one Let's Encrypt cert (`certbot --nginx -d llm.forgengi.org`).
+3. **Routing:** a generator script, [`generate_llm_nginx.py`](../../jetson/generate_llm_nginx.py), scans Headscale nodes, **auto-detects which ones serve an LLM on `:8080`**, maps them to friendly names (`coe-cmpe-288-05 → node05`, `sjsujetson-01 → jetson01`), and writes the nginx `location` blocks. Adding a node is just:
+   ```bash
+   sudo python3 generate_llm_nginx.py   # on the Headscale host; reloads nginx
+   ```
+
+This is the endpoint that **`sjsujetsontool chat → "Our LLM server"`** connects to, so every Jetson can share one big GPU model over TLS without juggling IPs. Transport is encrypted end-to-end (client→gateway over HTTPS, gateway→node over the Headscale WireGuard tunnel), and the node's `--api-key` still gates completions.
+
 ---
 
 ## 🌐 Userspace Tailscale VPN

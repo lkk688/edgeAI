@@ -994,6 +994,61 @@ User > What is NVIDIA Jetson?
 > * **Robustness and Timeouts:** To prevent execution from hanging indefinitely on slow or cold-starting cloud endpoints, the tool imposes a strict **15-second request timeout**. If a connection cannot be established or a model is unresponsive, the query fails gracefully with a timeout error.
 > * **HTTP 403 Forbidden Errors:** If you receive a `403 Forbidden` error, this indicates that the specific model name is either restricted/unavailable under your free account plan, deprecated/renamed on the NVIDIA Build platform, or your API key's free credit quota has run out. You can resolve this by checking model availability in the [NVIDIA API Catalog](https://build.nvidia.com) or updating/renewing your API key using `sjsujetsontool setup-nvapi`.
 
+### 💬 `sjsujetsontool chat` — one chat client, three backends
+
+`sjsujetsontool chat` is a **unified, streaming terminal chat client** that talks to any OpenAI-compatible endpoint and lets you choose, at launch, **where the model runs**:
+
+| # | Backend | Runs on | Needs |
+|---|---------|---------|-------|
+| **1** | **Local Jetson llama.cpp** | this Jetson (`http://localhost:8080`) | a local server — start it with `sjsujetsontool llama` |
+| **2** | **NVIDIA Build API** | NVIDIA cloud (`integrate.api.nvidia.com`) | an API key — set it with `sjsujetsontool setup-nvapi` |
+| **3** | **Our LLM server** | a shared GPU node (e.g. an RTX board) via `https://llm.forgengi.org/<node>` | network access (over Headscale) + the server's API key |
+
+It uses the same engine as `gputool chat`: it renders **streaming Markdown** with the [`rich`](https://github.com/Textualize/rich) library when installed (and falls back to a plain pure-stdlib renderer otherwise), and prints per-turn **prefill / generation** token speeds.
+
+> [!TIP]
+> For the nicer Markdown/code-highlighted UI: `pip install rich` (optional — the client works without it).
+
+#### Launch
+```bash
+sjsujetsontool chat            # shows the backend menu, then drops you into a session
+```
+You'll be asked to pick a backend (and, for NVIDIA, a model). You can also skip the menu:
+```bash
+sjsujetsontool chat --local    # local Jetson llama.cpp on :8080
+sjsujetsontool chat --nvidia   # NVIDIA Build API (then pick a Nemotron model)
+sjsujetsontool chat --server   # our shared LLM server (prompts for URL + key)
+```
+
+#### Example (backend 3 — our shared server)
+```
+🤖 Select chat backend:
+  1) Local Jetson llama.cpp   (http://localhost:8080 — start it with: sjsujetsontool llama)
+  2) NVIDIA Build API         (cloud — needs NVIDIA_API_KEY; setup: sjsujetsontool setup-nvapi)
+  3) Our LLM server           (https://llm.forgengi.org/<node> over Headscale)
+Select [1-3]: 3
+Server base URL [https://llm.forgengi.org/node05/v1]:
+API key (blank if none): ********
+╭─ Assistant ▸ ──────────────────────────────────────────────────╮
+│ NVIDIA Blackwell is the company's latest GPU architecture …     │
+╰────────────────────────────────────────────────────────────────╯
+(prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s · 0.5s)
+```
+
+#### In-chat slash commands
+| Command | Action |
+|---|---|
+| `/exit`, `/quit`, `/q` | Leave the chat |
+| `/server` | Switch to a different server URL / API key |
+| `/save [file]` | Save the conversation (`.md` default, or `.json`) |
+| `/reset` | Clear history (keeps the system prompt) |
+| `/system <text>` | Set/clear the system prompt |
+| `/think on\|off` | Toggle the model's reasoning output |
+| `/help` | Show the command help |
+
+> [!NOTE]
+> **What is "our LLM server"?** A GPU node (e.g. an RTX 5080 board) runs `llama.cpp` and joins the **Headscale** network. The Headscale host (`headscale.forgengi.org`) reverse-proxies it under a friendly name at `https://llm.forgengi.org/<node>/v1` (TLS-terminated, the node's API key still required). This lets every Jetson use a big shared model **by name, over HTTPS — no IP addresses**. See [the gputool guide](00c_gputool_guide.md) for how a node serves the model and how the gateway maps it.
+
 ### ⚙️ `sjsujetsontool setup-check`
 
 Used to verify and configure the host `/Developer` directory environment and retrieve/update the `edgeAI` curriculum codebase. This is crucial when setting up brand new Jetson nodes or checking cloned systems to ensure correct container mounts.

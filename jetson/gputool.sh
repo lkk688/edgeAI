@@ -177,15 +177,22 @@ ensure_conda_tool() {
 }
 
 # Helper download functions (with Python 3 fallback if curl/wget are missing)
+# Sends no-cache headers so we never get a stale copy from the GitHub raw CDN
+# (raw.githubusercontent.com caches aggressively and ignores query strings).
 download_file() {
   local url="$1"
   local dest="$2"
   if command -v curl &>/dev/null; then
-    curl -fsSL "$url" -o "$dest"
+    curl -fsSL -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$url" -o "$dest"
   elif command -v wget &>/dev/null; then
-    wget -qO "$dest" "$url"
+    wget -qO "$dest" --header="Cache-Control: no-cache" --header="Pragma: no-cache" "$url"
   elif command -v python3 &>/dev/null; then
-    python3 -c "import urllib.request; urllib.request.urlretrieve('$url', '$dest')" &>/dev/null
+    python3 -c "
+import urllib.request
+req = urllib.request.Request('$url', headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
+data = urllib.request.urlopen(req, timeout=30).read()
+open('$dest', 'wb').write(data)
+" &>/dev/null
   else
     return 1
   fi
