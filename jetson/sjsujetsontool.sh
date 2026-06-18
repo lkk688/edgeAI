@@ -357,7 +357,7 @@ show_help() {
   echo "  update-script      - Update only this script from GitHub"
   echo "  healthcheck       - Deep system health check and diagnostics"
   echo "  sysupgrade        - Update apt packages (non-Jetson-critical only)"
-  echo "  dockerfix         - Fix Docker daemon (iptables-legacy for Jetson)"
+  echo "  dockerfix         - Fix Docker on Jetson (iptables-legacy, containerd, daemon, 'docker' group access)"
   echo "  tailscale <sub>   - Manage Tailscale / Headscale VPN"
   echo "      install              - Install Tailscale if not present"
   echo "      up [--force]         - Join headscale network (checks conflicts)"
@@ -607,33 +607,64 @@ dockerfix() {
     echo
   fi
 
-  # Check if Docker is running; restart if not
+  # Ensure containerd (docker depends on it) and the docker daemon are up & enabled.
+  # Use `systemctl is-active` as the authoritative "is the daemon running" check —
+  # `docker info` can fail for permission reasons even when the daemon is fine.
+  sudo systemctl enable --now containerd >/dev/null 2>&1
   if systemctl is-active --quiet docker; then
-    echo "✅ Docker is already running."
+    echo "✅ Docker daemon is already running."
   else
-    echo "🔄 Starting Docker daemon..."
+    echo "🔄 Docker daemon not active — unmasking, enabling, and starting..."
+    sudo systemctl unmask docker >/dev/null 2>&1
+    sudo systemctl enable docker >/dev/null 2>&1
     sudo systemctl restart docker
     sleep 3
     if systemctl is-active --quiet docker; then
-      echo "✅ Docker started successfully."
+      echo "✅ Docker daemon started successfully."
     else
-      echo "❌ Docker failed to start. Check logs:"
-      echo "   journalctl -u docker -n 30 --no-pager"
+      echo "❌ Docker daemon failed to start. Recent logs:"
+      sudo journalctl -u docker -n 25 --no-pager | tail -25
       return 1
     fi
   fi
 
-  echo
-  echo "🧪 Testing Docker + GPU access..."
-  if docker run --rm --runtime=nvidia \
-    -e NVIDIA_VISIBLE_DEVICES=all \
-    nvcr.io/nvidia/l4t-base:r36.2.0 \
-    nvidia-smi 2>/dev/null | grep -q "NVIDIA-SMI"; then
-    echo "✅ Docker GPU test passed."
+  # Socket access (docker group). The daemon can be UP while your user still sees
+  # "Cannot connect to the Docker daemon" because the user is not in the 'docker'
+  # group for THIS login session. This is the most common false "not running".
+  if docker info >/dev/null 2>&1; then
+    echo "✅ Docker is accessible by '$(whoami)'."
   else
-    echo "⚠️  GPU test skipped (base image may not be cached — run 'sjsujetsontool update-container' first)."
-    echo "   Quick test: docker run --rm hello-world"
-    docker run --rm hello-world 2>&1 | tail -3
+    echo "⚠️  Docker is RUNNING, but '$(whoami)' cannot access the socket"
+    echo "    — not in the 'docker' group for this login session."
+    if id -nG "$(whoami)" | tr ' ' '\n' | grep -qx docker; then
+      echo "ℹ️  You ARE in the 'docker' group, but this session predates it."
+    else
+      echo "🔧 Adding '$(whoami)' to the 'docker' group..."
+      sudo usermod -aG docker "$(whoami)"
+    fi
+    if sg docker -c "docker info" >/dev/null 2>&1; then
+      echo "✅ Group access verified — NEW shells get it automatically."
+      echo "👉 To use it in THIS shell right now:  newgrp docker   (or log out and back in)"
+    else
+      echo "❌ Still no socket access. Inspect: ls -l /var/run/docker.sock ; getent group docker"
+    fi
+  fi
+
+  echo
+  if docker info >/dev/null 2>&1; then
+    echo "🧪 Testing Docker + GPU access..."
+    if docker run --rm --runtime=nvidia \
+      -e NVIDIA_VISIBLE_DEVICES=all \
+      nvcr.io/nvidia/l4t-base:r36.2.0 \
+      nvidia-smi 2>/dev/null | grep -q "NVIDIA-SMI"; then
+      echo "✅ Docker GPU test passed."
+    else
+      echo "⚠️  GPU test skipped (base image may not be cached — run 'sjsujetsontool update-container' first)."
+      echo "   Quick test: docker run --rm hello-world"
+      docker run --rm hello-world 2>&1 | tail -3
+    fi
+  else
+    echo "⏭️  Skipping GPU test — apply the docker group first ('newgrp docker' or re-login), then re-run."
   fi
 
   echo
@@ -926,8 +957,21 @@ case "$1" in
     ;;
     
   update-container)
-    # --- Pre-check: ensure Docker daemon is running ---
+    # --- Pre-check: ensure Docker is running AND accessible by this user ---
     if ! docker info &>/dev/null; then
+      if systemctl is-active --quiet docker; then
+        # Daemon is UP but this session can't reach the socket (docker group).
+        # If the user is already in the group, re-exec with the group applied so
+        # it "just works" without a re-login; otherwise point them to dockerfix.
+        if [ -z "$SJ_DOCKER_SG_RETRY" ] && id -nG "$(whoami)" | tr ' ' '\n' | grep -qx docker; then
+          echo "🔁 Docker is running; applying 'docker' group to this session and retrying..."
+          exec sg docker -c "SJ_DOCKER_SG_RETRY=1 '$0' update-container"
+        fi
+        echo "❌ Docker is running, but '$(whoami)' cannot access it (not in the 'docker' group)."
+        echo "   Fix it once with:  sjsujetsontool dockerfix"
+        echo "   then:  newgrp docker   (or log out / back in), and re-run."
+        exit 1
+      fi
       echo "❌ Docker daemon is not running."
       _IPT=$(iptables --version 2>/dev/null)
       if echo "$_IPT" | grep -q "nf_tables"; then
@@ -936,13 +980,13 @@ case "$1" in
         sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
         sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
         echo "✅ Switched to: $(iptables --version)"
-        sudo systemctl restart docker
-        sleep 3
       fi
-      if ! docker info &>/dev/null; then
+      sudo systemctl restart docker
+      sleep 3
+      if ! systemctl is-active --quiet docker; then
         echo "❌ Docker still not running after fix attempt."
         echo "   Run: sjsujetsontool dockerfix"
-        echo "   Or:  journalctl -u docker -n 30 --no-pager"
+        echo "   Or:  sudo journalctl -u docker -n 30 --no-pager"
         exit 1
       fi
       echo "✅ Docker is now running."

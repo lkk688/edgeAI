@@ -985,4 +985,4 @@ This complete pipeline mimics human-like perception: **detect → classify → u
 * Use OWL-ViT or GroundingDINO when you need **zero-shot detection** flexibility.
 * Combine both with LLMs to enable **full-scene language understanding**.
 
-Next: Build interactive visual assistants on Jetson!
+→ **Next:** [ROS 2 & NVIDIA Isaac ROS on Jetson](05c_ros2_isaac_ros_jetson.md) — turn this detector into a ROS 2 node for robotics pipelines.

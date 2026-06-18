@@ -36,7 +36,12 @@ os.environ["TORCH_HOME"] = str(Path(MODELS_DIR) / "torch")
 os.environ["ULTRALYTICS_CONFIG_DIR"] = str(Path(MODELS_DIR) / "ultralytics")
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
-from transformers import DetrImageProcessor, DetrForObjectDetection, RTDetrImageProcessor, RTDetrForObjectDetection
+# transformers is only needed for the DETR-family detectors; import it lazily so
+# YOLO / Faster R-CNN / Mask R-CNN work without it (lighter installs, e.g. in ROS).
+try:
+    from transformers import DetrImageProcessor, DetrForObjectDetection, RTDetrImageProcessor, RTDetrForObjectDetection
+except Exception:
+    DetrImageProcessor = DetrForObjectDetection = RTDetrImageProcessor = RTDetrForObjectDetection = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -594,7 +599,10 @@ class DETRDetector(BaseDetector):
         super().__init__(device)
         self.model_name = model_name
         self.threshold = threshold
-        
+
+        if DetrForObjectDetection is None:
+            raise ImportError("DETR models require 'transformers' (pip install transformers).")
+
         # Load appropriate processor and model based on model name
         if "rt-detr" in model_name.lower():
             self.processor = RTDetrImageProcessor.from_pretrained(model_name)
