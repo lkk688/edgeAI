@@ -38,6 +38,7 @@ nav:
       - 🧠 Deep Learning & CNN: curriculum/04_deeplearning_cnn.md
       - 🖼️ CNN Image Processing: curriculum/04b_cnn_image_processing_jetson.md
       - 🧠 Transformers & NLP Applications: curriculum/05_transformers_nlp_applications.md
+      - 🎯 Deep Learning Object Detection: curriculum/05b_yolo_vlm_object_detection.md
       - 🚀 Large Language Models on Jetson: curriculum/06_llms_jetson.md
       - 📚 NLP Applications & LLM Optimization: curriculum/07_nlp_applications_llm_optimization.md
       - ✍️ Prompt Engineering & LangChain: curriculum/08_prompt_engineering_langchain_jetson.md
@@ -49,3 +50,6 @@ nav:
       - 🛠️ Vuln Triage — Tool Calling: curriculum/12b_basic_tool_calling_triage.md
       - 🔁 Vuln Triage — ReAct Loop: curriculum/12c_react_loop_triage.md
       - 🔎 Vuln Triage — RAG: curriculum/12d_rag_cve_triage.md
+  - 🦾 Robotics:
+      - 🤖 ROS 2 & NVIDIA Isaac ROS on Jetson: curriculum/05c_ros2_isaac_ros_jetson.md
+      - 🦾 LeRobot & SO-ARM101: curriculum/05d_lerobot_so101.md

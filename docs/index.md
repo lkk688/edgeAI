@@ -81,6 +81,11 @@ INFO    -  Your documentation should shortly be available at:
 * [🎙️ Voice Assistant on Jetson](curriculum/10b_voice_assistant_jetson.md)
 * [🌐 Next.js AI App with NVIDIA Nemotron](curriculum/11_nextjs_nemotron_app.md)
 
+### 🦾 Robotics
+
+* [🤖 ROS 2 & NVIDIA Isaac ROS on Jetson](curriculum/05c_ros2_isaac_ros_jetson.md)
+* [🦾 LeRobot & SO-ARM101 Teleop / Data Collection](curriculum/05d_lerobot_so101.md)
+
 ### 🛡️ Cyber-AI Security & Agent Triage
 
 * [🔍 Intro to Vulnerability Triage](curriculum/12_vulnerability_triage_intro.md)

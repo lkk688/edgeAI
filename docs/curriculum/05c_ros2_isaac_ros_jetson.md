@@ -236,4 +236,4 @@ YOLOv8 runs on the **Orin GPU inside the ROS 2 node** and publishes `vision_msgs
 - Run ROS 2 / Isaac ROS in **containers** via `jetson-containers` (easiest for ROS + ML) or `isaac_ros_common`.
 - We wrapped the 05b detector as a ROS 2 node ([`ros2_jetson_detect`](../../jetson/ros2_jetson_detect/)) that publishes `vision_msgs/Detection2DArray` — drop it into any robot pipeline.
 
-→ **Next:** [LLMs on Jetson](06_llms_jetson.md)
+→ **Next:** [LeRobot & SO-ARM101 Teleop / Data Collection](05d_lerobot_so101.md)

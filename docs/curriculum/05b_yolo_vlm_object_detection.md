@@ -20,6 +20,13 @@ Before running any code or commands, connect to your Jetson node via SSH, and la
 sjsujetsontool shell
 ```
 
+> [!NOTE]
+> **One-time deps for YOLO:** the current container image ships PyTorch but not Ultralytics yet. If `--model yolo` reports `No module named 'ultralytics'`, install it once inside the container:
+> ```bash
+> pip install ultralytics "numpy<2"
+> ```
+> `numpy<2` is required — Ultralytics pulls NumPy 2.x, which breaks the container's prebuilt OpenCV (`numpy.core.multiarray failed to import`). (This will be baked into a future image so the step won't be needed.)
+
 ### 2. Mapped Directories & Persistent Model Storage
 When you run `sjsujetsontool shell`, directories on the host are automatically mounted into the container:
 * **Repository Location:** The `/Developer` folder on the host is mounted to `/Developer` inside the container. You can find the Git repository at `/Developer/edgeAI/` inside the container.
