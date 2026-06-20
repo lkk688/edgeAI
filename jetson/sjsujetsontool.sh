@@ -1304,7 +1304,7 @@ case "$1" in
     # Idempotent: if the account exists it is fixed up (display name, password,
     # groups, sudo removed); otherwise it is created.
     STUDENT_USER="${1:-student}"
-    DEFAULT_STUDENT_PASS="Sjsujetson2025"
+    DEFAULT_STUDENT_PASS="Sjsujetson2026"
     STUDENT_PASS="${2:-$DEFAULT_STUDENT_PASS}"
     STUDENT_FULLNAME="Student"   # GUI/GDM display name (GECOS) — NOT "sjsujetson"
 
