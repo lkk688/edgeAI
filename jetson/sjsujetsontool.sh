@@ -174,6 +174,14 @@ setup_check_internal() {
 
   # 3. Check/clone edgeAI git repository
   REPO_DIR="/Developer/edgeAI"
+  # Shared repo: it may be owned by another user (e.g. the repo was cloned by
+  # 'sjsujetson' but 'student' runs the update). Git then refuses with
+  # "fatal: detected dubious ownership". Add a per-user safe.directory exception
+  # (idempotent) so pull/reset work regardless of who owns the .git tree.
+  if command -v git &>/dev/null; then
+    git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$REPO_DIR" \
+      || git config --global --add safe.directory "$REPO_DIR"
+  fi
   if [ ! -d "$REPO_DIR" ]; then
     echo "📥 Cloning edgeAI repository from GitHub into $REPO_DIR..."
     if git clone https://github.com/lkk688/edgeAI.git "$REPO_DIR"; then
@@ -347,6 +355,7 @@ show_help() {
   echo "  convert           - Convert HF model to GGUF (custom script)"
   echo "  run <file.py>     - Run a Python file inside the container"
   echo "  set-hostname <n>  - Change hostname (for cloned Jetsons)"
+  echo "  setup-student [user] [pass] - Create/repair non-sudo student account (docker + /Developer, display name 'Student')"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
   echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
   echo "  chat              - Unified streaming chat (pick: local llama.cpp / NVIDIA API / our LLM server)"
@@ -1289,6 +1298,80 @@ case "$1" in
       echo "🔁 Please reboot for changes to fully apply."
     fi
     ;;
+  setup-student)
+    shift
+    # Create or repair a NON-sudo student account that can use /Developer and Docker.
+    # Idempotent: if the account exists it is fixed up (display name, password,
+    # groups, sudo removed); otherwise it is created.
+    STUDENT_USER="${1:-student}"
+    DEFAULT_STUDENT_PASS="Sjsujetson2025"
+    STUDENT_PASS="${2:-$DEFAULT_STUDENT_PASS}"
+    STUDENT_FULLNAME="Student"   # GUI/GDM display name (GECOS) — NOT "sjsujetson"
+
+    echo "══════════════════════════════════════════════════"
+    echo "🎓 Student account setup: '$STUDENT_USER' (display name: $STUDENT_FULLNAME)"
+    echo "══════════════════════════════════════════════════"
+    echo "🔐 This needs admin rights — you may be prompted for the sudo password."
+    if ! sudo -v; then
+      echo "❌ Could not obtain sudo. Run this as an admin user (e.g. sjsujetson)."
+      exit 1
+    fi
+
+    if id "$STUDENT_USER" &>/dev/null; then
+      echo "✅ User '$STUDENT_USER' exists — repairing settings."
+      # Fix the GUI display name (the jetson-01 fix: GECOS was 'SJSUJetson')
+      sudo usermod -c "$STUDENT_FULLNAME" "$STUDENT_USER"
+    else
+      echo "👤 Creating user '$STUDENT_USER'..."
+      sudo useradd -m -s /bin/bash -c "$STUDENT_FULLNAME" "$STUDENT_USER"
+    fi
+
+    # Default password
+    echo "$STUDENT_USER:$STUDENT_PASS" | sudo chpasswd && \
+      echo "🔑 Password set to the class default."
+
+    # Groups: containers (docker) + hardware/peripherals for AI+robotics labs.
+    # Only add groups that actually exist on this box; never add an admin group.
+    WANT_GROUPS="docker video audio render i2c gpio dialout plugdev input weston-launch gdm"
+    ADD_GROUPS=""
+    for g in $WANT_GROUPS; do
+      getent group "$g" >/dev/null 2>&1 && ADD_GROUPS="${ADD_GROUPS:+$ADD_GROUPS,}$g"
+    done
+    if [ -n "$ADD_GROUPS" ]; then
+      sudo usermod -aG "$ADD_GROUPS" "$STUDENT_USER"
+      echo "👥 Added to groups: $ADD_GROUPS"
+    fi
+
+    # Guarantee NO admin rights (in case the account previously had them)
+    for g in sudo adm admin wheel root; do
+      sudo gpasswd -d "$STUDENT_USER" "$g" >/dev/null 2>&1 || true
+    done
+    echo "🚫 Ensured '$STUDENT_USER' is NOT in any sudo/admin group."
+
+    # /Developer access: it's reachable when world-accessible OR group=docker+rwx.
+    # If neither holds, grant the docker group access (student is in docker).
+    if [ -d /Developer ]; then
+      DEV_PERMS="$(stat -c '%A' /Developer)"
+      DEV_GRP="$(stat -c '%G' /Developer)"
+      if [[ "${DEV_PERMS:7:3}" != *w* ]] && [ "$DEV_GRP" != "docker" ]; then
+        echo "📂 Granting docker group access to /Developer..."
+        sudo chgrp docker /Developer && sudo chmod 2775 /Developer
+      else
+        echo "📂 /Developer already accessible ($DEV_PERMS $DEV_GRP)."
+      fi
+    fi
+
+    # Refresh the login screen's cached display name (reads GECOS)
+    sudo systemctl try-restart accounts-daemon >/dev/null 2>&1 || true
+
+    echo "──────────────────────────────────────────────────"
+    echo "✅ Student account ready:"
+    echo "   • login    : $STUDENT_USER / $STUDENT_PASS"
+    echo "   • fullname : $(getent passwd "$STUDENT_USER" | cut -d: -f5 | cut -d, -f1)"
+    echo "   • groups   : $(id -nG "$STUDENT_USER")"
+    echo "   • sudo     : $(id -nG "$STUDENT_USER" | grep -qw sudo && echo 'YES (unexpected!)' || echo 'no')"
+    echo "💡 The GUI display name updates after the next login (or a reboot)."
+    ;;
   setup-ssh)
     shift
     if [ -z "$1" ]; then
@@ -2023,6 +2106,10 @@ EOF
         echo "Error: $REPO_PATH is not a valid Git repository."
         exit 1
     fi
+
+    # Avoid "dubious ownership" when the repo is owned by another user (shared box)
+    git config --global --get-all safe.directory 2>/dev/null | grep -qxF "$REPO_PATH" \
+      || git config --global --add safe.directory "$REPO_PATH"
 
     echo "Navigating to $REPO_PATH"
     cd "$REPO_PATH" || exit 1
