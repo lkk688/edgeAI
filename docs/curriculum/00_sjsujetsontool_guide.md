@@ -75,39 +75,21 @@ A command-line tool for Jetson-based workflows: container management, model serv
 curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
 ```
 
-After the script installation, run `sjsujetsontool update` to update the local script and container image. The container update takes a long time.
+For example:
 ```bash
-sjsujetson@sjsujetson-01:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
+student@sjsujetson-62:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash
 ⬇️ Downloading sjsujetsontool from GitHub...
 ✅ Downloaded script.
-📦 Installing to /home/sjsujetson/.local/bin/sjsujetsontool
+📦 Installing to /home/student/.local/bin/sjsujetsontool
+🛠️  Adding ~/.local/bin to your PATH...
+✅ Added to /home/student/.bashrc
+👉 Please run: source /home/student/.bashrc
 ✅ Installed successfully. You can now run: sjsujetsontool
-sjsujetson@sjsujetson-01:~$ sjsujetsontool update
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-📦 JetPack Version: 6.2.1+b38
-🏷️  L4T BSP Revision: R36.4.7
-⚙️  CUDA Version: 12.6
-🧬 cuDNN Version: 9.3.0
-🤖 TensorRT Version: 10.3.0.30-1+cuda12.5
-🔄 Running full update (script + container)...
-  Use 'update-container' or 'update-script' to update individually.
+```
 
-📜 Step 1/2: Updating script from GitHub...
-📂 Backup saved to: /home/sjsujetson/.local/bin/sjsujetsontool.bak
-⬇️ Downloading latest script...
-#################################################################################################### 100.0%
-✅ Script downloaded. Replacing current script...
-✅ Script updated successfully. Re-run your command to use the new version.
+After the script installation, run `source /home/student/.bashrc` before using `sjsujetsontool`. You can also run `sjsujetsontool update` to update the local script and container image. The container update takes a long time. For example,
+```bash
 
-🐳 Step 2/2: Updating container image...
-🔍 Checking Docker image update...
-⬇️ Pulling latest image from Docker Hub...
-latest: Pulling from cmpelkk/jetson-llm
-....
-✓ Pull complete.
-📦 New version detected. Updating local image...
-🗑️  Removing old container 'jetson-dev' to force recreation from the new image...
-✅ Local container updated from Docker Hub.
 ```
 
 > [!TIP]

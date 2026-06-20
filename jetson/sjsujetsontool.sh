@@ -950,17 +950,12 @@ case "$1" in
     echo
     
     # First update script
-    echo "📜 Step 1/3: Updating script from GitHub..."
+    echo "📜 Step 1/2: Updating script from GitHub..."
     $0 update-script
     echo
 
-    # Run setup-check
-    echo "⚙️ Step 2/3: Checking /Developer setup and edgeAI repository..."
-    $0 setup-check
-    echo
-
     # Then update container
-    echo "🐳 Step 3/3: Updating container image..."
+    echo "🐳 Step 2/2: Updating container image..."
     $0 update-container
     exit 0
     ;;
