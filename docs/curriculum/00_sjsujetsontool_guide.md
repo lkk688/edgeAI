@@ -686,26 +686,34 @@ sjsujetsontool ollama ask --model mistral "Give me a Jetson-themed poem."
 Starts the `llama.cpp` server (C++ GGUF LLM inference engine) on port 8000. Loads a `.gguf` model and serves an HTTP API for tokenized prompt completion.
 
 #### ⚙️ Compiling & Updating `llama.cpp` inside Container
-To support the latest features (such as direct Hugging Face model loading via `-hf` which avoids manual GGUF file downloads), compile `llama.cpp` with CUDA support inside the `jetson-dev` container:
 
-1. **Pull the latest source code**:
+A current `llama.cpp` is needed for two reasons: direct Hugging Face loading via `-hf` (no manual
+GGUF downloads), and **support for new model architectures** — e.g. **Qwen3.5** uses the `qwen35`
+arch, which older builds reject with `unknown model architecture: 'qwen35'`. The build baked into the
+container is **b9743** (verified below). To (re)build with CUDA inside the container:
+
+1. **Clone the latest source** (a shallow clone is fine):
    ```bash
-   cd /Developer/llama.cpp
-   git reset --hard
-   git pull
+   cd /opt && git clone --depth=1 https://github.com/ggml-org/llama.cpp llamacpp-new && cd llamacpp-new
    ```
-2. **Build with CUDA enabled**:
+2. **Configure + build with CUDA for the Orin GPU** (`sm_87`):
    ```bash
-   rm -rf build_cuda
-   cmake -B build_cuda -DGGML_CUDA=ON
-   cmake --build build_cuda --config Release -j$(nproc)
+   cmake -B build -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=87
+   # build the tools we use (text + multimodal/vision):
+   cmake --build build --config Release -j"$(nproc)" \
+     --target llama-cli llama-server llama-bench llama-completion llama-mtmd-cli
    ```
-3. **Install to PATH**:
+   > On a Jetson Orin Nano this CUDA build takes **~25 minutes**. Verified: build **b9743**, CUDA 12.6,
+   > `sm_87`. Note in recent builds `llama-cli` is interactive-only — use **`llama-completion`** for
+   > scriptable one-shot generation and **`llama-mtmd-cli`** for image input.
+3. **Install into the path `sjsujetsontool` looks for** (`/opt/llama.cpp/build_cuda/bin`), so the
+   `llama` / `llama-cli` shortcuts pick it up automatically:
    ```bash
-   cp build_cuda/bin/llama-cli /usr/local/bin/llama-cli
-   cp build_cuda/bin/llama-server /usr/local/bin/llama-server
-   chmod +x /usr/local/bin/llama-cli /usr/local/bin/llama-server
+   mkdir -p /opt/llama.cpp/build_cuda/bin
+   cp build/bin/llama-* build/bin/*.so /opt/llama.cpp/build_cuda/bin/
    ```
+   *(This is exactly how the prebuilt binaries are placed in the published container image, so all
+   devices get the qwen35-capable build after `sjsujetsontool update`.)*
 
 #### 🚀 Serving Gemma 4 E2B via Llama Server
 You can launch the Gemma 4 E2B `llama-server` directly from the host system using the top-level shortcut:
@@ -867,7 +875,79 @@ curl http://localhost:8080/v1/chat/completions \
   }'
 ```
 
+#### 📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)
 
+The default **Gemma 4 E2B** GGUF is multi-GB and **slow to download**. We benchmarked the current
+default against smaller [Unsloth **Qwen3.5**](https://huggingface.co/unsloth) GGUFs as lighter
+alternatives, all at the same **`Q4_K_S`** quant used by `sjsujetsontool llama`.
+
+> ⚠️ **Two gotchas found during testing:**
+> 1. [`unsloth/gemma-4-E2B-it-qat-mobile`](https://huggingface.co/unsloth/gemma-4-E2B-it-qat-mobile)
+>    is **not a llama.cpp model** — it ships only `model.safetensors` (a QAT/mobile build), no GGUF —
+>    so it cannot be served by `llama-server`. (The GGUF variant is `unsloth/gemma-4-E2B-it-GGUF`.)
+> 2. Qwen3.5 uses the **`qwen35`** architecture, which the container's shipped llama.cpp (build 5752)
+>    rejects with `unknown model architecture: 'qwen35'`. You must **rebuild llama.cpp** (we used
+>    **b9743**, CUDA, `sm_87`) — see *Compiling & Updating llama.cpp* above — until the image ships a newer build.
+
+**Test setup:** jetson-61 = Orin Nano (8 GB), JetPack 6 / L4T R36.4.7, llama.cpp **b9743** CUDA,
+`-ngl 99` (all layers on GPU), quant `Q4_K_S`, ~47 Mbps link.
+
+| Model | Params | On-disk | Download (≈5.9 MB/s) | Weights in RAM | Prompt `pp512` | Generation `tg128` | Math (3 Qs) |
+|---|---|---|---|---|---|---|---|
+| `gemma-4-E2B-it` **(current default)** | 4.65 B | 3.04 GB | ~8.6 min (516 s) | 2.82 GiB | ~644 tok/s | ~20 tok/s | ✅ 3 / 3 |
+| `Qwen3.5-0.8B` | 0.77 B | 0.52 GB | ~1.5 min (89 s) | 0.49 GiB | ~1205 tok/s | **~35 tok/s** | ⚠️ 2 / 3 |
+| `Qwen3.5-2B` | 1.94 B | 1.26 GB | ~3.6 min (216 s) | 1.17 GiB | ~750 tok/s | **~21 tok/s** | ✅ 3 / 3 |
+| `Qwen3.5-4B` | 4.33 B | 2.68 GB | ~7.6 min (456 s) | 2.49 GiB | ~307 tok/s | **~10 tok/s** | ✅ 3 / 3 |
+
+Peak system RAM (incl. ~2–2.9 GB idle baseline + page cache) stayed under ~7.3 GB on the 8 GB board
+for every model — so even the 3 GB-class ones fit, with little headroom.
+
+> 💡 **Headline:** the default **Gemma 4 E2B is the *largest* download (3.04 GB) yet not the fastest** —
+> `Qwen3.5-2B` matches its accuracy (3/3) and generation speed (~21 vs ~20 tok/s) at **~⅓ the download
+> size** — **and it is also multimodal** (`Qwen/Qwen3.5-2B` is a *unified vision-language* model;
+> the Unsloth GGUF repo ships an `mmproj`), so Gemma's vision is no longer a unique advantage. See the
+> VLM verification below.
+
+**Accuracy** — three high-school questions (`17 × 23 = 391`; `2x + 5 = 17 → x = 6`;
+right-triangle legs 6, 8 → hypotenuse `10`), greedy decoding:
+
+- **Gemma 4 E2B**, **Qwen3.5-2B**, **Qwen3.5-4B**: all three correct, clean concise answers — reliable.
+  (Gemma and Qwen3.5-2B answer directly; Qwen3.5-4B "thinks" first, then answers.)
+- **Qwen3.5-0.8B**: reached the right working (391; x = 6) but **over-thinks badly** — on the
+  hypotenuse question it kept second-guessing and never committed to a final answer even at 3072
+  tokens. Capable but unreliable at producing a final answer.
+
+**Recommendation:** for a fast-downloading, reliable everyday model on the Orin Nano,
+**`Qwen3.5-2B:Q4_K_S`** is the sweet spot — same accuracy, speed, **and vision** as the default
+Gemma 4 E2B at **~⅓ the download**. Use Qwen3.5 `4B` for more reasoning headroom (~10 tok/s);
+avoid `0.8B` for tasks needing a definite answer.
+
+```bash
+# text server (inside the container, with an up-to-date llama.cpp build):
+llama-server -hf unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 -ngl 99
+```
+
+##### 👁️ VLM (vision) — verified on Qwen3.5-2B
+
+`Qwen/Qwen3.5-2B` is a **unified vision-language** model. The Unsloth GGUF repo ships a vision
+projector (`mmproj-F16.gguf`, 0.67 GB); pair it with the text GGUF and run the multimodal CLI
+(`llama-mtmd-cli`) or `llama-server --mmproj`:
+
+```bash
+llama-mtmd-cli \
+  -m Qwen3.5-2B-Q4_K_S.gguf --mmproj mmproj-F16.gguf -ngl 99 \
+  --image /Developer/models/bus.jpg \
+  -p "Describe this image in detail, including the main object, its color, and how many people are visible."
+```
+
+**Result on `bus.jpg`** (the bus + pedestrians image) — correct and detailed:
+> *"It's a **blue and white** electric **minibus** ('100% eléctrico', 'cero emisiones')… I see
+> **three people clearly** standing/walking near the bus … plus a partial view of a person on the
+> far left edge."*
+
+It even read text off the bus (OCR) and its people count matched the YOLO detector (4 person boxes,
+one low-confidence) from the object-detection lab. Vision needs the `mmproj` + a current
+`llama-mtmd-cli` (the same b9743 build); the shipped container build cannot load it.
 
 ### 🚀 `sjsujetsontool vllm`
 

@@ -346,8 +346,8 @@ show_help() {
   echo "      delete <model>       - Delete model from disk"
   echo "      status               - Check if REST server is running"
   echo "      ask [--model xxx]    - Ask model with auto pull/cache"
-  echo "  llama             - Start Gemma 4 E2B llama-server (port 8080)"
-  echo "  llama-cli         - Run Gemma 4 E2B llama-cli inference"
+  echo "  llama [model]     - Start llama-server (port 8080); model: qwen2b(default)|qwen0.8b|qwen4b|gemma4"
+  echo "  llama-cli [model] - Run llama-cli inference (same model choices; default qwen2b)"
   echo "  ollama-serve      - Start Ollama REST API server (port 11434)"
   echo "  ollama-run        - Run Ollama model interactively (defaults to gemma4)"
   echo "  vllm [model]      - Start vLLM serve engine (defaults to Qwen3-8B-speculator)"
@@ -401,11 +401,12 @@ show_list() {
   echo "     ▶ sjsujetsontool ollama ask --model phi3 \"Explain LLMs\""
   echo "     ▶ sjsujetsontool ollama pull llama3"
   echo
-  echo "  llama        → Start Gemma 4 E2B llama-server (port 8080)"
-  echo "     ▶ sjsujetsontool llama"
+  echo "  llama [model] → Start llama-server (port 8080). Default Qwen3.5-2B; or qwen0.8b|qwen4b|gemma4"
+  echo "     ▶ sjsujetsontool llama            # Qwen3.5-2B (default)"
+  echo "     ▶ sjsujetsontool llama gemma4     # Gemma 4 E2B"
   echo
-  echo "  llama-cli    → Run Gemma 4 E2B llama-cli inference"
-  echo "     ▶ sjsujetsontool llama-cli -p \"Describe this image\" --image /Developer/LoveSJ-hero-4.png"
+  echo "  llama-cli [model] → Run llama-cli inference (same model choices)"
+  echo "     ▶ sjsujetsontool llama-cli qwen4b -p \"Explain the Jetson Orin Nano\""
   echo
   echo "  ollama-serve → Start Ollama REST API server (port 11434)"
   echo "     ▶ sjsujetsontool ollama-serve"
@@ -602,6 +603,29 @@ dockerfix() {
   echo "     iptables v1.8.7 (nf_tables): Couldn't load match 'addrtype'"
   echo
 
+  # Self-heal: the docker engine package itself may be MISSING (e.g. removed by a
+  # bad apt upgrade — dpkg leaves it in state 'rc'). Symptoms: "dockerd not present
+  # or not executable", "docker: command not found". No iptables/systemd fix can
+  # help that, so reinstall docker-ce first.
+  if ! command -v dockerd >/dev/null 2>&1 || ! command -v docker >/dev/null 2>&1; then
+    echo "⚠️  Docker engine binaries are MISSING (docker-ce not installed)."
+    if [ -f /etc/apt/sources.list.d/docker.list ]; then
+      echo "🔧 Reinstalling docker-ce + docker-ce-cli from the Docker apt repo..."
+      sudo apt-get update
+      if sudo apt-get install -y docker-ce docker-ce-cli; then
+        echo "✅ docker-ce reinstalled: $(docker --version 2>/dev/null)"
+      else
+        echo "❌ Reinstall failed. Check network and /etc/apt/sources.list.d/docker.list"
+        return 1
+      fi
+    else
+      echo "❌ Docker apt repo not configured (/etc/apt/sources.list.d/docker.list missing)."
+      echo "   Install Docker Engine: https://docs.docker.com/engine/install/ubuntu/"
+      return 1
+    fi
+    echo
+  fi
+
   # Detect current iptables mode
   CURRENT_IPT=$(iptables --version 2>/dev/null)
   if echo "$CURRENT_IPT" | grep -q "legacy"; then
@@ -712,6 +736,32 @@ check_service() {
   fi
 }
 
+# Map a friendly model keyword -> Hugging Face GGUF spec for `llama`/`llama-cli`.
+# Sets LLM_HF and LLM_NAME. Default selector is qwen2b. Returns 1 on unknown.
+llama_model() {
+  case "$1" in
+    qwen|qwen2b|qwen-2b|qwen3.5|qwen3.5-2b) LLM_HF="unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S";  LLM_NAME="Qwen3.5-2B (VLM)";;
+    qwen0.8b|qwen-0.8b)                     LLM_HF="unsloth/Qwen3.5-0.8B-MTP-GGUF:Q4_K_S"; LLM_NAME="Qwen3.5-0.8B";;
+    qwen4b|qwen-4b)                         LLM_HF="unsloth/Qwen3.5-4B-MTP-GGUF:Q4_K_S";   LLM_NAME="Qwen3.5-4B";;
+    gemma|gemma4|gemma-4)                   LLM_HF="unsloth/gemma-4-E2B-it-GGUF:Q4_K_S";   LLM_NAME="Gemma-4-E2B (VLM)";;
+    *) echo "❌ Unknown model '$1'. Options: qwen2b (default), qwen0.8b, qwen4b, gemma4"; return 1;;
+  esac
+  return 0
+}
+
+# Locate a llama.cpp binary inside the container, preferring the newest CUDA build.
+# Sets LLAMA_BIN and LD_ENV. The build_cuda path holds the current (qwen35-capable) build.
+llama_bin() {
+  local want="$1" d
+  LLAMA_BIN="$want"; LD_ENV=""
+  for d in /opt/llama.cpp/build_cuda/bin /opt/llamacpp-new/build/bin /opt/llama.cpp/build/bin; do
+    if $EXEC_CMD test -f "$d/$want"; then
+      LLAMA_BIN="$d/$want"; LD_ENV="LD_LIBRARY_PATH=$d"; return 0
+    fi
+  done
+  return 0
+}
+
 case "$1" in
   shell)
     ensure_container_started
@@ -816,42 +866,38 @@ case "$1" in
     esac
     ;;
   llama)
+    shift
     ensure_container_started
-    # Locate llama-server inside the container, preferring build_cuda or build directories to use the custom-built CUDA binary
-    LLAMA_SERVER="llama-server"
-    LD_ENV=""
-    if $EXEC_CMD test -f /opt/llama.cpp/build_cuda/bin/llama-server; then
-      LLAMA_SERVER="/opt/llama.cpp/build_cuda/bin/llama-server"
-      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin"
-    elif $EXEC_CMD test -f /opt/llama.cpp/build/bin/llama-server; then
-      LLAMA_SERVER="/opt/llama.cpp/build/bin/llama-server"
-      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build/bin"
-    fi
-    echo "🧠 Launching Gemma 4 E2B llama.cpp server inside persistent container (port 8080)..."
+    # --- pick a model (default: Qwen3.5-2B). Both Qwen3.5 and Gemma-4 are VLMs;
+    #     -hf auto-downloads the matching mmproj so vision works out of the box. ---
+    MODEL_SEL="${1:-qwen2b}"
+    llama_model "$MODEL_SEL" || exit 1
+    # --- locate the newest CUDA build (b9743+ supports the qwen35/qwen3vl arch) ---
+    llama_bin llama-server
+    echo "🧠 Launching $LLM_NAME llama.cpp server (port 8080)  [$LLM_HF]"
+    echo "   Switch model:  sjsujetsontool llama [qwen2b | qwen0.8b | qwen4b | gemma4]"
     if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" -hf "$LLM_HF" --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
     else
-      $EXEC_CMD "$LLAMA_SERVER" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
+      $EXEC_CMD "$LLAMA_BIN" -hf "$LLM_HF" --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
     fi
     ;;
   llama-cli)
     shift
     ensure_container_started
-    # Locate llama-cli inside the container, preferring build_cuda or build directories to use the custom-built CUDA binary
-    LLAMA_CLI="llama-cli"
-    LD_ENV=""
-    if $EXEC_CMD test -f /opt/llama.cpp/build_cuda/bin/llama-cli; then
-      LLAMA_CLI="/opt/llama.cpp/build_cuda/bin/llama-cli"
-      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin"
-    elif $EXEC_CMD test -f /opt/llama.cpp/build/bin/llama-cli; then
-      LLAMA_CLI="/opt/llama.cpp/build/bin/llama-cli"
-      LD_ENV="LD_LIBRARY_PATH=/opt/llama.cpp/build/bin"
-    fi
-    echo "🧠 Running Gemma 4 E2B llama.cpp CLI inside persistent container..."
+    # Optional first arg = model selector (qwen2b default); the rest pass to llama-cli.
+    MODEL_SEL="qwen2b"
+    case "${1:-}" in
+      qwen|qwen2b|qwen-2b|qwen3.5|qwen3.5-2b|qwen0.8b|qwen-0.8b|qwen4b|qwen-4b|gemma|gemma4|gemma-4)
+        MODEL_SEL="$1"; shift;;
+    esac
+    llama_model "$MODEL_SEL" || exit 1
+    llama_bin llama-cli
+    echo "🧠 Running $LLM_NAME llama.cpp CLI inside persistent container...  [$LLM_HF]"
     if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
     else
-      $EXEC_CMD "$LLAMA_CLI" -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
+      $EXEC_CMD "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
     fi
     ;;
   ollama-serve)

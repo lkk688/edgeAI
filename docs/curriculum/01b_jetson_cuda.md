@@ -74,6 +74,73 @@ export PATH=/usr/local/cuda-12.6/bin:$PATH
 export LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:$LD_LIBRARY_PATH
 ```
 
+### ✍️ Compile your own CUDA kernel with `nvcc` (inside the container)
+
+The container ships the **full CUDA toolkit**, so `nvcc` is available regardless of the host JetPack
+— this is the most reliable way to compile CUDA on the newer JetPack 7 nodes (`>60`), where the host
+may not have `nvcc` at all. Enter the container and confirm the compiler:
+
+```bash
+sjsujetsontool shell
+nvcc --version          # Cuda compilation tools, release 12.6
+```
+
+Create a minimal kernel `vector_add.cu` (saved under `/Developer` so it persists and is shared):
+
+```cpp
+#include <cstdio>
+#include <cuda_runtime.h>
+
+__global__ void vec_add(const float *a, const float *b, float *c, int n) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;   // global thread index
+    if (i < n) c[i] = a[i] + b[i];
+}
+
+int main() {
+    const int N = 1 << 20;                            // 1,048,576 elements
+    const size_t bytes = N * sizeof(float);
+    float *h_a = (float*)malloc(bytes), *h_b = (float*)malloc(bytes), *h_c = (float*)malloc(bytes);
+    for (int i = 0; i < N; ++i) { h_a[i] = 1.0f; h_b[i] = 2.0f; }
+
+    float *d_a, *d_b, *d_c;
+    cudaMalloc(&d_a, bytes); cudaMalloc(&d_b, bytes); cudaMalloc(&d_c, bytes);
+    cudaMemcpy(d_a, h_a, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, h_b, bytes, cudaMemcpyHostToDevice);
+
+    int threads = 256, blocks = (N + threads - 1) / threads;
+    vec_add<<<blocks, threads>>>(d_a, d_b, d_c, N);   // launch the kernel
+    cudaDeviceSynchronize();
+    cudaMemcpy(h_c, d_c, bytes, cudaMemcpyDeviceToHost);
+
+    int errors = 0;
+    for (int i = 0; i < N; ++i) if (h_c[i] != 3.0f) ++errors;
+    cudaDeviceProp prop; cudaGetDeviceProperties(&prop, 0);
+    printf("GPU: %s (compute %d.%d)\n", prop.name, prop.major, prop.minor);
+    printf("vector_add of %d elements: %s (errors=%d)\n",
+           N, errors == 0 ? "PASSED" : "FAILED", errors);
+
+    cudaFree(d_a); cudaFree(d_b); cudaFree(d_c); free(h_a); free(h_b); free(h_c);
+    return 0;
+}
+```
+
+Compile with `nvcc` for the Orin GPU (compute capability **8.7** → `sm_87`) and run:
+
+```bash
+nvcc -arch=sm_87 -o vector_add vector_add.cu
+./vector_add
+```
+
+✅ **Verified on a JetPack 7 node (`sjsujetson-61`) inside the container:**
+
+```text
+GPU: Orin (compute 8.7)
+vector_add of 1048576 elements: PASSED (errors=0)
+```
+
+`-arch=sm_87` targets Orin; use `sm_72` for Xavier NX. Add `-O3` for optimized host code, or
+`nvcc --ptxas-options=-v` to see per-kernel register/shared-memory usage.
+
 ### 🧪 Run CUDA Samples
 To build cuda samples, we need to use the new version of cmake (already downloaded in `/Developer`)
 ```bash
@@ -117,6 +184,50 @@ You can get the cuda architecture from
 deviceQuery | grep "CUDA Capability"
   CUDA Capability Major/Minor version number:    8.7
 ```
+
+### 🐳 Build & run CUDA samples inside the container (JetPack 6 **and** 7)
+
+The host method above relies on `cuda-samples` + `cmake` being pre-downloaded in `/Developer`, which
+is true on the JetPack 6 lab nodes (`sjsujetson-01`..`-59`). **Newer JetPack 7 nodes (`>60`) ship
+without the CUDA samples**, and JetPack often omits the host `nvcc`. The portable fix is to build the
+samples **inside the container**, which carries the full CUDA toolkit (`nvcc`) regardless of the host
+JetPack — the compiled binaries then run on the GPU through the NVIDIA container runtime.
+
+```bash
+sjsujetsontool shell            # enter the container (CUDA 12.6 toolkit inside)
+nvcc --version                  # confirm: Cuda compilation tools, release 12.6
+
+# Clone into /Developer so it persists across container updates and is shared by the
+# 'student' and 'sjsujetson' accounts. Pick a tag matching the container's CUDA (12.x);
+# the latest cuda-samples (v13.x) uses a CMake build that needs the CUDA 13 toolchain.
+cd /Developer
+[ -d cuda-samples ] || git clone --depth=1 --branch v12.5 https://github.com/NVIDIA/cuda-samples.git
+```
+
+Each sample has a `Makefile`; build it with `SMS=87` (Orin's compute capability 8.7), then run:
+
+```bash
+cd /Developer/cuda-samples/Samples/1_Utilities/deviceQuery && make SMS=87 && ./deviceQuery
+```
+
+✅ **Verified on a JetPack 7 node (`sjsujetson-61`, L4T r39) inside the container:**
+
+```text
+Device 0: "Orin"
+  CUDA Capability Major/Minor version number:    8.7
+Result = PASS
+```
+
+More examples (same pattern):
+
+```bash
+cd /Developer/cuda-samples/Samples/0_Introduction/vectorAdd && make SMS=87 && ./vectorAdd   # Test PASSED
+cd /Developer/cuda-samples/Samples/0_Introduction/matrixMul && make SMS=87 && ./matrixMul   # Result = PASS
+```
+
+> Because the build uses the **container's** CUDA toolkit, the exact same commands work on JetPack 6
+> and JetPack 7 hosts. `SMS=87` = Orin (compute 8.7); use `72` for Xavier NX. To build every sample at
+> once, run `make -j$(nproc) SMS=87` from `/Developer/cuda-samples` (binaries land in `bin/`).
 
 ### NVIDIA CUDA Profiling Tools
 #### 1. **NVIDIA Nsight Systems** - Installation in Container
