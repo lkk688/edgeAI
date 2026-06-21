@@ -42,3 +42,26 @@ The Marp sources live in `docs/slides/*.md` and are **excluded** from the MkDocs
 Then `mkdocs gh-deploy` copies the built decks; e.g. the get‑started deck goes live at
 `https://lkk688.github.io/edgeAI/slides/get-started.html`. See
 [`docs/slides/README.md`](slides/README.md) for authoring tips.
+
+
+## 7. Auto-deploy with GitHub Actions (recommended)
+
+The repo includes a workflow at **`.github/workflows/deploy-docs.yml`** that publishes the site —
+**including the Marp slide decks** — to the `gh-pages` branch on **every push to `main`**. It:
+
+1. installs `mkdocs` + `mkdocs-material`,
+2. builds the slide decks (`docs/slides/build.sh`),
+3. runs `mkdocs gh-deploy --force`.
+
+**One-time repo setup (in the GitHub web UI):**
+
+1. **Settings → Actions → General → Workflow permissions** → choose **“Read and write permissions”** → Save.
+   (Lets the Action push the built site to `gh-pages`; the workflow already declares `permissions: contents: write`.)
+2. **Settings → Pages → Build and deployment → Source** → **Deploy from a branch** → branch **`gh-pages`**, folder **`/ (root)`**.
+
+After that, just `git push` to `main` — the Action builds and deploys, and the site (with slides) updates
+in ~1–2 minutes. You can also run it on demand from the **Actions** tab → *Deploy docs + slides* → **Run workflow**.
+
+> ⚠️ A plain `git push` updates the live site **only because** this Action runs `mkdocs gh-deploy`. Without
+> the Action (or a manual `mkdocs gh-deploy`), the `gh-pages` branch — and the live site — stays stale.
+

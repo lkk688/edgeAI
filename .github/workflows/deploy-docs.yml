@@ -1,0 +1,39 @@
+name: Deploy docs + slides to GitHub Pages
+
+# Publishes the MkDocs site (and the Marp slide decks) to the gh-pages branch.
+# A plain `git push` to main does NOT update the live site by itself — this
+# workflow runs `mkdocs gh-deploy` on every push so the site (incl. slides) stays current.
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:        # allow manual runs from the Actions tab
+
+permissions:
+  contents: write           # needed to push to the gh-pages branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install mkdocs mkdocs-material
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Marp slide decks (docs/slides/*.md -> *.html)
+        run: bash docs/slides/build.sh
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Build MkDocs site + publish to gh-pages
+        run: mkdocs gh-deploy --force

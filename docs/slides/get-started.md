@@ -250,8 +250,10 @@ sjsujetsontool gradio        # installs deps first run → open http://localhost
 - Pick **Local / NVIDIA / OpenAI / Anthropic** in the UI (keys read from `~/.env.local`).
 - Drop in an **image** to test vision, or a **text file** to ask about its contents.
 
-> 🚀 Want a full web app? See the **Next.js + NVIDIA Nemotron** lab:
-> [11_nextjs_nemotron_app](https://lkk688.github.io/edgeAI/curriculum/11_nextjs_nemotron_app/)
+<span class="tiny">📖 Code: [edgeLLM/gradio_chat_ui.py](https://github.com/lkk688/edgeAI/blob/main/edgeLLM/gradio_chat_ui.py)</span>
+
+> 🚀 Want a full **web app**? Continue with the [**Next.js + Nemotron slides ▶**](nextjs-nemotron.html)
+> &nbsp;·&nbsp; [full lab](https://lkk688.github.io/edgeAI/curriculum/11_nextjs_nemotron_app/)
 
 ---
 

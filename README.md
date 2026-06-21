@@ -13,11 +13,11 @@ regular PCs.
 <tr>
 <td width="50%" valign="top">
 
-### ▶ Lab Slides — *Get Started*
-A short, click-through guide: set up your Jetson and run your first AI model in **~15 minutes**.
-Perfect for your first lab.
+### 🎞️ Lab Slides
+Short, click-through decks — follow along step by step:
 
-**→ [Open the slides](https://lkk688.github.io/edgeAI/slides/get-started.html)**
+- ▶ **[Get Started](https://lkk688.github.io/edgeAI/slides/get-started.html)** — set up your Jetson + run your first AI model (~15 min)
+- 🌐 **[Next.js + NVIDIA Nemotron](https://lkk688.github.io/edgeAI/slides/nextjs-nemotron.html)** — build & run a streaming chat web app
 
 </td>
 <td width="50%" valign="top">

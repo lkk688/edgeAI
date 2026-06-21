@@ -1064,17 +1064,22 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "🔄 Running full update (script + setup-check + container)..."
-    echo "  Use 'update-container', 'update-script', or 'setup-check' to run individually."
+    echo "🔄 Running full update (script + sample code + container)..."
+    echo "  Use 'update-script', 'force_git_pull', or 'update-container' to run individually."
     echo
-    
-    # First update script
-    echo "📜 Step 1/2: Updating script from GitHub..."
+
+    # 1) update this CLI script
+    echo "📜 Step 1/3: Updating sjsujetsontool script from GitHub..."
     $0 update-script
     echo
 
-    # Then update container
-    echo "🐳 Step 2/2: Updating container image..."
+    # 2) force-update the edgeAI sample code in /Developer/edgeAI
+    echo "📥 Step 2/3: Updating edgeAI sample code (git pull --force)..."
+    $0 force_git_pull || echo "⚠️  Skipped sample-code update (is /Developer/edgeAI a git repo?)."
+    echo
+
+    # 3) update the container image
+    echo "🐳 Step 3/3: Updating container image..."
     $0 update-container
     exit 0
     ;;

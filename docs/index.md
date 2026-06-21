@@ -14,8 +14,12 @@ Hands-on labs to learn **embedded systems, Linux, AI/LLMs, robotics, and cyber�
   </a>
 </div>
 
-- 🚀 **New here?** Open the **[Lab Slides ▶](slides/get-started.html)** and follow along step by step.
-- 📖 **Want details?** Browse the **Handbook** below — the slides link back to it for deep dives.
+**🎞️ Slide decks** (short, click‑through — follow along step by step):
+
+- ▶ [**Get Started**](slides/get-started.html) — set up your Jetson and run your first AI model (~15 min)
+- 🌐 [**Next.js + NVIDIA Nemotron Web App**](slides/nextjs-nemotron.html) — build & run a streaming chat web app
+
+📖 **Want details?** Browse the **Handbook** below — the slides link back to it for deep dives.
 
 ---
 
