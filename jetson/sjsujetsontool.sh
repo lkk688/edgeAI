@@ -360,7 +360,8 @@ show_help() {
   echo "  setup-student [user] [pass] - Create/repair non-sudo student account (docker + /Developer, display name 'Student')"
   echo "  setup-ssh <ghuser>- Add GitHub user's SSH key for login"
   echo "  setup-nvapi       - Setup NVIDIA NGC/Build API Key in local .env.local"
-  echo "  chat              - Unified streaming chat (pick: local llama.cpp / NVIDIA API / our LLM server)"
+  echo "  chat              - Unified streaming chat; backend menu: local llama.cpp / NVIDIA / OpenAI / Anthropic / custom"
+  echo "  curl              - Interactive curl builder (LLM API or plain URL); prints + sends the command"
   echo "  nv-chat           - Chat with NVIDIA Build API models interactively (legacy)"
   echo "  setup-check       - Check and configure host /Developer folder and edgeAI repository"
   echo "  update            - Update script, container image, and check /Developer setup"
@@ -440,11 +441,13 @@ show_list() {
   echo "     ▶ sjsujetsontool setup-nvapi"
   echo
   echo "  chat         → Unified streaming chat (Rich UI) with a backend picker"
-  echo "     ▶ sjsujetsontool chat                 # menu: local / NVIDIA / our server"
-  echo "     ▶ sjsujetsontool chat --local         # local Jetson llama.cpp (:8080)"
-  echo "     ▶ sjsujetsontool chat --nvidia        # NVIDIA Build API (model menu)"
-  echo "     ▶ sjsujetsontool chat --server        # our LLM server via llm.forgengi.org"
-  echo "       In-chat commands: /help /exit /server /save /reset /system /think"
+  echo "     ▶ sjsujetsontool chat        # menu: local llama.cpp / NVIDIA / OpenAI / Anthropic / custom"
+  echo "     ▶ sjsujetsontool chat --local        # quick: local Jetson llama.cpp (:8080)"
+  echo "       Cloud keys are saved to ~/.env.local (you're prompted on first use)."
+  echo "       In-chat commands: /help /exit /server(switch backend) /save /reset /system /think"
+  echo
+  echo "  curl         → Interactive curl builder — answer a few prompts, it prints & sends the request"
+  echo "     ▶ sjsujetsontool curl        # pick: LLM API (chat) or a plain URL"
   echo
   echo "  nv-chat      → Chat with NVIDIA Build API models interactively (legacy)"
   echo "     ▶ sjsujetsontool nv-chat"
@@ -930,7 +933,9 @@ case "$1" in
 
     # --- 3) launch (b9743+ build supports qwen35/qwen3vl) -------------------
     llama_bin llama-server
-    LLAMA_ARGS="-hf $LLM_HF --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99"
+    # --jinja uses the model's chat template so requests can toggle thinking via
+    # chat_template_kwargs:{enable_thinking:false} (much faster on Jetson).
+    LLAMA_ARGS="-hf $LLM_HF --host 0.0.0.0 --port 8080 --jinja --ubatch-size 2048 --batch-size 2048 -ngl 99"
     if [ "$RUN_MODE" = "bg" ]; then
       echo "🧠 Starting $LLM_NAME llama.cpp server in the BACKGROUND (port 8080)  [$LLM_HF]"
       docker exec -d "$CONTAINER_NAME" bash -lc "env $LD_ENV $LLAMA_BIN $LLAMA_ARGS >/tmp/llama-server.log 2>&1"
@@ -997,8 +1002,10 @@ case "$1" in
     ;;
   gradio)
     ensure_container_started
-    echo "🌐 Launching Gradio Ollama UI on port 7860..."
-    $EXEC_CMD bash -c "ollama serve & sleep 2 && python3 /Developer/edgeAI/jetson/ollama_gradio_ui.py"
+    echo "🌐 Launching Edge AI Chat UI (Gradio) on http://localhost:7860 ..."
+    echo "   Pick a backend in the UI (local llama.cpp / NVIDIA / OpenAI / Anthropic)."
+    echo "   Tip: start a local model first with  sjsujetsontool llama"
+    $EXEC_CMD bash -lc "pip show gradio >/dev/null 2>&1 || pip install -q gradio requests; python3 /Developer/edgeAI/edgeLLM/gradio_chat_ui.py"
     ;;
   fastapi)
     echo "🚀 Launching FastAPI server on port 8001..."
@@ -1581,8 +1588,9 @@ except Exception as e:
     ;;
   chat)
     shift
-    # Unified streaming chat client (Rich UI) over any OpenAI-compatible backend.
-    # Reuses the shared chat.py engine; pick a backend, then chat.
+    # Unified streaming chat client (Rich UI). The backend menu + per-backend API
+    # key handling (saved to ~/.env.local) now live in chat.py, so the in-chat
+    # /server command can switch backends mid-session too.
     CHAT_PY="$(dirname "$(realpath "$0")")/sjsujetsontool-chat.py"
     if [ ! -f "$CHAT_PY" ]; then
       echo "⬇️  Fetching chat client (chat.py)..."
@@ -1593,65 +1601,109 @@ except Exception as e:
       echo "❌ Could not obtain chat client. Check network or run: sjsujetsontool update-script"
       exit 1
     fi
-
-    # Explicit backend flags skip the menu: chat --local|--nvidia|--server [chat.py args]
-    BACKEND=""
-    case "${1:-}" in
-      --local)  BACKEND=1; shift ;;
-      --nvidia) BACKEND=2; shift ;;
-      --server) BACKEND=3; shift ;;
-    esac
-    if [ -z "$BACKEND" ]; then
-      echo "🤖 Select chat backend:"
-      echo "  1) Local Jetson llama.cpp   (http://localhost:8080 — start it with: sjsujetsontool llama)"
-      echo "  2) NVIDIA Build API         (cloud — needs NVIDIA_API_KEY; setup: sjsujetsontool setup-nvapi)"
-      echo "  3) Our LLM server           (https://llm.forgengi.org/<node> over Headscale)"
-      read -r -p "Select [1-3]: " BACKEND
+    # Quick shortcut to the local server; otherwise launch the backend chooser.
+    if [ "${1:-}" = "--local" ]; then
+      shift; exec python3 "$CHAT_PY" --url "http://localhost:8080/v1" "$@"
+    elif [ "$#" -gt 0 ]; then
+      exec python3 "$CHAT_PY" "$@"           # passthrough (flags / one-shot message)
+    else
+      exec python3 "$CHAT_PY" --backend      # interactive backend menu
     fi
+    ;;
+  curl)
+    shift
+    # Interactive curl builder: asks a few questions, prints the full curl command
+    # (so you learn it), then offers to send it. Two modes: LLM API or plain URL.
+    echo "══════════════════════════════════════════════════"
+    echo "🌐 sjsujetsontool curl — interactive request builder"
+    echo "══════════════════════════════════════════════════"
+    echo "What do you want to call?"
+    echo "  1) LLM API   (OpenAI-compatible chat — e.g. your 'sjsujetsontool llama' server)"
+    echo "  2) Plain URL (any GET/POST)"
+    read -r -p "Select [1-2] (Enter = 1): " _CMODE
 
-    case "$BACKEND" in
-      2)
-        # --- NVIDIA Build API ---
-        TARGET_DIR="."
-        if [ -d "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app" ]; then
-          TARGET_DIR="/Developer/edgeAI/edgeLLM/nextjs-nemotron-app"
-        elif [ -d "./edgeLLM/nextjs-nemotron-app" ]; then
-          TARGET_DIR="./edgeLLM/nextjs-nemotron-app"
-        fi
-        NV_KEY="$NVIDIA_API_KEY"
-        if [ -z "$NV_KEY" ] && [ -f "${TARGET_DIR}/.env.local" ]; then
-          NV_KEY=$(grep -E "^NVIDIA_API_KEY=" "${TARGET_DIR}/.env.local" | cut -d= -f2- | tr -d '"' | tr -d "'")
-        fi
-        if [ -z "$NV_KEY" ]; then
-          echo "❌ NVIDIA API key not set. Run: sjsujetsontool setup-nvapi"
-          exit 1
-        fi
-        echo "🧠 Select NVIDIA model:"
-        echo "  1) Llama 3.1 Nemotron Nano 8B  [default]"
-        echo "  2) Llama 3.3 Nemotron Super 49B"
-        echo "  3) Llama 3.1 Nemotron Ultra 253B"
-        read -r -p "Select [1-3]: " NVM
-        case "$NVM" in
-          2) NVMODEL="nvidia/llama-3.3-nemotron-super-49b-v1" ;;
-          3) NVMODEL="nvidia/llama-3.1-nemotron-ultra-253b-v1" ;;
-          *) NVMODEL="nvidia/llama-3.1-nemotron-nano-8b-v1" ;;
-        esac
-        exec python3 "$CHAT_PY" --url "https://integrate.api.nvidia.com/v1" \
-          --api-key "$NV_KEY" --model "$NVMODEL" --no-template-kwargs "$@"
-        ;;
-      3)
-        # --- Our shared LLM server (over the Headscale gateway) ---
-        DEF_URL="https://llm.forgengi.org/node05/v1"
-        read -r -p "Server base URL [${DEF_URL}]: " SURL
-        SURL="${SURL:-$DEF_URL}"
-        read -r -p "API key (blank if none): " SKEY
-        exec python3 "$CHAT_PY" --url "$SURL" ${SKEY:+--api-key "$SKEY"} "$@"
-        ;;
-      *)
-        # --- Local Jetson llama.cpp (default) ---
-        exec python3 "$CHAT_PY" --url "http://localhost:8080/v1" "$@"
-        ;;
-    esac
+    if [ "$_CMODE" = "2" ]; then
+      # ---------- plain URL ----------
+      read -r -p "URL: " _URL
+      [ -z "$_URL" ] && { echo "❌ No URL given."; exit 1; }
+      read -r -p "Method [GET/POST] (Enter = GET): " _M; _M="$(echo "${_M:-GET}" | tr a-z A-Z)"
+      _ARGS=(curl -sS -X "$_M")
+      read -r -p "Add a header? e.g. 'Accept: application/json' (blank to skip): " _H1
+      [ -n "$_H1" ] && _ARGS+=(-H "$_H1")
+      if [ "$_M" = "POST" ]; then
+        read -r -p "Content-Type [application/json]: " _CT; _CT="${_CT:-application/json}"
+        _ARGS+=(-H "Content-Type: $_CT")
+        read -r -p "Request body (sent with -d), blank for none: " _DATA
+        [ -n "$_DATA" ] && _ARGS+=(-d "$_DATA")
+      fi
+      _ARGS+=("$_URL")
+      echo
+      echo "📋 Generated command:"
+      printf '   '; printf '%q ' "${_ARGS[@]}"; echo; echo
+      echo "ℹ️  curl basics:  -X method · -H \"Header: value\" · -d 'body' (implies POST) · -s quiet · -L follow redirects"
+      read -r -p "Send now? [Y/n]: " _GO
+      [[ "$_GO" =~ ^[Nn]$ ]] && { echo "Not sent. (Copy the command above to run it later.)"; exit 0; }
+      echo; "${_ARGS[@]}"; echo
+    else
+      # ---------- LLM API (OpenAI-compatible /v1/chat/completions) ----------
+      read -r -p "Host/IP [localhost]: " _H; _H="${_H:-localhost}"
+      read -r -p "Port [8080]: " _P; _P="${_P:-8080}"
+      read -r -p "API key (optional, Enter to skip): " _K
+      read -r -p "Your message [Explain Nvidia Jetson in 2 sentences.]: " _MSG
+      _MSG="${_MSG:-Explain Nvidia Jetson in 2 sentences.}"
+      read -r -p "Attach an image for a vision model? (path, blank = none): " _IMG
+      if [ -n "$_IMG" ] && [ ! -f "$_IMG" ]; then echo "⚠️  Image not found: $_IMG (continuing text-only)"; _IMG=""; fi
+      read -r -p "max_tokens [256]: " _MT; _MT="${_MT:-256}"
+      read -r -p "Stream the output token-by-token? [y/N]: " _S
+      read -r -p "Enable 'thinking' (slower, more reasoning)? [y/N]: " _T
+      [[ "$_S" =~ ^[Yy]$ ]] && _STREAM=1 || _STREAM=0
+      [[ "$_T" =~ ^[Yy]$ ]] && _THINK=1 || _THINK=0
+      _URL="http://$_H:$_P/v1/chat/completions"
+      # Build the JSON body safely. With an image, content becomes the OpenAI
+      # multimodal array [text + image_url(base64 data URI)] for vision models.
+      _BODY=$(MSG="$_MSG" IMG="$_IMG" MT="$_MT" STREAM="$_STREAM" THINK="$_THINK" python3 - <<'PY'
+import json, os, base64, mimetypes
+msg = os.environ["MSG"]; img = os.environ.get("IMG", "")
+if img:
+    data = open(img, "rb").read()
+    mime = mimetypes.guess_type(img)[0] or "image/jpeg"
+    uri = "data:%s;base64,%s" % (mime, base64.b64encode(data).decode())
+    content = [{"type": "text", "text": msg},
+               {"type": "image_url", "image_url": {"url": uri}}]
+else:
+    content = msg
+b = {"messages": [{"role": "user", "content": content}],
+     "max_tokens": int(os.environ.get("MT") or 256),
+     "stream": os.environ["STREAM"] == "1"}
+if os.environ["THINK"] != "1":              # default: thinking OFF -> short & fast on Jetson
+    b["chat_template_kwargs"] = {"enable_thinking": False}
+print(json.dumps(b))
+PY
+)
+      _ARGS=(curl)
+      [ "$_STREAM" = "1" ] && _ARGS+=(-N) || _ARGS+=(-s)
+      _ARGS+=("$_URL" -H "Content-Type: application/json")
+      [ -n "$_K" ] && _ARGS+=(-H "Authorization: Bearer $_K")
+      # Send the body from a temp file (-d @file). A base64 image is far larger than
+      # the 128 KB per-argument limit, so it cannot go on the command line directly.
+      _TMP="$(mktemp)"; printf '%s' "$_BODY" > "$_TMP"
+      _ARGS+=(--data-binary "@$_TMP")
+      echo
+      echo "📋 Generated curl command:"
+      echo "   curl $([ "$_STREAM" = 1 ] && echo '-N' || echo '-s') \"$_URL\" \\"
+      echo "     -H \"Content-Type: application/json\" \\"
+      [ -n "$_K" ] && echo "     -H \"Authorization: Bearer ****\" \\"
+      if [ -n "$_IMG" ]; then
+        echo "     -d '{\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"$_MSG\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:<base64 of $_IMG>\"}}]}],\"max_tokens\":$_MT,...}'"
+        echo "     (image base64 omitted above; the real request sends the body via a temp file)"
+      else
+        echo "     -d '$_BODY'"
+      fi
+      echo
+      read -r -p "Send now? [Y/n]: " _GO
+      [[ "$_GO" =~ ^[Nn]$ ]] && { rm -f "$_TMP"; echo "Not sent. (Tip: start a server first with 'sjsujetsontool llama'.)"; exit 0; }
+      echo; "${_ARGS[@]}"; echo; rm -f "$_TMP"
+    fi
     ;;
   nv-chat)
     shift

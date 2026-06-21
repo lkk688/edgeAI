@@ -1,430 +1,205 @@
-import time
-import subprocess
-import json
-import os
-import threading
-import sys
-import argparse
-import platform
+#!/usr/bin/env python3
+"""
+gradio_chat_ui.py — a simple multi-backend chat UI (Gradio) for Edge AI labs.
+
+It talks to the SAME OpenAI-compatible backends as `sjsujetsontool chat`:
+  • Local Jetson llama.cpp  (http://localhost:8080/v1 — start with `sjsujetsontool llama`)
+  • NVIDIA Build API · OpenAI · Anthropic Claude (OpenAI-compatible endpoint) · any custom URL
+
+Features
+  - Chat with history, choose backend + model, adjust max_tokens / thinking.
+  - Attach a **text file** (its content is added to your prompt).
+  - Attach an **image** (sent as OpenAI `image_url`) for vision models (Qwen3.5, Gemma-4, GPT-4o…).
+  - Cloud API keys are read from ~/.env.local (the same file the CLI uses); you can also paste a key.
+
+Run:
+  pip install gradio requests
+  python3 edgeLLM/gradio_chat_ui.py            # http://localhost:7860
+"""
+import os, time, base64, mimetypes, argparse
 import requests
 import gradio as gr
-from gradio.themes.soft import Soft  # Explicit and clean
 
+# Gradio 6.0 changed a few APIs (Chatbot is messages-only and dropped `type=`;
+# `theme` moved from Blocks() to launch()). Detect the major version and adapt.
+try:
+    _GVER = int(gr.__version__.split(".")[0])
+except Exception:
+    _GVER = 5
+try:
+    _THEME = gr.themes.Soft(primary_hue="indigo")
+except Exception:
+    _THEME = None
 
-# Import our modularized system monitoring utilities
-# Import system monitoring utilities from local directory
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import system_monitor # pylint: disable=import-error
+# --------------------------------------------------------------------------- API keys (~/.env.local)
+HOME_ENV = os.path.join(os.path.expanduser("~"), ".env.local")
+_ENV_FALLBACKS = ["/Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.env.local"]
 
-# Settings
-BACKENDS = ["ollama", "llama.cpp"]
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
-LLAMACPP_API_URL = "http://localhost:8000/completion"
-CHAT_LOG_PATH = "./chat_logs"
-os.makedirs(CHAT_LOG_PATH, exist_ok=True)
-
-# Initialize system monitoring
-platform_info = system_monitor.init_monitoring()
-IS_JETSON = platform_info["is_jetson"]
-IS_APPLE_SILICON = platform_info["is_apple_silicon"]
-HAS_NVIDIA_GPU = platform_info["has_nvidia_gpu"]
-
-# Start the appropriate monitoring thread and get the system_info dictionary
-system_info = system_monitor.start_monitoring()
-
-# Fetch available models
-def list_models(backend="ollama"):
+def _parse_env(path):
+    d = {}
     try:
-        if backend == "ollama":
-            r = requests.get("http://localhost:11434/api/tags")
-            if r.ok:
-                return [m["name"] for m in r.json().get("models", [])]
-        elif backend == "llama.cpp":
-            return ["llama.cpp-default"]
-    except:
-        return []
-    return []
+        for line in open(path):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("="); d[k.strip()] = v.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return d
 
-# Chat streaming
-def chat_with_backend_stream(prompt, model, backend, history=None):
-    if history is None:
-        history = []
-    
-    start = time.time()
-    response = ""
-    tokens = 0
-    error_msg = None
-    
-    # Add user message to history immediately for better UX
-    history.append({"role": "user", "content": prompt})
-    # Create a placeholder for assistant response
-    history.append({"role": "assistant", "content": "Thinking..."})
-    
-    # Check if model is available
-    if backend == "ollama":
+def load_env_keys():
+    merged = {}
+    for p in _ENV_FALLBACKS:
+        merged.update(_parse_env(p))
+    merged.update(_parse_env(HOME_ENV))   # ~/.env.local wins
+    return merged
+
+ENV_KEYS = load_env_keys()
+
+# --------------------------------------------------------------------------- backends (match sjsujetsontool chat)
+BACKENDS = {
+    "Local Jetson llama.cpp": dict(url="http://localhost:8080/v1", key_env=None, ntk=False, model=""),
+    "NVIDIA Build API":       dict(url="https://integrate.api.nvidia.com/v1", key_env="NVIDIA_API_KEY", ntk=True,
+                                   model="nvidia/llama-3.1-nemotron-nano-8b-v1"),
+    "OpenAI":                 dict(url="https://api.openai.com/v1", key_env="OPENAI_API_KEY", ntk=True, model="gpt-4o-mini"),
+    "Anthropic Claude":       dict(url="https://api.anthropic.com/v1", key_env="ANTHROPIC_API_KEY", ntk=True,
+                                   model="claude-haiku-4-5"),
+    "Custom (OpenAI-compatible)": dict(url="", key_env=None, ntk=False, model=""),
+}
+
+def backend_defaults(name):
+    b = BACKENDS[name]
+    key = ENV_KEYS.get(b["key_env"], "") if b["key_env"] else ""
+    return b["model"], key, b["url"]
+
+def detect_model(base, headers):
+    try:
+        r = requests.get(base.rstrip("/") + "/models", headers=headers, timeout=5)
+        return (r.json().get("data") or [{}])[0].get("id") or "local-model"
+    except Exception:
+        return "local-model"
+
+def _image_data_uri(path):
+    data = open(path, "rb").read()
+    mime = mimetypes.guess_type(path)[0] or "image/jpeg"
+    return "data:%s;base64,%s" % (mime, base64.b64encode(data).decode())
+
+# --------------------------------------------------------------------------- chat
+def respond(message, image, textfile, history, backend, model, api_key, custom_url, max_tokens, thinking):
+    history = history or []
+    message = (message or "").strip()
+    if not message and not image and not textfile:
+        return history, history, "", None, None
+
+    b = BACKENDS.get(backend, BACKENDS["Local Jetson llama.cpp"])
+    base = (custom_url.strip() if (backend.startswith("Custom") and custom_url.strip()) else b["url"]).rstrip("/")
+    key = (api_key or "").strip() or (ENV_KEYS.get(b["key_env"], "") if b["key_env"] else "")
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Authorization"] = "Bearer " + key
+    mdl = (model or "").strip() or b["model"] or detect_model(base, headers)
+
+    # Build the prompt text (+ optional attached text file)
+    text = message
+    note = ""
+    if textfile:
         try:
-            # First check if Ollama server is running
-            try:
-                server_check = requests.get("http://localhost:11434/", timeout=2)
-                if not server_check.ok:
-                    error_msg = "[ERROR] Ollama server is not responding. Make sure it's running."
-                    history[-1]["content"] = error_msg
-                    return history, history, "N/A"
-            except requests.RequestException:
-                error_msg = "[ERROR] Cannot connect to Ollama server. Make sure it's running with 'ollama serve'."
-                history[-1]["content"] = error_msg
-                return history, history, "N/A"
-            
-            # Check if the model exists
-            try:
-                models_response = requests.get("http://localhost:11434/api/tags", timeout=5)
-                if not models_response.ok:
-                    error_msg = f"[ERROR] Failed to get models list: {models_response.status_code} - {models_response.text}"
-                    history[-1]["content"] = error_msg
-                    return history, history, "N/A"
-                
-                models_data = models_response.json()
-                available_models = [m["name"] for m in models_data.get("models", [])]
-                
-                if not available_models:
-                    error_msg = "[ERROR] No models available in Ollama. Please pull a model first using 'ollama pull <model>'"
-                    history[-1]["content"] = error_msg
-                    return history, history, "N/A"
-                
-                if model not in available_models:
-                    error_msg = f"[ERROR] Selected model '{model}' not found. Available models: {', '.join(available_models)}"
-                    history[-1]["content"] = error_msg
-                    return history, history, "N/A"
-            except json.JSONDecodeError:
-                error_msg = "[ERROR] Invalid response from Ollama API. Check if Ollama is running correctly."
-                history[-1]["content"] = error_msg
-                return history, history, "N/A"
-                
-        except requests.RequestException as e:
-            error_msg = f"[ERROR] Cannot connect to Ollama API: {str(e)}"
-            history[-1]["content"] = error_msg
-            return history, history, "N/A"
+            content = open(textfile, "r", errors="ignore").read()
+            text += "\n\n--- attached file: %s ---\n%s" % (os.path.basename(textfile), content[:20000])
+            note += "  📎 " + os.path.basename(textfile)
         except Exception as e:
-            error_msg = f"[ERROR] Unexpected error checking models: {str(e)}"
-            history[-1]["content"] = error_msg
-            return history, history, "N/A"
-    
-    # Prepare API request based on backend - no streaming
-    if backend == "ollama":
-        payload = {"model": model, "prompt": prompt, "stream": False}
-        url = OLLAMA_API_URL
+            note += "  ⚠️ file read failed"
+    if image:
+        note += "  🖼️ image"
+
+    # OpenAI message content: plain string, or array with an image for vision models
+    if image:
+        user_content = [{"type": "text", "text": text},
+                        {"type": "image_url", "image_url": {"url": _image_data_uri(image)}}]
     else:
-        payload = {"prompt": prompt, "n_predict": 128, "stream": False}
-        url = LLAMACPP_API_URL
+        user_content = text
 
-    # Make a non-streaming request
+    # Prior turns (text only) + this turn
+    api_messages = [{"role": m["role"], "content": m["content"]} for m in history]
+    api_messages.append({"role": "user", "content": user_content})
+
+    payload = {"model": mdl, "messages": api_messages, "max_tokens": int(max_tokens), "stream": False}
+    if not thinking and not b["ntk"]:
+        payload["chat_template_kwargs"] = {"enable_thinking": False}
+
+    # Show the user's turn immediately
+    history = history + [{"role": "user", "content": message + note}]
+    t0 = time.time()
     try:
-        with requests.post(url, json=payload, timeout=60) as r:
-            if not r.ok:
-                error_msg = f"[ERROR] API returned status code {r.status_code}: {r.text}"
-                history[-1]["content"] = error_msg
-                return history, history, "N/A"
-                
-            try:
-                data = r.json()
-                # Extract response based on backend
-                if backend == "ollama":
-                    response = data.get("response", "")
-                else:  # llama.cpp
-                    response = data.get("content", "")
-                
-                # Update the assistant's message in history
-                history[-1]["content"] = response
-                # Calculate tokens
-                tokens = len(response.split())
-            except json.JSONDecodeError:
-                error_msg = "[ERROR] Invalid JSON response from API"
-                history[-1]["content"] = error_msg
-                return history, history, "N/A"
-            except Exception as e:
-                error_msg = f"[ERROR] Failed to process response: {str(e)}"
-                history[-1]["content"] = error_msg
-                return history, history, "N/A"
-    except requests.RequestException as e:
-        error_msg = f"[ERROR] Connection error: {str(e)}"
-        history[-1]["content"] = error_msg
-        return history, history, "N/A"
-    except Exception as e:
-        error_msg = f"[ERROR] Unexpected error: {str(e)}"
-        history[-1]["content"] = error_msg
-        return history, history, "N/A"
-    
-    # If there was no response
-    if not response:
-        # Provide a more detailed error message
-        if backend == "ollama":
-            history[-1]["content"] = "[ERROR] No response received from model. This could be due to:\n\n" \
-                                    "1. The model is still loading (first run can take time)\n" \
-                                    "2. Insufficient system resources (memory/GPU)\n" \
-                                    "3. Ollama server issue - try restarting with 'ollama serve'\n\n" \
-                                    f"Selected model: {model}"
+        r = requests.post(base + "/chat/completions", headers=headers, json=payload, timeout=300)
+        if not r.ok:
+            reply = "⚠️ HTTP %s: %s" % (r.status_code, r.text[:300])
+            usage = {}
         else:
-            history[-1]["content"] = "[ERROR] No response received from model. Check if the model is properly loaded."
-        return history, history, "N/A"
-    
-    elapsed = time.time() - start
-    tps = f"{tokens / elapsed:.2f} tokens/sec" if tokens > 0 and elapsed > 0 else "N/A"
-    
-    return history, history, tps
+            d = r.json()
+            reply = d["choices"][0]["message"].get("content") or "(empty)"
+            usage = d.get("usage", {})
+    except Exception as e:
+        reply, usage = "⚠️ Request failed: %s" % e, {}
 
-# Export chat history
-def export_chat(history):
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    md_path = os.path.join(CHAT_LOG_PATH, f"chat_{timestamp}.md")
-    json_path = os.path.join(CHAT_LOG_PATH, f"chat_{timestamp}.json")
-    
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(md_path), exist_ok=True)
-    
-    with open(md_path, "w") as md_file:
-        # Process messages in pairs (user, assistant)
-        i = 0
-        while i < len(history):
-            user_msg = history[i] if i < len(history) else None
-            assistant_msg = history[i+1] if i+1 < len(history) else None
-            
-            if user_msg and user_msg.get("role") == "user":
-                md_file.write(f"**User:** {user_msg.get('content', '')}\n\n")
-            
-            if assistant_msg and assistant_msg.get("role") == "assistant":
-                md_file.write(f"**Assistant:** {assistant_msg.get('content', '')}\n\n---\n")
-            
-            i += 2
-    
-    with open(json_path, "w") as json_file:
-        json.dump(history, json_file, indent=2)
-    
-    return f"✅ Exported:\n- {md_path}\n- {json_path}"
+    dt = time.time() - t0
+    ct = usage.get("completion_tokens", 0)
+    if ct:
+        reply += "\n\n— *%d tok · %.1f tok/s · %.1fs*" % (ct, ct / dt if dt else 0, dt)
+    history = history + [{"role": "assistant", "content": reply}]
+    return history, history, "", None, None  # clears prompt, image, file
 
-# UI
-with gr.Blocks(title="Ollama Chat UI", theme=Soft(primary_hue="indigo")) as demo:
-    # Get platform name from system_monitor
-    platform_name = system_monitor.get_platform_name()
-    
-    gr.Markdown(f"## 🧠 Ollama / llama.cpp Chat UI ({platform_name})")
-    
+# --------------------------------------------------------------------------- UI
+_blocks_kw = {"title": "Edge AI Chat UI"}
+if _THEME is not None and _GVER < 6:        # Gradio <6: theme on Blocks
+    _blocks_kw["theme"] = _THEME
+with gr.Blocks(**_blocks_kw) as demo:
+    gr.Markdown("## 🧠 Edge AI Chat UI — local & cloud backends (text + file + image)")
     with gr.Row():
-        with gr.Column(scale=2):
+        with gr.Column(scale=3):
+            _chat_kw = {"label": "Chat", "height": 520}
+            if _GVER < 6:                   # Gradio <6: opt into messages + copy button
+                _chat_kw["type"] = "messages"
+                _chat_kw["show_copy_button"] = True
+            chatbot = gr.Chatbot(**_chat_kw)
             with gr.Row():
-                backend_select = gr.Radio(
-                    BACKENDS, 
-                    value="ollama", 
-                    label="Backend",
-                    interactive=True,
-                    scale=1
-                )
-                model_dropdown = gr.Dropdown(
-                    choices=list_models("ollama"), 
-                    label="Model",
-                    interactive=True,
-                    scale=2
-                )
-            
-            # Main chat interface
-            chatbot = gr.Chatbot(
-                label="Chat History",
-                type="messages",
-                height=600,  # Increased height for better visibility
-                show_copy_button=True,
-                avatar_images=(None, "https://em-content.zobj.net/source/twitter/376/robot_1f916.png"),
-                bubble_full_width=False,
-                show_label=True
-            )
-            
+                prompt = gr.Textbox(placeholder="Ask something…  (attach a file/image on the right)",
+                                    lines=2, scale=6, show_label=False)
+                send = gr.Button("Send", variant="primary", scale=1)
             with gr.Row():
-                prompt = gr.Textbox(
-                    label="Prompt", 
-                    placeholder="Ask something...",
-                    lines=2,
-                    max_lines=5,
-                    show_label=False,
-                    scale=5
-                )
-                send = gr.Button("Send", scale=1, variant="primary")
-            
-            with gr.Row():
-                clear_btn = gr.Button("🧹 Clear Chat", scale=1)
-                refresh_btn = gr.Button("🔄 Refresh Models", scale=1)
-                export_btn = gr.Button("💾 Export Chat", scale=1)
-        
-        # Right sidebar for system info
+                image_in = gr.Image(label="🖼️ Image (for vision models)", type="filepath", height=120)
+                file_in = gr.File(label="📎 Text file", type="filepath", file_types=[".txt", ".md", ".py", ".json", ".csv", ".log"])
+            clear_btn = gr.Button("🧹 Clear chat")
         with gr.Column(scale=1):
-            dashboard = gr.Textbox(
-                label="Live System Info", 
-                lines=15, 
-                max_lines=20,
-                interactive=False, 
-                value=system_info["text"],
-                show_label=True
-            )
-            token_speed = gr.Textbox(label="Token Speed", interactive=False)
-            
-            # Platform-specific info
-            if IS_JETSON:
-                gr.Markdown("### Jetson Device")
-                gr.Markdown("Optimized for NVIDIA Jetson hardware")
-                gr.Markdown("*For best performance, ensure jetson-stats is installed*")
-            elif IS_APPLE_SILICON:
-                gr.Markdown("### Apple Silicon")
-                gr.Markdown("Optimized for Apple M1/M2/M3 hardware")
-                gr.Markdown("*For detailed GPU stats, try tools like 'mactop' (brew install mactop), 'macmon' (brew install macmon), or 'asitop' (pip install asitop)*")
-            elif HAS_NVIDIA_GPU:
-                gr.Markdown("### NVIDIA GPU")
-                gr.Markdown("Optimized for NVIDIA graphics cards")
-                gr.Markdown("*Using GPUtil or nvidia-smi for monitoring*")
-            else:
-                gr.Markdown("### CPU Mode")
-                gr.Markdown("Running in CPU-only mode")
-                gr.Markdown("*For better performance, consider using a GPU*")
-    
-    # Hidden state
+            backend = gr.Dropdown(list(BACKENDS.keys()), value="Local Jetson llama.cpp", label="Backend")
+            model = gr.Textbox(value="", label="Model (blank = auto/default)")
+            api_key = gr.Textbox(value="", label="API key (from ~/.env.local; paste to override)", type="password")
+            custom_url = gr.Textbox(value="", label="Custom base URL (for Custom backend)", visible=False)
+            max_tokens = gr.Slider(64, 2048, value=256, step=64, label="max_tokens")
+            thinking = gr.Checkbox(value=False, label="Enable thinking (slower)")
+            gr.Markdown("Keys are read from **~/.env.local** (private — don't share it). "
+                        "Start a local model with `sjsujetsontool llama`.")
+
     state = gr.State([])
-    
-    # Functions
-    def refresh_dashboard():
-        return system_info["text"]
-    
-    def update_model_list(backend):
-        # In newer versions of Gradio, we return a list directly instead of using .update()
-        models = list_models(backend)
-        return gr.Dropdown(choices=models)
-    
-    def export_trigger(history):
-        result = export_chat(history)
-        gr.Info("Chat history exported successfully")
-        return result
-    
-    def clear_chat():
-        return [], []
-    
-    # Event handlers
-    send.click(
-        fn=chat_with_backend_stream,
-        inputs=[prompt, model_dropdown, backend_select, state],
-        outputs=[chatbot, state, token_speed],
-        api_name="chat"
-    )
-    
-    # Also trigger on Enter key
-    prompt.submit(
-        fn=chat_with_backend_stream,
-        inputs=[prompt, model_dropdown, backend_select, state],
-        outputs=[chatbot, state, token_speed]
-    )
-    
-    refresh_btn.click(
-        fn=update_model_list, 
-        inputs=[backend_select], 
-        outputs=[model_dropdown]
-    )
-    
-    export_btn.click(
-        fn=export_trigger, 
-        inputs=[state], 
-        outputs=[dashboard]
-    )
-    
-    clear_btn.click(
-        fn=clear_chat,
-        inputs=[],
-        outputs=[chatbot, state]
-    )
-    
-    # Real-time dashboard refresh every 2 seconds
-    timer = gr.Timer(2)
-    timer.tick(fn=refresh_dashboard, outputs=[dashboard])
+
+    def on_backend(name):
+        mdl, key, url = backend_defaults(name)
+        return mdl, key, gr.update(value=url, visible=name.startswith("Custom"))
+    backend.change(on_backend, inputs=[backend], outputs=[model, api_key, custom_url])
+
+    _inputs = [prompt, image_in, file_in, state, backend, model, api_key, custom_url, max_tokens, thinking]
+    _outputs = [chatbot, state, prompt, image_in, file_in]
+    send.click(respond, inputs=_inputs, outputs=_outputs)
+    prompt.submit(respond, inputs=_inputs, outputs=_outputs)
+    clear_btn.click(lambda: ([], []), outputs=[chatbot, state])
 
 if __name__ == "__main__":
-    # Performance optimizations based on platform
-    if IS_JETSON:
-        print("Running on Jetson device - applying optimizations")
-        # Reduce memory usage by limiting thread pool
-        try:
-            import torch
-            if torch.cuda.is_available():
-                # Set lower memory usage for CUDA if available
-                #caps the memory usage to 70% of total GPU memory to avoid out-of-memory crashes and allow other GPU tasks to run.
-                torch.cuda.set_per_process_memory_fraction(0.7)  # Use only 70% of GPU memory
-                print(f"CUDA available: {torch.cuda.get_device_name(0)}")
-                print(f"Memory allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
-        except ImportError:
-            print("PyTorch not available, skipping CUDA optimizations")
-        
-        # Set environment variables for better performance
-        #Gradio by default collects usage analytics.
-	    #On a resource-constrained Jetson device, turning this off can save bandwidth and slightly improve startup performance.
-        os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"  # Disable analytics
-        #PCI_BUS_ID ensures that CUDA device enumeration follows the PCI bus order, which is reliable for multi-GPU setups.
-	    #On Jetson devices, which usually only have one GPU, this line is not necessary
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # Use PCI bus ID for CUDA devices
-    
-    elif IS_APPLE_SILICON:
-        print("Running on Apple Silicon - applying optimizations")
-        # Set environment variables for better performance on Apple Silicon
-        os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"  # Disable analytics
-        
-        # Check if PyTorch is available and configured for MPS (Metal Performance Shaders)
-        try:
-            import torch
-            if torch.backends.mps.is_available():
-                print("MPS (Metal Performance Shaders) is available for GPU acceleration")
-                # No need to set memory fraction as Apple Silicon manages memory differently
-                os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"  # Enable MPS fallback for operations not supported by MPS
-        except ImportError:
-            print("PyTorch not available, skipping MPS optimizations")
-        except AttributeError:
-            print("PyTorch available but MPS not supported in this version")
-    
-    elif HAS_NVIDIA_GPU:
-        print("Running on system with NVIDIA GPU - applying optimizations")
-        # Optimize for NVIDIA GPU
-        try:
-            import torch
-            if torch.cuda.is_available():
-                # Set reasonable memory usage for CUDA
-                torch.cuda.set_per_process_memory_fraction(0.8)  # Use 80% of GPU memory
-                print(f"CUDA available: {torch.cuda.get_device_name(0)}")
-                print(f"Memory allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
-        except ImportError:
-            print("PyTorch not available, skipping CUDA optimizations")
-        
-        # Set environment variables for better performance
-        os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"  # Disable analytics
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # Use PCI bus ID for CUDA devices
-    
-    else:
-        print("Running on CPU-only system")
-        # Set environment variables for better performance on CPU
-        os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"  # Disable analytics
-    
-    # Check if we need to start ollama server
-    parser = argparse.ArgumentParser(description="Ollama Gradio UI")
-    parser.add_argument("--start-ollama", action="store_true", help="Start ollama server")
-    parser.add_argument("--port", type=int, default=7860, help="Port to run the Gradio server on")
-    args = parser.parse_args()
-    
-    if args.start_ollama:
-        print("Starting ollama server...")
-        subprocess.Popen(["ollama", "serve"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print("Waiting for ollama server to start...")
-        time.sleep(2)  # Give ollama time to start
-    
-    # Launch the Gradio app
-    print(f"Starting Gradio UI on port {args.port}...")
-    demo.queue(max_size=10).launch(
-        server_name="0.0.0.0", 
-        server_port=args.port,
-        share=False,
-        show_error=True
-        # Removed favicon_path 
-    )
-    
-    # Command for Docker/container environments:
-    # $EXEC_CMD bash -c "ollama serve & sleep 2 && python3 /workspace/scripts/ollama_gradio_ui.py"
+    ap = argparse.ArgumentParser(description="Edge AI multi-backend chat UI")
+    ap.add_argument("--port", type=int, default=7860)
+    ap.add_argument("--share", action="store_true")
+    args = ap.parse_args()
+    os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
+    print("Starting Edge AI Chat UI on http://0.0.0.0:%d" % args.port)
+    _launch_kw = {"server_name": "0.0.0.0", "server_port": args.port, "share": args.share, "show_error": True}
+    if _THEME is not None and _GVER >= 6:   # Gradio >=6: theme on launch()
+        _launch_kw["theme"] = _THEME
+    demo.queue(max_size=16).launch(**_launch_kw)

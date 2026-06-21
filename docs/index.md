@@ -1,56 +1,25 @@
-# 📘 Jetson + AI Curriculum Guide
+# 📘 Jetson + AI — SJSU Edge AI Curriculum
 
-Welcome to the official documentation for the **SJSU Cyber-AI Curriculum**. This guide is designed for students to learn about embedded systems, Linux, AI, and cybersecurity through hands-on labs on the NVIDIA Jetson Orin Nano platform.
+Hands-on labs to learn **embedded systems, Linux, AI/LLMs, robotics, and cyber‑AI** on the
+**NVIDIA Jetson Orin Nano**. Pick your path:
+
+<div style="display:flex;gap:18px;flex-wrap:wrap;margin:18px 0">
+  <a href="slides/get-started.html" style="flex:1;min-width:260px;text-decoration:none;border:1px solid #E5A823;border-radius:14px;padding:18px 22px;display:block">
+    <div style="font-size:1.5em;font-weight:700;color:#0055A2">▶ Start Here — Lab Slides</div>
+    <div style="color:#444;margin-top:6px">A short, click‑through guide to set up your Jetson and run your first AI model in ~15 minutes. Best for the first lab.</div>
+  </a>
+  <a href="#curriculum-handbook" style="flex:1;min-width:260px;text-decoration:none;border:1px solid #0055A2;border-radius:14px;padding:18px 22px;display:block">
+    <div style="font-size:1.5em;font-weight:700;color:#0055A2">📚 Full Handbook</div>
+    <div style="color:#444;margin-top:6px">The complete reference — every lab in depth: CUDA, YOLO, LLMs, ROS 2, robotics, security.</div>
+  </a>
+</div>
+
+- 🚀 **New here?** Open the **[Lab Slides ▶](slides/get-started.html)** and follow along step by step.
+- 📖 **Want details?** Browse the **Handbook** below — the slides link back to it for deep dives.
 
 ---
 
-## 🧭 Getting Started
-
-### 🔧 How to Build This Documentation
-
-You can build this curriculum as a local HTML site or generate a PDF using [MkDocs](https://www.mkdocs.org/) and the [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) theme.
-
-#### 1. Install MkDocs and dependencies
-
-```bash
-% conda activate mypy311
-pip install mkdocs mkdocs-material
-pip install mkdocs-revealjs
-```
-
-#### 2. Build and serve the site locally
-
-```bash
-mkdocs serve
-```
-
-Open your browser to: [http://localhost:8000](http://localhost:8000)
-
-#### 3. Build for static HTML site
-
-```bash
-mkdocs build
-```
-
-HTML files will be generated in the `site/` directory.
-
-#### 4. Export to PDF (Optional)
-
-Install `weasyprint` or use browser print-to-PDF from `localhost:8000`.
-
-#### 5. Push to Github Pages (Optional)
-
-```bash
-mkdocs gh-deploy
-```
-
-<!-- To https://github.com/lkk688/edgeAI.git
- * [new branch]      gh-pages -> gh-pages
-INFO    -  Your documentation should shortly be available at:
-           https://lkk688.github.io/edgeAI/ -->
----
-
-## 📚 Curriculum Structure
+## 📚 Curriculum Handbook
 
 ### 🔰 Getting Started with Jetson
 
@@ -111,3 +80,5 @@ INFO    -  Your documentation should shortly be available at:
 > Learn. Build. Defend. Empower with Edge AI on Jetson.
 
 ---
+
+<span style="color:#888;font-size:.9em">Maintainers: see **[Build & Deploy](setup.md)** for how to build/serve/publish this site and the slides.</span>

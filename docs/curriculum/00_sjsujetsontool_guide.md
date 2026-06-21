@@ -7,6 +7,12 @@
 
 ---
 
+> ### ▶ New here? Start with the [**Lab Slides — Get Started**](../slides/get-started.html)
+> A short, click-through version of this guide (set up your Jetson and run your first AI model in
+> ~15 minutes). This page is the **full reference** — the slides link back here for the details.
+
+---
+
 ## 📌 Overview
 
 This guide introduces the **NVIDIA Jetson Orin Nano**, explains how to install and use our custom Jetson utility script `sjsujetsontool`, and provides step-by-step instructions for development tasks such as launching servers, running AI models, setting up Jupyter, and managing devices.
@@ -764,17 +770,44 @@ port `8080` (with the batch sizes needed for vision models). The web UI / OpenAI
 2. Start the server: `llama-server -hf unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99`
 
 #### 💬 Querying the Model via HTTP API (OpenAI Compatible)
-You can run a local chat completion query in another terminal (on the host machine or from within the container) using `curl`:
+You can run a local chat completion query in another terminal (host or inside the container) with `curl`.
 
+> ⚠️ **Make answers short & fast on Jetson.** Qwen3.5 is a *reasoning* model — by default it "thinks"
+> for hundreds–thousands of tokens before answering, which feels slow and can look like the terminal is
+> stuck. The Orin Nano isn't built for long generation, so for everyday use you should:
+> 1. **Disable thinking** with `"chat_template_kwargs": {"enable_thinking": false}` (works because
+>    `sjsujetsontool llama` launches the server with `--jinja`),
+> 2. **Cap the length** with `"max_tokens"`, and
+> 3. **Stream** with `"stream": true` (+ `curl -N`) so tokens appear as they're generated.
+
+**Fast, non‑streaming** (thinking off, capped length):
 ```bash
 curl http://localhost:8080/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "messages": [
-      {"role": "user", "content": "Explain what is Nvidia Jetson?"}
-    ]
+    "messages": [{"role": "user", "content": "Explain what is Nvidia Jetson in 2 sentences."}],
+    "max_tokens": 150,
+    "temperature": 0.7,
+    "chat_template_kwargs": {"enable_thinking": false}
   }'
 ```
+*Measured on jetson‑61: ~30 tokens in **1.7 s**. (The same prompt **with** thinking generated **2757**
+tokens and took far longer.)*
+
+**Streaming** (tokens appear live — use `-N` so `curl` doesn't buffer):
+```bash
+curl -N http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Explain what is Nvidia Jetson in 2 sentences."}],
+    "max_tokens": 150,
+    "stream": true,
+    "chat_template_kwargs": {"enable_thinking": false}
+  }'
+```
+The server replies with Server‑Sent Events — one `data: {…}` chunk per token, each carrying the next
+piece in `choices[0].delta.content`, ending with `data: [DONE]`. (To *keep* the reasoning for a hard
+problem, simply drop the `chat_template_kwargs` line.)
 
 #### 🖼️ Vision: ask about an image
 Gemma 4 E2B is **multimodal**. Because `sjsujetsontool llama` loads the model with `-hf`, `llama-server` automatically downloads and loads the matching **mmproj** (multimodal projector), so image input works with no extra setup. Send an image with the OpenAI vision format (a base64 `image_url`); the helper script does the encoding:
@@ -913,20 +946,14 @@ The default **Gemma 4 E2B** GGUF is multi-GB and **slow to download**. We benchm
 default against smaller [Unsloth **Qwen3.5**](https://huggingface.co/unsloth) GGUFs as lighter
 alternatives, all at the same **`Q4_K_S`** quant used by `sjsujetsontool llama`.
 
-> ⚠️ **Two gotchas found during testing:**
-> 1. [`unsloth/gemma-4-E2B-it-qat-mobile`](https://huggingface.co/unsloth/gemma-4-E2B-it-qat-mobile)
->    is **not a llama.cpp model** — it ships only `model.safetensors` (a QAT/mobile build), no GGUF —
->    so it cannot be served by `llama-server`. (The GGUF variant is `unsloth/gemma-4-E2B-it-GGUF`.)
-> 2. Qwen3.5 uses the **`qwen35`** architecture, which the container's shipped llama.cpp (build 5752)
->    rejects with `unknown model architecture: 'qwen35'`. You must **rebuild llama.cpp** (we used
->    **b9743**, CUDA, `sm_87`) — see *Compiling & Updating llama.cpp* above — until the image ships a newer build.
+
 
 **Test setup:** jetson-61 = Orin Nano (8 GB), JetPack 6 / L4T R36.4.7, llama.cpp **b9743** CUDA,
 `-ngl 99` (all layers on GPU), quant `Q4_K_S`, ~47 Mbps link.
 
 | Model | Params | On-disk | Download (≈5.9 MB/s) | Weights in RAM | Prompt `pp512` | Generation `tg128` | Math (3 Qs) |
 |---|---|---|---|---|---|---|---|
-| `gemma-4-E2B-it` **(current default)** | 4.65 B | 3.04 GB | ~8.6 min (516 s) | 2.82 GiB | ~644 tok/s | ~20 tok/s | ✅ 3 / 3 |
+| `gemma-4-E2B-it`  | 4.65 B | 3.04 GB | ~8.6 min (516 s) | 2.82 GiB | ~644 tok/s | ~20 tok/s | ✅ 3 / 3 |
 | `Qwen3.5-0.8B` | 0.77 B | 0.52 GB | ~1.5 min (89 s) | 0.49 GiB | ~1205 tok/s | **~35 tok/s** | ⚠️ 2 / 3 |
 | `Qwen3.5-2B` | 1.94 B | 1.26 GB | ~3.6 min (216 s) | 1.17 GiB | ~750 tok/s | **~21 tok/s** | ✅ 3 / 3 |
 | `Qwen3.5-4B` | 4.33 B | 2.68 GB | ~7.6 min (456 s) | 2.49 GiB | ~307 tok/s | **~10 tok/s** | ✅ 3 / 3 |
@@ -934,7 +961,7 @@ alternatives, all at the same **`Q4_K_S`** quant used by `sjsujetsontool llama`.
 Peak system RAM (incl. ~2–2.9 GB idle baseline + page cache) stayed under ~7.3 GB on the 8 GB board
 for every model — so even the 3 GB-class ones fit, with little headroom.
 
-> 💡 **Headline:** the default **Gemma 4 E2B is the *largest* download (3.04 GB) yet not the fastest** —
+> 💡 **Headline:** **Gemma 4 E2B is the *largest* download (3.04 GB) yet not the fastest** —
 > `Qwen3.5-2B` matches its accuracy (3/3) and generation speed (~21 vs ~20 tok/s) at **~⅓ the download
 > size** — **and it is also multimodal** (`Qwen/Qwen3.5-2B` is a *unified vision-language* model;
 > the Unsloth GGUF repo ships an `mmproj`), so Gemma's vision is no longer a unique advantage. See the
@@ -1123,52 +1150,86 @@ User > What is NVIDIA Jetson?
 > * **Robustness and Timeouts:** To prevent execution from hanging indefinitely on slow or cold-starting cloud endpoints, the tool imposes a strict **15-second request timeout**. If a connection cannot be established or a model is unresponsive, the query fails gracefully with a timeout error.
 > * **HTTP 403 Forbidden Errors:** If you receive a `403 Forbidden` error, this indicates that the specific model name is either restricted/unavailable under your free account plan, deprecated/renamed on the NVIDIA Build platform, or your API key's free credit quota has run out. You can resolve this by checking model availability in the [NVIDIA API Catalog](https://build.nvidia.com) or updating/renewing your API key using `sjsujetsontool setup-nvapi`.
 
-### 💬 `sjsujetsontool chat` — one chat client, three backends
+### 💬 `sjsujetsontool chat` — one chat client, many backends
 
-`sjsujetsontool chat` is a **unified, streaming terminal chat client** that talks to any OpenAI-compatible endpoint and lets you choose, at launch, **where the model runs**:
+`sjsujetsontool chat` is a **unified, streaming terminal chat client** that talks to any OpenAI-compatible endpoint and lets you choose, at launch (and any time with `/server`), **where the model runs**:
 
 | # | Backend | Runs on | Needs |
 |---|---------|---------|-------|
 | **1** | **Local Jetson llama.cpp** | this Jetson (`http://localhost:8080`) | a local server — start it with `sjsujetsontool llama` |
-| **2** | **NVIDIA Build API** | NVIDIA cloud (`integrate.api.nvidia.com`) | an API key — set it with `sjsujetsontool setup-nvapi` |
-| **3** | **Our LLM server** | a shared GPU node (e.g. an RTX board) via `https://llm.forgengi.org/<node>` | network access (over Headscale) + the server's API key (sjsugputool) |
+| **2** | **NVIDIA Build API** | NVIDIA cloud (`integrate.api.nvidia.com`) | `NVIDIA_API_KEY` |
+| **3** | **OpenAI** | OpenAI cloud (`api.openai.com`) | `OPENAI_API_KEY` |
+| **4** | **Anthropic Claude** | Anthropic cloud (OpenAI‑compatible endpoint `api.anthropic.com/v1`) | `ANTHROPIC_API_KEY` |
+| **5** | **Our shared LLM server** | a shared GPU node via `https://llm.forgengi.org/<node>` | Headscale access (+ key if set) |
+| **6** | **Custom OpenAI‑compatible server** | any URL you enter | the URL (+ key if it needs one) |
 
-It uses the same engine as `gputool chat`: it renders **streaming Markdown** with the [`rich`](https://github.com/Textualize/rich) library when installed (and falls back to a plain pure-stdlib renderer otherwise), and prints per-turn **prefill / generation** token speeds.
+It uses the same engine as `gputool chat`: **streaming Markdown** via [`rich`](https://github.com/Textualize/rich) when installed (plain renderer otherwise), and per‑turn **prefill / generation** token speeds.
 
 > [!TIP]
-> For the nicer Markdown/code-highlighted UI: `pip install rich` (optional — the client works without it).
+> Nicer Markdown/code‑highlighted UI: `pip install rich` (optional). On the Jetson, prefer short
+> answers — see the thinking‑off / `max_tokens` tips in the llama‑server section above.
+
+#### 🔑 Getting the cloud API keys (saved to `~/.env.local`)
+
+The first time you pick a cloud backend, the client **prompts you for the key right in the terminal**
+and saves it to **`~/.env.local`** (chmod 600), so you only enter it once. Get a key here:
+
+| Backend | Where to get the key | Variable |
+|---|---|---|
+| **NVIDIA** | <https://build.nvidia.com> → sign in → open any model → **Get API Key** (free tier) | `NVIDIA_API_KEY` |
+| **OpenAI** | <https://platform.openai.com/api-keys> → **Create new secret key** (needs a billing method) | `OPENAI_API_KEY` |
+| **Anthropic** | <https://console.anthropic.com/settings/keys> → **Create Key** (needs prepaid credit) | `ANTHROPIC_API_KEY` |
+
+You can also pre‑populate them manually (same file the Next.js app and `setup-nvapi` use):
+```bash
+cat >> ~/.env.local <<'EOF'
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+EOF
+chmod 600 ~/.env.local
+```
 
 #### Launch
 ```bash
 sjsujetsontool chat            # shows the backend menu, then drops you into a session
-```
-You'll be asked to pick a backend (and, for NVIDIA, a model). You can also skip the menu:
-```bash
-sjsujetsontool chat --local    # local Jetson llama.cpp on :8080
-sjsujetsontool chat --nvidia   # NVIDIA Build API (then pick a Nemotron model)
-sjsujetsontool chat --server   # our shared LLM server (prompts for URL + key)
+sjsujetsontool chat --local    # quick shortcut to the local Jetson llama.cpp (:8080)
 ```
 
-#### Example (backend 3 — our shared server)
+#### Example — picking a cloud backend (first run prompts for the key)
 ```
-🤖 Select chat backend:
-  1) Local Jetson llama.cpp   (http://localhost:8080 — start it with: sjsujetsontool llama)
-  2) NVIDIA Build API         (cloud — needs NVIDIA_API_KEY; setup: sjsujetsontool setup-nvapi)
-  3) Our LLM server           (https://llm.forgengi.org/<node> over Headscale)
-Select [1-3]: 3
-Server base URL [https://llm.forgengi.org/node05/v1]:
-API key (blank if none): ********
+🤖 Select a chat backend:
+  1) Local Jetson llama.cpp  (localhost:8080)
+  2) NVIDIA Build API  (free cloud)  [needs NVIDIA_API_KEY]
+  3) OpenAI  (gpt-4o, …)  [needs OPENAI_API_KEY]
+  4) Anthropic Claude  (OpenAI-compatible endpoint)  [needs ANTHROPIC_API_KEY]
+  5) Our shared LLM server  (Headscale gateway)
+  6) Custom OpenAI-compatible server  (enter URL + key)
+Select [1-6] (Enter = 1): 4
+
+🔑 This backend needs an API key (ANTHROPIC_API_KEY).
+   Create a key: https://console.anthropic.com/settings/keys  (requires prepaid credit).
+   Paste the key below; it will be saved to ~/.env.local (chmod 600) for next time.
+Enter ANTHROPIC_API_KEY: ****************
+✅ Saved ANTHROPIC_API_KEY to /home/sjsujetson/.env.local
+Models:
+  1) claude-haiku-4-5  [default]
+  2) claude-sonnet-4-6
+  3) claude-opus-4-8
+Select [1-3] (Enter = 1), or type a model name: 2
 ╭─ Assistant ▸ ──────────────────────────────────────────────────╮
-│ NVIDIA Blackwell is the company's latest GPU architecture …     │
+│ NVIDIA Jetson is a family of embedded AI computers …            │
 ╰────────────────────────────────────────────────────────────────╯
-(prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s · 0.5s)
+(245 prompt + 88 completion tokens · 41.2 tok/s · 2.1s)
 ```
+
+> 💡 **Switch backends mid‑session** with `/server` — it shows the same menu, so you can jump from
+> the local Jetson model to OpenAI or Claude without leaving the chat.
 
 #### In-chat slash commands
 | Command | Action |
 |---|---|
 | `/exit`, `/quit`, `/q` | Leave the chat |
-| `/server` | Switch to a different server URL / API key |
+| `/server` | Switch backend (local · NVIDIA · OpenAI · Anthropic · custom) — re-opens the menu |
 | `/save [file]` | Save the conversation (`.md` default, or `.json`) |
 | `/reset` | Clear history (keeps the system prompt) |
 | `/system <text>` | Set/clear the system prompt |

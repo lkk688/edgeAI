@@ -41,6 +41,64 @@ def save_config(cfg):
     except Exception:
         pass
 
+# ----------------------------------------------------------------------------- API keys (~/.env.local)
+# All cloud API keys live in ~/.env.local (same convention as `setup-nvapi`), e.g.
+#   OPENAI_API_KEY=sk-...
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   NVIDIA_API_KEY=nvapi-...
+HOME_ENV = os.path.join(os.path.expanduser("~"), ".env.local")
+# Extra fallback locations to READ keys from (the Next.js app already stores NVIDIA_API_KEY here).
+_ENV_FALLBACKS = [
+    "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.env.local",
+    os.path.join(os.getcwd(), "edgeLLM", "nextjs-nemotron-app", ".env.local"),
+]
+
+def _parse_env_file(path):
+    d = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                d[k.strip()] = v.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return d
+
+def load_env_keys():
+    """Merge ~/.env.local (preferred) with known fallback .env.local files."""
+    merged = {}
+    for p in _ENV_FALLBACKS:
+        merged.update(_parse_env_file(p))
+    merged.update(_parse_env_file(HOME_ENV))   # home wins
+    return merged
+
+def save_env_key(key, val):
+    """Upsert KEY=val into ~/.env.local (chmod 600)."""
+    lines = []
+    try:
+        with open(HOME_ENV) as f:
+            lines = f.read().splitlines()
+    except Exception:
+        pass
+    out, found = [], False
+    for line in lines:
+        if line.strip().startswith(key + "="):
+            out.append("%s=%s" % (key, val)); found = True
+        else:
+            out.append(line)
+    if not found:
+        out.append("%s=%s" % (key, val))
+    try:
+        with open(HOME_ENV, "w") as f:
+            f.write("\n".join(out) + "\n")
+        os.chmod(HOME_ENV, 0o600)
+        return True
+    except Exception:
+        return False
+
 def save_history(messages, path=None):
     ts = time.strftime("%Y%m%d_%H%M%S")
     if not path:
@@ -79,6 +137,91 @@ def build_base(host, port, url):
         b = url.rstrip("/")
         return b if b.endswith("/v1") else b + "/v1"
     return "http://%s:%s/v1" % (host, port)
+
+# ----------------------------------------------------------------------------- backends
+# Each backend is an OpenAI-compatible endpoint. `key_env` names the variable in
+# ~/.env.local; if missing, the user is prompted and it is saved there. `ntk`
+# (no_template_kwargs) skips the llama.cpp-only chat_template_kwargs field that
+# cloud APIs reject. Anthropic is reached via its OpenAI-compatible endpoint.
+BACKENDS = [
+    dict(name="Local Jetson llama.cpp  (localhost:8080)",
+         url="http://localhost:8080/v1", key_env=None, models=None, ntk=False),
+    dict(name="NVIDIA Build API  (free cloud)",
+         url="https://integrate.api.nvidia.com/v1", key_env="NVIDIA_API_KEY",
+         key_help="Get a FREE key: https://build.nvidia.com  → sign in → open any model → 'Get API Key'.",
+         models=["nvidia/llama-3.1-nemotron-nano-8b-v1",
+                 "nvidia/llama-3.3-nemotron-super-49b-v1",
+                 "nvidia/llama-3.1-nemotron-ultra-253b-v1"], ntk=True),
+    dict(name="OpenAI  (gpt-4o, …)",
+         url="https://api.openai.com/v1", key_env="OPENAI_API_KEY",
+         key_help="Create a key: https://platform.openai.com/api-keys  (requires a billing method).",
+         models=["gpt-4o-mini", "gpt-4o", "o4-mini"], ntk=True),
+    dict(name="Anthropic Claude  (OpenAI-compatible endpoint)",
+         url="https://api.anthropic.com/v1", key_env="ANTHROPIC_API_KEY",
+         key_help="Create a key: https://console.anthropic.com/settings/keys  (requires prepaid credit).",
+         models=["claude-haiku-4-5", "claude-sonnet-4-6", "claude-opus-4-8"], ntk=True),
+    dict(name="Our shared LLM server  (Headscale gateway)",
+         url="https://llm.forgengi.org/node05/v1", key_env=None, models=None, ntk=False, ask_url=True),
+    dict(name="Custom OpenAI-compatible server  (enter URL + key)",
+         url=None, key_env=None, models=None, ntk=False, ask_url=True, ask_key=True),
+]
+
+def pick_backend():
+    """Interactive backend chooser. Returns (url, key, model, no_template_kwargs)."""
+    print("\n🤖 Select a chat backend:")
+    for i, b in enumerate(BACKENDS, 1):
+        tag = ""
+        if b.get("key_env"):
+            tag = "  [needs %s]" % b["key_env"]
+        print("  %d) %s%s" % (i, b["name"], tag))
+    sel = read_line("Select [1-%d] (Enter = 1): " % len(BACKENDS)).strip()
+    try:
+        idx = (int(sel) - 1) if sel else 0
+    except ValueError:
+        idx = 0
+    if idx < 0 or idx >= len(BACKENDS):
+        idx = 0
+    b = BACKENDS[idx]
+
+    # URL (custom / shared server may ask)
+    url = b["url"]
+    if b.get("ask_url"):
+        default = url or "http://localhost:8080/v1"
+        raw = read_line("Server base URL [%s]: " % default).strip()
+        url = raw or default
+
+    # API key — read from env/~/.env.local, else prompt the student step-by-step and save it.
+    key = ""
+    if b.get("key_env"):
+        env = load_env_keys()
+        key = os.environ.get(b["key_env"]) or env.get(b["key_env"]) or ""
+        if key:
+            print("🔑 Using saved %s from ~/.env.local" % b["key_env"])
+        else:
+            print("\n🔑 This backend needs an API key (%s)." % b["key_env"])
+            if b.get("key_help"):
+                print("   " + b["key_help"])
+            print("   Paste the key below; it will be saved to ~/.env.local (chmod 600) for next time.")
+            key = read_secret("Enter %s: " % b["key_env"]).strip()
+            if key and save_env_key(b["key_env"], key):
+                print("✅ Saved %s to %s" % (b["key_env"], HOME_ENV))
+    elif b.get("ask_key"):
+        key = read_secret("API key (blank if none): ").strip()
+
+    # Model
+    model = None
+    if b.get("models"):
+        print("Models:")
+        for i, m in enumerate(b["models"], 1):
+            print("  %d) %s%s" % (i, m, "  [default]" if i == 1 else ""))
+        ms = read_line("Select [1-%d] (Enter = 1), or type a model name: " % len(b["models"])).strip()
+        if ms.isdigit() and 1 <= int(ms) <= len(b["models"]):
+            model = b["models"][int(ms) - 1]
+        elif ms:
+            model = ms
+        else:
+            model = b["models"][0]
+    return url, key, model, b.get("ntk", False)
 
 def fetch_model(base, headers):
     try:
@@ -156,7 +299,7 @@ def stats_line(usage, timings, dt):
 
 HELP_ROWS = [
     ("/exit", "Quit the chat (also /quit, /q)"),
-    ("/server", "Connect to a different server IP / API key"),
+    ("/server", "Switch backend (local · NVIDIA · OpenAI · Anthropic · custom)"),
     ("/save [file]", "Save the conversation (.md default, or .json)"),
     ("/reset", "Clear conversation history (keeps system prompt)"),
     ("/system <text>", "Set (or clear) the system prompt"),
@@ -424,6 +567,8 @@ def main():
     ap.add_argument("--no-color", dest="color", action="store_false", help="disable colored output")
     ap.add_argument("--no-template-kwargs", action="store_true",
                     help="don't send llama.cpp chat_template_kwargs (use for NVIDIA/other APIs)")
+    ap.add_argument("--backend", action="store_true",
+                    help="show the interactive backend chooser (local/NVIDIA/OpenAI/Anthropic/custom)")
     ap.add_argument("--plain", action="store_true", help="force the plain stdlib renderer (no rich)")
     ap.add_argument("--reset-config", action="store_true", help="ignore and overwrite the saved chat config")
     args = ap.parse_args()
@@ -467,28 +612,35 @@ def main():
             cfg["api_key"] = key
         save_config(cfg)
 
+    # Mutable connection state so /server can switch backends mid-session.
+    state = {"ntk": args.no_template_kwargs, "model": args.model}
+
     def connect(host, port, url, key):
         base = build_base(host, port, url)
         endpoint = base + "/chat/completions"
         headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
         if key:
             headers["Authorization"] = "Bearer " + key
-        model = args.model or fetch_model(base, headers) or "local-model"
+        model = state["model"] or fetch_model(base, headers) or "local-model"
         return base, endpoint, headers, model
 
-    # Resolve the connection. Prompt interactively only for a bare `gputool chat`
-    # (no message, no connection flags). When the server/key are given on the
-    # command line — e.g. `sjsujetsontool chat` picking a backend — skip prompts.
+    # Resolve the connection:
+    #  • bare `chat` or `--backend`  -> interactive backend chooser (local/NVIDIA/OpenAI/Anthropic/custom)
+    #  • a one-shot message or --url/--host/--api-key -> use those (no prompts), for scripts/gputool
     flags_given = bool(args.url or args.host or args.api_key is not None)
-    if args.message or flags_given:
+    if args.backend or (not args.message and not flags_given):
+        url, key, bmodel, bntk = pick_backend()
+        host = port = None
+        if bmodel:
+            state["model"] = bmodel
+        if bntk:
+            state["ntk"] = True
+        persist(None, None, url, key)
+    else:
         host = args.host or cfg.get("host") or "127.0.0.1"
         port = args.port or cfg.get("port") or "8080"
         url = args.url or (cfg.get("url") or None)
         key = args.api_key if args.api_key is not None else (env_key or cfg.get("api_key") or "")
-    else:
-        host, port, url = prompt_server()
-        key = prompt_key()
-        persist(host, port, url, key)
 
     base, endpoint, headers, model = connect(host, port, url, key)
 
@@ -511,7 +663,7 @@ def main():
             p["stream_options"] = {"include_usage": True}
         # `chat_template_kwargs` is a llama.cpp feature (controls Qwen thinking);
         # skip it for backends that reject unknown fields (e.g. NVIDIA's API).
-        if not think["enabled"] and not args.no_template_kwargs:
+        if not think["enabled"] and not state["ntk"]:
             p["chat_template_kwargs"] = {"enable_thinking": False}
         return p
 
@@ -566,10 +718,11 @@ def main():
                 renderer.error("Save failed: %s" % e)
             continue
         if low.startswith("/server"):
-            host, port, url = prompt_server()
-            key = prompt_key()
-            persist(host, port, url, key)
-            base, endpoint, headers, model = connect(host, port, url, key)
+            url, key, bmodel, bntk = pick_backend()
+            state["ntk"] = bntk
+            state["model"] = bmodel        # None -> connect() auto-detects via /models
+            persist(None, None, url, key)
+            base, endpoint, headers, model = connect(None, None, url, key)
             renderer.notice("🔌 Connected to %s   (model: %s)" % (base, model))
             continue
         if low.startswith("/system"):

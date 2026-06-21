@@ -1,57 +1,86 @@
-# edgeAI
+# 🤖 Edge AI — Learn AI on the NVIDIA Jetson
 
-# 📘 Edge AI
-
-Welcome to the official github site for the **Edge AI**. This site contains setup guide, sample code for common edge AI devices (Raspberry Pi, Nvidia Jetson, and normal PCs). It also contains one **SJSU Cyber-AI Curriculum**, which is designed for high school and university students to learn about Linux, AI, and cybersecurity through hands-on labs on the NVIDIA Jetson Orin Nano platform.
-
-The full curriculum document is available at [Documents](https://lkk688.github.io/edgeAI/).
-
----
-
-## 🧭 Getting Started
-
-Clone the Repository
-```bash
-sjsujetson@sjsujetson-01:/Developer$ git clone https://github.com/lkk688/edgeAI.git
-```
-
-Install the python package `edgeLLM`:
-```bash
-edgeAI % pip install -e .
-```
-From any places, you can import `edgeLLM` and use its functionalities, e.g., `from edgeLLM.utils import performance_monitor`
-
-## 🔧 How to Build The Documentation
-
-Documents are inside the folder of `docs`. It also contains one sub-folder `curriculum` for CyberAI summer camp. You can build this curriculum as a local HTML site or generate a PDF using [MkDocs](https://www.mkdocs.org/) and the [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) theme.
-
-### 1. Install MkDocs and dependencies
-
-```bash
-% conda activate mypy311
-pip install mkdocs mkdocs-material
-pip install mkdocs-revealjs
-```
-
-### 2. Build and serve the site locally
-
-```bash
-mkdocs serve
-```
-
-Open your browser to: [http://localhost:8000](http://localhost:8000)
-
-### 3. Build for static HTML site
-
-```bash
-mkdocs build
-```
-
-HTML files will be generated in the `site/` directory.
-
-### 4. Export to PDF (Optional)
-
-Install `weasyprint` or use browser print-to-PDF from `localhost:8000`.
+Hands-on labs that take you from a fresh **NVIDIA Jetson Orin Nano** to running your own
+**LLMs, vision models, robots, and cyber‑AI agents** — designed for high‑school and university
+students, no prior Linux experience required. Also includes setup + sample code for Raspberry Pi and
+regular PCs.
 
 ---
 
+## 🚀 Start here
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### ▶ Lab Slides — *Get Started*
+A short, click-through guide: set up your Jetson and run your first AI model in **~15 minutes**.
+Perfect for your first lab.
+
+**→ [Open the slides](https://lkk688.github.io/edgeAI/slides/get-started.html)**
+
+</td>
+<td width="50%" valign="top">
+
+### 📚 Tutorial Handbook
+The full reference — every lab in depth: CUDA, YOLO, LLMs, RAG, ROS 2, robotics, security.
+
+**→ [Read the handbook](https://lkk688.github.io/edgeAI/)**
+
+</td>
+</tr>
+</table>
+
+> 💡 New? Open the **slides** and follow along. Want the deep dive? The slides link straight into the
+> matching **handbook** pages.
+
+---
+
+## ✨ What's inside
+
+- **One tool to rule the Jetson:** `sjsujetsontool` — containers, model serving, Jupyter, chat, and more.
+- **Run LLMs locally:** `llama.cpp` (Qwen3.5, Gemma‑4) with vision, plus cloud backends (NVIDIA, OpenAI, Anthropic).
+- **Vision & robotics:** YOLO object detection, ROS 2 / Isaac ROS, LeRobot + SO‑ARM101.
+- **CUDA from scratch:** compile and run GPU kernels inside the container.
+- **Cyber‑AI:** vulnerability triage with tool‑calling and RAG.
+
+Curriculum topics: Getting Started · Linux · Deep Learning & CNNs · Transformers & LLMs · RAG &
+Agents · Robotics (ROS 2, LeRobot) · Cyber‑AI Security.
+
+---
+
+## ⚡ Quick start (on a Jetson in the lab)
+
+The Jetson already has `sjsujetsontool` installed. Log in as **`student`**, open a terminal:
+
+```bash
+sjsujetsontool update         # refresh the tool + AI container
+sjsujetsontool llama          # serve a local LLM (default Qwen3.5-2B) on :8080
+sjsujetsontool chat           # chat with it (local or cloud backends)
+```
+
+Full walkthrough: **[Lab Slides ▶](https://lkk688.github.io/edgeAI/slides/get-started.html)**
+
+---
+
+## 🧑‍💻 For developers
+
+```bash
+git clone https://github.com/lkk688/edgeAI.git
+cd edgeAI
+pip install -e .              # installs the edgeLLM helper package
+```
+Then `from edgeLLM.utils import performance_monitor`, etc.
+
+**Building the docs & slides** (maintainers): see
+[`docs/setup.md`](docs/setup.md) — `mkdocs serve` for the handbook, `docs/slides/build.sh` for the
+Marp decks, `mkdocs gh-deploy` to publish.
+
+---
+
+## 👨‍🏫 Author
+
+**Dr. Kaikai Liu, Ph.D.** · Associate Professor, Computer Engineering · San José State University ·
+[kaikai.liu@sjsu.edu](mailto:kaikai.liu@sjsu.edu)
+
+> Learn. Build. Defend. Empower with Edge AI on Jetson.

@@ -10,6 +10,13 @@ plugins:
   - search
   # - revealjs
 
+# Marp slide sources live in docs/slides/ but must NOT be rendered as doc pages —
+# only the built *.html decks are published (served as static files).
+exclude_docs: |
+  slides/*.md
+  slides/build.sh
+  slides/themes/
+
 markdown_extensions:
   - admonition
   - pymdownx.details
