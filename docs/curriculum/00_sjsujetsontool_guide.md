@@ -89,7 +89,37 @@ student@sjsujetson-62:~$ curl -fsSL https://raw.githubusercontent.com/lkk688/edg
 
 After the script installation, run `source /home/student/.bashrc` before using `sjsujetsontool`. You can also run `sjsujetsontool update` to update the local script and container image. The container update takes a long time. For example,
 ```bash
+student@sjsujetson-62:~$ sjsujetsontool update
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Developer Kit
+🏷️  L4T BSP Revision: R39.2.0
+Warning: xhost command failed. X11 forwarding may not work.
+🔄 Running full update (script + setup-check + container)...
+  Use 'update-container', 'update-script', or 'setup-check' to run individually.
 
+📜 Step 1/2: Updating script from GitHub...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Developer Kit
+🏷️  L4T BSP Revision: R39.2.0
+Warning: xhost command failed. X11 forwarding may not work.
+⬇️ Updating sjsujetsontool script from GitHub...
+📂 Backup saved to: /home/student/.local/bin/sjsujetsontool.bak
+⬇️ Downloading latest script...
+################################################################################################### 100.0%
+✅ Script downloaded. Replacing current script...
+✅ Script updated successfully. Re-run your command to use the new version.
+✅ Chat client updated: /home/student/.local/bin/sjsujetsontool-chat.py
+
+🐳 Step 2/2: Updating container image...
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Developer Kit
+🏷️  L4T BSP Revision: R39.2.0
+Warning: xhost command failed. X11 forwarding may not work.
+🔍 Checking Docker image update...
+⬇️ Pulling latest image from Docker Hub...
+⠸ Downloading latest image... Please waitlatest: Pulling from cmpelkk/jetson-llm
+⠴ Downloading latest image... Please waitDigest: sha256:739c319cb2ac5e1696a0fe4948f7a92279d0f22e01dc81ef52da46ecdd8cff24
+Status: Image is up to date for cmpelkk/jetson-llm:latest
+docker.io/cmpelkk/jetson-llm:latest
+✅ Image downloaded successfully.                 
+✅ Local container is already up-to-date.
 ```
 
 > [!TIP]
@@ -101,24 +131,20 @@ sjsujetsontool update-script      # update only this CLI script from GitHub
 sjsujetsontool update-container   # update only the Docker container image
 ```
 
-Verify:
-
+Verify and check all available commands:
 ```bash
 sjsujetsontool list
 ```
 
 You can check the script and system versions:
 ```bash
-sjsujetson@sjsujetson-01:/Developer/edgeAI$ sjsujetsontool version
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-📦 JetPack Version: 6.2.1+b38
-🏷️  L4T BSP Revision: R36.4.7
-⚙️  CUDA Version: 12.6
-🧬 cuDNN Version: 9.3.0
-🤖 TensorRT Version: 10.3.0.30-1+cuda12.5
+student@sjsujetson-62:~$ sjsujetsontool version
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Developer Kit
+🏷️  L4T BSP Revision: R39.2.0
+Warning: xhost command failed. X11 forwarding may not work.
 🧾 sjsujetsontool Script Version: v1.0.0
 🧊 Docker Image: jetson-llm:v1
-🔍 Image ID: sha256:83e9d42c36f8cae3a1a61fd5aa488b14b9ac11922c512920652212795847280a
+🔍 Image ID: sha256:739c319cb2ac5e1696a0fe4948f7a92279d0f22e01dc81ef52da46ecdd8cff24
 ```
 
 The `sjsujetsontool` wraps python apps running via container and makes running code inside the container easy to use. `docker` without sudo is already setup in the jetson device. Check existing containers available in the Jetson:
