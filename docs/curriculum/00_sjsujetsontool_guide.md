@@ -715,12 +715,23 @@ container is **b9743** (verified below). To (re)build with CUDA inside the conta
    *(This is exactly how the prebuilt binaries are placed in the published container image, so all
    devices get the qwen35-capable build after `sjsujetsontool update`.)*
 
-#### 🚀 Serving Gemma 4 E2B via Llama Server
-You can launch the Gemma 4 E2B `llama-server` directly from the host system using the top-level shortcut:
+#### 🚀 Serving LLM via Llama Server
+You can launch the LLM `llama-server` directly from the host system using the top-level shortcut:
 
 ```bash
 # From the host:
-sjsujetsontool llama
+sjsujetson@sjsujetson-02:~$ sjsujetsontool llama
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+📦 JetPack Version: 6.1+ (inferred)
+🏷️  L4T BSP Revision: R36.4.3
+⚙️  CUDA Version: 12.6
+🧬 cuDNN Version: 9.3.0.75
+🤖 TensorRT Version: 10.3.0.30
+Warning: xhost command failed. X11 forwarding may not work.
+🧠 Launching Qwen3.5-2B (VLM) llama.cpp server (port 8080)  [unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S]
+   Switch model:  sjsujetsontool llama [qwen2b | qwen0.8b | qwen4b | gemma4]
+Downloading mmproj-BF16.gguf ────────╴                                22%
+Downloading Qwen3.5-2B-Q4_K_S.gguf ────                               12%
 ```
 
 This shortcut automatically starts the persistent container and launches `llama-server` with CUDA acceleration on port `8080` (configured with the required batch sizes). 
