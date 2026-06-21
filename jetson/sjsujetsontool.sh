@@ -346,7 +346,9 @@ show_help() {
   echo "      delete <model>       - Delete model from disk"
   echo "      status               - Check if REST server is running"
   echo "      ask [--model xxx]    - Ask model with auto pull/cache"
-  echo "  llama [model]     - Start llama-server (port 8080); model: qwen2b(default)|qwen0.8b|qwen4b|gemma4"
+  echo "  llama [model] [fg|bg] - Start llama-server (port 8080). No args = interactive menu"
+  echo "                          (qwen2b default | qwen0.8b | qwen4b | gemma4 | custom HF repo:quant)"
+  echo "  llama stop        - Stop a background llama-server"
   echo "  llama-cli [model] - Run llama-cli inference (same model choices; default qwen2b)"
   echo "  ollama-serve      - Start Ollama REST API server (port 11434)"
   echo "  ollama-run        - Run Ollama model interactively (defaults to gemma4)"
@@ -401,9 +403,11 @@ show_list() {
   echo "     ▶ sjsujetsontool ollama ask --model phi3 \"Explain LLMs\""
   echo "     ▶ sjsujetsontool ollama pull llama3"
   echo
-  echo "  llama [model] → Start llama-server (port 8080). Default Qwen3.5-2B; or qwen0.8b|qwen4b|gemma4"
-  echo "     ▶ sjsujetsontool llama            # Qwen3.5-2B (default)"
-  echo "     ▶ sjsujetsontool llama gemma4     # Gemma 4 E2B"
+  echo "  llama [model] [fg|bg] → Start llama-server (port 8080). No args = interactive menu"
+  echo "     ▶ sjsujetsontool llama                  # menu: pick model + foreground/background"
+  echo "     ▶ sjsujetsontool llama gemma4 bg        # Gemma 4 E2B in background"
+  echo "     ▶ sjsujetsontool llama unsloth/Qwen3.5-4B-MTP-GGUF:Q4_K_S   # custom HF model"
+  echo "     ▶ sjsujetsontool llama stop            # stop a background server"
   echo
   echo "  llama-cli [model] → Run llama-cli inference (same model choices)"
   echo "     ▶ sjsujetsontool llama-cli qwen4b -p \"Explain the Jetson Orin Nano\""
@@ -867,19 +871,81 @@ case "$1" in
     ;;
   llama)
     shift
+    # Subcommand: stop a background llama-server
+    if [ "${1:-}" = "stop" ]; then
+      ensure_container_started
+      if $EXEC_CMD pkill -f "llama-server" >/dev/null 2>&1; then
+        echo "🛑 Stopped the running llama-server."
+      else
+        echo "ℹ️  No llama-server was running."
+      fi
+      exit 0
+    fi
     ensure_container_started
-    # --- pick a model (default: Qwen3.5-2B). Both Qwen3.5 and Gemma-4 are VLMs;
-    #     -hf auto-downloads the matching mmproj so vision works out of the box. ---
-    MODEL_SEL="${1:-qwen2b}"
-    llama_model "$MODEL_SEL" || exit 1
-    # --- locate the newest CUDA build (b9743+ supports the qwen35/qwen3vl arch) ---
-    llama_bin llama-server
-    echo "🧠 Launching $LLM_NAME llama.cpp server (port 8080)  [$LLM_HF]"
-    echo "   Switch model:  sjsujetsontool llama [qwen2b | qwen0.8b | qwen4b | gemma4]"
-    if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" -hf "$LLM_HF" --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
+
+    # --- 1) pick a model -----------------------------------------------------
+    # Usage:
+    #   sjsujetsontool llama                      -> interactive menu (default Qwen3.5-2B)
+    #   sjsujetsontool llama qwen2b|qwen0.8b|qwen4b|gemma4
+    #   sjsujetsontool llama <hf-repo:quant>      -> any GGUF on Hugging Face
+    #   sjsujetsontool llama <model> [fg|bg]      -> non-interactive
+    MODEL_SEL="${1:-}"
+    RUN_MODE="${2:-}"
+    if [ -n "$MODEL_SEL" ]; then
+      if [[ "$MODEL_SEL" == */* ]]; then          # looks like a Hugging Face repo path
+        LLM_HF="$MODEL_SEL"; LLM_NAME="$MODEL_SEL"
+      else
+        llama_model "$MODEL_SEL" || exit 1
+      fi
+    elif [ -t 0 ]; then                            # interactive terminal -> show menu
+      echo "🧠 Select a model to serve with llama.cpp:"
+      echo "   1) Qwen3.5-2B    (default, vision-capable)"
+      echo "   2) Qwen3.5-0.8B  (smallest / fastest)"
+      echo "   3) Qwen3.5-4B    (most capable)"
+      echo "   4) Gemma-4-E2B   (vision-capable)"
+      echo "   5) Custom        (enter a Hugging Face GGUF, e.g. unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S)"
+      read -r -p "Choice [1-5], or press Enter for the default (Qwen3.5-2B): " _choice
+      case "$_choice" in
+        ""|1) llama_model qwen2b ;;
+        2)    llama_model qwen0.8b ;;
+        3)    llama_model qwen4b ;;
+        4)    llama_model gemma4 ;;
+        5)    read -r -p "Hugging Face model (repo:quant): " _hf
+              if [ -n "$_hf" ]; then LLM_HF="$_hf"; LLM_NAME="$_hf"; else llama_model qwen2b; fi ;;
+        *)    echo "⚠️  Invalid choice — using default."; llama_model qwen2b ;;
+      esac
     else
-      $EXEC_CMD "$LLAMA_BIN" -hf "$LLM_HF" --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99
+      llama_model qwen2b                           # non-interactive default
+    fi
+
+    # --- 2) foreground or background ----------------------------------------
+    if [ -z "$RUN_MODE" ]; then
+      if [ -t 0 ]; then
+        read -r -p "Run in [f]oreground or [b]ackground? (Enter = foreground): " _rm
+        case "$_rm" in b|bg|background|B) RUN_MODE=bg ;; *) RUN_MODE=fg ;; esac
+      else
+        RUN_MODE=fg
+      fi
+    fi
+
+    # --- 3) launch (b9743+ build supports qwen35/qwen3vl) -------------------
+    llama_bin llama-server
+    LLAMA_ARGS="-hf $LLM_HF --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99"
+    if [ "$RUN_MODE" = "bg" ]; then
+      echo "🧠 Starting $LLM_NAME llama.cpp server in the BACKGROUND (port 8080)  [$LLM_HF]"
+      docker exec -d "$CONTAINER_NAME" bash -lc "env $LD_ENV $LLAMA_BIN $LLAMA_ARGS >/tmp/llama-server.log 2>&1"
+      echo "✅ Server is starting (first run downloads the model)."
+      echo "   • Web UI / API : http://localhost:8080"
+      echo "   • View logs    : sjsujetsontool shell  ->  tail -f /tmp/llama-server.log"
+      echo "   • Stop it      : sjsujetsontool llama stop"
+    else
+      echo "🧠 Launching $LLM_NAME llama.cpp server (foreground, port 8080)  [$LLM_HF]"
+      echo "   (Ctrl+C to stop. Tip: re-run and choose 'background' to keep it serving.)"
+      if [ -n "$LD_ENV" ]; then
+        $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" $LLAMA_ARGS
+      else
+        $EXEC_CMD "$LLAMA_BIN" $LLAMA_ARGS
+      fi
     fi
     ;;
   llama-cli)

@@ -716,31 +716,52 @@ container is **b9743** (verified below). To (re)build with CUDA inside the conta
    devices get the qwen35-capable build after `sjsujetsontool update`.)*
 
 #### 🚀 Serving LLM via Llama Server
-You can launch the LLM `llama-server` directly from the host system using the top-level shortcut:
+Launch `llama-server` from the host with the top-level shortcut. Running it with **no arguments**
+brings up an interactive menu to pick the model and whether to run in the foreground or background:
 
 ```bash
-# From the host:
-sjsujetson@sjsujetson-02:~$ sjsujetsontool llama
-🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
-📦 JetPack Version: 6.1+ (inferred)
-🏷️  L4T BSP Revision: R36.4.3
-⚙️  CUDA Version: 12.6
-🧬 cuDNN Version: 9.3.0.75
-🤖 TensorRT Version: 10.3.0.30
-Warning: xhost command failed. X11 forwarding may not work.
-🧠 Launching Qwen3.5-2B (VLM) llama.cpp server (port 8080)  [unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S]
-   Switch model:  sjsujetsontool llama [qwen2b | qwen0.8b | qwen4b | gemma4]
-Downloading mmproj-BF16.gguf ────────╴                                22%
-Downloading Qwen3.5-2B-Q4_K_S.gguf ────                               12%
+sjsujetson@sjsujetson-61:~$ sjsujetsontool llama
+🧠 Select a model to serve with llama.cpp:
+   1) Qwen3.5-2B    (default, vision-capable)
+   2) Qwen3.5-0.8B  (smallest / fastest)
+   3) Qwen3.5-4B    (most capable)
+   4) Gemma-4-E2B   (vision-capable)
+   5) Custom        (enter a Hugging Face GGUF, e.g. unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S)
+Choice [1-5], or press Enter for the default (Qwen3.5-2B):
+Run in [f]oreground or [b]ackground? (Enter = foreground):
 ```
 
-This shortcut automatically starts the persistent container and launches `llama-server` with CUDA acceleration on port `8080` (configured with the required batch sizes). 
+- **Just press Enter** at both prompts → serves the default **Qwen3.5-2B** in the foreground.
+- Choosing **5) Custom** lets you serve *any* GGUF on Hugging Face — type its `repo:quant`, e.g.
+  `bartowski/Qwen_Qwen3.5-2B-GGUF:Q5_K_M`.
+- The first launch of a model downloads it (cached under `/Developer/models`, shared by all accounts).
 
-Basic web UI can be accessed via browser at `http://localhost:8080`.
+**Foreground vs. background:**
+
+- **Foreground** (default): the server holds the terminal; stop it with `Ctrl+C`.
+- **Background**: the server keeps running after you log out. Stop it any time with:
+  ```bash
+  sjsujetsontool llama stop
+  ```
+
+**Non-interactive forms** (handy for scripts — no prompts):
+
+```bash
+sjsujetsontool llama                      # interactive menu (default Qwen3.5-2B)
+sjsujetsontool llama qwen4b               # serve Qwen3.5-4B, foreground
+sjsujetsontool llama gemma4 bg            # serve Gemma 4 E2B in the background
+sjsujetsontool llama unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S bg   # any HF model, background
+sjsujetsontool llama stop                 # stop the background server
+```
+
+The shortcut starts the persistent container and launches `llama-server` with CUDA acceleration on
+port `8080` (with the batch sizes needed for vision models). The web UI / OpenAI-compatible API is at
+`http://localhost:8080`. For a background server, view its log with
+`sjsujetsontool shell` → `tail -f /tmp/llama-server.log`.
 
 *(Alternatively, to run manually inside the container)*:
 1. Enter the container: `sjsujetsontool shell`
-2. Start the server: `llama-server -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048`
+2. Start the server: `llama-server -hf unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99`
 
 #### 💬 Querying the Model via HTTP API (OpenAI Compatible)
 You can run a local chat completion query in another terminal (on the host machine or from within the container) using `curl`:
