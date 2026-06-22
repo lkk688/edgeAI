@@ -18,6 +18,11 @@ if [[ -n "$JETSON_MODEL" ]]; then
   echo "🧠 Detected Jetson Model: $JETSON_MODEL"
 fi
 
+# 🧮 Total system RAM in MB. On Jetson this is UNIFIED CPU+GPU memory, so
+# llama.cpp's batch/context buffers must fit inside it. 8GB-class devices OOM
+# with the large default batch, so we scale it down below (see the llama arm).
+TOTAL_RAM_MB=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo 2>/dev/null || echo 8000)
+
 # 🧰 Detect JetPack and CUDA version
 JETPACK_VERSION=$(dpkg-query --show nvidia-jetpack 2>/dev/null | awk '{print $2}')
 # Detect L4T BSP revision from /etc/nv_tegra_release (e.g. R36.4.7)
@@ -938,9 +943,21 @@ case "$1" in
 
     # --- 3) launch (b9743+ build supports qwen35/qwen3vl) -------------------
     llama_bin llama-server
+    # Stop any previous llama-server first — two servers won't fit in a Jetson's
+    # unified memory, and a leftover/leaked one is the #1 cause of cudaMalloc OOM.
+    $EXEC_CMD pkill -f llama-server >/dev/null 2>&1 || true
+    sleep 1
+    # Memory-aware buffers: an 8GB-class Jetson OOMs with the big 2048 batch
+    # (the compute buffer alone is ~1GB+). Scale batch/context to the device.
+    if [ "${TOTAL_RAM_MB:-8000}" -lt 10000 ]; then
+      LLAMA_BATCH=512;  LLAMA_CTX=4096    # 8GB Orin Nano
+    else
+      LLAMA_BATCH=2048; LLAMA_CTX=8192    # 16GB+ devices
+    fi
+    echo "🧮 Detected ${TOTAL_RAM_MB}MB RAM → batch=${LLAMA_BATCH}, ctx=${LLAMA_CTX}"
     # --jinja uses the model's chat template so requests can toggle thinking via
     # chat_template_kwargs:{enable_thinking:false} (much faster on Jetson).
-    LLAMA_ARGS="-hf $LLM_HF --host 0.0.0.0 --port 8080 --jinja --ubatch-size 2048 --batch-size 2048 -ngl 99"
+    LLAMA_ARGS="-hf $LLM_HF --host 0.0.0.0 --port 8080 --jinja --ubatch-size $LLAMA_BATCH --batch-size $LLAMA_BATCH --ctx-size $LLAMA_CTX -ngl 99"
     if [ "$RUN_MODE" = "bg" ]; then
       echo "🧠 Starting $LLM_NAME llama.cpp server in the BACKGROUND (port 8080)  [$LLM_HF]"
       docker exec -d "$CONTAINER_NAME" bash -lc "env $LD_ENV $LLAMA_BIN $LLAMA_ARGS >/tmp/llama-server.log 2>&1"
@@ -969,11 +986,13 @@ case "$1" in
     esac
     llama_model "$MODEL_SEL" || exit 1
     llama_bin llama-cli
-    echo "🧠 Running $LLM_NAME llama.cpp CLI inside persistent container...  [$LLM_HF]"
+    # Memory-aware batch (see the llama arm): keep 8GB Jetsons from OOMing.
+    if [ "${TOTAL_RAM_MB:-8000}" -lt 10000 ]; then LLAMA_BATCH=512; else LLAMA_BATCH=2048; fi
+    echo "🧠 Running $LLM_NAME llama.cpp CLI inside persistent container...  [$LLM_HF]  (batch=$LLAMA_BATCH)"
     if [ -n "$LD_ENV" ]; then
-      $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
+      $EXEC_CMD env "$LD_ENV" "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size $LLAMA_BATCH --batch-size $LLAMA_BATCH -ngl 99 "$@"
     else
-      $EXEC_CMD "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size 2048 --batch-size 2048 -ngl 99 "$@"
+      $EXEC_CMD "$LLAMA_BIN" -hf "$LLM_HF" --ubatch-size $LLAMA_BATCH --batch-size $LLAMA_BATCH -ngl 99 "$@"
     fi
     ;;
   ollama-serve)

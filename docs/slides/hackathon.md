@@ -2,7 +2,7 @@
 marp: true
 paginate: true
 size: 16:9
-title: SJSU Edge AI Hackathon — Tracks & Rules
+title: SJSU CyberAI 2026 Hackathon — Tracks & Rules
 ---
 
 <style>
@@ -29,7 +29,7 @@ section.lead h1 { font-size:2.3em; }
 </style>
 
 <!-- _class: lead -->
-# 🏆 SJSU Edge AI Hackathon
+# 🏆 SJSU CyberAI 2026 Hackathon
 ### Build something amazing with AI — in one week
 
 `San Jose State University · Summer Camp`
@@ -119,14 +119,13 @@ code helper, a Q&A bot over your own documents — your idea.
 </div>
 </div>
 
-<span class="tiny">Use a free cloud model (NVIDIA Build / OpenAI / Anthropic) or a local model — your choice.</span>
+<span class="tiny">Use a cloud model (NVIDIA Build / OpenAI / Anthropic) or a local model — your choice.</span>
 
 ---
 
 ## <span class="step">4</span> 🛡️ Track 2 — Cyber‑AI: AI for security
 
-Teach an AI to think like a security analyst: scan code/dependencies, then decide
-which findings are **actually exploitable**.
+Teach an AI to think like a security analyst: scan network/code/dependencies, then decide which findings are **not secure**.
 
 <div class="cols">
 <div>
@@ -153,17 +152,18 @@ which findings are **actually exploitable**.
 
 ## <span class="step">5</span> ⚡ Track 3 — Edge AI: vision & robotics on Jetson
 
-Run real AI **on the Jetson Orin Nano** — and make it **fast** with GPU
-acceleration. **This track must be demonstrated on the device.**
+Run real AI **on the Jetson Orin Nano** and make it **fast** with GPU acceleration. **This track must be demonstrated on the device.**
 
 <div class="cols">
 <div>
 
 **Project ideas**
-- 📷 Real‑time **object detection** (YOLO) from a camera
-- 🖼️ Image classification / a "what is this?" camera
-- 🦾 A **robot** task with ROS 2 / LeRobot arm
-- 🗣️ A voice assistant on the edge
+- 🛡️ **Security monitoring & scene understanding**
+- 🚗 An **autonomous car**
+- 🗣️ A **voice assistant**
+- 🦾 **Perception & AI device** for robots
+
+<span class="tiny">🔌 Feel free to **bring your own devices/components** — a USB camera, USB microphone/speaker, or any robotic base.</span>
 
 </div>
 <div>
@@ -177,23 +177,11 @@ acceleration. **This track must be demonstrated on the device.**
 </div>
 </div>
 
-> 🏎️ **Bonus points** for **CUDA / TensorRT** acceleration — show your model runs faster on the GPU.
+> ⚡ **Acceleration counts.** **CUDA** runs thousands of operations in parallel; **TensorRT** makes a trained model run **faster** and cooler on the Jetson. **Measure it** — report **FPS / latency** before vs. after. 🏎️ *"8 FPS on CPU → **31 FPS** on the Jetson GPU with TensorRT"* earns bonus points.
 
 ---
 
-## <span class="step">6</span> 🧪 What "acceleration" means (Track 3)
-
-Judges reward projects that *use the hardware well*:
-
-- **CUDA** — the GPU runs thousands of operations in parallel.
-- **TensorRT** — NVIDIA's optimizer makes a trained model run **faster** and use less power on the Jetson.
-- **Measure it!** Report **FPS** (frames per second) or **latency** before vs. after optimization.
-
-> A great Track‑3 demo says: *"Our detector ran at 8 FPS on CPU and **31 FPS** on the Jetson GPU with TensorRT."*
-
----
-
-## <span class="step">7</span> 🏁 How you'll be judged
+## <span class="step">6</span> 🏁 How you'll be judged
 
 Your project is evaluated on **five things**:
 
@@ -209,7 +197,7 @@ Your project is evaluated on **five things**:
 
 ---
 
-## <span class="step">8</span> 🎤 Friday presentation (required)
+## <span class="step">7</span> 🎤 Friday presentation (required)
 
 **Challenge presentation session — 10 minutes max per team.** Include:
 
@@ -234,7 +222,7 @@ Your project is evaluated on **five things**:
 
 ---
 
-## <span class="step">9</span> 🧭 Tips to win
+## <span class="step">8</span> 🧭 Tips to win
 
 - **Start small, then improve.** Get the simplest version working on Day 1.
 - **Save your results early** — screenshots/videos as you go (great for slides).

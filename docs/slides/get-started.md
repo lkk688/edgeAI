@@ -3,7 +3,7 @@ marp: true
 paginate: true
 math: katex
 size: 16:9
-title: Edge AI Lab — Getting Started
+title: SJSU CyberAI Summer Camp — Getting Started
 ---
 
 <!-- Plain Markdown. `---` starts a new slide. Preview with the "Marp for VS Code"
@@ -33,12 +33,14 @@ section.lead h1 { font-size:2.3em; }
 </style>
 
 <!-- _class: lead -->
-# 🤖 Edge AI Lab — Getting Started
+# 🤖 SJSU CyberAI Lab — Getting Started
 ### NVIDIA Jetson Orin Nano · `sjsujetsontool`
 
 `San José State University · Edge AI`
 
 <span class="tiny">A quick tour from first login to chatting with AI models. Follow along step by step.</span>
+
+<span class="tiny">🏕️ [SJSU CyberAI Camp](https://www.sjsu.edu/cmpe/resources/cybercamp.php) &nbsp;·&nbsp; 💻 [github.com/lkk688/edgeai](https://github.com/lkk688/edgeai)</span>
 
 ---
 
