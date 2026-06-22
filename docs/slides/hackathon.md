@@ -1,32 +1,10 @@
 ---
 marp: true
+theme: sjsu
 paginate: true
 size: 16:9
 title: SJSU CyberAI 2026 Hackathon — Tracks & Rules
 ---
-
-<style>
-:root { --blue:#0055A2; --gold:#E5A823; --ink:#202a3c; }
-section { background:#fff; color:var(--ink); font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:21px; line-height:1.45; padding:46px 62px 54px; border-top:7px solid var(--blue); }
-section::before { content:""; position:absolute; left:0; right:0; top:7px; height:3px; background:var(--gold); }
-h1 { color:var(--blue); font-size:1.85em; margin:0 0 .3em; }
-h2 { color:var(--blue); font-size:1.3em; border-bottom:2px solid var(--gold); padding-bottom:6px; margin:0 0 .5em; }
-h3 { color:#0a3d7a; margin:.1em 0 .25em; }
-strong { color:var(--blue); }
-a { color:var(--blue); text-decoration:none; border-bottom:1px solid var(--gold); }
-code { background:#eef2f8; color:#0a3d7a; border-radius:5px; padding:.05em .35em; font-size:.92em; }
-pre { background:#0f1830; border-radius:10px; box-shadow:0 6px 18px rgba(8,20,50,.12); }
-pre code { background:transparent; color:#e8eefc; font-size:.78em; line-height:1.5; }
-blockquote { border-left:4px solid var(--gold); background:#fbf6e9; color:#5b4a22; padding:.4em .9em; border-radius:6px; }
-table { font-size:.82em; border-collapse:collapse; } th { background:var(--blue); color:#fff; } td,th { border:1px solid #d4dce8; padding:5px 10px; }
-.step { background:var(--blue); color:#fff; border-radius:999px; padding:.03em .6em; font-weight:700; font-size:.85em; }
-.tiny { font-size:.78em; color:#5d6b82; }
-.cols { display:flex; gap:22px; align-items:flex-start; } .cols > * { flex:1; }
-.card { border:1px solid #d4dce8; border-top:4px solid var(--gold); border-radius:12px; padding:12px 16px; background:#fbfcfe; }
-section.lead { text-align:center; border-top-width:10px; }
-section.lead h1 { font-size:2.3em; }
-</style>
 
 <!-- _class: lead -->
 # 🏆 SJSU CyberAI 2026 Hackathon
@@ -35,6 +13,159 @@ section.lead h1 { font-size:2.3em; }
 `San Jose State University · Summer Camp`
 
 <span class="tiny">Teams of up to 4 · pick a track · present your project on Friday.</span>
+
+---
+
+## 🌟 Highlights from 2025 CyberAI Challenge
+
+Relive the excitement from last year's cohort! Teams built LLM, Cyber, and Edge AI solutions.
+
+<div class="cols">
+<div class="fig-center">
+
+![w:450](../figures/2025cyberaicamp/camp2025all1.JPG)
+<span class="caption">2025 CyberAI Camp Cohort Group Photo</span>
+
+</div>
+<div class="fig-center">
+
+![w:450](../figures/2025cyberaicamp/camp2025all2.JPG)
+<span class="caption">Final Demos & Project Presentations</span>
+
+</div>
+</div>
+
+---
+
+## 🏆 2025 Student Winner Teams (1/4)
+
+<div class="cols">
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8910.JPG)
+<span class="caption">2025 Student Winner Team 1</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8919.JPG)
+<span class="caption">2025 Student Winner Team 2</span>
+
+</div>
+
+</div>
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8924.JPG)
+<span class="caption">2025 Student Winner Team 3</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8929.JPG)
+<span class="caption">2025 Student Winner Team 4</span>
+
+</div>
+
+</div>
+</div>
+
+---
+
+## 🏆 2025 Student Winner Teams (2/4)
+
+<div class="cols">
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8935.JPG)
+<span class="caption">2025 Student Winner Team 5</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8940.JPG)
+<span class="caption">2025 Student Winner Team 6</span>
+
+</div>
+
+</div>
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8944.JPG)
+<span class="caption">2025 Student Winner Team 7</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8950.JPG)
+<span class="caption">2025 Student Winner Team 8</span>
+
+</div>
+
+</div>
+</div>
+
+---
+
+## 🏆 2025 Student Winner Teams (3/4)
+
+<div class="cols">
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8963.JPG)
+<span class="caption">2025 Student Winner Team 9</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8968.JPG)
+<span class="caption">2025 Student Winner Team 10</span>
+
+</div>
+
+</div>
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8970.JPG)
+<span class="caption">2025 Student Winner Team 11</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8974.JPG)
+<span class="caption">2025 Student Winner Team 12</span>
+
+</div>
+
+</div>
+</div>
+
+---
+
+## 🏆 2025 Student Winner Teams (4/4)
+
+<div class="cols">
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8977.JPG)
+<span class="caption">2025 Student Winner Team 13</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8985.JPG)
+<span class="caption">2025 Student Winner Team 14</span>
+
+</div>
+
+</div>
+<div class="fig-center">
+
+![w:320](../figures/2025cyberaicamp/IMG_8986.JPG)
+<span class="caption">2025 Student Winner Team 15</span>
+
+<div style="margin-top: 10px;">
+
+![w:320](../figures/2025cyberaicamp/IMG_8992.JPG)
+<span class="caption">2025 Student Winner Team 16</span>
+
+</div>
+
+</div>
+</div>
 
 ---
 
@@ -194,6 +325,36 @@ Your project is evaluated on **five things**:
 | 🎯 | **Impact & application** — how does your idea help the community? |
 
 > You don't need a perfect product — you need a **clear story** and a **working demo**.
+
+---
+
+## 🏆 Track Prizes & Recognition
+
+Each of the three tracks (LLM, Cyber-AI, and Edge AI) will award first, second, and third place teams!
+
+<div class="cols">
+<div>
+
+### 🎁 Team Member Awards
+- 🥇 **First Place Team**
+  **$100 Amazon Gift Card** for *each* member.
+- 🥈 **Second Place Team**
+  **$50 Amazon Gift Card** for *each* member.
+- 🥉 **Third Place Team**
+  **$30 Amazon Gift Card** for *each* member.
+
+<br>
+
+> 🎓 *All winning team members will also receive a physical Certificate of Achievement.*
+
+</div>
+<div>
+
+### 📜 Sample Certificate
+![w:380](../figures/2026_Cyber-AI_certificates.png)
+
+</div>
+</div>
 
 ---
 

@@ -11,9 +11,9 @@ for f in *.md; do
   [ "$f" = "README.md" ] && continue
   name="${f%.md}"
   echo "• $f -> $name.html"
-  $MARP "$f" --html -o "$name.html"
+  $MARP "$f" --html --no-stdin --theme-set themes/sjsu.css -o "$name.html"
   if [ "${1:-}" = "--pdf" ]; then
-    $MARP "$f" --html --allow-local-files --pdf -o "$name.pdf"
+    $MARP "$f" --html --no-stdin --allow-local-files --theme-set themes/sjsu.css --pdf -o "$name.pdf"
   fi
 done
 echo "✅ Built decks. Preview the .html locally or publish with: mkdocs gh-deploy"

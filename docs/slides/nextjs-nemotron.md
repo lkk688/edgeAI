@@ -1,32 +1,10 @@
 ---
 marp: true
+theme: sjsu
 paginate: true
 size: 16:9
 title: Web AI App — Next.js + NVIDIA Nemotron
 ---
-
-<style>
-:root { --blue:#0055A2; --gold:#E5A823; --ink:#202a3c; }
-section { background:#fff; color:var(--ink); font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:21px; line-height:1.45; padding:46px 62px 54px; border-top:7px solid var(--blue); }
-section::before { content:""; position:absolute; left:0; right:0; top:7px; height:3px; background:var(--gold); }
-h1 { color:var(--blue); font-size:1.85em; margin:0 0 .3em; }
-h2 { color:var(--blue); font-size:1.3em; border-bottom:2px solid var(--gold); padding-bottom:6px; margin:0 0 .5em; }
-h3 { color:#0a3d7a; }
-strong { color:var(--blue); }
-a { color:var(--blue); text-decoration:none; border-bottom:1px solid var(--gold); }
-code { background:#eef2f8; color:#0a3d7a; border-radius:5px; padding:.05em .35em; font-size:.92em; }
-pre { background:#0f1830; border-radius:10px; box-shadow:0 6px 18px rgba(8,20,50,.12); }
-pre code { background:transparent; color:#e8eefc; font-size:.78em; line-height:1.5; }
-blockquote { border-left:4px solid var(--gold); background:#fbf6e9; color:#5b4a22; padding:.4em .9em; border-radius:6px; }
-img { border-radius:10px; box-shadow:0 6px 18px rgba(8,20,50,.18); }
-section::after { color:#9aa7bd; }
-.step { background:var(--blue); color:#fff; border-radius:999px; padding:.03em .6em; font-weight:700; font-size:.85em; }
-.tiny { font-size:.78em; color:#5d6b82; }
-.cols { display:flex; gap:26px; align-items:center; } .cols > * { flex:1; }
-section.lead { text-align:center; border-top-width:10px; }
-section.lead h1 { font-size:2.3em; }
-</style>
 
 <!-- _class: lead -->
 # 🌐 Build a Web AI App
