@@ -270,8 +270,13 @@ CREATE_CMD="docker create $TTY_FLAGS --runtime=nvidia --network host \
   -e DISPLAY=$DISPLAY \
   --name $CONTAINER_NAME $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 #EXEC_CMD is used after ensure_container_started() function
-#Executes commands inside an already running container
-EXEC_CMD="docker exec $TTY_FLAGS $CONTAINER_NAME" 
+#Executes commands inside an already running container.
+# Pass the host's ~/.env.local (API keys saved by `chat`/`setup-nvapi`) into the
+# container so tools like the Next.js app / gradio UI see NVIDIA_API_KEY etc.
+# (inside the container, $HOME is /root, so it can't read the host file directly).
+ENVFILE_ARG=""
+[ -f "$HOME/.env.local" ] && ENVFILE_ARG="--env-file $HOME/.env.local"
+EXEC_CMD="docker exec $TTY_FLAGS $ENVFILE_ARG $CONTAINER_NAME"
 #Creates and starts a new container instance, starts fresh each time (stateless)
 CONTAINER_CMD="docker run --rm $TTY_FLAGS --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \

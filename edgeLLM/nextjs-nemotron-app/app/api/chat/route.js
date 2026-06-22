@@ -17,21 +17,12 @@
 export const runtime = "nodejs";          // streaming works on Node runtime
 export const dynamic = "force-dynamic";   // never cache
 
-const NVIDIA_BASE_URL =
-  process.env.NVIDIA_BASE_URL || "https://integrate.api.nvidia.com/v1";
+import { resolveProvider } from "@/lib/providers";
 
 const DEFAULT_MODEL =
   process.env.NVIDIA_MODEL || "nvidia/llama-3.3-nemotron-super-49b-v1";
 
 export async function POST(req) {
-  const apiKey = process.env.NVIDIA_API_KEY;
-  if (!apiKey) {
-    return jsonError(
-      500,
-      "NVIDIA_API_KEY is not set. Copy .env.local.example to .env.local and add your key."
-    );
-  }
-
   let body;
   try {
     body = await req.json();
@@ -51,6 +42,16 @@ export async function POST(req) {
     return jsonError(400, "`messages` must be a non-empty array.");
   }
 
+  // Pick the provider (NVIDIA / OpenAI / Anthropic) from the model id and read
+  // its key from ~/.env.local or this app's .env.local.
+  const provider = resolveProvider(model);
+  if (!provider.apiKey) {
+    return jsonError(
+      500,
+      `${provider.keyEnv} is not set. Add it to ~/.env.local (e.g. via 'sjsujetsontool chat' / 'setup-nvapi') or this app's .env.local.`
+    );
+  }
+
   const payload = {
     model,
     messages,
@@ -60,25 +61,24 @@ export async function POST(req) {
     stream_options: { include_usage: true },
   };
 
-  // Nemotron-specific: enable the visible thinking process.
-  // Older Nemotron checkpoints accept `chat_template_kwargs.enable_thinking`.
-  if (thinking) {
+  // Visible "thinking" is a Nemotron/llama.cpp feature; other providers reject it.
+  if (thinking && provider.thinking) {
     payload.chat_template_kwargs = { enable_thinking: true };
   }
 
   let upstream;
   try {
-    upstream = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {
+    upstream = await fetch(`${provider.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${provider.apiKey}`,
         Accept: "text/event-stream",
       },
       body: JSON.stringify(payload),
     });
   } catch (err) {
-    return jsonError(502, `Failed to reach NVIDIA Build: ${err.message}`);
+    return jsonError(502, `Failed to reach ${provider.name}: ${err.message}`);
   }
 
   if (!upstream.ok || !upstream.body) {

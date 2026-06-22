@@ -17,7 +17,7 @@ strong { color:var(--blue); }
 a { color:var(--blue); text-decoration:none; border-bottom:1px solid var(--gold); }
 code { background:#eef2f8; color:#0a3d7a; border-radius:5px; padding:.05em .35em; font-size:.92em; }
 pre { background:#0f1830; border-radius:10px; box-shadow:0 6px 18px rgba(8,20,50,.12); }
-pre code { background:transparent; color:#e8eefc; font-size:.8em; line-height:1.5; }
+pre code { background:transparent; color:#e8eefc; font-size:.78em; line-height:1.5; }
 blockquote { border-left:4px solid var(--gold); background:#fbf6e9; color:#5b4a22; padding:.4em .9em; border-radius:6px; }
 img { border-radius:10px; box-shadow:0 6px 18px rgba(8,20,50,.18); }
 section::after { color:#9aa7bd; }
@@ -44,9 +44,9 @@ section.lead h1 { font-size:2.3em; }
 <div>
 
 - A **Next.js** web app with a **streaming chat** UI.
-- Powered by **NVIDIA Nemotron** through the **Build API** (cloud GPUs).
+- Talks to **NVIDIA Nemotron** (and optionally **OpenAI** / **Anthropic**) via cloud APIs.
 - **Runs on the Jetson**, opened from your laptop's browser.
-- 🔒 Your API key stays **server‑side** — never exposed to the browser.
+- 🔒 Your API key stays **server‑side** — never sent to the browser.
 
 </div>
 <div>
@@ -58,16 +58,18 @@ section.lead h1 { font-size:2.3em; }
 
 ---
 
-## <span class="step">2</span> How it fits together
+## <span class="step">2</span> The big picture
 
 <div class="cols">
 <div>
 
-Browser → **Next.js API route on the Jetson** → NVIDIA Build → back to the browser.
+Your browser talks to a small **server on the Jetson**, which talks to the model API:
 
-- The page is a **Client Component** (streams tokens live).
-- `/api/chat` is a **server route** — it holds the key and calls NVIDIA.
-- The browser never sees the key.
+`Browser → /api/chat (on Jetson) → NVIDIA/OpenAI/Anthropic → stream back`
+
+- The **page** runs in the browser (buttons, live text).
+- The **API route** runs on the server — it holds the key and calls the model.
+- The browser **never sees the key**.
 
 </div>
 <div>
@@ -79,84 +81,120 @@ Browser → **Next.js API route on the Jetson** → NVIDIA Build → back to the
 
 ---
 
-## <span class="step">3</span> Where's the code
+## <span class="step">3</span> Key web concepts (background)
+
+- **Next.js** = a React framework. Each folder under `app/` is a page (the *App Router*).
+- **Server Components / routes** run on the Jetson — they can hold **secrets** and call APIs.
+- **Client Components** run in the **browser** — they're interactive (`"use client"`).
+- **Streaming (SSE)**: the server forwards tokens one chunk at a time, so the answer appears live.
+
+> Rule of thumb: **secrets + external API calls → server**; **buttons + live updates → client**.
+
+---
+
+## <span class="step">4</span> Where's the code (and what each part does)
 
 ```text
 edgeLLM/nextjs-nemotron-app/
-  app/api/chat/route.js     # streaming chat endpoint (holds the API key)
-  app/api/models/route.js   # lists available Nemotron models
-  app/page.js               # the chat UI (Client Component)
-  .env.local                # your NVIDIA_API_KEY (not committed)
+  app/page.js               # the chat UI  — Client Component (browser)
+  app/components/ChatUI.js  # streaming chat box
+  app/api/chat/route.js     # server route — holds the key, streams from the model
+  app/api/models/route.js   # the model dropdown list
+  lib/providers.js          # picks NVIDIA/OpenAI/Anthropic + reads keys from ~/.env.local
+  .env.local                # optional local keys (git-ignored)
 ```
 
 <span class="tiny">📦 Repo: [edgeLLM/nextjs-nemotron-app](https://github.com/lkk688/edgeAI/tree/main/edgeLLM/nextjs-nemotron-app)</span>
 
 ---
 
-## <span class="step">4</span> Setup
+## <span class="step">5</span> Setup — keys + Node
 
-1. **Node 20** (via `nvm`, no sudo):
-
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-exec $SHELL && nvm install 20 && nvm alias default 20
-```
-
-2. **API key** → get a free one at **build.nvidia.com**, then:
+**Keys** come from your **`~/.env.local`** (the same file `sjsujetsontool chat` saved). Add any of:
 
 ```bash
-cd edgeLLM/nextjs-nemotron-app
-echo "NVIDIA_API_KEY=nvapi-xxxxx" > .env.local
+echo "NVIDIA_API_KEY=nvapi-…"     >> ~/.env.local   # build.nvidia.com (free)
+echo "OPENAI_API_KEY=sk-…"        >> ~/.env.local   # platform.openai.com
+echo "ANTHROPIC_API_KEY=sk-ant-…" >> ~/.env.local   # console.anthropic.com
 ```
+
+The app picks the provider from the **model you choose** (`nvidia/…`, `gpt-…`, `claude-…`).
+
+> 🟢 **Node/npm live in the container** — there's no `npm` on the host. Run everything inside
+> `sjsujetsontool shell` (it also passes your `~/.env.local` keys into the container).
 
 ---
 
-## <span class="step">5</span> Run it
+## <span class="step">6</span> Run it
 
 ```bash
-cd edgeLLM/nextjs-nemotron-app
-npm install                  # first time
-npm run dev                  # dev server on http://localhost:3000
-# (for a fast demo build:  npm run build && npm run start)
+sjsujetsontool shell                                  # Node 20 + npm + your keys
+cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+npm install                                           # first time (~30-60 s)
+npm run dev                                           # serves on 0.0.0.0:3000
 ```
 
 Open it **from your laptop** using the Jetson's IP:
 
 ```bash
-hostname -I | awk '{print $1}'      # e.g. 192.168.5.206  → http://192.168.5.206:3000
+hostname -I | awk '{print $1}'        # e.g. 192.168.5.206  → http://192.168.5.206:3000
 ```
 
-> Each `/api/chat` round trip goes Jetson → NVIDIA Build → Jetson → your browser, streaming tokens with a TTFT / tokens-per-second metrics line.
+> Each message streams: Jetson → model API → Jetson → your browser, with a TTFT / tokens-per-second line.
 
 ---
 
-## <span class="step">6</span> Extend it — bonus labs
+## <span class="step">7</span> Extend it — same pattern every time
 
-The same app grows into multimodal labs (each has its own page + API route):
+Every feature = **one page** (UI) + **one API route** (server logic). Copy the pattern:
+
+```text
+app/<feature>/page.js        # the page/UI
+app/api/<feature>/route.js   # server: read key, call a model, return/stream
+```
+
+The bonus labs are exactly this — add a route + page and you've extended the app:
 
 <div class="cols">
 <div>
 
-- 🔎 **Retrieval** — embeddings + rerank search
-- 🖼️ **Omni** — multimodal (image) reasoning
-- 🎙️ **ASR** — speech‑to‑text
-- 🔊 **TTS** — zero‑shot voice synthesis
+🔎 **Retrieval** · 🖼️ **Omni** (vision) · 🎙️ **ASR** · 🔊 **TTS**
 
 </div>
 <div>
 
-![w:300](../curriculum/figures/retrieval_ui.png) ![w:300](../curriculum/figures/omni_ui.png)
-![w:300](../curriculum/figures/asr_ui.png) ![w:300](../curriculum/figures/tts_ui.png)
+![w:280](../curriculum/figures/retrieval_ui.png) ![w:280](../curriculum/figures/omni_ui.png)
 
 </div>
 </div>
+
+---
+
+## <span class="step">8</span> Make it your own (push to GitHub)
+
+Copy the app into your own folder, then create your repo:
+
+```bash
+cp -r /Developer/edgeAI/edgeLLM/nextjs-nemotron-app ~/my-ai-app
+cd ~/my-ai-app && rm -rf node_modules .next
+git init && git add -A && git commit -m "My Edge AI web app"
+```
+
+Create an empty repo on **github.com** (the **＋ → New repository**), then:
+
+```bash
+git remote add origin https://github.com/<your-username>/my-ai-app.git
+git branch -M main && git push -u origin main
+```
+
+<span class="tiny">With the GitHub CLI it's one line: <code>gh repo create my-ai-app --public --source=. --push</code></span>
 
 ---
 
 <!-- _class: lead -->
 ## 📚 Full walkthrough
 
-Step‑by‑step build, code, and all four bonus labs:
+Step‑by‑step build, code, and the four bonus labs:
 
 [lkk688.github.io/edgeAI/curriculum/11_nextjs_nemotron_app](https://lkk688.github.io/edgeAI/curriculum/11_nextjs_nemotron_app/)
 

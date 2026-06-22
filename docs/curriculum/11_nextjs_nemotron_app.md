@@ -13,6 +13,10 @@
 > **Companion code:** [`edgeLLM/nextjs-nemotron-app/`](../../edgeLLM/nextjs-nemotron-app/)
 > — every snippet below is an excerpt from this folder; you can read or run
 > the whole project end-to-end.
+>
+> 🎞️ **Prefer the short version?** Start with the
+> [**Next.js + Nemotron slides ▶**](https://lkk688.github.io/edgeAI/slides/nextjs-nemotron.html)
+> for the overview, then come back here for the full walkthrough.
 
 ---
 
@@ -138,24 +142,29 @@ We will come back to retrieval in [Lesson 09 (RAG)](./09_rag_app_langchain_jetso
 
 ## 3. 🧰 Prerequisites and project scaffold
 
-### 3.1 Tooling
+### 3.1 Tooling — Node lives in the container
 
-On your **laptop** (any OS) and on the **Jetson Orin Nano** you should have
-**Node.js ≥ 18.18**. We use **Node 20 LTS** for both. The recommended way to
-install Node on the Jetson is `nvm` because it does not need `sudo`:
+You need **Node.js ≥ 18.18** (we use **Node 20 LTS**). On the lab Jetsons the `student` account does
+**not** have Node/npm on the host:
 
 ```bash
-ssh jetsonorin
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-exec $SHELL   # or open a new shell
-nvm install 20
-nvm alias default 20
-node -v       # → v20.x
-npm -v        # → 10.x or 11.x
+student@sjsujetson-02:~$ npm -v
+-bash: npm: command not found
 ```
 
-> **Note (aarch64).** Node 20 ships native ARM64 binaries, so installation on
-> the Orin Nano takes about a minute. No compilation needed.
+Node 20 + npm are **pre-installed inside our container**, so run every `npm` / `next` command from a
+container shell:
+
+```bash
+sjsujetsontool update           # one-time: pulls the container that includes Node 20
+sjsujetsontool shell            # enter the AI container
+node -v                         # → v20.x
+npm -v                          # → 10.x
+```
+
+> The container mounts `/Developer`, so the app at
+> `/Developer/edgeAI/edgeLLM/nextjs-nemotron-app` is visible inside, and the `node_modules` you install
+> persist on the host SSD. *(On your own laptop you can instead install Node 20 with `nvm`.)*
 
 ### 3.2 Project layout we will build
 
@@ -271,25 +280,36 @@ cd edgeLLM/nextjs-nemotron-app
 npm install
 ```
 
-### Step 2 — `.env.local`
+### Step 2 — API keys (`~/.env.local`, shared with `sjsujetsontool`)
 
-Copy the template and paste your key:
+This app reads its API key **server-side** from your **`~/.env.local`** (the same private file
+`sjsujetsontool chat` / `sjsujetsontool setup-nvapi` write to), falling back to a `.env.local` in the
+app folder. **So if you already saved a key in the Get-Started lab, it just works here** — no copying.
+
+If you don't have one yet, add it once:
 
 ```bash
-cp .env.local.example .env.local
-# edit .env.local:
-NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-NVIDIA_MODEL=nvidia/llama-3.3-nemotron-super-49b-v1
-NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
-# (more vars for the Retrieval Lab and Omni Lab — see sections 7 and 8)
-NVIDIA_EMBED_MODEL=nvidia/nv-embedqa-e5-v5
-NVIDIA_RERANK_URL=https://ai.api.nvidia.com/v1/retrieval/nvidia/reranking
-NVIDIA_RERANK_MODEL=nvidia/rerank-qa-mistral-4b
-NVIDIA_OMNI_MODEL=nvidia/nemotron-3-nano-omni-30b-a3b-reasoning
+# in your home directory (~/.env.local). One line per provider you want to use:
+echo "NVIDIA_API_KEY=nvapi-xxxxxxxx"   >> ~/.env.local     # build.nvidia.com (free)
+echo "OPENAI_API_KEY=sk-xxxxxxxx"      >> ~/.env.local     # platform.openai.com/api-keys
+echo "ANTHROPIC_API_KEY=sk-ant-xxxxx"  >> ~/.env.local     # console.anthropic.com/settings/keys
+chmod 600 ~/.env.local
 ```
 
-`.env.local` is auto-loaded by Next.js into `process.env` **only on the
-server**. It is already in `.gitignore`. The browser bundle never sees it.
+**Pick a provider by choosing a model in the UI** — the chat route infers it from the model id:
+
+| Provider | Key (in `~/.env.local`) | Base URL | Example models |
+|---|---|---|---|
+| **NVIDIA Build** | `NVIDIA_API_KEY` | `https://integrate.api.nvidia.com/v1` | `nvidia/llama-3.3-nemotron-super-49b-v1`, `nvidia/llama-3.1-nemotron-nano-8b-v1` |
+| **OpenAI** | `OPENAI_API_KEY` | `https://api.openai.com/v1` | `gpt-4o-mini`, `gpt-4o` |
+| **Anthropic** | `ANTHROPIC_API_KEY` | `https://api.anthropic.com/v1` *(OpenAI-compatible)* | `claude-haiku-4-5`, `claude-sonnet-4-6` |
+
+> Optional extra vars (Retrieval / Omni labs, sections 7–8) still go in `~/.env.local` or the app's
+> `.env.local`: `NVIDIA_EMBED_MODEL`, `NVIDIA_RERANK_URL`, `NVIDIA_RERANK_MODEL`, `NVIDIA_OMNI_MODEL`.
+> You can override any base URL with `NVIDIA_BASE_URL` / `OPENAI_BASE_URL` / `ANTHROPIC_BASE_URL`.
+
+`.env.local` keys stay **server-side** (`process.env`); the browser bundle never sees them, and the
+file is git-ignored.
 
 ### Step 3 — Root layout with a shared NavBar
 
@@ -651,6 +671,9 @@ cd edgeLLM/nextjs-nemotron-app
 npm run dev
 ```
 
+> On the **Jetson**, npm lives in the container — run this inside `sjsujetsontool shell` (see §5).
+> On your **laptop**, install Node 20 (`nvm install 20`) first.
+
 Open <http://localhost:3000>. Type a question, press **Enter**. You should
 see tokens stream in, plus a metrics line under the chat:
 
@@ -667,39 +690,31 @@ grey italic “Thinking” bubble appear *before* the answer bubble.
 
 ## 5. 🚀 Run on the Jetson Orin Nano
 
-This is the lab deliverable. We will copy the source to the Jetson over SSH,
-install Node deps there, and open the browser from your laptop.
+This is the lab deliverable. On the lab Jetsons the source is already in
+`/Developer/edgeAI` and **Node/npm live in the container**, so you run everything from a
+container shell — no rsync, no host Node install.
 
-### 5.1 rsync the source
+### 5.1 The source is already there
 
-From your laptop, in the repo root:
+The repo is at **`/Developer/edgeAI`** (shared into the container). Nothing to copy.
+*(On your own Jetson: `git clone https://github.com/lkk688/edgeAI` into `/Developer` first.)*
+
+### 5.2 Install deps — inside the container
 
 ```bash
-rsync -av --exclude node_modules --exclude .next --exclude .env.local \
-  edgeLLM/nextjs-nemotron-app/ jetsonorin:~/nextjs-nemotron-app/
+sjsujetsontool shell                                  # Node 20 + npm are here; brings in ~/.env.local keys
+cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+npm install                                           # first time, ~30-60 s on Orin Nano
 ```
 
-### 5.2 Install and configure on the Jetson
+Your API key comes from **`~/.env.local`** (Step 2) — `sjsujetsontool shell` injects it into the
+container, so there's nothing else to configure. *(Or put keys in this folder's `.env.local`.)*
+
+### 5.3 Build and start (inside the container)
 
 ```bash
-ssh jetsonorin
-# (one-time) install Node 20 if you have not already:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-exec $SHELL
-nvm install 20
-
-cd ~/nextjs-nemotron-app
-npm install                              # ~15-30 s on Orin Nano
-cp .env.local.example .env.local
-nano .env.local                          # paste your NVIDIA_API_KEY
-chmod 600 .env.local                     # make it user-readable only
-```
-
-### 5.3 Build and start
-
-```bash
-npm run build                            # ~10-15 s
-npm run start                            # binds to 0.0.0.0:3000
+npm run dev                              # dev server (hot reload) on 0.0.0.0:3000
+# or, for a faster demo:  npm run build && npm run start
 ```
 
 Expected output:
