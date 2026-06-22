@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edge-agent"
+version = "0.1.0"
+description = "A tiny ReAct agent loop + safe file tools for the SJSU Edge AI curriculum."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "Kaikai Liu", email = "kaikai.liu@sjsu.edu" }]
+keywords = ["llm", "agent", "react", "tool-calling", "jetson", "edge-ai"]
+dependencies = []  # the ReAct loop + tools are pure standard library
+
+[project.optional-dependencies]
+# Native OpenAI tool-calling (tool_calling.py) needs an OpenAI-compatible client.
+toolcalling = ["openai>=1.40"]
+
+[project.urls]
+Homepage = "https://github.com/lkk688/edgeAI"
+Tutorial = "https://lkk688.github.io/edgeAI/curriculum/13_react_agent/"
+
+[project.scripts]
+edge-agent = "edge_agent.tool_calling:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

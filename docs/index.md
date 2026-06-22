@@ -16,8 +16,11 @@ Hands-on labs to learn **embedded systems, Linux, AI/LLMs, robotics, and cyber�
 
 **🎞️ Slide decks** (short, click‑through — follow along step by step):
 
+- 🏆 [**Hackathon — Tracks & Rules**](slides/hackathon.html) — pick a track (LLM · Cyber‑AI · Edge AI) and build your project
 - ▶ [**Get Started**](slides/get-started.html) — set up your Jetson and run your first AI model (~15 min)
 - 🌐 [**Next.js + NVIDIA Nemotron Web App**](slides/nextjs-nemotron.html) — build & run a streaming chat web app
+- 🤖 [**ReAct Agents**](slides/react-agent.html) — the reason-and-act loop at the core of every AI agent
+- 🛡️ [**AI CVE Triage**](slides/vuln-triage.html) — a tool-using agent that triages security findings
 
 📖 **Want details?** Browse the **Handbook** below — the slides link back to it for deep dives.
 
@@ -53,6 +56,7 @@ Hands-on labs to learn **embedded systems, Linux, AI/LLMs, robotics, and cyber�
 * [🤖 Local AI Agents on Jetson](curriculum/10_local_ai_agents_jetson.md)
 * [🎙️ Voice Assistant on Jetson](curriculum/10b_voice_assistant_jetson.md)
 * [🌐 Next.js AI App with NVIDIA Nemotron](curriculum/11_nextjs_nemotron_app.md)
+* [🤖 The ReAct Loop — Core of AI Agents](curriculum/13_react_agent.md)
 
 ### 🦾 Robotics
 

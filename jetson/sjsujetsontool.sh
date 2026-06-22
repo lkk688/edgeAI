@@ -1171,6 +1171,9 @@ case "$1" in
         rm -f "${CHAT_PY}.tmp"
         echo "⚠️  Could not update chat client (will be fetched on first 'sjsujetsontool chat')."
       fi
+      # Agent mode (`chat --agent`) uses the edge_agent package shipped in the repo
+      # (/Developer/edgeAI/edgeLLM/edge_agent) — chat.py finds it on sys.path, so no
+      # extra files are fetched here.
     else
       echo "❌ Download failed. Restoring backup..."
       cp "$BACKUP_PATH" "$SCRIPT_PATH"

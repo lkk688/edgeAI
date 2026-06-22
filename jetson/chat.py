@@ -18,6 +18,20 @@ try:
 except Exception:
     RICH_OK = False
 
+# Optional agent mode (ReAct loop + file tools) from the `edge_agent` package
+# (edgeLLM/edge_agent). Works if it is pip-installed, or found in a repo checkout;
+# if neither is present, agent mode is simply unavailable.
+for _cand in ("/Developer/edgeAI/edgeLLM/edge_agent/src",
+              os.path.join(os.getcwd(), "edgeLLM", "edge_agent", "src")):
+    if os.path.isdir(_cand) and _cand not in sys.path:
+        sys.path.insert(0, _cand)
+try:
+    from edge_agent import ReActAgent
+    from edge_agent import Tools as AgentTools
+    AGENT_OK = True
+except Exception:
+    AGENT_OK = False
+
 GPUTOOL_DIR = os.path.join(os.path.expanduser("~"), ".gputool")
 CONFIG_PATH = os.path.join(GPUTOOL_DIR, "chat_config.json")
 
@@ -300,6 +314,8 @@ def stats_line(usage, timings, dt):
 HELP_ROWS = [
     ("/exit", "Quit the chat (also /quit, /q)"),
     ("/server", "Switch backend (local · NVIDIA · OpenAI · Anthropic · custom)"),
+    ("/agent on|off", "Toggle agent mode: ReAct loop + file tools (read/grep/search/write/edit)"),
+    ("/agent dir <path>", "Set the project folder the agent may read/edit"),
     ("/save [file]", "Save the conversation (.md default, or .json)"),
     ("/reset", "Clear conversation history (keeps system prompt)"),
     ("/system <text>", "Set (or clear) the system prompt"),
@@ -354,8 +370,8 @@ class PlainRenderer:
         print("══════════════════════════════════════════════════%s" % C['reset'])
         print("%s  Endpoint : %s" % (C['dim'], info["endpoint"]))
         print("  Model    : %s" % info["model"])
-        print("  Auth     : %s   Streaming: %s   Thinking: %s%s" % (
-            info["auth"], info["streaming"], info["thinking"], C['reset']))
+        print("  Auth     : %s   Streaming: %s   Thinking: %s   Agent: %s%s" % (
+            info["auth"], info["streaming"], info["thinking"], info.get("agent", "off"), C['reset']))
         print("%s  Type a message and press Enter.  /help for commands, /exit to quit.%s"
               % (C['dim'], C['reset']))
         print()
@@ -414,8 +430,8 @@ class RichRenderer:
         body = Text()
         body.append("Endpoint  ", style="bold"); body.append(info["endpoint"] + "\n", style="cyan")
         body.append("Model     ", style="bold"); body.append(info["model"] + "\n")
-        body.append("Auth %s   Streaming %s   Thinking %s\n" % (
-            info["auth"], info["streaming"], info["thinking"]), style="dim")
+        body.append("Auth %s   Streaming %s   Thinking %s   Agent %s\n" % (
+            info["auth"], info["streaming"], info["thinking"], info.get("agent", "off")), style="dim")
         body.append("\nType a message and press Enter.  ", style="dim")
         body.append("/help", style="bold cyan"); body.append(" for commands · ", style="dim")
         body.append("/exit", style="bold cyan"); body.append(" to quit.", style="dim")
@@ -569,6 +585,10 @@ def main():
                     help="don't send llama.cpp chat_template_kwargs (use for NVIDIA/other APIs)")
     ap.add_argument("--backend", action="store_true",
                     help="show the interactive backend chooser (local/NVIDIA/OpenAI/Anthropic/custom)")
+    ap.add_argument("--agent", action="store_true",
+                    help="start in agent mode: a ReAct loop with file tools (read/grep/search/write/edit)")
+    ap.add_argument("--agent-dir", default=".",
+                    help="project root the agent may read/edit (default: current directory)")
     ap.add_argument("--plain", action="store_true", help="force the plain stdlib renderer (no rich)")
     ap.add_argument("--reset-config", action="store_true", help="ignore and overwrite the saved chat config")
     args = ap.parse_args()
@@ -683,11 +703,44 @@ def main():
         return {"endpoint": endpoint, "model": model,
                 "auth": "on" if key else "off",
                 "streaming": "on" if args.stream else "off",
-                "thinking": "on" if think["enabled"] else "off"}
+                "thinking": "on" if think["enabled"] else "off",
+                "agent": "on" if agent_state["on"] else "off"}
+
+    # ----- agent mode (ReAct loop + file tools) -----
+    agent_state = {"on": bool(args.agent), "dir": args.agent_dir}
+
+    def complete_once(msgs):
+        """Non-streaming completion used by the ReAct loop. Returns assistant text."""
+        payload = {"model": model, "messages": msgs, "stream": False,
+                   "temperature": 0.2, "max_tokens": 1024}
+        if not state["ntk"]:
+            payload["chat_template_kwargs"] = {"enable_thinking": False}
+        try:
+            obj = json.load(request(endpoint, headers, payload))
+        except Exception as e:
+            renderer.error(err_for(e)); return ""
+        return (obj.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+
+    def run_agent(task):
+        if not AGENT_OK:
+            renderer.error("Agent mode unavailable: react_loop.py / agent_tools.py not found "
+                           "next to chat.py. Run `sjsujetsontool update`.")
+            return False
+        root = os.path.abspath(agent_state["dir"])
+        renderer.notice("🤖 Agent working in %s … (ctrl-C to stop)" % root)
+        agent = ReActAgent(complete_once, AgentTools(root), log=renderer.info)
+        try:
+            answer = agent.run(task)
+        except KeyboardInterrupt:
+            renderer.notice("Agent interrupted."); return False
+        renderer.begin(); renderer.content(answer); renderer.end()
+        return True
 
     # One-shot mode
     if args.message:
-        sys.exit(0 if ask(" ".join(args.message)) else 1)
+        msg = " ".join(args.message)
+        ok = run_agent(msg) if agent_state["on"] else ask(msg)
+        sys.exit(0 if ok else 1)
 
     # Interactive mode
     if not RICH_OK and not args.plain:
@@ -783,11 +836,30 @@ def main():
             renderer.notice("🎚️  preset '%s' applied (thinking %s)" % (name, "on" if think["enabled"] else "off"))
             continue
         if low in ("/config", "/cfg"):
-            renderer.notice("temp=%s top_p=%s top_k=%s min_p=%s presence=%s max_tokens=%s · thinking=%s" % (
+            renderer.notice("temp=%s top_p=%s top_k=%s min_p=%s presence=%s max_tokens=%s · thinking=%s · agent=%s" % (
                 sampling["temperature"], sampling["top_p"], sampling["top_k"], sampling["min_p"],
-                sampling["presence_penalty"], sampling["max_tokens"], "on" if think["enabled"] else "off"))
+                sampling["presence_penalty"], sampling["max_tokens"],
+                "on" if think["enabled"] else "off", "on" if agent_state["on"] else "off"))
             continue
-        ask(user)
+        if low.startswith("/agent"):
+            arg = user[len("/agent"):].strip()
+            if arg.lower().startswith("dir"):
+                d = arg[3:].strip()
+                if d:
+                    agent_state["dir"] = d
+                renderer.notice("📁 Agent folder: %s" % os.path.abspath(agent_state["dir"]))
+            else:
+                a = arg.lower()
+                agent_state["on"] = (a == "on") if a in ("on", "off") else (not agent_state["on"])
+                if agent_state["on"] and not AGENT_OK:
+                    renderer.error("Agent modules not found (run `sjsujetsontool update`).")
+                    agent_state["on"] = False
+                else:
+                    renderer.notice("🤖 Agent mode %s (folder: %s)" % (
+                        "ON — type a task" if agent_state["on"] else "off",
+                        os.path.abspath(agent_state["dir"])))
+            continue
+        run_agent(user) if agent_state["on"] else ask(user)
 
 if __name__ == "__main__":
     main()

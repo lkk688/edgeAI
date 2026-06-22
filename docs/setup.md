@@ -27,8 +27,14 @@ Use the browser's *Print → Save as PDF* from `localhost:8000`, or install `wea
 
 ## 5. Publish to GitHub Pages
 ```bash
-mkdocs gh-deploy                # publishes to https://lkk688.github.io/edgeAI/
+mkdocs gh-deploy --force        # publishes to https://lkk688.github.io/edgeAI/
 ```
+
+> Use **`--force`**. `gh-pages` is fully regenerated from `docs/` each time, and the
+> GitHub Action (§7) also pushes there — so without `--force` a manual deploy is often
+> rejected with `! [rejected] gh-pages -> gh-pages (fetch first)` (a non-fast-forward).
+> Force-pushing generated content is safe. To avoid the two deployers leap-frogging,
+> either rely on the Action (just `git push` to `main`) **or** deploy manually — not both.
 
 ## 6. Build the slide decks (Marp)
 The Marp sources live in `docs/slides/*.md` and are **excluded** from the MkDocs build
