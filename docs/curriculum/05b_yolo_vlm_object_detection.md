@@ -631,7 +631,7 @@ python3 jetson_object_detection_toolkit.py --model yolo-blip --source camera --o
 - **Total Pipeline**: 115-225ms for typical scenes
 - **Memory Usage**: ~3GB GPU memory
 - **Best Use Cases**: Scene analysis, accessibility applications, content generation
-```
+
 
 ### 📊 Performance Comparison on Jetson Orin Nano
 
@@ -666,7 +666,7 @@ python3 jetson_object_detection_toolkit.py --benchmark --memory-profile --models
 # TensorRT vs non-TensorRT comparison
 python3 jetson_object_detection_toolkit.py --benchmark --compare-tensorrt --model yolov8n
 ```
-```
+
 
 ### 🎯 When to Use Each Approach
 
@@ -792,7 +792,7 @@ python3 jetson_object_detection_toolkit.py --lab-exercise test-scenarios --scena
 # Custom scenario testing
 python3 jetson_object_detection_toolkit.py --lab-exercise custom-scenario --image-dir ./test_images/ --prompts "person,laptop,chair,monitor,phone"
 ```
-```
+
 
 ### 🔬 Advanced Analysis Tasks
 
@@ -836,7 +836,7 @@ python3 jetson_object_detection_toolkit.py --advanced-analysis confidence-analys
 - Handmade crafts
 - Unusual gadgets
 - Electronic art pieces
-```
+
 
 ### 📝 Lab Report Template
 
@@ -862,7 +862,7 @@ python3 jetson_object_detection_toolkit.py --export-results --formats json,csv,h
 - **Configuration Details**: Optimal settings for each model
 
 **Sample Report Structure:**
-```
+
 # Object Detection Performance Analysis Report
 
 ## Executive Summary
@@ -876,7 +876,7 @@ python3 jetson_object_detection_toolkit.py --export-results --formats json,csv,h
 
 ## Use Case Recommendations
 [AI-generated recommendations based on results]
-```
+
 
 ---
 
