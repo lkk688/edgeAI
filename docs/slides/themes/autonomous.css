@@ -284,3 +284,184 @@ section.lead h1 {
   font-size: 2.5em;
   margin-bottom: 12px;
 }
+
+/* New Diverse Layout Utilities */
+
+/* Asymmetric Columns */
+.cols-3-2 {
+  display: flex;
+  gap: 22px;
+  align-items: stretch;
+  margin-bottom: 15px;
+}
+.cols-3-2 > :first-child { flex: 3; }
+.cols-3-2 > :last-child { flex: 2; }
+
+.cols-2-3 {
+  display: flex;
+  gap: 22px;
+  align-items: stretch;
+  margin-bottom: 15px;
+}
+.cols-2-3 > :first-child { flex: 2; }
+.cols-2-3 > :last-child { flex: 3; }
+
+/* Vertical Timeline */
+.timeline-vertical {
+  position: relative;
+  padding-left: 30px;
+  margin: 15px 0;
+}
+.timeline-vertical::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 5px;
+  bottom: 5px;
+  width: 2px;
+  background: var(--lightgray);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 16px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -25px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px var(--accent-blue);
+}
+.timeline-item.cyan::before {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 0 2px var(--accent-cyan);
+}
+.timeline-item.purple::before {
+  background: var(--accent-purple);
+  box-shadow: 0 0 0 2px var(--accent-purple);
+}
+.timeline-item.green::before {
+  background: var(--accent-green);
+  box-shadow: 0 0 0 2px var(--accent-green);
+}
+.timeline-item.orange::before {
+  background: var(--accent-orange);
+  box-shadow: 0 0 0 2px var(--accent-orange);
+}
+.timeline-item.red::before {
+  background: var(--accent-red);
+  box-shadow: 0 0 0 2px var(--accent-red);
+}
+.timeline-title {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 0.95em;
+  margin-bottom: 2px;
+}
+.timeline-desc {
+  font-size: 0.76em;
+  color: var(--darkgray);
+}
+
+/* Big Stat Callouts */
+.stat-container {
+  display: flex;
+  justify-content: space-around;
+  margin: 15px 0;
+  text-align: center;
+}
+.stat-box {
+  flex: 1;
+  padding: 10px;
+}
+.stat-number {
+  font-size: 3em;
+  font-weight: 800;
+  color: var(--blue);
+  line-height: 1.05;
+  margin-bottom: 2px;
+}
+.stat-label {
+  font-size: 0.78em;
+  color: var(--navy);
+  font-weight: 700;
+}
+.stat-sub {
+  font-size: 0.65em;
+  color: var(--gray);
+}
+
+/* Comparison Table */
+table.compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 0.72em;
+  line-height: 1.4;
+}
+table.compare-table th {
+  background: var(--navy);
+  color: #ffffff;
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--blue);
+}
+table.compare-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--lightgray);
+}
+table.compare-table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+/* Research Ladder Steps */
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+.ladder-level {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+}
+.ladder-level:hover {
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+}
+.ladder-badge {
+  background: var(--navy);
+  color: #ffffff;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  margin-right: 15px;
+  min-width: 65px;
+  text-align: center;
+}
+.ladder-content {
+  flex: 1;
+}
+.ladder-title {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 0.88em;
+  margin-bottom: 2px;
+}
+.ladder-desc {
+  font-size: 0.72em;
+  color: var(--darkgray);
+}
+

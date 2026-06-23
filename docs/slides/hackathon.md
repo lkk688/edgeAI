@@ -194,6 +194,44 @@ Relive the excitement from last year's cohort! Teams built LLM, Cyber, and Edge 
 
 ---
 
+## 🌐 Remote Access to Your Jetson from Home
+
+You can remote access your Jetson board from home using our Headscale VPN bridge and VS Code Remote-SSH.
+
+<div class="cols">
+<div>
+
+### SSH Command
+Every Jetson has an assigned port mapped to its ID (`xx` matches host `sjsujetson-xx`):
+```bash
+ssh student@headscale.forgengi.org -p 200xx
+```
+*Example for device `sjsujetson-03`:*
+```bash
+ssh student@headscale.forgengi.org -p 20003
+```
+
+</div>
+<div>
+
+### VS Code `.ssh/config` Example
+Add this block to your computer's `~/.ssh/config` to connect inside VS Code in one click:
+```text
+Host jetson-home-03
+    HostName headscale.forgengi.org
+    User student
+    Port 20003
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+```
+
+</div>
+</div>
+
+> Open VS Code, select **Remote-SSH: Connect to Host...** and choose your configured host.
+
+---
+
 ## <span class="step">2</span> Choose your track
 
 <div class="cols">
