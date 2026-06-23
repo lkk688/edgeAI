@@ -196,7 +196,7 @@ Relive the excitement from last year's cohort! Teams built LLM, Cyber, and Edge 
 
 ## 🌐 Remote Access to Your Jetson from Home
 
-You can remote access your Jetson board from home using our Headscale VPN bridge and VS Code Remote-SSH.
+You can remote access your Jetson board from home using our Headscale VPN bridge.
 
 <div class="cols">
 <div>
@@ -214,21 +214,51 @@ ssh student@headscale.forgengi.org -p 20003
 </div>
 <div>
 
-### VS Code `.ssh/config` Example
-Add this block to your computer's `~/.ssh/config` to connect inside VS Code in one click:
+### SSH Config Shortcut
+Add this block to your computer's `~/.ssh/config` to simplify connection and prevent timeouts:
 ```text
 Host jetson-home-03
     HostName headscale.forgengi.org
     User student
     Port 20003
+    ServerAliveInterval 30
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
+```
+*Then log in directly from your terminal:*
+```bash
+ssh jetson-home-03
 ```
 
 </div>
 </div>
 
-> Open VS Code, select **Remote-SSH: Connect to Host...** and choose your configured host.
+---
+
+## 💻 Setting up VS Code Remote‑SSH
+
+You can edit files and run code directly on the Jetson using your laptop's VS Code.
+
+<div class="cols">
+<div>
+
+### 1. Install VS Code & Extension
+- **Download**: Install VS Code for macOS or Windows from [code.visualstudio.com](https://code.visualstudio.com/).
+- **Extension**: Open VS Code, go to the Extensions tab (`Cmd+Shift+X` or `Ctrl+Shift+X`), search for **Remote - SSH** (by Microsoft), and click **Install**.
+
+</div>
+<div>
+
+### 2. Connect in One Click
+- Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows) to open the Command Palette.
+- Type `Remote-SSH: Connect to Host...` and press Enter.
+- Select your configured host (e.g., `jetson-home-03`).
+- VS Code will launch a new window connected to the Jetson!
+
+</div>
+</div>
+
+> See the official guide: [code.visualstudio.com/docs/remote/ssh](https://code.visualstudio.com/docs/remote/ssh)
 
 ---
 

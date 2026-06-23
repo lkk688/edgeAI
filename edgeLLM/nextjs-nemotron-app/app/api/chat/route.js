@@ -17,7 +17,7 @@
 export const runtime = "nodejs";          // streaming works on Node runtime
 export const dynamic = "force-dynamic";   // never cache
 
-import { resolveProvider } from "@/lib/providers";
+import { resolveProvider } from "../../../lib/providers.js";
 
 const DEFAULT_MODEL =
   process.env.NVIDIA_MODEL || "nvidia/llama-3.3-nemotron-super-49b-v1";

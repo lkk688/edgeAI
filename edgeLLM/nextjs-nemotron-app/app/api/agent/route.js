@@ -3,9 +3,18 @@
 //
 // Request body:
 //   {
-//     "task":        "…",                       // required
-//     "root":        "/abs/path",               // optional override
-//     "model":       "qwen/qwen3-coder-…",      // optional, default qwen3-coder
+//     "task":        "…",                          // required
+//     "root":        "/abs/path",                  // optional override
+//
+//     // Backend selection (mirrors `sjsujetsontool chat`):
+//     "backend":     "nvidia" | "llama" | "openai" | "anthropic" | "custom",
+//     "model":       "minimaxai/minimax-m2.7",
+//     "base_url":    "http://localhost:8080/v1",   // required for "custom",
+//                                                  // overrides default for others
+//     "api_key":     "sk-…",                       // optional; provided for "custom"
+//                                                  // or to override an env-supplied key
+//
+//     // Loop knobs:
 //     "temperature": 0.1,
 //     "max_steps":   8
 //   }
@@ -15,12 +24,9 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { resolveProvider, envFromHome } from "@/lib/providers";
+import { resolveBackend, envFromHome } from "../../../lib/providers.js";
 
 const SIDECAR_URL = process.env.AGENT_SIDECAR_URL || "http://localhost:8002";
-
-const DEFAULT_AGENT_MODEL =
-  process.env.AGENT_MODEL || "minimaxai/minimax-m2.7";
 
 export async function POST(req) {
   let body;
@@ -35,43 +41,50 @@ export async function POST(req) {
     return Response.json({ error: "`task` is required" }, { status: 400 });
   }
 
-  const model = body.model || DEFAULT_AGENT_MODEL;
-  // Reuse the chat lab's provider resolver — it understands NVIDIA / OpenAI /
-  // Anthropic model ids and reads ~/.env.local for keys.
-  const provider = resolveProvider(model);
-  if (!provider.apiKey) {
+  // Pick the backend (default = NVIDIA Build, current behaviour). The
+  // resolver returns a normalized {baseUrl, apiKey, model} regardless of
+  // which backend the user chose.
+  const backendId = body.backend || "nvidia";
+  const backend = resolveBackend(backendId, {
+    baseUrl: body.base_url,
+    apiKey:  body.api_key,
+    model:   body.model,
+  });
+
+  // A baseUrl is mandatory. Custom-backend users may forget it.
+  if (!backend.baseUrl) {
     return Response.json(
-      {
-        error:
-          `${provider.keyEnv} is not set. Add it to ~/.env.local or this app's .env.local.`,
-      },
+      { error: `No base URL configured for backend "${backendId}". For "custom", set base_url on the request or CUSTOM_BASE_URL in .env.local.` },
+      { status: 400 }
+    );
+  }
+
+  // Cloud backends need a real key. Local llama.cpp and custom-without-auth
+  // are fine with the "EMPTY" placeholder the resolver returns.
+  if (backend.keyEnv && backend.apiKey === "EMPTY") {
+    return Response.json(
+      { error: `${backend.keyEnv} is not set. Add it to ~/.env.local or this app's .env.local.` },
       { status: 500 }
     );
   }
 
-  // The sidecar forwards `SERPAPI_API_KEY` from its own env into the
-  // edge_agent process, so the web_search tool needs the key on the sidecar
-  // host. The /api/agent route does not need to thread it through.
-  envFromHome();
+  envFromHome();          // also makes SERPAPI_API_KEY visible to the sidecar
 
   const sidecarPayload = {
     task,
-    root: body.root || undefined,
-    model,
-    base_url: provider.baseUrl,
-    api_key: provider.apiKey,
+    root:        body.root || undefined,
+    model:       backend.model,
+    base_url:    backend.baseUrl,
+    api_key:     backend.apiKey,
     temperature: body.temperature ?? 0.1,
-    max_steps: body.max_steps || 8,
+    max_steps:   body.max_steps || 8,
   };
 
   let upstream;
   try {
     upstream = await fetch(`${SIDECAR_URL}/run`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-      },
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
       body: JSON.stringify(sidecarPayload),
     });
   } catch (err) {
@@ -104,17 +117,20 @@ export async function POST(req) {
   });
 }
 
-// GET /api/agent — proxies the sidecar's /health for the UI to call once
-// on mount (it can show available tools and whether web_search is enabled).
+// GET /api/agent — proxies the sidecar's /health AND advertises the
+// available backend menu so the UI doesn't have to hard-code it.
 export async function GET() {
+  // Lazy-import the menu so this route still loads if providers.js breaks.
+  const { BACKEND_MENU } = await import("../../../lib/providers.js");
+  let sidecar = null;
   try {
-    const upstream = await fetch(`${SIDECAR_URL}/health`, { cache: "no-store" });
-    if (!upstream.ok) {
-      return Response.json({ ok: false, error: `sidecar ${upstream.status}` });
-    }
-    const data = await upstream.json();
-    return Response.json(data);
+    const r = await fetch(`${SIDECAR_URL}/health`, { cache: "no-store" });
+    if (r.ok) sidecar = await r.json();
   } catch (err) {
-    return Response.json({ ok: false, error: String(err.message || err) });
+    sidecar = { ok: false, error: String(err.message || err) };
   }
+  return Response.json({
+    sidecar,
+    backends: BACKEND_MENU,
+  });
 }

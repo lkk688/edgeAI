@@ -128,6 +128,60 @@ pull_with_progress() {
   fi
 }
 
+# --------------------------------------------------------------------------
+# Make /Developer/edgeAI usable by every student on the box.
+#
+# /Developer is a shared workspace, but files created by another user (via
+# rsync, npm install in the container, git clone, an IDE on a teacher's
+# account, etc.) often end up owned by them with mode 755 — which silently
+# blocks the next student. `rsync` for instance fails with "status 23" and
+# only mentions "child exited" in passing.
+#
+# This helper resets the tree to world-readable / world-writable / +x on
+# dirs and existing executables (a+rwX). It tries multiple paths to find
+# one that can actually chmod the offending files:
+#
+#   1. The jetson-dev container is running → route through it. Root inside
+#      the container can chmod anything regardless of host ownership, and
+#      the host user only needs docker-group access (no sudo).
+#   2. Otherwise try as the host user — works for files we own.
+#   3. Last resort: sudo, if available on the host.
+#
+# Always non-fatal — failures are reported but never block the caller.
+# --------------------------------------------------------------------------
+relax_developer_perms() {
+  local target="${1:-/Developer/edgeAI}"
+  [ -d "$target" ] || return 0
+  echo "🔓 Relaxing permissions on $target (so any student can read & write)..."
+
+  # Path 1 — via the running container (root inside can chmod anything).
+  if command -v docker >/dev/null 2>&1 \
+     && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+    if docker exec "$CONTAINER_NAME" chmod -R a+rwX "$target" 2>/dev/null; then
+      echo "   ✅ done (via container root)"
+      return 0
+    fi
+  fi
+
+  # Path 2 — as the host user. Errors on files we don't own are silenced.
+  if chmod -R a+rwX "$target" 2>/dev/null; then
+    echo "   ✅ done (as $(whoami))"
+    return 0
+  fi
+
+  # Path 3 — last resort: sudo.
+  if command -v sudo >/dev/null 2>&1; then
+    if sudo chmod -R a+rwX "$target" 2>/dev/null; then
+      echo "   ✅ done (via sudo)"
+      return 0
+    fi
+  fi
+
+  echo "   ⚠️  could not relax all permissions — some files may still be unwritable."
+  echo "      Tip: start the container with 'sjsujetsontool shell' first, then re-run."
+  return 1
+}
+
 setup_check_internal() {
   echo "══════════════════════════════════════════════════"
   echo "⚙️  Checking /Developer folder and edgeAI git repository..."
@@ -190,7 +244,7 @@ setup_check_internal() {
   if [ ! -d "$REPO_DIR" ]; then
     echo "📥 Cloning edgeAI repository from GitHub into $REPO_DIR..."
     if git clone https://github.com/lkk688/edgeAI.git "$REPO_DIR"; then
-      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      relax_developer_perms "$REPO_DIR"
       echo "✅ Successfully cloned edgeAI repository."
     else
       echo "❌ Failed to clone edgeAI repository. Check network or git settings."
@@ -200,7 +254,7 @@ setup_check_internal() {
     echo "⚠️  $REPO_DIR exists but is not a valid git repository. Re-initializing..."
     sudo rm -rf "$REPO_DIR"
     if git clone https://github.com/lkk688/edgeAI.git "$REPO_DIR"; then
-      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      relax_developer_perms "$REPO_DIR"
       echo "✅ Successfully re-cloned edgeAI repository."
     else
       echo "❌ Failed to clone edgeAI repository."
@@ -210,12 +264,12 @@ setup_check_internal() {
     echo "✅ edgeAI repository already exists."
     echo "🔄 Pulling latest changes from origin..."
     if ( cd "$REPO_DIR" && git pull ); then
-      chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+      relax_developer_perms "$REPO_DIR"
       echo "✅ Repository updated successfully."
     else
       echo "⚠️  git pull failed. Trying to force reset..."
       if ( cd "$REPO_DIR" && git fetch --all && git reset --hard origin/main ); then
-        chmod -R 777 "$REPO_DIR" 2>/dev/null || sudo chmod -R 777 "$REPO_DIR"
+        relax_developer_perms "$REPO_DIR"
         echo "✅ Repository force-reset to origin/main successfully."
       else
         echo "❌ Failed to pull or reset repository. Please check manually."
@@ -1261,23 +1315,31 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "🔄 Running full update (script + sample code + container)..."
+    echo "🔄 Running full update (script + sample code + container + perms)..."
     echo "  Use 'update-script', 'force_git_pull', or 'update-container' to run individually."
     echo
 
     # 1) update this CLI script
-    echo "📜 Step 1/3: Updating sjsujetsontool script from GitHub..."
+    echo "📜 Step 1/4: Updating sjsujetsontool script from GitHub..."
     $0 update-script
     echo
 
     # 2) force-update the edgeAI sample code in /Developer/edgeAI
-    echo "📥 Step 2/3: Updating edgeAI sample code (git pull --force)..."
+    echo "📥 Step 2/4: Updating edgeAI sample code (git pull --force)..."
     $0 force_git_pull || echo "⚠️  Skipped sample-code update (is /Developer/edgeAI a git repo?)."
     echo
 
     # 3) update the container image
-    echo "🐳 Step 3/3: Updating container image..."
+    echo "🐳 Step 3/4: Updating container image..."
     $0 update-container
+    echo
+
+    # 4) heal /Developer/edgeAI permissions — covers files that landed there
+    # under a different owner (rsync, npm install in the container, an IDE
+    # on a teacher's account, etc.) and would block the next student.
+    echo "🔓 Step 4/4: Healing /Developer/edgeAI permissions for shared use..."
+    relax_developer_perms /Developer/edgeAI
+
     exit 0
     ;;
     
@@ -2489,6 +2551,11 @@ EOF
     git reset --hard origin/main
 
     echo "Update complete. Local repository is now synced with origin/main."
+
+    # Heal any subdirectories another user created (e.g. via rsync, npm
+    # install, an IDE on a different account) — otherwise the next student
+    # can't write to them. Non-fatal: success isn't required to "update".
+    relax_developer_perms "$REPO_PATH"
     ;;
   setup-check|setup_check)
     setup_check_internal

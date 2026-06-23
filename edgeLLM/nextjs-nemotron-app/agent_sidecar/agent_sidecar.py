@@ -155,14 +155,14 @@ async def run(request: Request) -> StreamingResponse:
             status_code=400,
         )
 
-    api_key = body.get("api_key") or os.environ.get("NVIDIA_API_KEY") or ""
-    if not api_key:
-        return StreamingResponse(
-            iter([_sse({"type": "error",
-                         "message": "no api_key provided and NVIDIA_API_KEY not set"}), _sse_done()]),
-            media_type="text/event-stream",
-            status_code=400,
-        )
+    # api_key may be missing if the caller picked a key-less backend (local
+    # llama.cpp, an open OpenAI-compat server). The OpenAI client requires a
+    # non-empty string though, so we fall back to a placeholder.
+    api_key = (
+        body.get("api_key")
+        or os.environ.get("NVIDIA_API_KEY")
+        or "EMPTY"
+    )
 
     model = body.get("model") or "minimaxai/minimax-m2.7"
     base_url = body.get("base_url") or "https://integrate.api.nvidia.com/v1"
