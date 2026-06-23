@@ -1,7 +1,7 @@
 """agent_tools.py — a tiny, safe file-tool kit for LLM agents.
 
-Five tools an agent can call to explore and edit a codebase — the same verbs a
-human coder uses:
+Five file tools an agent can call to explore and edit a codebase — the same verbs
+a human coder uses:
 
     read_file(path, start, end)      read a slice of a file (with line numbers)
     grep(pattern, path, is_regex)    search file/dir contents for a string/regex
@@ -9,21 +9,53 @@ human coder uses:
     write_file(path, content)        create or overwrite a file
     edit_file(path, old, new)        replace an exact, unique snippet (find/replace)
 
+…plus one *optional* online tool that is only enabled when a key is configured:
+
+    web_search(query, num)           SerpAPI Google search (needs SERPAPI_API_KEY)
+
 Every path is confined to a `root` directory, so an agent cannot wander outside
-the project it was pointed at. Pure standard library — no dependencies.
+the project it was pointed at. The file tools are pure standard library; the
+web_search tool uses urllib so there is no third-party dependency either.
 
 Used by:
   - react_loop.py     the ReAct text-protocol loop (the agent foundation)
   - tool_calling.py   the OpenAI native tool-calling loop
   - chat.py           `sjsujetsontool chat --agent` / the in-chat `/agent on`
+  - agent_sidecar/    the Next.js Agent Lab streams the trace from this loop
 """
 from __future__ import annotations
 
 import fnmatch
+import json
 import os
 import re
+import urllib.parse
+import urllib.request
 
-TOOL_NAMES = ["read_file", "grep", "search_files", "write_file", "edit_file"]
+FILE_TOOL_NAMES = ["read_file", "grep", "search_files", "write_file", "edit_file"]
+WEB_TOOL_NAMES = ["web_search"]
+
+
+def web_search_available() -> bool:
+    """True if the SerpAPI key is set in the environment."""
+    return bool(os.environ.get("SERPAPI_API_KEY") or os.environ.get("SERPAPI_KEY"))
+
+
+def _serpapi_key() -> str:
+    return os.environ.get("SERPAPI_API_KEY") or os.environ.get("SERPAPI_KEY") or ""
+
+
+def tool_names() -> list[str]:
+    """List of currently-available tool names. Adds `web_search` when configured."""
+    names = list(FILE_TOOL_NAMES)
+    if web_search_available():
+        names.extend(WEB_TOOL_NAMES)
+    return names
+
+
+# Snapshot at import time, for back-compat with code that imports the constant.
+# Callers that need to react to runtime env changes should use `tool_names()`.
+TOOL_NAMES = tool_names()
 
 
 class Tools:
@@ -108,11 +140,52 @@ class Tools:
             f.write(text.replace(old, new, 1))
         return "edited %s (1 replacement)" % path
 
+    # ------------------------------------------------------------- web_search
+    def web_search(self, query, num=5):
+        """Google web search via SerpAPI. Returns a compact list of hits.
+
+        Disabled (returns an error string) when SERPAPI_API_KEY is not set —
+        the agent should fall back to file tools.
+        """
+        key = _serpapi_key()
+        if not key:
+            return ("ERROR: web_search is disabled (no SERPAPI_API_KEY in env). "
+                    "Use file tools instead, or ask the user to configure a key.")
+        num = max(1, min(int(num or 5), 10))
+        params = {
+            "engine": "google",
+            "q": str(query),
+            "num": str(num),
+            "api_key": key,
+        }
+        url = "https://serpapi.com/search.json?" + urllib.parse.urlencode(params)
+        try:
+            with urllib.request.urlopen(url, timeout=15) as resp:
+                data = json.load(resp)
+        except Exception as exc:
+            return "ERROR: web_search failed: %s" % exc
+        if data.get("error"):
+            return "ERROR: SerpAPI: %s" % data["error"]
+        results = data.get("organic_results") or []
+        out = []
+        for r in results[:num]:
+            title = (r.get("title") or "").strip()
+            link = (r.get("link") or "").strip()
+            snippet = (r.get("snippet") or "").strip().replace("\n", " ")
+            out.append("- %s\n  %s\n  %s" % (title, link, snippet))
+        if not out:
+            ab = (data.get("answer_box") or {}).get("snippet") or ""
+            if ab:
+                return "answer_box: " + ab.strip()
+            return "(no results)"
+        return "\n".join(out)
+
     # --------------------------------------------------------------- dispatch
     def dispatch(self, name, args):
         """Run a tool by name with a dict of args; always returns a string."""
-        if name not in TOOL_NAMES:
-            return "ERROR: unknown tool %r. Available: %s" % (name, ", ".join(TOOL_NAMES))
+        names = tool_names()
+        if name not in names:
+            return "ERROR: unknown tool %r. Available: %s" % (name, ", ".join(names))
         if not isinstance(args, dict):
             return "ERROR: arguments must be a JSON object."
         try:
@@ -125,18 +198,30 @@ class Tools:
             return "ERROR: %s: %s" % (type(e).__name__, e)
 
 
-# Human/LLM-readable tool reference injected into the ReAct system prompt.
-TOOL_DOCS = """\
+_FILE_TOOL_DOCS = """\
 - read_file(path, start=1, end=None) — read a slice of a file with line numbers.
 - grep(pattern, path=".", is_regex=false) — search contents; returns file:line: text.
 - search_files(glob="*", dir=".") — list files whose name matches a glob.
 - write_file(path, content) — create or overwrite a file.
 - edit_file(path, old, new) — replace ONE exact, unique snippet (read_file first)."""
 
+_WEB_TOOL_DOCS = """\
+- web_search(query, num=5) — Google search via SerpAPI; returns title/link/snippet bullets."""
 
-# OpenAI native tool-calling schemas (used by tool_calling.py and any provider
-# that supports the structured `tools=` field).
-OPENAI_SCHEMAS = [
+
+def tool_docs() -> str:
+    """Tool reference to inject into the ReAct system prompt — adapts to env."""
+    parts = [_FILE_TOOL_DOCS]
+    if web_search_available():
+        parts.append(_WEB_TOOL_DOCS)
+    return "\n".join(parts)
+
+
+# Snapshot — see `tool_docs()` for the env-reactive form.
+TOOL_DOCS = tool_docs()
+
+
+_FILE_SCHEMAS = [
     {
         "type": "function",
         "function": {
@@ -216,3 +301,34 @@ OPENAI_SCHEMAS = [
         },
     },
 ]
+
+_WEB_SCHEMAS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": (
+                "Google web search via SerpAPI. Returns up to `num` "
+                "title / link / snippet bullets. Use ONLY when the answer "
+                "cannot come from the project's own files."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string"},
+                    "num": {"type": "integer", "default": 5},
+                },
+                "required": ["query"],
+            },
+        },
+    },
+]
+
+
+def openai_schemas() -> list[dict]:
+    """Tool schemas adapted to env — adds web_search when SERPAPI is configured."""
+    return list(_FILE_SCHEMAS) + (list(_WEB_SCHEMAS) if web_search_available() else [])
+
+
+# Snapshot — see `openai_schemas()` for the env-reactive form.
+OPENAI_SCHEMAS = openai_schemas()

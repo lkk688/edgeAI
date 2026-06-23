@@ -1,0 +1,4 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+openai>=1.40
+# edge_agent itself is pure stdlib — install it editable from ../../edge_agent

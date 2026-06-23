@@ -511,3 +511,58 @@ html, body {
   color: var(--muted);
   font-style: italic;
 }
+
+/* ---- Agent lab trace ---- */
+
+.agent-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.agent-meta {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+
+.agent-card-start  { border-left: 3px solid var(--muted); }
+.agent-card-step   { border-left: 3px solid var(--accent); }
+.agent-card-obs    { border-left: 3px solid #76d4ff; }
+.agent-card-obs-err{ border-left: 3px solid var(--error); }
+.agent-card-nudge  { border-left: 3px solid #ffd166; font-size: 12px; color: var(--muted); }
+.agent-card-final  { border-left: 3px solid #b87dff; background: #1f1740; }
+
+.agent-thought {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.agent-action code {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.agent-obs {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

@@ -249,7 +249,7 @@ vulnerable APIs:
 **Notice how step 1's observation changed step 3's behaviour.** The
 agent searched for `yaml.load` and `yaml.full_load` *specifically* —
 not just "pyyaml". That precision came from the corpus's `patterns`
-array. Without the retrieval step, qwen3-coder would usually search for
+array. Without the retrieval step, the coder model would usually search for
 the package name first and waste an extra round figuring out which
 specific function it should grep for.
 
@@ -336,6 +336,9 @@ agent, an oncall summarizer. Swap the tools, keep the loop.
 
 **Source folder:** [`edgeLLM/vuln-triage/`](../../edgeLLM/vuln-triage/)
 **Tested on:** Jetson Orin Nano (Ubuntu 22.04, aarch64) with Python 3.10,
-`openai 2.37.0`, `httpx 0.28.1`, `pip-audit 2.10.0`, and the NVIDIA Build
-endpoints `qwen/qwen3-coder-480b-a35b-instruct` (chat) and
-`nvidia/nv-embedqa-e5-v5` (embeddings).
+`openai 2.37.0`, `httpx 0.28.1`, `pip-audit 2.10.0`. Original verified
+run used `qwen/qwen3-coder-480b-a35b-instruct` (chat) +
+`nvidia/nv-embedqa-e5-v5` (embeddings); since the qwen model reached
+EOL on 2026-06-11, current recommended defaults are
+**`minimaxai/minimax-m2.7`** or **`z-ai/glm-5.1`**. The embedding model
+is unaffected.

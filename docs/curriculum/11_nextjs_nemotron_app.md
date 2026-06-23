@@ -2080,6 +2080,38 @@ Before pushing anything to GitHub:
 
 ---
 
+## 12. ➡️ Follow-up — adding a **multi-round agent** lab
+
+This lesson built five labs around a *single* model call per turn. The
+next lesson — [**11b — Putting an Agent Inside the Next.js
+App**](./11b_nextjs_agent_lab.md) — adds the sixth lab, an
+**Agent Lab** where the model uses **read / grep / search / write /
+edit + optional web_search** tools in a multi-round ReAct loop. Each
+Thought / Action / Observation is streamed to the browser as a
+separate SSE card so the model's reasoning becomes visible.
+
+The new lab reuses *all* the architecture you built here — the NavBar,
+the SSE pattern from `/api/chat`, the FastAPI sidecar pattern from
+`/api/asr` and `/api/tts` — and introduces one new helper used by every
+lab that needs to switch providers:
+[`lib/providers.js`](../../edgeLLM/nextjs-nemotron-app/lib/providers.js),
+which maps a model id to NVIDIA Build / OpenAI / Anthropic and reads
+`~/.env.local` for the right key.
+
+> 💡 **Model availability note (2026-06).** The vuln-triage tutorials
+> in [Lesson 12](./12_vulnerability_triage_intro.md) defaulted to
+> `qwen/qwen3-coder-480b-a35b-instruct`, which **reached end-of-life on
+> 2026-06-11** and now returns `HTTP 410 Gone`. The Agent Lab and the
+> updated 12* lessons use **`minimaxai/minimax-m2.7`** (or
+> **`z-ai/glm-5.1`**) instead. The provider resolver in
+> `lib/providers.js` already understands the `minimaxai/`, `z-ai/`,
+> `qwen/`, and `deepseek-ai/` model id prefixes — no route change is
+> needed when NVIDIA rotates the catalog. See §11.1 of
+> [Lesson 11b](./11b_nextjs_agent_lab.md) for the current per-model
+> status table.
+
+---
+
 **Source folder:** [`edgeLLM/nextjs-nemotron-app/`](../../edgeLLM/nextjs-nemotron-app/)
 **Tested on:** Jetson Orin Nano (Ubuntu 22.04, aarch64) with Node v20.20.2,
 Next.js 15.5.18, React 19.0.0, NVIDIA Build chat endpoint

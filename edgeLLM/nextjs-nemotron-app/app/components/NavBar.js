@@ -9,6 +9,7 @@ const LABS = [
   { href: "/omni",      label: "Omni Lab",      sub: "image + audio"      },
   { href: "/asr",       label: "ASR Lab",       sub: "speech-to-text"     },
   { href: "/tts",       label: "TTS Lab",       sub: "zero-shot voice"    },
+  { href: "/agent",     label: "Agent Lab",     sub: "files + web"        },
 ];
 
 export default function NavBar() {

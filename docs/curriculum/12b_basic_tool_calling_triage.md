@@ -13,11 +13,20 @@
 
 ## 1. 🎯 What you'll build
 
+> ⚠️ **2026-06 update.** This lesson originally targeted
+> `qwen/qwen3-coder-480b-a35b-instruct`, which **reached EOL on
+> 2026-06-11**. Run the script with
+> `--model minimaxai/minimax-m2.7` (or `z-ai/glm-5.1`) instead — both
+> are free-tier-available and OpenAI-tools-compatible. The verified
+> output block in §7 is from the original qwen run and is kept for the
+> reasoning-pattern walkthrough.
+
 A single Python script that:
 
 1. Runs `pip-audit` against `sample_project/requirements.txt`.
 2. For each CVE finding, opens an **OpenAI tool-calling loop** against
-   `qwen/qwen3-coder-480b-a35b-instruct` on NVIDIA Build.
+   `minimaxai/minimax-m2.7` on NVIDIA Build (or any other model
+   listed in [Lesson 11b §11.1](./11b_nextjs_agent_lab.md#111-coding-capable-models-we-tested-or-saw)).
 3. Lets the model call four read-only tools to gather evidence:
    - `lookup_cve(cve_id)` — official NVD record.
    - `pip_audit_findings(requirements_path)` — re-run the scanner.
@@ -315,8 +324,12 @@ exact lines → conclude.
    bother to *read* the actual template definition in `app.py`, or does
    it just trust the package name? The 12c lesson will show the same
    case under a more visible loop.
-2. **Swap the coding model.** Add `--model "minimaxai/minimax-m2.7"`.
-   Compare token usage and the quality of the justification text.
+2. **Swap the coding model.** Try `--model "z-ai/glm-5.1"`,
+   `--model "deepseek-ai/deepseek-v4-pro"`, or — if you have the keys
+   — `--model "claude-sonnet-4-6"` / `--model "gpt-4o-mini"`. Compare
+   token usage, latency, and the quality of the justification text.
+   The [Lesson 11b §11 status table](./11b_nextjs_agent_lab.md#111-coding-capable-models-we-tested-or-saw)
+   notes which are currently slow or EOL'd.
 3. **Inject a wrong package.** Edit `app.py` to add
    `import yaml; yaml.load(open("x.yaml"))`. Re-run with
    `--cve CVE-2020-1747`. The agent should flip to **Exploitable here**.

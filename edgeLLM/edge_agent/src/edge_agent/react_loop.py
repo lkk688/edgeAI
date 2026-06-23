@@ -159,9 +159,12 @@ class ReActAgent:
         self.log = log
 
     def run(self, task):
-        from .tools import TOOL_DOCS, TOOL_NAMES
+        # Re-resolve tool docs and names at run time so a fresh SERPAPI_API_KEY
+        # in the process env enables web_search without a re-import.
+        from .tools import tool_docs, tool_names
 
-        system = REACT_SYSTEM.format(tools=TOOL_DOCS, names=", ".join(TOOL_NAMES))
+        names = tool_names()
+        system = REACT_SYSTEM.format(tools=tool_docs(), names=", ".join(names))
         messages = [
             {"role": "system", "content": system},
             {"role": "user", "content": task},

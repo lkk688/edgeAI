@@ -27,9 +27,15 @@ NVIDIA_BASE_URL = os.environ.get(
     "NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1"
 )
 
-# Coding models on NVIDIA Build — either one accepts the OpenAI tool-call schema.
+# Coding models on NVIDIA Build — any one of these accepts the OpenAI
+# tool-call schema. Override with $TRIAGE_CODER_MODEL.
+#
+# History: this used to default to `qwen/qwen3-coder-480b-a35b-instruct`,
+# which reached EOL on 2026-06-11 (HTTP 410). The replacement default is
+# `minimaxai/minimax-m2.7` — fast, free-tier, currently available. See
+# Lesson 11b §11 for the running per-model status table.
 DEFAULT_CODER_MODEL = os.environ.get(
-    "TRIAGE_CODER_MODEL", "qwen/qwen3-coder-480b-a35b-instruct"
+    "TRIAGE_CODER_MODEL", "minimaxai/minimax-m2.7"
 )
 DEFAULT_REASONER_MODEL = os.environ.get(
     "TRIAGE_REASONER_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1"

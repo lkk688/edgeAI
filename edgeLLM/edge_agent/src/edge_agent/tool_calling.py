@@ -27,12 +27,14 @@ import json
 import os
 import sys
 
-from .tools import OPENAI_SCHEMAS, Tools
+from .tools import Tools, openai_schemas
 
 
 def run_tool_calling(client, model, task, *, root=".", max_rounds=8, log=print):
     """Run a native tool-calling loop until the model gives a final answer."""
     tools = Tools(root)
+    schemas = openai_schemas()           # re-resolved each call so a freshly-set
+                                         # SERPAPI_API_KEY unlocks web_search.
     messages = [
         {"role": "system", "content":
          "You are a coding agent. Use the file tools to inspect or modify the "
@@ -44,7 +46,7 @@ def run_tool_calling(client, model, task, *, root=".", max_rounds=8, log=print):
         resp = client.chat.completions.create(
             model=model,
             messages=messages,
-            tools=OPENAI_SCHEMAS,
+            tools=schemas,
             tool_choice="auto",
             temperature=0.1,
         )
