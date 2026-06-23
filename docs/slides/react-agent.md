@@ -125,6 +125,17 @@ Watch the trace stream by:
 
 ---
 
+## 🎥 Video Demo: Enabling Agent Mode in Chat
+
+Observe how the ReAct agent loops through thoughts, actions (calling tools), and observations to solve tasks.
+
+<div class="fig-center">
+  <img src="Screencast1.webp" width="760" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <span class="caption">Enabling agent mode using <code>/agent on</code> and pointing to a workspace directory</span>
+</div>
+
+---
+
 ## <span class="step">6</span> Two ways to call tools
 
 | | ReAct text loop | Native tool-calling |

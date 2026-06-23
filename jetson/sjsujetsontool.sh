@@ -360,6 +360,11 @@ show_help() {
   echo "                          (qwen2b default | qwen0.8b | qwen4b | gemma4 | custom HF repo:quant)"
   echo "  llama stop        - Stop a background llama-server"
   echo "  llama-cli [model] - Run llama-cli inference (same model choices; default qwen2b)"
+  echo "  node [mode] [path]- Install Node 20 in-container (no sudo), npm install, start the dev server."
+  echo "                       mode: fg|bg|no.  path: any dir under /Developer with package.json."
+  echo "                       Run from anywhere; if path is omitted, it is prompted (default:"
+  echo "                       /Developer/edgeAI/edgeLLM/nextjs-nemotron-app)."
+  echo "  node stop         - Stop any background Next.js / Vite / npm dev server started by 'node'"
   echo "  ollama-serve      - Start Ollama REST API server (port 11434)"
   echo "  ollama-run        - Run Ollama model interactively (defaults to gemma4)"
   echo "  vllm [model]      - Start vLLM serve engine (defaults to Qwen3-8B-speculator)"
@@ -422,6 +427,14 @@ show_list() {
   echo
   echo "  llama-cli [model] → Run llama-cli inference (same model choices)"
   echo "     ▶ sjsujetsontool llama-cli qwen4b -p \"Explain the Jetson Orin Nano\""
+  echo
+  echo "  node [mode] [path] → Install Node 20 in-container, npm install, start the dev server"
+  echo "     ▶ sjsujetsontool node                              # prompt path + mode (defaults to nemotron-app)"
+  echo "     ▶ sjsujetsontool node bg                           # background, prompt for path"
+  echo "     ▶ sjsujetsontool node fg /Developer/my-vite-app    # foreground, explicit path"
+  echo "     ▶ sjsujetsontool node /Developer/my-app bg         # path + mode in any order"
+  echo "     ▶ sjsujetsontool node stop                         # stop a background dev server"
+  echo "     (Override the default path with SJSUJETSONTOOL_NODE_DIR.)"
   echo
   echo "  ollama-serve → Start Ollama REST API server (port 11434)"
   echo "     ▶ sjsujetsontool ollama-serve"
@@ -974,6 +987,166 @@ case "$1" in
         $EXEC_CMD "$LLAMA_BIN" $LLAMA_ARGS
       fi
     fi
+    ;;
+  node)
+    shift
+    # Node.js dev-server manager for any Node/Next.js project on the host.
+    #
+    # Usage (from the HOST — any directory, the path is prompted/given):
+    #   sjsujetsontool node                              # interactive: prompt path + mode
+    #   sjsujetsontool node bg                           # background, prompt path
+    #   sjsujetsontool node fg /Developer/foo            # mode + path, any order
+    #   sjsujetsontool node /Developer/foo bg            # ...same, args order-independent
+    #   sjsujetsontool node stop                         # stop a background dev server
+    #
+    # The path must live under /Developer (the container mounts /Developer 1:1).
+    # Default path: /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+    #
+    # No sudo required: Node is installed *inside* the container (we are root
+    # there), and on the host we only call docker (the sjsujetson user is in
+    # the docker group, so docker commands don't need sudo either).
+    NODE_LOGFILE="/tmp/sjsujetsontool-node.log"
+    NODE_DEFAULT_DIR="${SJSUJETSONTOOL_NODE_DIR:-/Developer/edgeAI/edgeLLM/nextjs-nemotron-app}"
+
+    # ---- subcommand: stop a background dev server ------------------------
+    if [ "${1:-}" = "stop" ]; then
+      ensure_container_started
+      # Kill the patterns Next.js / Vite / generic 'npm run dev' processes match.
+      STOPPED=0
+      for PAT in 'next-server' 'next dev' 'next start' 'npm run dev' 'npm run start' 'vite' 'node .*server'; do
+        if $EXEC_CMD pkill -f "$PAT" >/dev/null 2>&1; then
+          STOPPED=1
+        fi
+      done
+      if [ "$STOPPED" -eq 1 ]; then
+        echo "🛑 Stopped the running Node dev server."
+      else
+        echo "ℹ️  No Node dev server was running."
+      fi
+      exit 0
+    fi
+
+    # ---- parse positional args: mode and/or path, in any order -----------
+    # An arg is a "mode" if it matches fg/bg/no (and aliases); otherwise it
+    # is treated as a path. Recognised modes: fg|f|foreground, bg|b|background,
+    # no|n|none|skip.
+    NODE_CHOICE=""
+    NODE_PATH_ARG=""
+    for arg in "$@"; do
+      case "${arg,,}" in
+        f|fg|foreground)         NODE_CHOICE="fg" ;;
+        b|bg|background)         NODE_CHOICE="bg" ;;
+        n|no|none|skip)          NODE_CHOICE="no" ;;
+        *)                       NODE_PATH_ARG="$arg" ;;
+      esac
+    done
+
+    ensure_container_started
+
+    # ---- step 1: install Node 20 inside the container if missing ---------
+    # Done BEFORE we ask the user for a path so the prompt doesn't get buried
+    # under a multi-minute install on first run.
+    if ! $EXEC_CMD which node >/dev/null 2>&1; then
+      echo "🔧 Node not found in the container — installing Node 20 (NodeSource, no sudo: we are root in the container)..."
+      if ! $EXEC_CMD bash -lc "curl -fsSL https://deb.nodesource.com/setup_20.x | bash - >/dev/null && apt-get install -y nodejs"; then
+        echo "❌ Node install failed. Try 'sjsujetsontool shell' and run the install manually."
+        exit 1
+      fi
+    fi
+    NODE_VER=$($EXEC_CMD node -v 2>/dev/null | tr -d '\r')
+    NPM_VER=$($EXEC_CMD npm  -v 2>/dev/null | tr -d '\r')
+    echo "🟢 node $NODE_VER · npm $NPM_VER  (inside container $CONTAINER_NAME)"
+
+    # ---- step 2: pick the project path -----------------------------------
+    if [ -n "$NODE_PATH_ARG" ]; then
+      NODE_PATH="$NODE_PATH_ARG"
+    elif [ -t 0 ]; then
+      echo
+      read -r -p "📁 Project path? [Enter = $NODE_DEFAULT_DIR]: " NODE_PATH
+      NODE_PATH="${NODE_PATH:-$NODE_DEFAULT_DIR}"
+    else
+      NODE_PATH="$NODE_DEFAULT_DIR"
+    fi
+
+    # Expand ~ and resolve to an absolute path. realpath fails if the dir
+    # doesn't exist, which is exactly what we want — print the friendly error.
+    NODE_PATH="${NODE_PATH/#\~/$HOME}"
+    HOST_PWD="$(realpath "$NODE_PATH" 2>/dev/null || true)"
+    if [ -z "$HOST_PWD" ] || [ ! -d "$HOST_PWD" ]; then
+      echo "❌ Path does not exist: $NODE_PATH"
+      echo "   Re-run sjsujetsontool node and enter a valid project path."
+      exit 1
+    fi
+
+    case "$HOST_PWD" in
+      /Developer/*) IN_PATH="$HOST_PWD" ;;
+      *)
+        echo "❌ Project path must be under /Developer."
+        echo "   The container mounts /Developer 1:1 from the host, so files there"
+        echo "   are visible at the same path inside. You picked: $HOST_PWD"
+        echo ""
+        echo "   Example default: $NODE_DEFAULT_DIR"
+        exit 1
+        ;;
+    esac
+
+    if [ ! -f "$HOST_PWD/package.json" ]; then
+      echo "❌ No package.json in $HOST_PWD"
+      echo "   sjsujetsontool node needs a Node / Next.js project (with package.json)."
+      exit 1
+    fi
+
+    echo "📦 Project: $IN_PATH"
+
+    # ---- step 3: npm install (skip if node_modules looks fresh) ----------
+    NEED_INSTALL=0
+    if [ ! -d "$HOST_PWD/node_modules" ]; then
+      NEED_INSTALL=1
+    elif [ -f "$HOST_PWD/package-lock.json" ] && [ "$HOST_PWD/package-lock.json" -nt "$HOST_PWD/node_modules" ]; then
+      NEED_INSTALL=1
+    fi
+    if [ "$NEED_INSTALL" -eq 1 ]; then
+      echo "📥 Running 'npm install' (first install can take 2–3 minutes on Jetson)..."
+      if ! $EXEC_CMD bash -lc "cd '$IN_PATH' && npm install --no-fund --no-audit"; then
+        echo "❌ npm install failed."
+        exit 1
+      fi
+    else
+      echo "✅ node_modules already present — skipping npm install."
+    fi
+
+    # ---- step 4: prompt to start the frontend ----------------------------
+    echo
+    if [ -z "$NODE_CHOICE" ]; then
+      if [ -t 0 ]; then
+        read -r -p "▶️  Start the frontend now? [f]oreground / [b]ackground / [n]o (Enter = no): " NODE_CHOICE
+      else
+        NODE_CHOICE=""
+      fi
+    fi
+    case "${NODE_CHOICE,,}" in
+      f|fg|foreground)
+        echo "🚀 Starting in FOREGROUND on port 3000 (Ctrl+C to stop)."
+        $EXEC_CMD bash -lc "cd '$IN_PATH' && npm run dev"
+        ;;
+      b|bg|background)
+        # First, make sure nothing else is bound to 3000 inside the container.
+        $EXEC_CMD pkill -f "next-server" >/dev/null 2>&1 || true
+        $EXEC_CMD pkill -f "npm run dev" >/dev/null 2>&1 || true
+        sleep 1
+        echo "🚀 Starting in BACKGROUND on port 3000."
+        docker exec -d "$CONTAINER_NAME" bash -lc \
+          "cd '$IN_PATH' && npm run dev > $NODE_LOGFILE 2>&1"
+        echo "   • URL    : http://$(hostname -I | awk '{print $1}'):3000"
+        echo "   • Log    : sjsujetsontool shell   then   tail -f $NODE_LOGFILE"
+        echo "   • Stop   : sjsujetsontool node stop"
+        ;;
+      *)
+        echo "ℹ️  Skipped starting the dev server."
+        echo "   When you are ready, re-run 'sjsujetsontool node' and choose f or b."
+        ;;
+    esac
+    exit 0
     ;;
   llama-cli)
     shift

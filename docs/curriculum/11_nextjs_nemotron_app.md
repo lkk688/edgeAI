@@ -142,29 +142,143 @@ We will come back to retrieval in [Lesson 09 (RAG)](./09_rag_app_langchain_jetso
 
 ## 3. 🧰 Prerequisites and project scaffold
 
-### 3.1 Tooling — Node lives in the container
+### 3.1 Tooling — `sjsujetsontool node`, the one-step path
 
-You need **Node.js ≥ 18.18** (we use **Node 20 LTS**). On the lab Jetsons the `student` account does
-**not** have Node/npm on the host:
+You need **Node.js ≥ 18.18** (we use **Node 20 LTS**). On the lab Jetsons the
+`student` account does **not** have Node/npm on the host:
 
 ```bash
 student@sjsujetson-02:~$ npm -v
 -bash: npm: command not found
 ```
 
-Node 20 + npm are **pre-installed inside our container**, so run every `npm` / `next` command from a
-container shell:
+You do **all `npm` / `next` work inside the `jetson-dev` container** that
+`sjsujetsontool` manages — it bundles CUDA, Python, and the tools the other
+lessons use. The container ships **Ubuntu 24.04 aarch64 with `curl` + `apt` but
+*without* Node**, so the very first time you build a Next.js app on a fresh
+Jetson you install Node 20 once. It takes about a minute.
+
+#### The one-step path: `sjsujetsontool node`
+
+Recent `sjsujetsontool` versions include a `node` subcommand that handles the
+whole setup — *no `sudo` anywhere*, and *no need to `cd` first*. Run it from
+the host **from any directory** (your home is fine):
 
 ```bash
-sjsujetsontool update           # one-time: pulls the container that includes Node 20
-sjsujetsontool shell            # enter the AI container
-node -v                         # → v20.x
-npm -v                          # → 10.x
+student@sjsujetson-65:~$ sjsujetsontool node
 ```
 
-> The container mounts `/Developer`, so the app at
-> `/Developer/edgeAI/edgeLLM/nextjs-nemotron-app` is visible inside, and the `node_modules` you install
-> persist on the host SSD. *(On your own laptop you can instead install Node 20 with `nvm`.)*
+What it does, in order:
+
+1. Makes sure the `jetson-dev` container is running.
+2. **Installs Node 20** inside the container if `node` is not on `PATH`
+   (NodeSource apt — no sudo because we are root inside the container).
+3. **Asks you which project to run** — defaults to
+   `/Developer/edgeAI/edgeLLM/nextjs-nemotron-app` if you just press *Enter*,
+   so the prompt is one keystroke for this lesson:
+   ```
+   📁 Project path? [Enter = /Developer/edgeAI/edgeLLM/nextjs-nemotron-app]:
+   ```
+4. Runs `npm install` if `node_modules/` is missing or older than
+   `package-lock.json`.
+5. Prompts you to start the dev server: **`f`**oreground, **`b`**ackground, or
+   **`n`**o.
+
+Skip either prompt with positional args — the parser accepts a mode
+(`fg | bg | no`) and a path *in any order*:
+
+```bash
+sjsujetsontool node                        # prompt path + mode
+sjsujetsontool node bg                     # prompt path, run bg
+sjsujetsontool node fg /Developer/my-vite  # mode + explicit path
+sjsujetsontool node /Developer/my-app bg   # path + mode (order-independent)
+sjsujetsontool node stop                   # stop a background dev server
+```
+
+To override the default path globally — say, for a different recurring
+project — export `SJSUJETSONTOOL_NODE_DIR=/Developer/foo` in your shell rc;
+the *Enter*-key default will follow.
+
+**Verified on `sjsujetson-65` while writing this lesson** (running from
+`~`, not from the project dir):
+
+```text
+$ pwd
+/home/sjsujetson
+
+$ sjsujetsontool node bg
+🟢 node v20.20.2 · npm 10.8.2  (inside container jetson-dev)
+📁 Project path? [Enter = /Developer/edgeAI/edgeLLM/nextjs-nemotron-app]:    ← pressed Enter
+📦 Project: /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+✅ node_modules already present — skipping npm install.
+
+🚀 Starting in BACKGROUND on port 3000.
+   • URL    : http://10.251.95.201:3000
+   • Log    : sjsujetsontool shell   then   tail -f /tmp/sjsujetsontool-node.log
+   • Stop   : sjsujetsontool node stop
+
+$ curl -s -o /dev/null -w 'HTTP %{http_code} %{size_download}B\n' http://localhost:3000/
+HTTP 200 13594B                            # Next.js ready in ~2.6 s
+
+$ sjsujetsontool node stop
+🛑 Stopped the running Node dev server.
+```
+
+The **project path** must live under **`/Developer`** — that's the directory
+the container mounts 1:1 from the host, so files there are visible at the same
+path inside. Outside-of-`/Developer` paths get a friendly refusal:
+
+```text
+$ sjsujetsontool node fg ~/some-app
+❌ Project path must be under /Developer.
+   The container mounts /Developer 1:1 from the host, so files there
+   are visible at the same path inside. You picked: /home/sjsujetson/some-app
+```
+
+#### Manual install (what `sjsujetsontool node` does for you)
+
+If you want to know what's happening — or you need to install Node on a
+container that the tool hasn't seen yet — here's the same install done by
+hand:
+
+```bash
+sjsujetsontool update           # one-time: pull the latest jetson-dev image
+sjsujetsontool shell            # drops you into root@sjsujetson:/workspace
+```
+
+You should now see a `root@` prompt and `node -v` will fail:
+
+```bash
+root@sjsujetson-65:/workspace# node -v
+bash: node: command not found
+```
+
+Install Node 20 via NodeSource's official apt repo (we have root inside the
+container, so no `sudo` is needed):
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
+node -v       # → v20.20.2
+npm -v        # → 10.8.2
+```
+
+> **Why this works.** The container is plain Ubuntu 24.04 aarch64; NodeSource
+> ships native ARM64 packages, so this is the same one-line install you would
+> use on any cloud VM. The step is **idempotent** — running it again on the
+> same container is a no-op.
+
+#### What sits where
+
+| Path inside the container | What lives there |
+|---|---|
+| `/Developer/edgeAI/edgeLLM/nextjs-nemotron-app` | This app's source — mounted from the host, edits persist across container restarts |
+| `/usr/bin/node`, `/usr/bin/npm`        | The Node toolchain `sjsujetsontool node` installs for you |
+| `node_modules/` inside the app folder | Created by `npm install`, persists on the host SSD because the parent dir is a host mount |
+| `/tmp/sjsujetsontool-node.log`         | Stdout/stderr of a background dev server (read with `sjsujetsontool shell` → `tail -f`) |
+
+*(On your own laptop, skip the container entirely and install Node 20 with
+`nvm install 20` instead — the rest of the lesson is identical.)*
 
 ### 3.2 Project layout we will build
 

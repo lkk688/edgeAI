@@ -170,3 +170,6 @@ docs/slides/autonomous
 jetson/edgecloud-llm-gateway-guide.md
 jetson/generate_llm_nginx.py
 jetson/generate_nginx.py
+
+*.webm
+*.mp4

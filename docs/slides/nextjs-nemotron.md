@@ -86,7 +86,7 @@ edgeLLM/nextjs-nemotron-app/
 
 ---
 
-## <span class="step">5</span> Setup — keys + Node
+## <span class="step">5</span> Setup — API keys
 
 **Keys** come from your **`~/.env.local`** (the same file `sjsujetsontool chat` saved). Add any of:
 
@@ -98,31 +98,89 @@ echo "ANTHROPIC_API_KEY=sk-ant-…" >> ~/.env.local   # console.anthropic.com
 
 The app picks the provider from the **model you choose** (`nvidia/…`, `gpt-…`, `claude-…`).
 
-> 🟢 **Node/npm live in the container** — there's no `npm` on the host. Run everything inside
-> `sjsujetsontool shell` (it also passes your `~/.env.local` keys into the container).
+> 🛠️ **No Node on the host or in the container yet?** That's normal — the next slide installs
+> everything with one command. *No `sudo` is needed anywhere.*
 
 ---
 
-## <span class="step">6</span> Run it
+## <span class="step">6</span> Run it — `sjsujetsontool node`
+
+One command installs Node in the container, runs `npm install`, and starts the dev server.
+Run from **anywhere** on the host (your home is fine):
 
 ```bash
-sjsujetsontool shell                                  # Node 20 + npm + your keys
-cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
-npm install                                           # first time (~30-60 s)
-npm run dev                                           # serves on 0.0.0.0:3000
+sjsujetsontool node             # interactive: prompts for path + mode
 ```
 
-Open it **from your laptop** using the Jetson's IP:
+It asks the path with a sensible default — press *Enter* for this lesson:
+
+```text
+🟢 node v20.20.2 · npm 10.8.2  (inside container jetson-dev)
+📁 Project path? [Enter = /Developer/edgeAI/edgeLLM/nextjs-nemotron-app]:
+📦 Project: /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+▶️  Start the frontend now? [f]oreground / [b]ackground / [n]o:  b
+🚀 Starting in BACKGROUND on port 3000.   • URL: http://192.168.5.206:3000
+```
+
+**Shortcuts (skip the prompts):**
+
+```bash
+sjsujetsontool node bg                          # bg, default path
+sjsujetsontool node fg /Developer/my-vite-app   # fg, explicit path (any order)
+sjsujetsontool node /Developer/my-app bg        # path + mode, swapped
+sjsujetsontool node stop                        # stop a background server
+```
+
+> Default path: `/Developer/edgeAI/edgeLLM/nextjs-nemotron-app` — override with
+> `SJSUJETSONTOOL_NODE_DIR=/Developer/foo` in your shell rc.
+> Path **must live under `/Developer/`** (that's the dir the container mounts 1:1 from the host).
+
+---
+
+## <span class="step">7</span> Manual install (what `sjsujetsontool node` does for you)
+
+If you ever need to install Node by hand — or you want to see what the one-step command
+runs — open a container shell and use NodeSource's apt repo (Ubuntu 24.04 aarch64, root inside,
+*no sudo*):
+
+```bash
+sjsujetsontool shell                                # drops into root@jetson-dev:/workspace
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs                           # → node v20.20.2 · npm 10.8.2
+```
+
+Then build and run the app the classic way:
+
+```bash
+cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+npm install                                         # first time only (~30-60 s)
+npm run dev                                         # serves on 0.0.0.0:3000
+```
+
+> The Node install lives in the **container's writable layer** — it persists across
+> `sjsujetsontool shell` invocations until the image is rebuilt. `node_modules/` lives
+> on the host SSD because the parent dir is a host mount.
+
+---
+
+## <span class="step">8</span> Open it from your laptop
+
+Find the Jetson's IP and open it in any browser:
 
 ```bash
 hostname -I | awk '{print $1}'        # e.g. 192.168.5.206  → http://192.168.5.206:3000
 ```
 
-> Each message streams: Jetson → model API → Jetson → your browser, with a TTFT / tokens-per-second line.
+Each message streams **Jetson → model API → Jetson → your browser**, with a live TTFT and
+tokens-per-second line under the chat. To stop a backgrounded server:
+
+```bash
+sjsujetsontool node stop
+```
 
 ---
 
-## <span class="step">7</span> Extend it — same pattern every time
+## <span class="step">9</span> Extend it — same pattern every time
 
 Every feature = **one page** (UI) + **one API route** (server logic). Copy the pattern:
 
@@ -148,7 +206,7 @@ The bonus labs are exactly this — add a route + page and you've extended the a
 
 ---
 
-## <span class="step">8</span> Make it your own (push to GitHub)
+## <span class="step">10</span> Make it your own (push to GitHub)
 
 Copy the app into your own folder, then create your repo:
 
