@@ -1,0 +1,286 @@
+/* @theme autonomous
+   Modern, academic, and presentation-ready theme based on CMPE249 Lecture styling.
+   Featuring a plain white background, strong blue top accent bar, and left-bordered colorful cards.
+*/
+@import 'default';
+
+:root {
+  --blue: #2563eb;
+  --navy: #0b1a30;
+  --darkgray: #374151;
+  --lightgray: #e2e8f0;
+  --gray: #6b7280;
+  
+  /* Accent Colors */
+  --accent-blue: #2563eb;
+  --accent-cyan: #06b6d4;
+  --accent-purple: #7c3aed;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+}
+
+section {
+  background: #ffffff;
+  color: var(--darkgray);
+  font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1.5;
+  padding: 55px 70px 65px;
+  border-top: 10px solid var(--blue);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+h1 {
+  color: var(--navy);
+  font-size: 2.15em;
+  font-weight: 800;
+  margin: 0 0 5px 0;
+  padding: 0;
+  letter-spacing: -0.02em;
+}
+
+/* Slide header sub-caption */
+h1 + p {
+  color: var(--gray);
+  font-size: 0.95em;
+  margin: 0 0 22px 0;
+  line-height: 1.3;
+}
+
+h2 {
+  color: var(--navy);
+  font-size: 1.35em;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  border-bottom: 2px solid var(--lightgray);
+  padding-bottom: 8px;
+}
+
+h3 {
+  color: var(--navy);
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+strong {
+  color: var(--navy);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px solid var(--lightgray);
+}
+a:hover {
+  border-bottom-color: var(--blue);
+}
+
+code {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+  font-size: 0.9em;
+}
+
+pre {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+pre code {
+  background: transparent;
+  color: #f8fafc;
+  font-size: 0.8em;
+  line-height: 1.45;
+}
+
+blockquote {
+  border-left: 4px solid var(--accent-blue);
+  background: #f8fafc;
+  color: var(--darkgray);
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  margin: 15px 0;
+}
+
+/* Card components */
+.card {
+  border: 1px solid var(--lightgray);
+  border-left: 6px solid var(--accent-blue);
+  border-radius: 8px;
+  padding: 16px 20px;
+  background: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.01);
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+/* Card content rules to override default sizes */
+.card h3 {
+  font-size: 1.05em;
+  margin: 0 0 6px 0;
+  color: var(--navy);
+}
+.card p {
+  font-size: 0.76em;
+  color: var(--darkgray);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Card accent variations */
+.card.blue { border-left-color: var(--accent-blue); }
+.card.cyan { border-left-color: var(--accent-cyan); }
+.card.purple { border-left-color: var(--accent-purple); }
+.card.green { border-left-color: var(--accent-green); }
+.card.orange { border-left-color: var(--accent-orange); }
+.card.red { border-left-color: var(--accent-red); }
+
+/* Circle steps for Roadmaps */
+.step-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.88em;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+.step-circle.blue { background-color: var(--accent-blue); }
+.step-circle.cyan { background-color: var(--accent-cyan); }
+.step-circle.purple { background-color: var(--accent-purple); }
+.step-circle.green { background-color: var(--accent-green); }
+.step-circle.orange { background-color: var(--accent-orange); }
+.step-circle.red { background-color: var(--accent-red); }
+
+.roadmap-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.roadmap-item-content {
+  display: flex;
+  flex-direction: column;
+}
+.roadmap-item-content strong {
+  font-size: 1.05em;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.roadmap-item-content span {
+  font-size: 0.76em;
+  color: var(--gray);
+  line-height: 1.3;
+}
+
+/* Flow diagram blocks */
+.flow-box {
+  border: 1px solid var(--accent-blue);
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: #ffffff;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.88em;
+  color: var(--navy);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 130px;
+}
+.flow-box.blue { border-color: var(--accent-blue); }
+.flow-box.cyan { border-color: var(--accent-cyan); }
+.flow-box.purple { border-color: var(--accent-purple); }
+.flow-box.green { border-color: var(--accent-green); }
+.flow-box.orange { border-color: var(--accent-orange); }
+.flow-box.red { border-color: var(--accent-red); }
+
+.flow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.flow-arrow {
+  color: var(--gray);
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+/* Grid columns layout */
+.cols {
+  display: flex;
+  gap: 22px;
+  align-items: stretch;
+  margin-bottom: 15px;
+}
+.cols > * {
+  flex: 1;
+}
+
+.fig-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.fig-center img {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.caption {
+  display: block;
+  font-size: 0.78em;
+  color: var(--gray);
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* Left footer content using Marp footer directive */
+footer {
+  position: absolute;
+  left: 70px;
+  bottom: 25px;
+  color: var(--gray);
+  font-size: 0.55em;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+/* Right footer pagination styling - customized to show "Lecture 11 - X" */
+section::after {
+  content: 'Lecture 11 - ' attr(data-marpit-pagination) !important;
+  color: var(--gray) !important;
+  font-size: 0.55em !important;
+  position: absolute !important;
+  right: 70px !important;
+  bottom: 25px !important;
+  padding: 0 !important;
+}
+
+/* Special Lead Class */
+section.lead {
+  border-top-width: 12px;
+}
+section.lead h1 {
+  font-size: 2.5em;
+  margin-bottom: 12px;
+}
