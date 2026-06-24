@@ -22,6 +22,12 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip
 RUN pip install --upgrade pip
 
+# Prevent pip from overriding pre-installed PyTorch/Torchvision with broken PyPI wheels
+RUN python -c "import torch,torchvision; \
+open('/opt/torch-constraints.txt','w').write( \
+'torch==%s\ntorchvision==%s\n' % (torch.__version__.split('+')[0], torchvision.__version__.split('+')[0]))"
+ENV PIP_CONSTRAINT=/opt/torch-constraints.txt
+
 # Python packages: core + ML/NLP/LLM
 RUN pip install \
     numpy \

@@ -24,7 +24,7 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-import { resolveBackend, envFromHome } from "../../../lib/providers.js";
+import { resolveBackend, envFromHome } from "@/lib/providers";
 
 const SIDECAR_URL = process.env.AGENT_SIDECAR_URL || "http://localhost:8002";
 
@@ -121,7 +121,7 @@ export async function POST(req) {
 // available backend menu so the UI doesn't have to hard-code it.
 export async function GET() {
   // Lazy-import the menu so this route still loads if providers.js breaks.
-  const { BACKEND_MENU } = await import("../../../lib/providers.js");
+  const { BACKEND_MENU } = await import("@/lib/providers");
   let sidecar = null;
   try {
     const r = await fetch(`${SIDECAR_URL}/health`, { cache: "no-store" });

@@ -844,9 +844,10 @@ Expected output:
 > you hot reload. For benchmarking latency / TTFT, always use
 > `npm run build && npm run start` so React runs without dev-mode overhead.
 
-### 5.4 Open it from your laptop
+### 5.4 Open it from your laptop — on the **same LAN**
 
-Find the Jetson IP:
+If your laptop sits on the same Wi-Fi / Ethernet network as the Jetson
+(the usual classroom case), find the Jetson IP and open it directly:
 
 ```bash
 ssh jetsonorin "hostname -I | awk '{print \$1}'"
@@ -857,16 +858,89 @@ Then in your laptop browser, open `http://192.168.5.206:3000`. The page is
 served by Node on the Jetson; every `/api/chat` round trip goes
 Jetson → NVIDIA Build → Jetson → your laptop.
 
-### 5.5 Optional — keep it running after you log out
+### 5.5 Open it from your laptop — **over SSH (off-LAN)**
+
+Working from home, a hotel, or a Headscale tunnel? You can't reach the
+Jetson's LAN IP from outside, **but you don't need Tailscale on your
+laptop** — the SSH session you already use can carry the browser
+traffic, byte-for-byte, through the same tunnel:
 
 ```bash
-ssh jetsonorin
-cd ~/nextjs-nemotron-app
-nohup npm run start > ~/nextjs.log 2>&1 &
-disown
+# 1) On the Jetson — start the dev server in the background (one time):
+ssh -p 20065 student@headscale.forgengi.org
+sjsujetsontool node bg               # press Enter to use the default path
+exit                                  # the bg server keeps running
+
+# 2) On your laptop — open a SECOND terminal and start a tunnel:
+ssh -p 20065 \
+    -L 3000:localhost:3000 \         # Next.js dev server
+    -L 8002:localhost:8002 \         # Agent Lab sidecar (optional)
+    student@headscale.forgengi.org -N
+#                                      ^^ -N = "don't run a shell, just hold the tunnel"
 ```
 
-Stop it later with `pkill -f next-server`.
+While that second terminal is open, point your laptop browser at:
+
+```
+http://localhost:3000          # the Next.js app
+http://localhost:3000/agent    # the Agent Lab
+http://localhost:8002/docs     # the agent sidecar's Swagger UI (optional)
+```
+
+No firewall edits, no Tailscale on the laptop, no public exposure —
+everything stays inside the encrypted SSH connection. Press `Ctrl+C` in
+the tunnel terminal to close it; the Jetson dev server keeps running.
+
+#### One-liner alternative
+
+If you don't want a second terminal, do it all in one shot — log in,
+jump to the project, and run the dev server in **foreground** while the
+tunnel is up:
+
+```bash
+ssh -p 20065 \
+    -L 3000:localhost:3000 \
+    -L 8002:localhost:8002 \
+    student@headscale.forgengi.org \
+    -t 'cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app \
+        && export PATH=$HOME/.local/bin:$PATH \
+        && sjsujetsontool node fg'
+```
+
+`Ctrl+C` cleanly stops the dev server and the tunnel together.
+
+#### Free bonus: `localhost` is a "secure context"
+
+Browsers treat `http://localhost:...` as a *secure context* (the same
+trust level as `https://`), which means **`getUserMedia` works through
+the tunnel without an HTTPS certificate**. The microphone in
+[ASR Lab §9](#9-bonus-lab--streaming-asr-file-upload--microphone) and
+[Omni Lab §8](#8-bonus-lab--omni-multimodal-image--audio-upload) "just
+works" over an SSH tunnel; it does *not* work over a direct
+`http://192.168.x.y:3000` LAN URL because the browser refuses
+plaintext mic access on a non-localhost origin.
+
+This is one of those rare cases where the "complicated" setup (SSH
+tunnel) is actually *better* than the "simple" one (LAN IP).
+
+#### Common snags
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `bind [127.0.0.1]:3000: Address already in use` | You already have something listening on `:3000` on your laptop | Use a different left side: `-L 13000:localhost:3000` → then open `http://localhost:13000` |
+| Tunnel works but `http://localhost:3000` shows nothing | Dev server isn't actually running on the Jetson | From a shell on the Jetson: `curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000` should print `200`. If not, run `sjsujetsontool node bg` again. |
+| Tunnel drops after a few minutes idle | SSH idle timeout on a Headscale relay or NAT box | Add `-o ServerAliveInterval=30` to the SSH command — sends a keep-alive ping every 30 s |
+| `Permission denied (publickey)` | Wrong user / no key registered for that user | Ask the instructor; on the headscale lab boxes the user is `student`, not your shell username |
+
+### 5.6 Optional — keep it running after you log out
+
+```bash
+ssh jetsonorin                                # any of the SSH paths above
+cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+sjsujetsontool node bg                        # bg server survives your logout
+```
+
+Stop it later with `sjsujetsontool node stop`.
 
 ---
 

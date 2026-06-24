@@ -163,7 +163,7 @@ npm run dev                                         # serves on 0.0.0.0:3000
 
 ---
 
-## <span class="step">8</span> Open it from your laptop
+## <span class="step">8</span> Open it from your laptop — on the **same LAN**
 
 Find the Jetson's IP and open it in any browser:
 
@@ -180,7 +180,34 @@ sjsujetsontool node stop
 
 ---
 
-## <span class="step">9</span> Extend it — same pattern every time
+## <span class="step">9</span> Open it from your laptop — **over SSH (off-LAN)**
+
+Working from home / a hotel / a Headscale tunnel? You don't need Tailscale on your laptop —
+SSH itself can forward the port:
+
+```bash
+# On your laptop, in a NEW terminal — keep it open while you use the app:
+ssh -p 20065 \
+    -L 3000:localhost:3000 \      # Next.js dev server
+    -L 8002:localhost:8002 \      # Agent Lab sidecar (optional)
+    student@headscale.forgengi.org -N
+```
+
+Then open <**http://localhost:3000**> in your laptop browser. Traffic rides the encrypted
+SSH tunnel; nothing is exposed publicly.
+
+<span class="tiny">**Free bonus:** Browsers treat `http://localhost` as a *secure context*, so the **mic** in
+the ASR/Omni labs works through the tunnel without HTTPS. Direct LAN IPs don't get that.</span>
+
+<span class="tiny">
+**Common snags** — `bind: Address already in use` → use a different left side
+(`-L 13000:localhost:3000` → open `localhost:13000`). Tunnel dies after a few minutes →
+add `-o ServerAliveInterval=30`.
+</span>
+
+---
+
+## <span class="step">10</span> Extend it — same pattern every time
 
 Every feature = **one page** (UI) + **one API route** (server logic). Copy the pattern:
 
@@ -206,7 +233,7 @@ The bonus labs are exactly this — add a route + page and you've extended the a
 
 ---
 
-## <span class="step">10</span> Make it your own (push to GitHub)
+## <span class="step">11</span> Make it your own (push to GitHub)
 
 Copy the app into your own folder, then create your repo:
 

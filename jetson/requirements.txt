@@ -1,9 +1,9 @@
 numpy
 opencv-python
 matplotlib
-torch
-torchvision
-torchaudio
+# torch (Pre-installed in NVIDIA base image. DO NOT install from PyPI as it breaks iGPU/CUDA!)
+# torchvision (Pre-installed in NVIDIA base image. DO NOT install from PyPI!)
+# torchaudio (Pre-installed in NVIDIA base image. DO NOT install from PyPI!)
 transformers
 langchain
 sentence-transformers
