@@ -319,7 +319,7 @@ Observe how the Next.js Agent Lab runs reasoning-action loops (ReAct) with file 
 ### Key Agent Options
 - **Brain Options**: Switch between NVIDIA API, local `llama.cpp` on Orin, or shared server (`node05`).
 - **Policy Control**: Change system instructions to require planning first, or enforce a read-only code auditor.
-- **Full Architecture**: For details on the ReAct control loop, tools, and python implementation, see [react-agent.md](react-agent.md).
+- **Full Architecture**: For details on the ReAct control loop, tools, and python implementation, see the [**ReAct Agents** slides](react-agent.html).
 
 </div>
 <div>
