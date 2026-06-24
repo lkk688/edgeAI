@@ -477,40 +477,93 @@ live demo.
 
 ## 9. ▶️ Run it on the Jetson
 
-The Agent Lab needs two processes: the FastAPI sidecar (which holds
-the `edge_agent` Python code) and the Next.js server (built once,
-served the usual way).
+The Agent Lab needs two processes side-by-side:
+
+- The **FastAPI agent backend** (Python) — this is the *server* that owns the
+  ReAct loop and the file tools. The directory is called `agent_sidecar/`
+  because the program is technically a "sidecar" in microservice
+  terminology, but for *students* we call it the **agent backend** — that
+  is the term the UI, the error messages, and the tutorials all use.
+- The **Next.js dev server** (Node) — this is the browser-facing UI we
+  built in Lesson 11; it proxies to the backend.
+
+### 9.1 The one-step path: `sjsujetsontool agent` + `sjsujetsontool node`
+
+Recent versions of `sjsujetsontool` include an **`agent`** subcommand that
+mirrors the `node` subcommand from Lesson 11 §3.1 — it installs
+dependencies into `~/.venv`, reads keys from `~/.env.local`, and starts the
+FastAPI backend in the foreground or background.
 
 ```bash
-# Terminal 1 — FastAPI sidecar
-ssh sjsujetson@headscale.forgengi.org -p 20065
-source ~/.venv/bin/activate
-pip install -r ~/nextjs-nemotron-app/agent_sidecar/requirements.txt
-pip install -e ~/edge_agent
-
-export NVIDIA_API_KEY=nvapi-...
-# export SERPAPI_API_KEY=...                    # optional, enables web_search
-
-cd ~/nextjs-nemotron-app/agent_sidecar
-python agent_sidecar.py
-# → INFO  starting edge-agent sidecar on 0.0.0.0:8002 — docs at /docs
-#         (workspace=~/nextjs-nemotron-app/agent_sidecar/workspace, web_search=False)
+ssh jetsonorin                            # any of the SSH paths from §5.5
+sjsujetsontool agent bg                   # ← starts the FastAPI agent backend on :8002
+sjsujetsontool node bg                    # ← starts the Next.js dev server on :3000
 ```
+
+That is the whole startup. Two background processes, no `cd`, no `pip
+install` to remember, no `python agent_sidecar.py` to copy-paste. Behind
+the scenes:
+
+| Step | What `sjsujetsontool agent` does |
+|------|----------------------------------|
+| 1 | Creates `~/.venv` (one-time) and `pip install`s `fastapi`, `uvicorn`, and editable `edge_agent` |
+| 2 | `source`s `~/.env.local` and the project's `.env.local` so `NVIDIA_API_KEY`, `SERPAPI_API_KEY`, etc. are visible |
+| 3 | Kills any previous backend (so port `:8002` is always free) |
+| 4 | Runs `python agent_sidecar.py` — fg writes to your terminal, bg writes to `/tmp/sjsujetsontool-agent.log` |
+
+To check on the backend and tear it down:
 
 ```bash
-# Terminal 2 — Next.js
-ssh sjsujetson@headscale.forgengi.org -p 20065
-cd ~/nextjs-nemotron-app
-npm run build && npm run start
+sjsujetsontool agent status   # → 🟢 up on :8002, with tools + workspace listed
+sjsujetsontool agent stop     # → 🛑 Stopped the agent FastAPI backend.
 ```
 
-Now you have three useful URLs:
+After both are up, you have four useful URLs:
 
 | URL                                   | What it is                              |
 |---------------------------------------|-----------------------------------------|
 | `http://<jetson>:3000/agent`          | The Agent Lab UI                        |
-| `http://<jetson>:8002/docs`           | FastAPI Swagger UI                      |
+| `http://<jetson>:8002/docs`           | FastAPI Swagger UI (try-it-out for the route) |
 | `http://<jetson>:8002/health`         | JSON status (also proxied at `/api/agent` GET) |
+| `http://<jetson>:8002/openapi.json`   | Machine-readable schema, for typed clients |
+
+If you are not on the same LAN as the Jetson, use the SSH tunnel pattern
+from [Lesson 11 §5.5](./11_nextjs_nemotron_app.md#55-open-it-from-your-laptop--over-ssh-off-lan)
+— forward **both** ports (`-L 3000:localhost:3000 -L 8002:localhost:8002`).
+
+### 9.2 Manual install (what `sjsujetsontool agent` does for you)
+
+If you want to know what is actually happening — or you need to install
+the backend on a fresh box that does not have `sjsujetsontool` yet — here
+is the same install done by hand:
+
+```bash
+ssh jetsonorin
+python3 -m venv ~/.venv && source ~/.venv/bin/activate
+pip install -r /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/agent_sidecar/requirements.txt
+pip install -e /Developer/edgeAI/edgeLLM/edge_agent
+
+# Pull the keys the chat lab already saved (same convention as Lesson 11 §5).
+set -a
+[ -f ~/.env.local ] && source ~/.env.local
+[ -f /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.env.local ] && \
+   source /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.env.local
+set +a
+
+cd /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/agent_sidecar
+python agent_sidecar.py
+# → INFO  starting edge-agent sidecar on 0.0.0.0:8002 — docs at /docs
+#         (workspace=/Developer/.../agent_sidecar/workspace, web_search=False)
+```
+
+For the Next.js side, see [Lesson 11 §3.1 / §5](./11_nextjs_nemotron_app.md#31-tooling--sjsujetsontool-node-the-one-step-path).
+
+### 9.3 The "sidecar" terminology 
+
+The directory is named `agent_sidecar/` because in microservice
+architecture a *sidecar* is a helper process that runs alongside a main
+application, sharing its lifecycle and network namespace — which is
+exactly what this Python program does relative to the Next.js server. 
 
 ---
 
@@ -570,6 +623,45 @@ out in class** — students learn that production agents need a
 End-to-end wall-clock: **~85 s** for the whole 5-step run on the
 Jetson over the public NVIDIA Build endpoint.
 
+### 10.2 Same lab, **`node05` backend** (no cloud key required)
+
+We re-ran the lab on `jetsonorin` with the **`Shared SJSU llama.cpp (node05)`**
+backend selected from the dropdown — same workspace, simpler task,
+**zero cloud quota used**:
+
+> *"List the files in the workspace using `search_files`, then tell me
+> what types of files you found."*
+
+```
+event types observed:
+       1 "type": "start"
+       1 "type": "step"        ← Qwen3.5-9B emitted a clean Action line
+       1 "type": "observation"
+       1 "type": "final"
+
+step actions in order:
+  1.  search_files
+
+final answer (verbatim):
+  "I found 3 files in the workspace:
+   1. **README.md** - Markdown file (documentation)
+   2. **calculator.py** - Python source code file
+   3. **notes.md** - Markdown file (documentation/notes)
+   Summary by type:
+   - **Markdown files (.md)**: 2 files (README.md, notes.md)
+   - **Python files (.py)**: 1 file (calculator.py)"
+```
+
+One step, one observation, one final answer — no `nudge`. **`Qwen3.5-9B`
+at Q6_K_XL is large enough to follow the ReAct text protocol reliably**;
+the 0.8 B variant we tried earlier was not. Both run on the same shared
+server, so changing the model is a one-line edit in
+[`AgentLab.js`'s `node05` entry](../../edgeLLM/nextjs-nemotron-app/app/components/AgentLab.js).
+
+The `node05` backend is what we recommend for **classroom demos where you
+don't want students to burn cloud quota**: it's free, on-prem, and the
+model is good enough.
+
 ---
 
 ## 11. ⚖️ Model selection — and what you'll hit in practice
@@ -586,6 +678,29 @@ used that model as their default. **Use `minimaxai/minimax-m2.7` or
 Build's free tier and both reliably emit OpenAI-format tool calls.
 
 ### 11.1 Coding-capable models we tested or saw
+
+The Agent Lab now offers **five named backends + one "Custom"** in the dropdown
+(same menu the `sjsujetsontool chat` CLI uses):
+
+| Backend (`backend:` field)  | URL                                              | Default model                       | Key needed?    |
+|-----------------------------|--------------------------------------------------|-------------------------------------|----------------|
+| **NVIDIA Build** (`nvidia`) | `https://integrate.api.nvidia.com/v1`            | `minimaxai/minimax-m2.7`            | `NVIDIA_API_KEY` |
+| **Local llama.cpp** (`llama`) | `http://localhost:8080/v1`                     | whatever `sjsujetsontool llama bg` started | no           |
+| **Shared SJSU `node05`** (`node05`) | `https://llm.forgengi.org/node05/v1`     | `Qwen3.5-9B-UD-Q6_K_XL.gguf`       | no            |
+| **OpenAI** (`openai`)       | `https://api.openai.com/v1`                      | `gpt-4o-mini`                       | `OPENAI_API_KEY` |
+| **Anthropic** (`anthropic`) | `https://api.anthropic.com/v1`                   | `claude-sonnet-4-6`                 | `ANTHROPIC_API_KEY` |
+| **Custom** (`custom`)       | user enters in the UI                            | user enters                         | optional       |
+
+The **`node05` row is the same shared llama.cpp server** the
+`sjsujetsontool chat` terminal client uses for its *"Our shared LLM server"*
+option. No API key needed — it is reachable from any Jetson on the
+Headscale network at `https://llm.forgengi.org/node05/v1`. Currently
+serves `Qwen3.5-9B-UD-Q6_K_XL.gguf` (9 B parameters, Q6_K_XL quant), which
+is capable enough to follow the ReAct text protocol — verified in §10.2
+below.
+
+Within the NVIDIA Build backend, the coding-capable models we tested or
+saw:
 
 | Model id                                         | Status (2026-06)       | Notes |
 |--------------------------------------------------|------------------------|-------|

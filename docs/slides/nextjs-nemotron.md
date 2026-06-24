@@ -103,7 +103,7 @@ The app picks the provider from the **model you choose** (`nvidia/…`, `gpt-…
 
 ---
 
-## <span class="step">6</span> Run it — `sjsujetsontool node`
+## <span class="step">6</span> Run the **frontend** — `sjsujetsontool node`
 
 One command installs Node in the container, runs `npm install`, and starts the dev server.
 Run from **anywhere** on the host (your home is fine):
@@ -137,7 +137,36 @@ sjsujetsontool node stop                        # stop a background server
 
 ---
 
-## <span class="step">7</span> Manual install (what `sjsujetsontool node` does for you)
+## <span class="step">7</span> Run the **Agent Lab backend** — `sjsujetsontool agent`
+
+The **Agent Lab** (`/agent` page) needs a second server next to Next.js: a small **FastAPI**
+process that hosts the `edge_agent` ReAct loop + the file-tool kit
+(`read_file / grep / search_files / write_file / edit_file` + optional `web_search`).
+One more `sjsujetsontool` command does the whole setup — *no `sudo`*:
+
+```bash
+sjsujetsontool agent bg          # install fastapi+uvicorn+edge_agent in ~/.venv, run on :8002
+sjsujetsontool agent status      # → 🟢 up on :8002, lists tools + workspace
+sjsujetsontool agent stop
+```
+
+After that you have **two backgrounded processes** sharing `~/.env.local`:
+
+```text
+Next.js  on :3000  ← sjsujetsontool node  bg     # browser-facing UI         (in container)
+FastAPI  on :8002  ← sjsujetsontool agent bg     # ReAct loop + tool kit     (on the host)
+                            ▲
+                       reads ~/.env.local
+                       NVIDIA_API_KEY, SERPAPI_API_KEY, …
+```
+
+<span class="tiny">**Why one in the container, one on the host?** Node lives where `apt` can install it (the
+container). The FastAPI backend needs the same `~/.venv` your `sjsujetsontool chat` command uses,
+so it stays on the host. `--network host` lets them reach each other at `localhost`.</span>
+
+---
+
+## <span class="step">8</span> Manual install (what `sjsujetsontool node` does for you)
 
 If you ever need to install Node by hand — or you want to see what the one-step command
 runs — open a container shell and use NodeSource's apt repo (Ubuntu 24.04 aarch64, root inside,
@@ -163,7 +192,7 @@ npm run dev                                         # serves on 0.0.0.0:3000
 
 ---
 
-## <span class="step">8</span> Open it from your laptop — on the **same LAN**
+## <span class="step">9</span> Open it from your laptop — on the **same LAN**
 
 Find the Jetson's IP and open it in any browser:
 
@@ -180,7 +209,7 @@ sjsujetsontool node stop
 
 ---
 
-## <span class="step">9</span> Open it from your laptop — **over SSH (off-LAN)**
+## <span class="step">10</span> Open it from your laptop — **over SSH (off-LAN)**
 
 Working from home / a hotel / a Headscale tunnel? You don't need Tailscale on your laptop —
 SSH itself can forward the port:
@@ -207,7 +236,43 @@ add `-o ServerAliveInterval=30`.
 
 ---
 
-## <span class="step">10</span> Extend it — same pattern every time
+## 🎥 Video Demo: Next.js App in Action
+
+See the Next.js chat interface stream tokens and execute tasks via the FastAPI agent backend.
+
+<div class="fig-center">
+  <img src="nextjsapp.webp" width="760" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <span class="caption">Streaming chat tokens and executing coding agent tasks locally on the Jetson</span>
+</div>
+
+---
+
+## 🎥 Video Demo: Agent Lab in Action
+
+Observe how the Next.js Agent Lab runs reasoning-action loops (ReAct) with file tools on the Jetson.
+
+<div class="cols">
+<div>
+
+### Key Agent Options
+- **Brain Options**: Switch between NVIDIA API, local `llama.cpp` on Orin, or shared server (`node05`).
+- **Policy Control**: Change system instructions to require planning first, or enforce a read-only code auditor.
+- **Full Architecture**: For details on the ReAct control loop, tools, and python implementation, see [react-agent.md](react-agent.md).
+
+</div>
+<div>
+
+<div class="fig-center">
+  <img src="aiagent.webp" width="580" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  <span class="caption">ReAct agent solving a coding task live</span>
+</div>
+
+</div>
+</div>
+
+---
+
+## <span class="step">11</span> Extend it — same pattern every time
 
 Every feature = **one page** (UI) + **one API route** (server logic). Copy the pattern:
 
@@ -221,7 +286,7 @@ The bonus labs are exactly this — add a route + page and you've extended the a
 <div class="cols">
 <div>
 
-🔎 **Retrieval** · 🖼️ **Omni** (vision) · 🎙️ **ASR** · 🔊 **TTS**
+🔎 **Retrieval** · 🖼️ **Omni** (vision) · 🎙️ **ASR** · 🔊 **TTS** · 🛠️ **Agent Lab** (files + web)
 
 </div>
 <div>
@@ -231,9 +296,13 @@ The bonus labs are exactly this — add a route + page and you've extended the a
 </div>
 </div>
 
+<span class="tiny">**Agent Lab backend menu** mirrors `sjsujetsontool chat`:
+🟢 **NVIDIA Build** · 🦙 **Local llama.cpp (:8080)** · 🎓 **Shared SJSU `node05`** (no key needed) ·
+🤖 OpenAI · ✨ Anthropic · ⚙️ Custom. Switch with one dropdown — see Lesson 11b.</span>
+
 ---
 
-## <span class="step">11</span> Make it your own (push to GitHub)
+## <span class="step">12</span> Make it your own (push to GitHub)
 
 Copy the app into your own folder, then create your repo:
 

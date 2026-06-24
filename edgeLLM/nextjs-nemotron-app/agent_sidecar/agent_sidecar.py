@@ -258,6 +258,33 @@ async def run(request: Request) -> StreamingResponse:
             })
 
             obs = tools.dispatch(name, args if isinstance(args, dict) else {})
+
+            # If the parser produced an empty/incomplete arg dict and the tool
+            # came back with a "bad arguments" or "missing positional" error,
+            # echo the model's raw reply back as part of the observation. The
+            # model sees its own failed attempt and can correct the format on
+            # the next step instead of looping with the same broken output.
+            if (
+                isinstance(args, dict)
+                and obs.startswith("ERROR")
+                and (
+                    "bad arguments" in obs
+                    or "missing" in obs.lower()
+                    or not args        # parser couldn't extract anything
+                )
+            ):
+                hint = (
+                    "\n[parser-hint] I could not extract arguments for "
+                    f"{name}(...) from your reply. Please put the arguments "
+                    "on a SINGLE LINE as a strict JSON object after "
+                    "'Action Input:'. Example:\n"
+                    "    Action: " + name + "\n"
+                    "    Action Input: {\"path\": \"...\", \"content\": \"...\"}\n"
+                    "Your raw reply was (truncated):\n"
+                    + reply[-600:]
+                )
+                obs = obs + hint
+
             yield _sse({
                 "type": "observation",
                 "n": step,

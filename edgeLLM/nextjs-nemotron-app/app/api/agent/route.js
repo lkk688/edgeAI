@@ -91,8 +91,9 @@ export async function POST(req) {
     return Response.json(
       {
         error:
-          `Cannot reach agent sidecar at ${SIDECAR_URL}. ` +
-          `Start it with: cd agent_sidecar && python agent_sidecar.py. ` +
+          `Cannot reach the FastAPI agent backend at ${SIDECAR_URL}. ` +
+          `Start it on the Jetson with:  sjsujetsontool agent bg  ` +
+          `(or run it by hand: cd agent_sidecar/ && python agent_sidecar.py). ` +
           `(${err.message})`,
       },
       { status: 502 }

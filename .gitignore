@@ -173,3 +173,4 @@ jetson/generate_nginx.py
 
 *.webm
 *.mp4
+*.mov

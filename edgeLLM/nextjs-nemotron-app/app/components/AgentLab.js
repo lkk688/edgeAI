@@ -34,6 +34,18 @@ const BACKEND_MENU = [
     helpText: "Start it first on the Jetson with: sjsujetsontool llama bg",
   },
   {
+    id: "node05",
+    name: "Shared SJSU llama.cpp (node05)",
+    requiresKey: false,
+    defaultModel: "Qwen3.5-9B-UD-Q6_K_XL.gguf",
+    models: [
+      { id: "Qwen3.5-9B-UD-Q6_K_XL.gguf", label: "Qwen3.5-9B (9 B, Q6_K_XL — same as sjsujetsontool chat)" },
+    ],
+    helpText:
+      "Our shared LLM server at https://llm.forgengi.org/node05/v1 — no key required. Same backend " +
+      "the sjsujetsontool chat menu uses for its 'Our shared LLM server'.",
+  },
+  {
     id: "openai",
     name: "OpenAI",
     requiresKey: true,

@@ -414,6 +414,9 @@ show_help() {
   echo "                          (qwen2b default | qwen0.8b | qwen4b | gemma4 | custom HF repo:quant)"
   echo "  llama stop        - Stop a background llama-server"
   echo "  llama-cli [model] - Run llama-cli inference (same model choices; default qwen2b)"
+  echo "  agent [fg|bg|stop|status]"
+  echo "                    - Start the FastAPI **agent backend** on :8002 (the Next.js Agent Lab proxies to it)."
+  echo "                       Installs deps into ~/.venv on first run; reads keys from ~/.env.local."
   echo "  node [mode] [path]- Install Node 20 in-container (no sudo), npm install, start the dev server."
   echo "                       mode: fg|bg|no.  path: any dir under /Developer with package.json."
   echo "                       Run from anywhere; if path is omitted, it is prompted (default:"
@@ -481,6 +484,11 @@ show_list() {
   echo
   echo "  llama-cli [model] → Run llama-cli inference (same model choices)"
   echo "     ▶ sjsujetsontool llama-cli qwen4b -p \"Explain the Jetson Orin Nano\""
+  echo
+  echo "  agent [fg|bg|stop|status] → FastAPI **agent backend** on :8002 for the Next.js Agent Lab"
+  echo "     ▶ sjsujetsontool agent bg     # background, then 'sjsujetsontool agent status'"
+  echo "     ▶ sjsujetsontool agent fg     # foreground (Ctrl+C to stop)"
+  echo "     ▶ sjsujetsontool agent stop"
   echo
   echo "  node [mode] [path] → Install Node 20 in-container, npm install, start the dev server"
   echo "     ▶ sjsujetsontool node                              # prompt path + mode (defaults to nemotron-app)"
@@ -1200,6 +1208,135 @@ case "$1" in
         echo "   When you are ready, re-run 'sjsujetsontool node' and choose f or b."
         ;;
     esac
+    exit 0
+    ;;
+  agent)
+    shift
+    # FastAPI backend for the Next.js Agent Lab.
+    #
+    # Runs on the HOST (not the container) because it imports the edge_agent
+    # Python package and needs the same .env.local keys the chat lab uses.
+    # Listens on :8002 by default; the Next.js /api/agent route proxies to it.
+    #
+    # Usage:
+    #   sjsujetsontool agent                # interactive: ensure deps, then prompt fg/bg
+    #   sjsujetsontool agent bg             # background, no prompt
+    #   sjsujetsontool agent fg             # foreground (Ctrl+C to stop)
+    #   sjsujetsontool agent stop           # stop a background backend
+    #   sjsujetsontool agent status         # is it running? what does /health say?
+    AGENT_APP_DIR="${SJSUJETSONTOOL_AGENT_DIR:-/Developer/edgeAI/edgeLLM/nextjs-nemotron-app/agent_sidecar}"
+    AGENT_PKG_DIR="${SJSUJETSONTOOL_EDGE_AGENT_DIR:-/Developer/edgeAI/edgeLLM/edge_agent}"
+    AGENT_VENV="${SJSUJETSONTOOL_AGENT_VENV:-$HOME/.venv}"
+    AGENT_PORT="${AGENT_SIDECAR_PORT:-8002}"
+    AGENT_LOG="/tmp/sjsujetsontool-agent.log"
+    AGENT_PIDFILE="/tmp/sjsujetsontool-agent.pid"
+
+    # ---- subcommand: status ----------------------------------------------
+    if [ "${1:-}" = "status" ]; then
+      if curl -fs --max-time 2 "http://localhost:$AGENT_PORT/health" >/dev/null 2>&1; then
+        echo "🟢 agent backend is up on :$AGENT_PORT"
+        curl -s "http://localhost:$AGENT_PORT/health" | python3 -m json.tool 2>/dev/null \
+          || curl -s "http://localhost:$AGENT_PORT/health"
+      else
+        echo "⚪ agent backend is NOT running on :$AGENT_PORT"
+        echo "   start it with:  sjsujetsontool agent bg"
+      fi
+      exit 0
+    fi
+
+    # ---- subcommand: stop ------------------------------------------------
+    if [ "${1:-}" = "stop" ]; then
+      STOPPED=0
+      if [ -f "$AGENT_PIDFILE" ]; then
+        PID=$(cat "$AGENT_PIDFILE" 2>/dev/null || true)
+        if [ -n "$PID" ] && kill "$PID" 2>/dev/null; then STOPPED=1; fi
+        rm -f "$AGENT_PIDFILE"
+      fi
+      if pkill -f "agent_sidecar.py" 2>/dev/null; then STOPPED=1; fi
+      if [ "$STOPPED" -eq 1 ]; then
+        echo "🛑 Stopped the agent FastAPI backend."
+      else
+        echo "ℹ️  No agent backend was running."
+      fi
+      exit 0
+    fi
+
+    # ---- ensure project + edge_agent are where we expect ----------------
+    if [ ! -f "$AGENT_APP_DIR/agent_sidecar.py" ]; then
+      echo "❌ Can't find agent_sidecar.py at $AGENT_APP_DIR"
+      echo "   Set SJSUJETSONTOOL_AGENT_DIR if it lives elsewhere, or run"
+      echo "   'sjsujetsontool update' to pull the latest edgeAI repo."
+      exit 1
+    fi
+
+    # ---- ensure a python venv with FastAPI + edge_agent installed -------
+    if [ ! -f "$AGENT_VENV/bin/activate" ]; then
+      echo "🐍 Creating venv at $AGENT_VENV (one-time, ~30 s)..."
+      python3 -m venv "$AGENT_VENV" 2>/dev/null \
+        || python3 -m venv --without-pip "$AGENT_VENV" && \
+        (curl -sS https://bootstrap.pypa.io/get-pip.py | "$AGENT_VENV/bin/python3" - --quiet) \
+        || { echo "❌ Could not create venv. Try: sudo apt install python3-venv"; exit 1; }
+    fi
+    # shellcheck disable=SC1090
+    source "$AGENT_VENV/bin/activate"
+
+    if ! python3 -c "import fastapi, uvicorn" 2>/dev/null; then
+      echo "📥 Installing FastAPI + Uvicorn into the venv (one-time)..."
+      pip install -q -r "$AGENT_APP_DIR/requirements.txt" 2>&1 | tail -3
+    fi
+    if ! python3 -c "import edge_agent" 2>/dev/null; then
+      if [ -d "$AGENT_PKG_DIR" ]; then
+        echo "📥 Installing edge_agent from $AGENT_PKG_DIR (editable)..."
+        pip install -q -e "$AGENT_PKG_DIR" 2>&1 | tail -3
+      else
+        echo "⚠️  edge_agent package missing at $AGENT_PKG_DIR — the backend will fail to import it."
+        echo "   Set SJSUJETSONTOOL_EDGE_AGENT_DIR or run 'sjsujetsontool update'."
+      fi
+    fi
+
+    # ---- pull keys from ~/.env.local + project .env.local (same as chat) -
+    PROJECT_ENV="/Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.env.local"
+    set -a
+    [ -f "$HOME/.env.local" ]   && source "$HOME/.env.local"   2>/dev/null || true
+    [ -f "$PROJECT_ENV" ]       && source "$PROJECT_ENV"       2>/dev/null || true
+    set +a
+
+    # Stop any previous instance so port :8002 is free.
+    pkill -f "agent_sidecar.py" >/dev/null 2>&1 || true
+    rm -f "$AGENT_PIDFILE"
+
+    # ---- pick fg/bg ------------------------------------------------------
+    AGENT_CHOICE="${1:-}"
+    case "${AGENT_CHOICE,,}" in
+      f|fg|foreground) AGENT_CHOICE="fg" ;;
+      b|bg|background) AGENT_CHOICE="bg" ;;
+      "")
+        if [ -t 0 ]; then
+          read -r -p "▶️  Start the agent FastAPI backend? [f]oreground / [b]ackground (Enter = bg): " AGENT_CHOICE
+          case "${AGENT_CHOICE,,}" in f|fg|foreground) AGENT_CHOICE="fg" ;; *) AGENT_CHOICE="bg" ;; esac
+        else
+          AGENT_CHOICE="bg"
+        fi
+        ;;
+      *) echo "❓ Unknown subcommand: $1. Try: fg | bg | stop | status"; exit 1 ;;
+    esac
+
+    if [ "$AGENT_CHOICE" = "fg" ]; then
+      echo "🚀 Starting agent backend in FOREGROUND on port $AGENT_PORT (Ctrl+C to stop)."
+      exec python3 "$AGENT_APP_DIR/agent_sidecar.py"
+    else
+      echo "🚀 Starting agent backend in BACKGROUND on port $AGENT_PORT."
+      ( nohup python3 "$AGENT_APP_DIR/agent_sidecar.py" >"$AGENT_LOG" 2>&1 & echo $! > "$AGENT_PIDFILE" ) </dev/null
+      sleep 2
+      if curl -fs --max-time 3 "http://localhost:$AGENT_PORT/health" >/dev/null 2>&1; then
+        echo "   ✅ up:    http://localhost:$AGENT_PORT/health"
+        echo "   • Log:   tail -f $AGENT_LOG"
+        echo "   • Stop:  sjsujetsontool agent stop"
+      else
+        echo "   ⚠️  /health didn't respond yet — check the log:"
+        echo "      tail -f $AGENT_LOG"
+      fi
+    fi
     exit 0
     ;;
   llama-cli)
