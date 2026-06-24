@@ -422,6 +422,9 @@ show_help() {
   echo "                       Run from anywhere; if path is omitted, it is prompted (default:"
   echo "                       /Developer/edgeAI/edgeLLM/nextjs-nemotron-app)."
   echo "  node stop         - Stop any background Next.js / Vite / npm dev server started by 'node'"
+  echo "  node clean [path] [all] - Wipe .next build cache (and optionally node_modules) to fix"
+  echo "                          'Module not found' or stale-cache errors. Routes through the container"
+  echo "                          so the student user doesn't need root."
   echo "  ollama-serve      - Start Ollama REST API server (port 11434)"
   echo "  ollama-run        - Run Ollama model interactively (defaults to gemma4)"
   echo "  vllm [model]      - Start vLLM serve engine (defaults to Qwen3-8B-speculator)"
@@ -496,6 +499,8 @@ show_list() {
   echo "     ▶ sjsujetsontool node fg /Developer/my-vite-app    # foreground, explicit path"
   echo "     ▶ sjsujetsontool node /Developer/my-app bg         # path + mode in any order"
   echo "     ▶ sjsujetsontool node stop                         # stop a background dev server"
+  echo "     ▶ sjsujetsontool node clean                        # wipe .next cache (fixes 'Module not found')"
+  echo "     ▶ sjsujetsontool node clean all                    # also wipe node_modules — full reinstall on next run"
   echo "     (Override the default path with SJSUJETSONTOOL_NODE_DIR.)"
   echo
   echo "  ollama-serve → Start Ollama REST API server (port 11434)"
@@ -1088,6 +1093,75 @@ case "$1" in
       exit 0
     fi
 
+    # ---- subcommand: clean — fix "Module not found" / stale build cache --
+    # Removes the project's `.next` build cache (and optionally `node_modules`)
+    # so the next `sjsujetsontool node bg` starts from a clean slate. Most
+    # often used after the "Module not found: @/lib/providers" symptom — the
+    # cache was built BEFORE the import / file existed.
+    #
+    #   sjsujetsontool node clean                # clean default path's .next
+    #   sjsujetsontool node clean /Developer/foo # clean a specific project
+    #   sjsujetsontool node clean all            # also wipe node_modules (re-install on next run)
+    if [ "${1:-}" = "clean" ]; then
+      shift
+      CLEAN_DEEP=0
+      CLEAN_PATH=""
+      for a in "$@"; do
+        case "${a,,}" in
+          all|deep|fresh) CLEAN_DEEP=1 ;;
+          *)              CLEAN_PATH="$a" ;;
+        esac
+      done
+      CLEAN_PATH="${CLEAN_PATH:-${SJSUJETSONTOOL_NODE_DIR:-/Developer/edgeAI/edgeLLM/nextjs-nemotron-app}}"
+      CLEAN_PATH="${CLEAN_PATH/#\~/$HOME}"
+      CLEAN_PATH="$(realpath "$CLEAN_PATH" 2>/dev/null || true)"
+      if [ -z "$CLEAN_PATH" ] || [ ! -d "$CLEAN_PATH" ]; then
+        echo "❌ Project path does not exist."
+        echo "   Usage:  sjsujetsontool node clean [path] [all]"
+        exit 1
+      fi
+
+      echo "🧹 Cleaning $CLEAN_PATH"
+
+      # 1) Stop any running dev server first so the cache isn't being written to.
+      for PAT in 'next-server' 'next dev' 'next start' 'npm run dev' 'npm run start' 'vite' 'node .*server'; do
+        $EXEC_CMD pkill -f "$PAT" >/dev/null 2>&1 || true
+      done
+
+      # 2) Wipe `.next`. The folder is usually root-owned because dev runs
+      # in the jetson-dev container as root; route through it so the
+      # student user doesn't need sudo. Falls back to host rm if the
+      # container isn't running.
+      if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+        docker exec "$CONTAINER_NAME" rm -rf "$CLEAN_PATH/.next" 2>/dev/null || true
+      fi
+      rm -rf "$CLEAN_PATH/.next" 2>/dev/null || true
+      if [ -e "$CLEAN_PATH/.next" ]; then
+        echo "   ⚠️  could not fully remove .next — try 'sjsujetsontool shell' then 'rm -rf .next'"
+      else
+        echo "   ✅ removed .next build cache"
+      fi
+
+      # 3) Optionally wipe node_modules. Also root-owned in most cases.
+      if [ "$CLEAN_DEEP" -eq 1 ] && [ -d "$CLEAN_PATH/node_modules" ]; then
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+          docker exec "$CONTAINER_NAME" rm -rf "$CLEAN_PATH/node_modules" 2>/dev/null || true
+        fi
+        rm -rf "$CLEAN_PATH/node_modules" 2>/dev/null || true
+        if [ -e "$CLEAN_PATH/node_modules" ]; then
+          echo "   ⚠️  could not fully remove node_modules"
+        else
+          echo "   ✅ removed node_modules (next 'node bg' will re-install)"
+        fi
+      fi
+
+      # 4) Re-relax permissions on the project (in case .next left root-owned siblings).
+      relax_developer_perms "$CLEAN_PATH" >/dev/null 2>&1 || true
+
+      echo "🚀 Next:  sjsujetsontool node bg   # rebuilds and serves"
+      exit 0
+    fi
+
     # ---- parse positional args: mode and/or path, in any order -----------
     # An arg is a "mode" if it matches fg/bg/no (and aliases); otherwise it
     # is treated as a path. Recognised modes: fg|f|foreground, bg|b|background,
@@ -1452,30 +1526,54 @@ case "$1" in
     show_list
     ;;
   update)
-    echo "🔄 Running full update (script + sample code + container + perms)..."
+    echo "🔄 Running full update (script + sample code + container + perms + cache wipe)..."
     echo "  Use 'update-script', 'force_git_pull', or 'update-container' to run individually."
     echo
 
     # 1) update this CLI script
-    echo "📜 Step 1/4: Updating sjsujetsontool script from GitHub..."
+    echo "📜 Step 1/5: Updating sjsujetsontool script from GitHub..."
     $0 update-script
     echo
 
     # 2) force-update the edgeAI sample code in /Developer/edgeAI
-    echo "📥 Step 2/4: Updating edgeAI sample code (git pull --force)..."
+    echo "📥 Step 2/5: Updating edgeAI sample code (git pull --force)..."
     $0 force_git_pull || echo "⚠️  Skipped sample-code update (is /Developer/edgeAI a git repo?)."
     echo
 
     # 3) update the container image
-    echo "🐳 Step 3/4: Updating container image..."
+    echo "🐳 Step 3/5: Updating container image..."
     $0 update-container
     echo
 
     # 4) heal /Developer/edgeAI permissions — covers files that landed there
     # under a different owner (rsync, npm install in the container, an IDE
     # on a teacher's account, etc.) and would block the next student.
-    echo "🔓 Step 4/4: Healing /Developer/edgeAI permissions for shared use..."
+    echo "🔓 Step 4/5: Healing /Developer/edgeAI permissions for shared use..."
     relax_developer_perms /Developer/edgeAI
+    echo
+
+    # 5) wipe any stale Next.js / Vite build caches under /Developer/edgeAI.
+    # Symptom this prevents: "Module not found: Can't resolve '@/lib/…'"
+    # when the cache was compiled BEFORE a freshly-pulled file existed.
+    echo "🧹 Step 5/5: Clearing stale .next build caches..."
+    DELETED_CACHES=0
+    if command -v docker >/dev/null 2>&1 \
+       && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+      # Container path (works even when .next is root-owned).
+      while IFS= read -r d; do
+        [ -n "$d" ] && docker exec "$CONTAINER_NAME" rm -rf "$d" 2>/dev/null && DELETED_CACHES=$((DELETED_CACHES + 1))
+      done < <(find /Developer/edgeAI -type d -name '.next' -prune 2>/dev/null)
+    else
+      # Host fallback.
+      while IFS= read -r d; do
+        [ -n "$d" ] && rm -rf "$d" 2>/dev/null && DELETED_CACHES=$((DELETED_CACHES + 1))
+      done < <(find /Developer/edgeAI -type d -name '.next' -prune 2>/dev/null)
+    fi
+    if [ "$DELETED_CACHES" -gt 0 ]; then
+      echo "   ✅ removed $DELETED_CACHES .next cache(s)"
+    else
+      echo "   ✅ no stale caches found"
+    fi
 
     exit 0
     ;;
