@@ -193,6 +193,8 @@ sjsujetsontool node bg                     # prompt path, run bg
 sjsujetsontool node fg /Developer/my-vite  # mode + explicit path
 sjsujetsontool node /Developer/my-app bg   # path + mode (order-independent)
 sjsujetsontool node stop                   # stop a background dev server
+sjsujetsontool node clean                  # wipe .next cache (fix "Module not found")
+sjsujetsontool node clean all              # also wipe node_modules — full reinstall on next run
 ```
 
 To override the default path globally — say, for a different recurring
@@ -234,6 +236,127 @@ $ sjsujetsontool node fg ~/some-app
    The container mounts /Developer 1:1 from the host, so files there
    are visible at the same path inside. You picked: /home/sjsujetson/some-app
 ```
+
+#### Debug: `Module not found` and how `sjsujetsontool node clean` fixes it
+
+If you open the chat tab and Next.js shows you:
+
+```text
+Build Error
+Module not found: Can't resolve '@/lib/providers'
+./app/api/chat/route.js (20:1)
+```
+
+…**don't panic** — and **don't blame Next.js**. The diagnostic ladder is:
+
+1. **Is the imported file actually on disk?**
+   ```bash
+   ssh student@<jetson>
+   ls /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/lib/providers.js
+   ```
+   - **Not there** → the file was added on another box / on `main` but never
+     made it to this Jetson. Fix with `sjsujetsontool update` (Step 2 pulls
+     it down) or `scp` from a known-good box. ~99% of *"Module not found"*
+     reports are this case.
+   - **There** → continue to step 2.
+
+2. **Is `.next` cache stale?** Next.js's dev server caches the resolved
+   import graph. If the file was missing when the cache was built, the
+   cache "remembers" the failure even after you put the file back.
+   Symptom: the file is on disk, but the dev server still complains.
+
+   The fix is **one command**:
+
+   ```bash
+   sjsujetsontool node clean
+   ```
+
+   That subcommand:
+
+   1. Stops any running dev server (so the cache isn't being written to).
+   2. **Routes through the container** to `rm -rf .next` — important
+      because `.next/` is usually **`root`-owned** (dev mode runs as root
+      inside `jetson-dev`), so a plain `rm -rf` from the student account
+      gets *permission denied*. The container path bypasses that without
+      `sudo`.
+   3. Re-applies the project's group-writable perms so the next `node bg`
+      can write back into the directory.
+
+   Then restart:
+
+   ```bash
+   sjsujetsontool node bg
+   ```
+
+   …and Next.js rebuilds the cache from a clean slate.
+
+3. **Want to fully nuke `node_modules` too?** Use the `all` variant:
+
+   ```bash
+   sjsujetsontool node clean all     # .next + node_modules → both gone
+   sjsujetsontool node bg            # this run will re-run `npm install`
+   ```
+
+   Use this when a `package.json` change isn't picking up, or when you
+   suspect a corrupted dep.
+
+**Verified during the writing of this lesson** — on a lab Jetson reachable
+as `student@headscale.forgengi.org:20001`. Before the fix:
+
+```text
+$ ls /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/lib/providers.js
+ls: cannot access '…': No such file or directory   ← file missing
+$ ls -ld /Developer/edgeAI/edgeLLM/nextjs-nemotron-app/.next
+drwxr-xr-x 6 root root 4096 Jun 24 09:41 .next       ← root-owned, stale
+```
+
+After `scp lib/providers.js …:…/lib/` then `sjsujetsontool node clean`:
+
+```text
+$ sjsujetsontool node clean
+🧹 Cleaning /Developer/edgeAI/edgeLLM/nextjs-nemotron-app
+   ✅ removed .next build cache
+🚀 Next:  sjsujetsontool node bg   # rebuilds and serves
+
+$ sjsujetsontool node bg
+🚀 Starting in BACKGROUND on port 3000.
+
+$ curl -sN -X POST http://localhost:3000/api/chat \
+    -H 'Content-Type: application/json' --max-time 30 \
+    -d '{"messages":[{"role":"user","content":"Reply with exactly 3 words."}],
+         "model":"nvidia/llama-3.3-nemotron-super-49b-v1","max_tokens":40}' \
+    | grep -oE '"content":"[^"]*"' | tail -3
+"content":""
+"content":"You"
+"content":" Are Welcome"          # ← chat works again, full SSE stream
+```
+
+#### `sjsujetsontool update` heals everything in one shot
+
+If you'd rather not think about *which* cache or *which* file —
+`sjsujetsontool update` now does the lot. It runs 5 steps, every one of
+them safe to re-run:
+
+```text
+📜 Step 1/5: Updating sjsujetsontool script from GitHub...
+📥 Step 2/5: Updating edgeAI sample code (git pull --force)...   ← brings missing files in
+🐳 Step 3/5: Updating container image...
+🔓 Step 4/5: Healing /Developer/edgeAI permissions for shared use...
+🧹 Step 5/5: Clearing stale .next build caches...                ← finds them, removes via container
+   ✅ removed 1 .next cache(s)
+```
+
+Step 5 walks the whole `/Developer/edgeAI` tree with `find -name '.next' -prune`,
+so it heals **every** Next.js / Vite project under there, not just this one.
+
+Cheat sheet for the symptom-to-command mapping:
+
+| Symptom                                                       | Command                                      |
+|---------------------------------------------------------------|----------------------------------------------|
+| `Module not found: '@/lib/…'` and the file *is* on disk       | `sjsujetsontool node clean`                  |
+| `Module not found: '@/lib/…'` and the file is **missing**     | `sjsujetsontool update` (pulls + cleans)     |
+| `npm install` is acting weird, `package-lock` recently changed | `sjsujetsontool node clean all`              |
+| You just want everything fresh                                | `sjsujetsontool update` → `sjsujetsontool node bg` |
 
 #### Manual install (what `sjsujetsontool node` does for you)
 
