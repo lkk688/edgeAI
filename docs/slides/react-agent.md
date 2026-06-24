@@ -256,7 +256,7 @@ Five built-in verbs (plus one optional online tool) — every path **confined to
 
 ---
 
-## <span class="step">8</span> The loop — `react_loop.py`
+## <span class="step">8</span> The loop — the seam: `complete(messages) → str`
 
 The loop is **decoupled from HTTP**. It doesn't know whether the model lives on a cloud
 endpoint, in-process llama.cpp, or a unit-test stub. It just gets a callable:
@@ -265,11 +265,10 @@ endpoint, in-process llama.cpp, or a unit-test stub. It just gets a callable:
 complete(messages: list[dict]) -> str   # ← the ONLY seam between agent and "intelligence"
 ```
 
-…takes an OpenAI-style message list, returns the assistant reply text. **Three real
-implementations** — all drop-in interchangeable behind the same `ReActAgent`:
+**Three real implementations** — all drop-in interchangeable behind the same `ReActAgent`:
 
 ```python
-# (a) NVIDIA Build via the OpenAI client (or OpenAI / Anthropic / any compat URL)
+# (a) NVIDIA Build via the OpenAI client (also OpenAI / Anthropic / any compat URL)
 def complete(msgs):
     return client.chat.completions.create(model="…", messages=msgs).choices[0].message.content
 
@@ -277,12 +276,18 @@ def complete(msgs):
 def complete(msgs):
     return llm.create_chat_completion(messages=msgs)["choices"][0]["message"]["content"]
 
-# (c) mocked, for unit tests — deterministic, zero quota burned
+# (c) mocked for unit tests — deterministic, zero quota burned
 def complete(msgs):
     return 'Thought: stub\nAction: read_file\nAction Input: {"path":"x.py"}'
 ```
 
-The loop itself stays tiny — **5 steps, one for-loop**:
+<span class="tiny">Same agent code runs against a **0.5 B local model OR GPT-5** — no provider lock-in.</span>
+
+---
+
+## <span class="step">8</span> The loop — the 5-step `run()` function
+
+The loop itself stays tiny — **5 things, one `for`-loop, ~12 lines**:
 
 ```python
 def run(self, task):
@@ -297,8 +302,9 @@ def run(self, task):
         messages.append({"role": "user", "content": "Observation: " + obs})        # 5) observe
 ```
 
-<span class="tiny">Swap providers by passing a different <code>complete</code> — zero loop changes,
-zero provider lock-in. Same code runs against a 0.5 B local model or GPT-5.</span>
+<span class="tiny"><strong>reason → done? → parse → act → observe</strong>, with a
+<code>max_steps</code> cap so it can't loop forever. Swap providers by passing a different
+<code>complete</code> — zero loop changes.</span>
 
 ---
 
@@ -338,7 +344,7 @@ Observe how the ReAct agent loops through thoughts, actions (calling tools), and
 
 ---
 
-## <span class="step">10</span> Interface #2 — FastAPI: the **Next.js Agent Lab** backend
+## <span class="step">10</span> Interface #2 — FastAPI agent backend
 
 Same `edge_agent` core — wrapped in a **~250-line FastAPI** service so a browser can see it
 ([`agent_sidecar/agent_sidecar.py`](https://github.com/lkk688/edgeAI/tree/main/edgeLLM/nextjs-nemotron-app/agent_sidecar)).
@@ -365,11 +371,17 @@ async def run(request):
     return StreamingResponse(stream(), media_type="text/event-stream")
 ```
 
-**The defined HTTP surface — small on purpose:**
+Start it: **`sjsujetsontool agent bg`** → browser sees every Thought / Action / Observation card live.
+
+---
+
+## <span class="step">10</span> FastAPI agent backend — HTTP surface, modular & scalable
+
+**Small HTTP surface, on purpose:**
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET`  | `/health`        | Liveness + lists tools + workspace root + max_steps cap |
+| `GET`  | `/health`        | Liveness + lists tools + workspace root |
 | `POST` | `/run`           | Body JSON → **SSE stream** of `{start, step, observation, nudge, final, error}` |
 | `GET`  | `/docs`          | Auto Swagger UI — try `/run` from the browser, no curl needed |
 | `GET`  | `/openapi.json`  | Machine-readable schema (drives typed JS clients) |
@@ -378,9 +390,9 @@ async def run(request):
 <div>
 
 **Why modular?**
-- Each endpoint is independent. Add `/sessions/{id}/resume` without touching `/run`.
+- Each endpoint is independent — add `/sessions/{id}/resume` without touching `/run`.
 - Swap the agent algorithm (LangChain, AutoGen) → only `/run` changes; UI stays the same.
-- Browser, Postman, curl, Python — anyone with HTTP gets in.
+- Browser, Postman, curl, Python — anyone with HTTP can talk to it.
 
 </div>
 <div>
@@ -388,51 +400,49 @@ async def run(request):
 **Why scalable?**
 - **Stateless** by default → `uvicorn --workers N` for N× concurrency.
 - SSE doesn't hold sessions → each `/run` finishes and lets go.
-- Async-friendly: FastAPI threadpools blocking work (Riva, edge_agent) automatically.
-- Decoupled from UI: the same backend serves the Next.js Lab AND a CLI client.
+- Async-friendly — FastAPI threadpools blocking work (edge_agent, Riva) automatically.
+- Decoupled from UI: same backend serves the Lab *and* a CLI client.
 
 </div>
 </div>
-
-Started on the Jetson with **`sjsujetsontool agent bg`**. Browser sees every Thought / Action /
-Observation card in real time at `/agent`.
 
 ---
 
 ## <span class="step">11</span> Context window — the **hidden ceiling**
 
-Every model has a **max context**. Your whole conversation must fit inside:
+Every model has a max context. **Your whole conversation must fit inside:**
 
 ```
 system_prompt + task + (Thought + Action + Observation) × N steps
 ```
 
-| Backend | Context window |
+<div class="cols">
+<div>
+
+| Backend | Window |
 |---|---|
-| Local Qwen 3.5 (Q4) on Jetson | **4 – 8 K** tokens |
-| Shared `node05` Qwen 3.5-9B    | typically **8 – 32 K** |
-| NVIDIA Nemotron 49 B / 70 B    | **128 K** |
-| OpenAI GPT-4o                  | 128 K |
-| Claude Sonnet 4.6              | **200 K** |
+| Local Qwen 3.5 (Q4) on Jetson | **4 – 8 K** |
+| `node05` Qwen 3.5-9B    | 8 – 32 K |
+| NVIDIA Nemotron 49 B / 70 B | **128 K** |
+| Claude Sonnet 4.6 | **200 K** |
 
-**Where it bites in practice:** an `Observation` from `read_file` on a 1000-line file is ~6 KB
-→ ~1.5 K tokens. Three such observations + system prompt + task and a local 8 K window is half-full.
+**Built-in defenses:**
+- `dispatch()` truncates every tool result to **6 000 chars**
+- `max_steps = 8` by default → naturally bounded
 
-**Built-in defense** — in `tools.py`'s dispatcher:
+</div>
+<div>
 
-```python
-return str(getattr(self, name)(**args))[:6000]   # ← every tool result is truncated
-```
+**Mitigations when you need more headroom:**
 
-…plus `max_steps = 8` by default → naturally bounded.
+- ✂️ `read_file(path, start=10, end=40)` — *never* whole files
+- 🔎 `grep` first, then a narrow `read_file` range around the hit
+- 📉 Lower `max_steps` if your task is small
+- 📚 Pick a bigger window (Nemotron 128 K ≫ local 8 K)
+- 🪄 Have the agent **summarize old observations** for long runs
 
-**Mitigations** when you need more headroom:
-
-- ✂️ Use **`read_file(path, start=10, end=40)`** — *never* whole files
-- 🔎 **`grep` first**, then `read_file` a narrow range around the hit
-- 📉 Lower **`max_steps`** if your task is small
-- 📚 Pick a model with a **bigger window** (Nemotron 128 K beats local 8 K)
-- 🪄 Have the agent **summarize old observations** into a short note for long sessions
+</div>
+</div>
 
 > **Symptom of exhaustion:** the agent forgets the original task, hallucinates files, or re-runs
 > the same Action twice. Fix is **almost always smaller observations**, not a smarter prompt.
@@ -452,18 +462,6 @@ those tokens** — you (regex) or the provider (built-in JSON unpacker).
 | Works on any chat model | ✅ even base / local | ❌ needs a tool-fine-tuned model |
 | Reasoning visible | ✅ <code>Thought:</code> in plain text | partial — text + opaque <code>tool_calls</code> |
 | Used by | `chat --agent`, lesson 12c, Agent Lab | lesson 12b, OpenAI / Anthropic SDKs |
-
-What native tool-calling looks like (the provider does the parsing):
-
-```python
-resp = client.chat.completions.create(
-    model="qwen/qwen3.5-9b", messages=msgs,
-    tools=[{"type": "function", "function": {"name": "read_file",
-            "parameters": {...JSON schema...}}}])
-for tc in resp.choices[0].message.tool_calls:                # ← already parsed for you
-    args   = json.loads(tc.function.arguments)
-    result = tools.dispatch(tc.function.name, args)          # SAME tools.py
-```
 
 > Same `tools.py` powers both paths — **only the transport differs**. This is the connective
 > tissue that ties every lab in the curriculum together.
@@ -492,7 +490,7 @@ Observation and falls back to file tools, never crashes.</span>
 
 ---
 
-## <span class="step">14</span> Extend it — adding tools *and* **revising the prompt**
+## <span class="step">14</span> Extend it — add your own tool
 
 Add a `run_python` tool in **three places**, all in [`tools.py`](https://github.com/lkk688/edgeAI/blob/main/edgeLLM/edge_agent/src/edge_agent/tools.py):
 
@@ -515,20 +513,24 @@ OPENAI_SCHEMAS.append({"type":"function","function":{
     "parameters":{"type":"object","properties":{"code":{"type":"string"}},"required":["code"]}}})
 ```
 
-**That's it.** Both the CLI agent and the FastAPI Agent Lab pick it up automatically — no other
-file touched.
+> **That's it.** Both the CLI agent and the FastAPI Agent Lab pick it up automatically — no other
+> file touched. The agent's tool kit just grew by one.
 
-**Where to revise the prompt** — three knobs, biggest to smallest:
+---
+
+## <span class="step">14</span> Extend it — **revise the prompt** (the other half of an agent)
+
+**Three knobs** for the system prompt, biggest to smallest:
 
 | Knob | File | What it controls |
 |---|---|---|
 | `REACT_SYSTEM` | `edge_agent/react_loop.py` | The ReAct rules + examples shown to **every** agent run |
 | Per-backend tweaks | `agent_sidecar.py` `event_stream()` | Append extras *only* for a specific backend |
-| User task | Agent Lab UI input | What this run is asked to do |
+| User task | Agent Lab UI input | What *this* run is asked to do |
 
-Three popular `REACT_SYSTEM` tweaks:
+Three popular `REACT_SYSTEM` tweaks you can ship in five minutes:
 
-- 🛡️ **Read-only auditor** — drop `write_file`/`edit_file` from `TOOL_NAMES` *and* add
+- 🛡️ **Read-only auditor** — drop `write_file` / `edit_file` from `TOOL_NAMES` *and* add
   *"You must NOT modify files."* to `REACT_SYSTEM`.
 - 🗺️ **Plan-first** — *"Output a numbered plan in your first Thought; emit Actions only after."*
 - 📋 **Tone control** — *"Final Answer must be a markdown bullet list, ≤ 5 bullets."*
