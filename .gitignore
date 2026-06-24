@@ -16,6 +16,10 @@ eggs/
 .eggs/
 lib/
 lib64/
+# The Python-template `lib/` rule above eats the Next.js app's source `lib/`
+# (providers.js, etc.). Re-include it explicitly:
+!edgeLLM/nextjs-nemotron-app/lib/
+!edgeLLM/nextjs-nemotron-app/lib/**
 parts/
 sdist/
 var/
