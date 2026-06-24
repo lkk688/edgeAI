@@ -833,6 +833,28 @@ check_service() {
   fi
 }
 
+# OWASP Juice Shop runs as a SEPARATE container ('juice-shop' image
+# bkimminich/juice-shop) on host port 3000 via --network host. That collides
+# with 'sjsujetsontool node' (Next.js, also :3000). Both status and the node
+# pre-flight check need a cheap, reliable yes/no answer.
+juice_shop_running() {
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "juice-shop"
+}
+
+# True if a TCP port is bound on the HOST. Falls back to netstat if ss is
+# missing; returns 1 if neither is available (we'd rather skip the check
+# than block a student on a missing tool).
+host_port_in_use() {
+  local port="$1"
+  if command -v ss >/dev/null 2>&1; then
+    ss -tlnH 2>/dev/null | awk '{print $4}' | grep -Eq ":${port}\$"
+  elif command -v netstat >/dev/null 2>&1; then
+    netstat -tln 2>/dev/null | awk '/LISTEN/{print $4}' | grep -Eq ":${port}\$"
+  else
+    return 1
+  fi
+}
+
 # Map a friendly model keyword -> Hugging Face GGUF spec for `llama`/`llama-cli`.
 # Sets LLM_HF and LLM_NAME. Default selector is qwen2b. Returns 1 on unknown.
 llama_model() {
@@ -1260,20 +1282,100 @@ case "$1" in
         NODE_CHOICE=""
       fi
     fi
+
+    # ---- step 4b: port-3000 conflict resolution --------------------------
+    # Three collision sources on this Jetson:
+    #   (i)   the 'juice-shop' container (security-lab Juice Shop, --network host :3000)
+    #   (ii)  a previous 'sjsujetsontool node bg' inside jetson-dev (our own)
+    #   (iii) something else bound on the host (rare — Grafana, a stray dev server, …)
+    # (i) and (iii) need user input. (ii) is silently handled by the existing
+    # pkill in the bg branch, but for fg we also pkill so npm doesn't EADDRINUSE.
+    NODE_PORT="${SJSUJETSONTOOL_NODE_PORT:-3000}"
+    # Only check when we're about to actually start (fg/bg). Skip if user said no.
+    case "${NODE_CHOICE,,}" in
+      f|fg|foreground|b|bg|background)
+        if host_port_in_use "$NODE_PORT"; then
+          if juice_shop_running; then
+            echo
+            echo "🚨 Port $NODE_PORT is occupied by OWASP Juice Shop (docker container 'juice-shop')."
+            echo "   Options:"
+            echo "     [s] Stop Juice Shop and start Next.js on :$NODE_PORT (recommended)"
+            echo "     [p] Pick a different port for Next.js (e.g. 3001)"
+            echo "     [c] Cancel"
+            if [ -t 0 ]; then
+              read -r -p "   Choose [s/p/c] (Enter = c): " PORT_CHOICE
+            else
+              PORT_CHOICE="c"
+            fi
+            case "${PORT_CHOICE,,}" in
+              s)
+                echo "🛑 Stopping Juice Shop container..."
+                docker stop juice-shop >/dev/null 2>&1 || true
+                # Brief pause so the port is fully released before npm tries to bind.
+                sleep 2
+                ;;
+              p)
+                read -r -p "   New port for Next.js (Enter = 3001): " NEW_PORT
+                NODE_PORT="${NEW_PORT:-3001}"
+                if host_port_in_use "$NODE_PORT"; then
+                  echo "❌ Port $NODE_PORT is ALSO in use. Re-run and try another."
+                  exit 1
+                fi
+                ;;
+              *)
+                echo "ℹ️  Cancelled. To stop Juice Shop manually:  docker stop juice-shop"
+                exit 0
+                ;;
+            esac
+          # Our own previous next-server inside jetson-dev → just kill it (existing UX).
+          elif docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME" \
+               && $EXEC_CMD pgrep -f 'next-server|next dev|npm run dev|vite' >/dev/null 2>&1; then
+            echo "ℹ️  Killing a previous Next.js / Vite process on :$NODE_PORT inside $CONTAINER_NAME ..."
+            $EXEC_CMD pkill -f "next-server"  >/dev/null 2>&1 || true
+            $EXEC_CMD pkill -f "next dev"     >/dev/null 2>&1 || true
+            $EXEC_CMD pkill -f "npm run dev"  >/dev/null 2>&1 || true
+            $EXEC_CMD pkill -f "vite"         >/dev/null 2>&1 || true
+            sleep 1
+          else
+            # Some other process on the host — let the user choose.
+            echo
+            echo "🚨 Port $NODE_PORT is already bound on the host (not Juice Shop, not jetson-dev's Next.js)."
+            echo "   Run 'sjsujetsontool status' to see which process. Options now:"
+            echo "     [p] Pick a different port for Next.js (e.g. 3001)"
+            echo "     [c] Cancel"
+            if [ -t 0 ]; then
+              read -r -p "   Choose [p/c] (Enter = c): " PORT_CHOICE
+            else
+              PORT_CHOICE="c"
+            fi
+            case "${PORT_CHOICE,,}" in
+              p)
+                read -r -p "   New port for Next.js (Enter = 3001): " NEW_PORT
+                NODE_PORT="${NEW_PORT:-3001}"
+                if host_port_in_use "$NODE_PORT"; then
+                  echo "❌ Port $NODE_PORT is ALSO in use. Re-run and try another."
+                  exit 1
+                fi
+                ;;
+              *)
+                exit 0
+                ;;
+            esac
+          fi
+        fi
+        ;;
+    esac
+
     case "${NODE_CHOICE,,}" in
       f|fg|foreground)
-        echo "🚀 Starting in FOREGROUND on port 3000 (Ctrl+C to stop)."
-        $EXEC_CMD bash -lc "cd '$IN_PATH' && npm run dev"
+        echo "🚀 Starting in FOREGROUND on port $NODE_PORT (Ctrl+C to stop)."
+        $EXEC_CMD bash -lc "cd '$IN_PATH' && PORT=$NODE_PORT npm run dev"
         ;;
       b|bg|background)
-        # First, make sure nothing else is bound to 3000 inside the container.
-        $EXEC_CMD pkill -f "next-server" >/dev/null 2>&1 || true
-        $EXEC_CMD pkill -f "npm run dev" >/dev/null 2>&1 || true
-        sleep 1
-        echo "🚀 Starting in BACKGROUND on port 3000."
+        echo "🚀 Starting in BACKGROUND on port $NODE_PORT."
         docker exec -d "$CONTAINER_NAME" bash -lc \
-          "cd '$IN_PATH' && npm run dev > $NODE_LOGFILE 2>&1"
-        echo "   • URL    : http://$(hostname -I | awk '{print $1}'):3000"
+          "cd '$IN_PATH' && PORT=$NODE_PORT npm run dev > $NODE_LOGFILE 2>&1"
+        echo "   • URL    : http://$(hostname -I | awk '{print $1}'):$NODE_PORT"
         echo "   • Log    : sjsujetsontool shell   then   tail -f $NODE_LOGFILE"
         echo "   • Stop   : sjsujetsontool node stop"
         ;;
@@ -1510,17 +1612,114 @@ case "$1" in
     docker build -t $IMAGE_NAME .
     ;;
   status)
-    echo "📦 Docker Containers:"
-    docker ps | grep "$CONTAINER_NAME" || echo "❌ Container '$CONTAINER_NAME' is not running"
+    # ---- 1. Container ---------------------------------------------------
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+      STATUS_LINE=$(docker ps --filter "name=$CONTAINER_NAME" --format '{{.Status}}')
+      echo "📦 Container '$CONTAINER_NAME': 🟢 $STATUS_LINE"
+      CONTAINER_UP=1
+    else
+      echo "📦 Container '$CONTAINER_NAME': ⚪ NOT running   (start with: sjsujetsontool shell)"
+      CONTAINER_UP=0
+    fi
     echo
-    echo "📊 GPU Usage (tegrastats):"
-    timeout 2s tegrastats || echo "⚠️ tegrastats not found"
+
+    # ---- 2. Background services with PIDs ------------------------------
+    # Five things students actually start/stop with this CLI. Each line:
+    #   <label>  🟢/⚪  PID <pid>  <host|container>  :<port>  [log hint]
+    echo "🔧 Background services:"
+
+    # llama-server (container :8080) — `sjsujetsontool llama bg`
+    if [ "$CONTAINER_UP" = "1" ] \
+       && PIDS=$(docker exec "$CONTAINER_NAME" pgrep -f 'llama-server' 2>/dev/null | xargs) \
+       && [ -n "$PIDS" ]; then
+      printf "  %-26s 🟢 PID %-10s container :8080   log: docker exec %s tail -f /tmp/llama-server.log\n" \
+             "llama.cpp server" "$PIDS" "$CONTAINER_NAME"
+    else
+      printf "  %-26s ⚪ not running\n" "llama.cpp server"
+    fi
+
+    # Next.js / Vite dev server (container :3000) — `sjsujetsontool node bg`
+    if [ "$CONTAINER_UP" = "1" ] \
+       && PIDS=$(docker exec "$CONTAINER_NAME" pgrep -f 'next-server|next dev|next start|npm run dev|vite' 2>/dev/null | xargs) \
+       && [ -n "$PIDS" ]; then
+      printf "  %-26s 🟢 PID %-10s container :3000   log: tail -f /tmp/sjsujetsontool-node.log\n" \
+             "Next.js / Vite dev" "$PIDS"
+    else
+      printf "  %-26s ⚪ not running\n" "Next.js / Vite dev"
+    fi
+
+    # Agent FastAPI sidecar (HOST :8002) — `sjsujetsontool agent bg`
+    AGENT_PORT="${AGENT_SIDECAR_PORT:-8002}"
+    AGENT_PIDFILE="/tmp/sjsujetsontool-agent.pid"
+    APID=""
+    if [ -f "$AGENT_PIDFILE" ]; then
+      CAND=$(cat "$AGENT_PIDFILE" 2>/dev/null || true)
+      if [ -n "$CAND" ] && kill -0 "$CAND" 2>/dev/null; then APID="$CAND"; fi
+    fi
+    if [ -z "$APID" ]; then
+      APID=$(pgrep -f 'agent_sidecar.py' 2>/dev/null | xargs)
+    fi
+    if [ -n "$APID" ]; then
+      printf "  %-26s 🟢 PID %-10s HOST      :%s   log: tail -f /tmp/sjsujetsontool-agent.log\n" \
+             "Agent FastAPI sidecar" "$APID" "$AGENT_PORT"
+    else
+      printf "  %-26s ⚪ not running\n" "Agent FastAPI sidecar"
+    fi
+
+    # Jupyter Lab (container :8888) — `sjsujetsontool jupyter`
+    if [ "$CONTAINER_UP" = "1" ] \
+       && PIDS=$(docker exec "$CONTAINER_NAME" pgrep -f 'jupyter-lab|jupyter lab' 2>/dev/null | xargs) \
+       && [ -n "$PIDS" ]; then
+      printf "  %-26s 🟢 PID %-10s container :8888\n" "Jupyter Lab" "$PIDS"
+    else
+      printf "  %-26s ⚪ not running\n" "Jupyter Lab"
+    fi
+
+    # Ollama (container :11434) — `sjsujetsontool ollama-serve`
+    if [ "$CONTAINER_UP" = "1" ] \
+       && PIDS=$(docker exec "$CONTAINER_NAME" pgrep -f 'ollama' 2>/dev/null | xargs) \
+       && [ -n "$PIDS" ]; then
+      printf "  %-26s 🟢 PID %-10s container :11434\n" "Ollama" "$PIDS"
+    else
+      printf "  %-26s ⚪ not running\n" "Ollama"
+    fi
+
+    # OWASP Juice Shop (separate 'juice-shop' container :3000) —
+    # `sjsujetsontool juiceshop`. Lives outside jetson-dev; clashes with `node`.
+    if juice_shop_running; then
+      JS_STATUS=$(docker ps --filter "name=juice-shop" --format '{{.Status}}')
+      printf "  %-26s 🟢 container 'juice-shop'  :3000   (%s)\n" "OWASP Juice Shop" "$JS_STATUS"
+    else
+      printf "  %-26s ⚪ not running\n" "OWASP Juice Shop"
+    fi
     echo
-    echo "🔍 Port Status:"
-    check_service 8888 "JupyterLab"
-    check_service 11434 "Ollama"
-    check_service 8000 "llama.cpp"
-    check_service 8001 "FastAPI"
+
+    # ---- 3. Listening ports ---------------------------------------------
+    echo "🌐 Listening ports (host):"
+    HOST_PORTS=""
+    if command -v ss >/dev/null 2>&1; then
+      HOST_PORTS=$(ss -tlnH 2>/dev/null | awk '{n=split($4,a,":"); print a[n]}' | grep -v '^$' | sort -un | xargs)
+    elif command -v netstat >/dev/null 2>&1; then
+      HOST_PORTS=$(netstat -tln 2>/dev/null | awk '/LISTEN/{n=split($4,a,":"); print a[n]}' | sort -un | xargs)
+    fi
+    echo "  ${HOST_PORTS:-(none — neither ss nor netstat available)}"
+    echo
+
+    if [ "$CONTAINER_UP" = "1" ]; then
+      echo "🌐 Listening ports (inside container $CONTAINER_NAME):"
+      C_PORTS=$(docker exec "$CONTAINER_NAME" sh -c \
+                '(ss -tlnH 2>/dev/null || netstat -tln 2>/dev/null) | awk "{n=split(\$4,a,\":\"); print a[n]}" | grep -v "^$" | sort -un | xargs' \
+                2>/dev/null)
+      echo "  ${C_PORTS:-(container ss/netstat unavailable)}"
+      echo
+    fi
+
+    # ---- 4. GPU snapshot ------------------------------------------------
+    if command -v tegrastats >/dev/null 2>&1; then
+      echo "📊 GPU snapshot (tegrastats, 1s sample):"
+      timeout 2 tegrastats --interval 1000 2>/dev/null | head -1 \
+        || echo "  (no sample — run 'tegrastats' directly to inspect)"
+    fi
     ;;
   list)
     show_list
@@ -2461,8 +2660,79 @@ EOF
     fi
     ;;
   stop)
-    echo "🛑 Stopping container..."
-    docker stop $CONTAINER_NAME
+    # Stops EVERYTHING this CLI starts: the host-side agent sidecar (which
+    # docker stop won't reach), every in-container service (graceful pkill
+    # before docker stop's SIGKILL-after-grace), and finally the container.
+    echo "🛑 Stopping all sjsujetsontool services + container"
+    echo
+
+    # 1) Host-side agent FastAPI sidecar (NOT in the container).
+    AGENT_PIDFILE="/tmp/sjsujetsontool-agent.pid"
+    AGENT_STOPPED=0
+    if [ -f "$AGENT_PIDFILE" ]; then
+      PID=$(cat "$AGENT_PIDFILE" 2>/dev/null || true)
+      if [ -n "$PID" ] && kill "$PID" 2>/dev/null; then AGENT_STOPPED=1; fi
+      rm -f "$AGENT_PIDFILE"
+    fi
+    if pkill -f "agent_sidecar.py" >/dev/null 2>&1; then AGENT_STOPPED=1; fi
+    if [ "$AGENT_STOPPED" = "1" ]; then
+      echo "  ✅ Agent FastAPI sidecar  (host :8002)"
+    else
+      echo "  ⚪ Agent FastAPI sidecar  (not running)"
+    fi
+
+    # 1b) OWASP Juice Shop — separate container, holds :3000 on the host.
+    # Stopped BEFORE jetson-dev so a follow-up 'sjsujetsontool node bg' on the
+    # default port doesn't trip the conflict prompt.
+    if juice_shop_running; then
+      if docker stop juice-shop >/dev/null 2>&1; then
+        echo "  ✅ OWASP Juice Shop       (container 'juice-shop' on :3000)"
+      else
+        echo "  ⚠️  OWASP Juice Shop       (failed to stop — try: docker stop juice-shop)"
+      fi
+    else
+      echo "  ⚪ OWASP Juice Shop       (not running)"
+    fi
+
+    # 2) In-container services — graceful pkill before docker stop so logs
+    # show a clean shutdown rather than SIGKILL after the docker stop grace.
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+      if docker exec "$CONTAINER_NAME" bash -c \
+           "pkill -f 'next-server|next dev|next start|npm run dev|npm run start|vite|node .*server'" \
+           >/dev/null 2>&1; then
+        echo "  ✅ Next.js / Vite dev      (container :3000)"
+      else
+        echo "  ⚪ Next.js / Vite dev      (not running)"
+      fi
+      if docker exec "$CONTAINER_NAME" pkill -f "llama-server" >/dev/null 2>&1; then
+        echo "  ✅ llama.cpp server        (container :8080)"
+      else
+        echo "  ⚪ llama.cpp server        (not running)"
+      fi
+      if docker exec "$CONTAINER_NAME" pkill -f "jupyter" >/dev/null 2>&1; then
+        echo "  ✅ Jupyter Lab             (container :8888)"
+      else
+        echo "  ⚪ Jupyter Lab             (not running)"
+      fi
+      if docker exec "$CONTAINER_NAME" pkill -f "ollama" >/dev/null 2>&1; then
+        echo "  ✅ Ollama                  (container :11434)"
+      else
+        echo "  ⚪ Ollama                  (not running)"
+      fi
+      if docker exec "$CONTAINER_NAME" pkill -f "uvicorn|gunicorn" >/dev/null 2>&1; then
+        echo "  ✅ Generic FastAPI/uvicorn (container :8001)"
+      fi
+
+      # 3) Now stop the container itself.
+      echo
+      echo "🛑 Stopping container '$CONTAINER_NAME'..."
+      docker stop "$CONTAINER_NAME"
+    else
+      echo "  ⚪ Container '$CONTAINER_NAME' already not running"
+    fi
+
+    echo
+    echo "✅ Done. Re-launch any service with its sub-command (e.g. 'sjsujetsontool node bg')."
     ;;
   delete)
     echo "🗑️ Deleting container without saving..."
