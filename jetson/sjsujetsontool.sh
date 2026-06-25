@@ -155,6 +155,8 @@ relax_developer_perms() {
   echo "🔓 Relaxing permissions on $target (so any student can read & write)..."
 
   # Path 1 — via the running container (root inside can chmod anything).
+  # This is the preferred path: no sudo on the host, and root-in-container
+  # can fix any file mode regardless of who owns it on the host.
   if command -v docker >/dev/null 2>&1 \
      && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
     if docker exec "$CONTAINER_NAME" chmod -R a+rwX "$target" 2>/dev/null; then
@@ -163,23 +165,15 @@ relax_developer_perms() {
     fi
   fi
 
-  # Path 2 — as the host user. Errors on files we don't own are silenced.
-  if chmod -R a+rwX "$target" 2>/dev/null; then
-    echo "   ✅ done (as $(whoami))"
-    return 0
-  fi
-
-  # Path 3 — last resort: sudo.
-  if command -v sudo >/dev/null 2>&1; then
-    if sudo chmod -R a+rwX "$target" 2>/dev/null; then
-      echo "   ✅ done (via sudo)"
-      return 0
-    fi
-  fi
-
-  echo "   ⚠️  could not relax all permissions — some files may still be unwritable."
-  echo "      Tip: start the container with 'sjsujetsontool shell' first, then re-run."
-  return 1
+  # Path 2 — as the host user. Files we don't own simply stay as they are.
+  # We DON'T fall through to sudo: in the student account, requiring a
+  # password prompt during 'sjsujetsontool update' is worse than leaving a
+  # few root-owned files alone (the next 'shell' run will reach them via
+  # Path 1 when the container is back up).
+  chmod -R a+rwX "$target" 2>/dev/null
+  echo "   ✅ done as $(whoami) — files owned by other users skipped (no sudo prompt)."
+  echo "      If anything stays unwritable, run: sjsujetsontool shell  then re-run update."
+  return 0
 }
 
 setup_check_internal() {
@@ -322,7 +316,13 @@ VOLUME_FLAGS="-v $WORKSPACE_DIR:/workspace -v $MODELS_DIR:/models -v $DEV_DIR:/D
 # visible but Docker's cgroup device controller still returns EPERM on open.
 # Whitelisting all minors covers hot-plugged USB webcams enumerated after
 # container start. Add audio (14) for mics on the same call.
-DEVICE_FLAGS="--device-cgroup-rule=c 81:* rmw --device-cgroup-rule=c 14:* rmw"
+#
+# NOTE: each rule value contains spaces ("c 81:* rmw") — the single-quotes
+# survive the first round of variable expansion and are then honored by the
+# shell when CREATE_CMD/CONTAINER_CMD are run through `eval`. Without them,
+# docker sees "--device-cgroup-rule=c" and chokes on "invalid device cgroup
+# format 'c'".
+DEVICE_FLAGS="--device-cgroup-rule='c 81:* rmw' --device-cgroup-rule='c 14:* rmw'"
 
 # Detect TTY for non-interactive execution support
 if [ -t 0 ]; then
@@ -1744,9 +1744,26 @@ case "$1" in
     $0 update-script
     echo
 
-    # 2) force-update the edgeAI sample code in /Developer/edgeAI
-    echo "📥 Step 2/5: Updating edgeAI sample code (git pull --force)..."
-    $0 force_git_pull || echo "⚠️  Skipped sample-code update (is /Developer/edgeAI a git repo?)."
+    # 2) gentle pull of the edgeAI sample code in /Developer/edgeAI.
+    # Skips (with a warning) if the repo has local changes / divergence,
+    # so a student's in-progress work is never silently wiped. They can
+    # still wipe explicitly with `sjsujetsontool force_git_pull`.
+    echo "📥 Step 2/5: Updating edgeAI sample code (gentle git pull --ff-only)..."
+    if [ -d "/Developer/edgeAI/.git" ]; then
+      # safe.directory exception in case the repo is owned by another user.
+      git config --global --get-all safe.directory 2>/dev/null \
+        | grep -qxF "/Developer/edgeAI" \
+        || git config --global --add safe.directory "/Developer/edgeAI"
+      if ( cd /Developer/edgeAI && git pull --ff-only origin main 2>&1 ); then
+        :
+      else
+        echo "⚠️  Skipped — fast-forward failed (local changes, untracked files, or divergence)."
+        echo "    To preserve work and continue: nothing more to do."
+        echo "    To DISCARD local changes and force-sync: sjsujetsontool force_git_pull"
+      fi
+    else
+      echo "⚠️  Skipped — /Developer/edgeAI is not a git repo."
+    fi
     echo
 
     # 3) update the container image
@@ -1757,8 +1774,18 @@ case "$1" in
     # 4) heal /Developer/edgeAI permissions — covers files that landed there
     # under a different owner (rsync, npm install in the container, an IDE
     # on a teacher's account, etc.) and would block the next student.
+    # We only heal if the container is up (Path 1 in relax_developer_perms),
+    # because that's the only path that can chmod root-owned files without
+    # prompting for sudo on the host. If the container isn't running, we
+    # skip with a hint rather than block on a sudo password.
     echo "🔓 Step 4/5: Healing /Developer/edgeAI permissions for shared use..."
-    relax_developer_perms /Developer/edgeAI
+    if command -v docker >/dev/null 2>&1 \
+       && docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER_NAME"; then
+      relax_developer_perms /Developer/edgeAI
+    else
+      echo "ℹ️  Skipped — '$CONTAINER_NAME' is not running."
+      echo "    Run 'sjsujetsontool shell' to start it, then 'sjsujetsontool update' again."
+    fi
     echo
 
     # 5) wipe any stale Next.js / Vite build caches under /Developer/edgeAI.
