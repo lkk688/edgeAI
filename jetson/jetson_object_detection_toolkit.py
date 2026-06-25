@@ -787,9 +787,28 @@ class ObjectDetectionToolkit:
     
     def run_camera(self, camera_id: int = 0, **detect_kwargs):
         """Run real-time detection on camera feed"""
-        cap = cv2.VideoCapture(camera_id)
-        
-        # Set camera properties for better performance
+        # Force V4L2 backend. On the jetson-dev container, OpenCV is built
+        # WITHOUT FFmpeg/GStreamer, so cv2.VideoCapture(0) (CAP_ANY) tries the
+        # broken obsensor backend first and reports "can't open camera by
+        # index" even when /dev/video0 is fully reachable. Asking for
+        # CAP_V4L2 explicitly fixes it on UVC webcams (e.g. Razer Kiyo Pro).
+        cap = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)
+        if not cap.isOpened():
+            # Fallback to CAP_ANY in case we're on a host build that has FFmpeg.
+            cap.release()
+            cap = cv2.VideoCapture(camera_id)
+        if not cap.isOpened():
+            raise RuntimeError(
+                f"Could not open camera index {camera_id}. "
+                "Check /dev/video* exists, the container was started with "
+                "'--device-cgroup-rule=c 81:* rmw' (sjsujetsontool shell does this), "
+                "and 'docker exec jetson-dev ls /dev/video*' shows the device."
+            )
+
+        # MJPG is the native format for most USB UVC webcams (e.g. Razer
+        # Kiyo Pro 1080p) — picking it avoids a slow YUYV→BGR conversion
+        # and unlocks higher resolutions/framerates on the same USB cable.
+        cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
         cap.set(cv2.CAP_PROP_FPS, 30)
