@@ -316,6 +316,14 @@ xhost +local:docker >/dev/null 2>&1 || echo "Warning: xhost command failed. X11 
 EXTRA_BINDS="-v /usr/bin/tegrastats:/usr/bin/tegrastats:ro -v /tmp/.X11-unix:/tmp/.X11-unix -v /dev:/dev"
 VOLUME_FLAGS="-v $WORKSPACE_DIR:/workspace -v $MODELS_DIR:/models -v $DEV_DIR:/Developer"
 
+# Allow ALL Video4Linux character devices (major=81) into the container's
+# cgroup ACL — this is what lets cv2.VideoCapture()/v4l2 actually OPEN
+# /dev/video* nodes. A `-v /dev:/dev` bind-mount alone makes the device PATH
+# visible but Docker's cgroup device controller still returns EPERM on open.
+# Whitelisting all minors covers hot-plugged USB webcams enumerated after
+# container start. Add audio (14) for mics on the same call.
+DEVICE_FLAGS="--device-cgroup-rule=c 81:* rmw --device-cgroup-rule=c 14:* rmw"
+
 # Detect TTY for non-interactive execution support
 if [ -t 0 ]; then
   TTY_FLAGS="-it"
@@ -326,6 +334,7 @@ fi
 CREATE_CMD="docker create $TTY_FLAGS --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
   --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
+  $DEVICE_FLAGS \
   -e DISPLAY=$DISPLAY \
   --name $CONTAINER_NAME $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 #EXEC_CMD is used after ensure_container_started() function
@@ -340,6 +349,7 @@ EXEC_CMD="docker exec $TTY_FLAGS $ENVFILE_ARG $CONTAINER_NAME"
 CONTAINER_CMD="docker run --rm $TTY_FLAGS --runtime=nvidia --network host \
   --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --shm-size=1g \
   --cap-add=NET_ADMIN --cap-add=NET_RAW --security-opt seccomp=unconfined \
+  $DEVICE_FLAGS \
   -e DISPLAY=$DISPLAY \
   $VOLUME_FLAGS $EXTRA_BINDS $LOCAL_IMAGE"
 
