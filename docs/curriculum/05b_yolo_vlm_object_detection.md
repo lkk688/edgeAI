@@ -53,6 +53,164 @@ The Jetson Orin Nano has 8GB of shared memory (VRAM and RAM are shared). Large V
   ```
 * **Headless and Image-based Detections:** Since nodes are accessed via SSH (headless), the toolkit examples are configured to load files from `/Developer/models/` and write output results to `/Developer/models/` (which is shared between the host and container). Do not use the `--source camera` option unless you have a physical camera attached and X11 forwarding configured.
 
+### 4. USB Camera Setup & OpenCV Backends
+
+**TL;DR** — if you've recreated the `jetson-dev` container after May 2026, plugging in a USB webcam (Logitech, Razer Kiyo Pro, etc.) and running `--source camera` Just Works. The toolkit forces the V4L2 backend internally so you don't have to think about it. The rest of this section explains *why* and what to do if you need more (video files, RTSP, CSI cameras, hardware H.264/H.265 decode).
+
+#### What `sjsujetsontool shell` already wires up
+
+The container is created with three pieces of camera plumbing in place:
+
+| Flag in `sjsujetsontool` | Effect |
+|---|---|
+| `-v /dev:/dev` | makes `/dev/video*` device nodes visible inside the container |
+| `--device-cgroup-rule='c 81:* rmw'` | unblocks the cgroup ACL so root-in-container can actually `open()` V4L2 devices (major 81 = all video devices, any minor — covers hot-plugged USB cams) |
+| `--device-cgroup-rule='c 14:* rmw'` | same, for audio devices (the mic on most USB webcams) |
+
+Without the cgroup rules, `/dev:/dev` makes the device *path* visible but Docker's cgroup device controller still returns `Operation not permitted` on `open()`. Verify on your node:
+
+```bash
+sjsujetsontool shell                                # creates container if missing
+docker exec jetson-dev ls /dev/video*               # expect /dev/video0 (and /dev/video1 for UVC cams with metadata stream)
+docker exec jetson-dev sh -c 'head -c 1 /dev/video0 >/dev/null 2>&1 && echo OK || echo BLOCKED'
+# OK     = cgroup rule is in place; you're good
+# BLOCKED = recreate container: sjsujetsontool stop && sjsujetsontool delete && sjsujetsontool shell
+```
+
+#### Why the toolkit passes `cv2.CAP_V4L2` explicitly
+
+Inspect the container's OpenCV build:
+
+```bash
+docker exec jetson-dev python3 -c "import cv2; print(cv2.getBuildInformation())" | grep -E "V4L|GStreamer|FFMPEG"
+# →     V4L/V4L2:       YES (default)
+# →     GStreamer:      NO
+# →     FFMPEG:         NO
+```
+
+The container ships `opencv-python 4.10.0` built **with only V4L2 + Orbbec (obsensor) backends** — NO FFmpeg, NO GStreamer. This is intentional: a minimal build saves ~200 MB and avoids version conflicts.
+
+The gotcha: `cv2.VideoCapture(0)` defaults to `CAP_ANY`, which probes the **Orbbec backend first**. Orbbec doesn't understand UVC webcams and returns `"can't open camera by index"` even when V4L2 would work perfectly. That's why our toolkit's `run_camera()` does:
+
+```python
+cap = cv2.VideoCapture(camera_id, cv2.CAP_V4L2)                    # skip the broken probe
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))      # native UVC format
+```
+
+Selecting MJPG fourcc unlocks higher resolutions/framerates on the same USB cable and avoids a slow YUYV→BGR software conversion.
+
+#### What the container CAN and CANNOT do with this OpenCV
+
+| Workload | Container OpenCV | Why |
+|---|---|---|
+| USB UVC webcam → `cv2.VideoCapture` | ✅ via V4L2 backend | What this lesson uses |
+| Read JPEG/PNG, save JPEG/PNG | ✅ | built-in |
+| Read a `.mp4` / `.mov` video file | ❌ | needs FFmpeg backend |
+| RTSP / RTMP / IP camera stream | ❌ | needs FFmpeg or GStreamer |
+| Jetson CSI camera (IMX219 / IMX477) | ❌ | needs GStreamer + `nvarguscamerasrc` |
+| Hardware H.264/H.265 decode | ❌ | needs GStreamer + `nvv4l2decoder` |
+
+For everything in the ❌ column, see the next subsection.
+
+#### Does the Jetson HOST have a "good" OpenCV?
+
+**Yes** — JetPack ships an NVIDIA-tuned `libopencv 4.8.0` AND the hardware-accelerated GStreamer plugins (`nvarguscamerasrc`, `nvv4l2camerasrc`, `nvv4l2decoder`, `nvvidconv`, `nvjpegenc`, …). Verify on your node (run on the host, **outside** the container):
+
+```bash
+dpkg -l | grep -E 'libopencv\s' | head -2
+# → ii  libopencv  4.8.0-1-g6371ee1   ← NVIDIA L4T custom build
+gst-inspect-1.0 nvv4l2camerasrc | grep Long-name
+# → Long-name   NvV4l2CameraSrc        ← hardware-path UVC capture
+```
+
+But these are *system libraries* — `python3 -c "import cv2"` on the host usually fails (`ModuleNotFoundError`) because JetPack doesn't install OpenCV's Python bindings by default. Doing `pip install opencv-python` on the host gives you the **same minimal build** as the container, because the PyPI wheel is built generically.
+
+#### When to add FFmpeg / GStreamer support (and how)
+
+**Option A — Quickest: add FFmpeg to the container** *(software video decode, ~5 min, no rebuild)*
+
+For `.mp4` / `.mov` reading without changing OpenCV:
+
+```bash
+docker exec -it jetson-dev bash
+apt-get update && apt-get install -y ffmpeg
+pip install av                  # PyAV: Python bindings for FFmpeg's libav
+# Now in Python: import av; container = av.open('video.mp4'); ...
+```
+
+Or convert to JPEGs once and feed those to the toolkit:
+
+```bash
+ffmpeg -i video.mp4 -q:v 2 frames/%04d.jpg
+python3 jetson_object_detection_toolkit.py --model yolo --source frames/0001.jpg
+```
+
+**Option B — Best for video pipelines: switch to NVIDIA's DeepStream container**
+
+NVIDIA's [`nvcr.io/nvidia/deepstream-l4t`](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/deepstream-l4t) ships OpenCV pre-built with **GStreamer + CUDA + NVMM** enabled, plus the DeepStream SDK and the full `nv*` plugin set. For multi-stream RTSP, CSI cameras, or hardware H.264/H.265 decode, this is the canonical container. Use it as a second container alongside `jetson-dev` when you need it:
+
+```bash
+docker pull nvcr.io/nvidia/deepstream-l4t:6.4-samples
+docker run --rm -it --runtime=nvidia --network host \
+  --device-cgroup-rule='c 81:* rmw' -v /dev:/dev -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e DISPLAY=$DISPLAY nvcr.io/nvidia/deepstream-l4t:6.4-samples
+```
+
+**Option C — Rebuild OpenCV with GStreamer/FFmpeg inside `jetson-dev`** *(~45 min on Orin)*
+
+Only worth it if you specifically need OpenCV's `VideoCapture('rtsp://…')` and `VideoCapture('file.mp4')` APIs inside this container. The build flags you want:
+
+```bash
+# Inside jetson-dev:
+apt-get update && apt-get install -y \
+  build-essential cmake ninja-build pkg-config \
+  ffmpeg libavcodec-dev libavformat-dev libswscale-dev \
+  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+  gstreamer1.0-plugins-ugly gstreamer1.0-libav
+
+pip uninstall -y opencv-python opencv-python-headless
+git clone --branch 4.10.0 https://github.com/opencv/opencv.git /tmp/opencv
+cd /tmp/opencv && mkdir build && cd build
+cmake -GNinja \
+  -DWITH_FFMPEG=ON -DWITH_GSTREAMER=ON -DWITH_V4L=ON \
+  -DWITH_CUDA=ON -DCUDA_ARCH_BIN=8.7 \
+  -DBUILD_opencv_python3=ON ..
+ninja -j$(nproc) && ninja install
+```
+
+You'll get a `cv2` that can directly read RTSP, MP4, and CSI-camera GStreamer pipelines like:
+
+```python
+pipeline = ('nvarguscamerasrc ! video/x-raw(memory:NVMM),width=1920,height=1080 '
+            '! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! appsink')
+cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+```
+
+#### Hardware-accelerated GStreamer cheat-sheet (host-side, no OpenCV needed)
+
+You can drive cameras and video files via `gst-launch-1.0` on the **host** without touching the container at all, then hand the frames off (file, fifo, shared memory, or RTSP back to the container). The NV plugins use the dedicated NVENC/NVDEC hardware blocks — H.264 1080p30 decode costs ~0% CPU.
+
+```bash
+# USB cam → hardware MJPEG → 1920x1080 → JPEG file (run on host)
+gst-launch-1.0 -e nvv4l2camerasrc device=/dev/video0 num-buffers=1 \
+  ! 'video/x-raw(memory:NVMM),width=1920,height=1080' \
+  ! nvvidconv ! jpegenc ! filesink location=/tmp/frame.jpg
+
+# Hardware H.264 decode of an MP4 file → on-screen
+gst-launch-1.0 filesrc location=video.mp4 ! qtdemux ! h264parse \
+  ! nvv4l2decoder ! nvvidconv ! nveglglessink
+```
+
+#### Pragmatic recommendation for this lesson
+
+| You're doing… | Use |
+|---|---|
+| **USB webcam → YOLO / VLM** (most of this lesson) | The container's V4L2 backend (already wired by `run_camera()`). **No setup needed.** |
+| **Reading a saved `.mp4`** | `ffmpeg -i in.mp4 frames/%04d.jpg` once, then point `--source` at the frames. |
+| **RTSP / IP camera / multi-stream / CSI** | Switch to a DeepStream-based container (Option B). |
+| **Rebuild OpenCV** | Almost never worth it for class work — pick A or B first. |
+
 ---
 
 ## 🧠 Object Detection Fundamentals
