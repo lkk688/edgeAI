@@ -1,0 +1,1965 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../04_deeplearning_cnn/">
+      
+      
+        <link rel="next" href="../05_transformers_nlp_applications/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🖼️ CNN Image Processing - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#advanced-cnns-optimization-image-processing-on-jetson" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🖼️ CNN Image Processing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-the-jetson-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Environment: the Jetson container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-cnn-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Advanced CNN Architectures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Advanced CNN Architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resnet-residual-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResNet — Residual Networks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mobilenet-efficient-by-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MobileNet — efficient by design
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficientnet-compound-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EfficientNet — compound scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-the-trade-offs-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See the trade-offs yourself
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-specific-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Jetson-Specific Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Jetson-Specific Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-precision-fp16-and-int8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Precision: FP16 and INT8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-benchmark-a-models-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Benchmark a model's inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tensorrt-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. TensorRT optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensorrt-pytorch-onnx-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ TensorRT: PyTorch → ONNX → TensorRT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-processing-tools-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Image Processing Tools on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🖼️ Image Processing Tools on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classify-an-image-with-a-pretrained-cnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classify an image with a pretrained CNN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capture-from-a-camera-with-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture from a camera with OpenCV
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-architecture-comparison-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Lab: Architecture comparison &amp; optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab: Architecture comparison &amp; optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deliverables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#learning-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Learning Objectives
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-the-jetson-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Environment: the Jetson container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-cnn-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Advanced CNN Architectures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Advanced CNN Architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resnet-residual-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ResNet — Residual Networks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mobilenet-efficient-by-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MobileNet — efficient by design
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#efficientnet-compound-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EfficientNet — compound scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#see-the-trade-offs-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See the trade-offs yourself
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jetson-specific-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Jetson-Specific Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Jetson-Specific Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-precision-fp16-and-int8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Precision: FP16 and INT8
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-benchmark-a-models-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Benchmark a model's inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-tensorrt-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. TensorRT optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensorrt-pytorch-onnx-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ TensorRT: PyTorch → ONNX → TensorRT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-processing-tools-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Image Processing Tools on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🖼️ Image Processing Tools on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classify-an-image-with-a-pretrained-cnn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classify an image with a pretrained CNN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capture-from-a-camera-with-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capture from a camera with OpenCV
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lab-architecture-comparison-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Lab: Architecture comparison &amp; optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Lab: Architecture comparison &amp; optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deliverables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deliverables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="advanced-cnns-optimization-image-processing-on-jetson">🏛️ Advanced CNNs, Optimization &amp; Image Processing on Jetson<a class="headerlink" href="#advanced-cnns-optimization-image-processing-on-jetson" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Prerequisite:</strong> <a href="../04_deeplearning_cnn/">04 — Deep Learning &amp; CNNs</a> covers the fundamentals (what a CNN is, layer types, the <code>jetson_cnn_toolkit.py</code> quick-start). This chapter goes deeper: advanced architectures, Jetson-specific optimization (quantization, TensorRT), and real-time image-processing pipelines.</p>
+</blockquote>
+<h2 id="learning-objectives">🎯 Learning Objectives<a class="headerlink" href="#learning-objectives" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Compare advanced CNN architectures (ResNet, MobileNet, EfficientNet) on Jetson</li>
+<li>Apply Jetson optimizations: FP16/INT8 and the PyTorch → ONNX → TensorRT pipeline</li>
+<li>Build an image-classification + camera pipeline with OpenCV</li>
+</ul>
+<hr />
+<h2 id="environment-the-jetson-container">🚀 Environment: the Jetson container<a class="headerlink" href="#environment-the-jetson-container" title="Permanent link">&para;</a></h2>
+<p>Everything here runs inside the <code>jetson-dev</code> container (PyTorch CUDA, torchvision, OpenCV, TensorRT all preinstalled). Start it and move to the toolkit:</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell<span class="w">                       </span><span class="c1"># host folder /Developer is mounted into the container</span>
+<span class="nb">cd</span><span class="w"> </span>/Developer/edgeAI/edgeLLM<span class="w">               </span><span class="c1"># this repo lives at /Developer/edgeAI</span>
+python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--help
+</code></pre></div>
+<p>The toolkit exposes four models — <code>basiccnn</code>, <code>resnet</code>, <code>mobilenet</code>, <code>efficientnet</code> — and the modes <code>demo | benchmark | train | inference | optimize</code>. We avoid <code>train</code> in labs (it downloads CIFAR-10 and runs for a long time); <code>demo</code>/<code>benchmark</code> need neither training nor data.</p>
+<hr />
+<h2 id="advanced-cnn-architectures">🏗️ Advanced CNN Architectures<a class="headerlink" href="#advanced-cnn-architectures" title="Permanent link">&para;</a></h2>
+<h3 id="resnet-residual-networks">ResNet — Residual Networks<a class="headerlink" href="#resnet-residual-networks" title="Permanent link">&para;</a></h3>
+<p>ResNet introduced <strong>skip connections</strong> so gradients flow directly through deep networks, solving the vanishing-gradient/degradation problem.
+- <strong>Residual block:</strong> <code>output = F(x) + x</code> (identity shortcut)
+- <strong>Bottleneck design:</strong> 1×1 convs cut compute while preserving capacity
+- In the toolkit: <code>CustomResNet</code> (built from <code>ResidualBlock</code>), ~11M params.</p>
+<h3 id="mobilenet-efficient-by-design">MobileNet — efficient by design<a class="headerlink" href="#mobilenet-efficient-by-design" title="Permanent link">&para;</a></h3>
+<p>MobileNet replaces standard convolutions with <strong>depthwise-separable convolutions</strong> (a depthwise conv + a 1×1 pointwise conv), cutting compute ~8–9×.
+- <strong>Width multiplier</strong> scales channels (0.25–1.0) to trade accuracy for speed
+- Best speed-to-size ratio on the Orin Nano → the go-to edge architecture
+- In the toolkit: <code>MobileNet</code>, ~2.2M params.</p>
+<h3 id="efficientnet-compound-scaling">EfficientNet — compound scaling<a class="headerlink" href="#efficientnet-compound-scaling" title="Permanent link">&para;</a></h3>
+<p>EfficientNet <strong>compound-scales</strong> depth, width, and resolution together, using MBConv blocks with squeeze-and-excitation attention.
+- Strong accuracy per FLOP; the base B0 is edge-friendly
+- In the toolkit: <code>EfficientNet</code> (B0-style), ~3.5M params.</p>
+<h3 id="see-the-trade-offs-yourself">See the trade-offs yourself<a class="headerlink" href="#see-the-trade-offs-yourself" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>demo<span class="w"> </span>--model<span class="w"> </span>all<span class="w"> </span>--device<span class="w"> </span>cuda
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>  basiccnn     | params=  1,147,914 | out=(32, 10) |   2.9 ms/batch | 10965 img/s
+  resnet       | params= 11,181,642 | out=(32, 10) |   8.6 ms/batch |  3707 img/s
+  mobilenet    | params=  2,155,338 | out=(32, 10) |   6.0 ms/batch |  5333 img/s
+  efficientnet | params=  3,472,714 | out=(32, 10) |   9.6 ms/batch |  3330 img/s
+</code></pre></div>
+Note how <code>mobilenet</code> delivers far more img/s per parameter than <code>resnet</code> — the essence of edge-efficient design.</p>
+<hr />
+<h2 id="jetson-specific-optimization">⚙️ Jetson-Specific Optimization<a class="headerlink" href="#jetson-specific-optimization" title="Permanent link">&para;</a></h2>
+<h3 id="1-precision-fp16-and-int8">1. Precision: FP16 and INT8<a class="headerlink" href="#1-precision-fp16-and-int8" title="Permanent link">&para;</a></h3>
+<p>Lower precision means less memory and faster math on Jetson's Tensor Cores:
+- <strong>FP16</strong> (half precision): ~2× speedup, negligible accuracy loss — the easy default.
+- <strong>INT8</strong> (quantization): ~4× smaller, fastest, needs calibration data to preserve accuracy.</p>
+<h3 id="2-benchmark-a-models-inference">2. Benchmark a model's inference<a class="headerlink" href="#2-benchmark-a-models-inference" title="Permanent link">&para;</a></h3>
+<p><code>benchmark</code> mode times inference without training (uses synthetic data unless <code>--dataset cifar10</code>):
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>benchmark<span class="w"> </span>--model<span class="w"> </span>mobilenet<span class="w"> </span>--dataset<span class="w"> </span>custom
+python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>benchmark<span class="w"> </span>--model<span class="w"> </span>all<span class="w"> </span>--dataset<span class="w"> </span>custom<span class="w">   </span><span class="c1"># compare all</span>
+</code></pre></div>
+Results (FPS, latency, memory) are written to <code>outputs/benchmark_results.json</code> with a chart in <code>outputs/benchmark_comparison.png</code>.</p>
+<h3 id="3-tensorrt-optimization">3. TensorRT optimization<a class="headerlink" href="#3-tensorrt-optimization" title="Permanent link">&para;</a></h3>
+<p><code>optimize</code> mode exports your <strong>trained</strong> model to a TensorRT engine. It needs a weights file (from <code>--mode train</code>) and a Jetson with TensorRT:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>optimize<span class="w"> </span>--model<span class="w"> </span>resnet<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--weights<span class="w"> </span>outputs/resnet_cifar10_best.pth<span class="w"> </span>--precision<span class="w"> </span>fp16
+</code></pre></div></p>
+<blockquote>
+<p>Requires a trained <code>.pth</code>. If you haven't trained, use the manual PyTorch → ONNX → TensorRT workflow below, which works with pretrained torchvision weights.</p>
+</blockquote>
+<hr />
+<h2 id="tensorrt-pytorch-onnx-tensorrt">⚡ TensorRT: PyTorch → ONNX → TensorRT<a class="headerlink" href="#tensorrt-pytorch-onnx-tensorrt" title="Permanent link">&para;</a></h2>
+<p>TensorRT is NVIDIA's inference optimizer/runtime. The standard path converts a model to ONNX, then builds a TensorRT engine.</p>
+<p><strong>1. Export a pretrained model to ONNX</strong> (run in the container):
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span><span class="o">,</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet18</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="s2">&quot;IMAGENET1K_V1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="n">dummy</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">)</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dummy</span><span class="p">,</span> <span class="s2">&quot;resnet18.onnx&quot;</span><span class="p">,</span> <span class="n">opset_version</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+                  <span class="n">input_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">],</span> <span class="n">output_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;output&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;exported resnet18.onnx&quot;</span><span class="p">)</span>
+</code></pre></div></p>
+<p><strong>2. Build a TensorRT engine with <code>trtexec</code>:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># FP16 engine</span>
+trtexec<span class="w"> </span>--onnx<span class="o">=</span>resnet18.onnx<span class="w"> </span>--saveEngine<span class="o">=</span>resnet18_fp16.trt<span class="w"> </span>--fp16
+<span class="c1"># this also prints throughput/latency for the optimized engine</span>
+</code></pre></div></p>
+<p><strong>3. Compare</strong> the PyTorch vs TensorRT latency — TensorRT typically gives 2–5× lower latency on Jetson.</p>
+<hr />
+<h2 id="image-processing-tools-on-jetson">🖼️ Image Processing Tools on Jetson<a class="headerlink" href="#image-processing-tools-on-jetson" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool / Library</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenCV (<code>cv2</code>)</strong></td>
+<td>Real-time image/video processing, camera capture</td>
+</tr>
+<tr>
+<td><strong>Pillow (<code>PIL</code>)</strong></td>
+<td>Image loading and conversion</td>
+</tr>
+<tr>
+<td><strong>PyTorch / TensorRT</strong></td>
+<td>CNN inference</td>
+</tr>
+<tr>
+<td><strong>v4l2-ctl</strong></td>
+<td>Inspect/configure cameras</td>
+</tr>
+<tr>
+<td><strong>GStreamer</strong></td>
+<td>Hardware-accelerated media/camera pipelines</td>
+</tr>
+</tbody>
+</table>
+<h3 id="classify-an-image-with-a-pretrained-cnn">Classify an image with a pretrained CNN<a class="headerlink" href="#classify-an-image-with-a-pretrained-cnn" title="Permanent link">&para;</a></h3>
+<p>A complete runnable example (uses torchvision ImageNet weights — no training):
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span><span class="o">,</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">models</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">T</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">mobilenet_v2</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="s2">&quot;IMAGENET1K_V1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+<span class="n">tf</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">Resize</span><span class="p">(</span><span class="mi">256</span><span class="p">),</span> <span class="n">T</span><span class="o">.</span><span class="n">CenterCrop</span><span class="p">(</span><span class="mi">224</span><span class="p">),</span> <span class="n">T</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">(),</span>
+                <span class="n">T</span><span class="o">.</span><span class="n">Normalize</span><span class="p">([</span><span class="mf">0.485</span><span class="p">,</span><span class="mf">0.456</span><span class="p">,</span><span class="mf">0.406</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.229</span><span class="p">,</span><span class="mf">0.224</span><span class="p">,</span><span class="mf">0.225</span><span class="p">])])</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;cat.jpg&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">top</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;top-3 class ids:&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="s2">&quot;scores:&quot;</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+</code></pre></div></p>
+<h3 id="capture-from-a-camera-with-opencv">Capture from a camera with OpenCV<a class="headerlink" href="#capture-from-a-camera-with-opencv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>              <span class="c1"># USB camera; CSI cameras use a GStreamer pipeline</span>
+<span class="n">ok</span><span class="p">,</span> <span class="n">frame</span> <span class="o">=</span> <span class="n">cap</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">ok</span><span class="p">:</span>
+    <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="s2">&quot;frame.jpg&quot;</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;captured&quot;</span><span class="p">,</span> <span class="n">frame</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">cap</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+</code></pre></div>
+<hr />
+<h2 id="lab-architecture-comparison-optimization">🧪 Lab: Architecture comparison &amp; optimization<a class="headerlink" href="#lab-architecture-comparison-optimization" title="Permanent link">&para;</a></h2>
+<p><strong>Goal:</strong> quantify the accuracy/speed/size trade-offs and accelerate a model — without long training.</p>
+<ol>
+<li>
+<p><strong>Compare architectures</strong> (no training):
+   <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>demo<span class="w"> </span>--model<span class="w"> </span>all<span class="w"> </span>--device<span class="w"> </span>cuda
+</code></pre></div>
+   Record params and img/s for each. Which gives the best img/s per million params?</p>
+</li>
+<li>
+<p><strong>Benchmark a chosen model</strong> and inspect the JSON/chart:
+   <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson_cnn_toolkit.py<span class="w"> </span>--mode<span class="w"> </span>benchmark<span class="w"> </span>--model<span class="w"> </span>mobilenet<span class="w"> </span>--dataset<span class="w"> </span>custom
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Accelerate with TensorRT</strong> using the PyTorch → ONNX → <code>trtexec --fp16</code> workflow above on <code>resnet18</code>, and compare the reported latency to plain PyTorch.</p>
+</li>
+<li>
+<p><em>(Optional, slow)</em> Train <code>basiccnn</code> on CIFAR-10 for a few epochs and run <code>--mode inference</code> on the saved weights.</p>
+</li>
+</ol>
+<h3 id="deliverables">Deliverables<a class="headerlink" href="#deliverables" title="Permanent link">&para;</a></h3>
+<ul>
+<li>A table of model · params · img/s (from step 1)</li>
+<li><code>benchmark_results.json</code> + the comparison chart (step 2)</li>
+<li>PyTorch-vs-TensorRT latency numbers (step 3)</li>
+<li>One paragraph: which model would you deploy on the Orin Nano, and why?</li>
+</ul>
+<hr />
+<h2 id="summary">📌 Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Architecture matters:</strong> depthwise-separable (MobileNet) and compound scaling (EfficientNet) buy speed/size on the edge; skip connections (ResNet) buy depth.</li>
+<li><strong>Optimize for Jetson:</strong> FP16 is the easy 2× win; INT8/TensorRT go further with calibration.</li>
+<li><strong><code>jetson_cnn_toolkit.py</code></strong> gives you <code>demo</code>/<code>benchmark</code> for instant, training-free experiments, plus <code>train</code>/<code>inference</code>/<code>optimize</code> for the full pipeline.</li>
+<li><strong>OpenCV + TensorRT</strong> turn a trained model into a real-time camera classifier.</li>
+</ul>
+<p>→ <strong>Next:</strong> <a href="../05_transformers_nlp_applications/">Transformers &amp; NLP on Jetson</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

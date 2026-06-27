@@ -1,0 +1,2085 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../05b_yolo_vlm_object_detection/">
+      
+      
+        <link rel="next" href="../07_nlp_applications_llm_optimization/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🚀 Large Language Models on Jetson - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#large-language-models-on-jetson" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🚀 Large Language Models on Jetson
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Common Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-llms-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Running LLMs on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Running LLMs on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Backend comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Theoretical foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-models-2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Recommended models (2025+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-serve-query-a-model-with-llamacpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ① Serve &amp; query a model with llama.cpp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="① Serve &amp; query a model with llama.cpp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query the server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vision-ask-about-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Vision: ask about an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-interactive-chat-one-client-three-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ② Interactive chat — one client, three backends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-nvidia-build-api-backend-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ③ NVIDIA Build API backend (cloud)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-shared-gpu-server-over-headscale-no-ips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ④ Shared GPU server over Headscale (no IPs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llama-cpp-python-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 llama-cpp-python (Python bindings)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Benchmarking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-performance-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧰 Memory &amp; performance utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gguf-model-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 GGUF model format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issues-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Common issues &amp; tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#common-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Common Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-llms-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Running LLMs on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Running LLMs on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Backend comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Theoretical foundations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-models-2025" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Recommended models (2025+)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-serve-query-a-model-with-llamacpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ① Serve &amp; query a model with llama.cpp
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="① Serve &amp; query a model with llama.cpp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#query-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query the server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vision-ask-about-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Vision: ask about an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-interactive-chat-one-client-three-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ② Interactive chat — one client, three backends
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-nvidia-build-api-backend-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ③ NVIDIA Build API backend (cloud)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-shared-gpu-server-over-headscale-no-ips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ④ Shared GPU server over Headscale (no IPs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llama-cpp-python-python-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 llama-cpp-python (Python bindings)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Benchmarking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-performance-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧰 Memory &amp; performance utilities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gguf-model-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 GGUF model format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-issues-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Common issues &amp; tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="large-language-models-on-jetson">🚀 Large Language Models on Jetson<a class="headerlink" href="#large-language-models-on-jetson" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.
+<strong>Position:</strong> Associate Professor, Computer Engineering
+<strong>Institution:</strong> San Jose State University
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<p>LLMs (Large Language Models) are transformer-based models trained on vast datasets to understand and generate human-like text. This chapter shows how to <strong>run, serve, and chat with modern LLMs on the Jetson Orin Nano</strong> using our <code>sjsujetsontool</code> utility, how to call <strong>NVIDIA's cloud API</strong>, and how to reach a <strong>shared GPU server</strong> over our Headscale network.</p>
+<blockquote>
+<p>🧩 <strong>Hands-on code lives in <a href="../../jetson/jetson-llm/"><code>jetson/jetson-llm/</code></a></strong> — the tutorial keeps commands short and asks you to <em>run</em> those scripts rather than paste long code.</p>
+</blockquote>
+<h2 id="common-use-cases">💬 Common Use Cases<a class="headerlink" href="#common-use-cases" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Chatbots and virtual assistants · Code generation · Summarization · Translation · On-device RAG and agents</li>
+</ul>
+<hr />
+<h2 id="running-llms-on-jetson">🛠️ Running LLMs on Jetson<a class="headerlink" href="#running-llms-on-jetson" title="Permanent link">&para;</a></h2>
+<p>Running LLMs on the Orin Nano (8 GB shared CPU/GPU memory) means caring about <strong>memory, quantization, and inference speed</strong>. We use three complementary options:</p>
+<table>
+<thead>
+<tr>
+<th>Where the model runs</th>
+<th>Command</th>
+<th>Good for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>On this Jetson</strong> (llama.cpp, GPU)</td>
+<td><code>sjsujetsontool llama</code> / <code>chat --local</code></td>
+<td>private, offline, small–mid models</td>
+</tr>
+<tr>
+<td><strong>NVIDIA Build API</strong> (cloud)</td>
+<td><code>sjsujetsontool setup-nvapi</code> → <code>chat --nvidia</code></td>
+<td>large models, no local VRAM cost</td>
+</tr>
+<tr>
+<td><strong>Shared GPU server</strong> (RTX board over Headscale)</td>
+<td><code>chat --server</code></td>
+<td>a big model shared by the whole class</td>
+</tr>
+</tbody>
+</table>
+<h3 id="backend-comparison">🎯 Backend comparison<a class="headerlink" href="#backend-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Memory Efficiency</th>
+<th>Speed</th>
+<th>Ease of Use</th>
+<th>CUDA</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>llama.cpp</strong></td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+<td>Production inference (what we use)</td>
+</tr>
+<tr>
+<td><strong>Ollama</strong></td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>✅</td>
+<td>Quick deployment</td>
+</tr>
+<tr>
+<td><strong>llama-cpp-python</strong></td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>✅</td>
+<td>Python integration</td>
+</tr>
+<tr>
+<td><strong>TensorRT-LLM</strong></td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐</td>
+<td>✅</td>
+<td>Maximum performance</td>
+</tr>
+<tr>
+<td><strong>vLLM</strong></td>
+<td>⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+<td>Batch inference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="theoretical-foundations">🧠 Theoretical foundations<a class="headerlink" href="#theoretical-foundations" title="Permanent link">&para;</a></h3>
+<p><strong>Quantization</strong> reduces weight precision to fit larger models in less memory:
+- <strong>INT8</strong> ≈ 4× smaller · <strong>INT4</strong> ≈ 8× smaller · <strong>GPTQ/AWQ</strong> preserve quality post-training.</p>
+<p><strong>Memory strategies:</strong> KV-cache management, paged attention, model sharding.
+<strong>Inference tricks:</strong> speculative decoding, continuous batching, flash attention, kernel fusion.</p>
+<blockquote>
+<p>The <code>Q4_K_M</code> / <code>Q4_K_S</code> GGUF quantization is the sweet spot on Orin Nano — near-FP16 quality at ~4× smaller size.</p>
+</blockquote>
+<h3 id="recommended-models-2025">📦 Recommended models (2025+)<a class="headerlink" href="#recommended-models-2025" title="Permanent link">&para;</a></h3>
+<p>We switched away from older 7B models (Mistral, LLaMA-2) to newer, smaller, stronger models — see the catalog at <a href="https://www.jetson-ai-lab.com/models/">jetson-ai-lab.com/models</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>HF GGUF repo (<code>-hf</code> ref)</th>
+<th>Size (Q4)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gemma 4 E2B</strong> (default)</td>
+<td><code>unsloth/gemma-4-E2B-it-GGUF:Q4_K_S</code></td>
+<td>~2 GB</td>
+<td>Fast, strong instruction-following</td>
+</tr>
+<tr>
+<td><strong>Nemotron-3 Nano 4B</strong></td>
+<td><code>nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF:Q4_K_M</code></td>
+<td>~2.5 GB</td>
+<td>NVIDIA reasoning/chat</td>
+</tr>
+<tr>
+<td><strong>Qwen3 8B</strong></td>
+<td><code>unsloth/Qwen3-8B-GGUF:Q4_K_M</code></td>
+<td>~5 GB</td>
+<td>Multilingual, larger</td>
+</tr>
+</tbody>
+</table>
+<p><code>llama.cpp</code> can stream these straight from Hugging Face with <code>-hf</code> — <strong>no manual download needed</strong>. For offline use, <a href="../../jetson/jetson-llm/modeldownload.sh"><code>jetson/jetson-llm/modeldownload.sh</code></a> fetches them to local disk.</p>
+<hr />
+<h2 id="1-serve-query-a-model-with-llamacpp">① Serve &amp; query a model with llama.cpp<a class="headerlink" href="#1-serve-query-a-model-with-llamacpp" title="Permanent link">&para;</a></h2>
+<p><code>sjsujetsontool</code> builds CUDA-accelerated <code>llama-server</code>/<code>llama-cli</code> inside the container and serves <strong>Gemma 4 E2B</strong> on port <strong>8080</strong>:</p>
+<p><div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>llama<span class="w">          </span><span class="c1"># serves unsloth/gemma-4-E2B-it-GGUF on 0.0.0.0:8080 (-ngl 99, all layers on GPU)</span>
+</code></pre></div>
+<code>llama-server</code> is an <strong>OpenAI-compatible</strong> HTTP server. A basic web UI is at <code>http://localhost:8080</code>; the chat endpoint is <code>http://localhost:8080/v1/chat/completions</code>.</p>
+<p><strong>Quick one-shot CLI (no server):</strong>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>llama-cli<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain what an NVIDIA Jetson Orin Nano is.&quot;</span>
+</code></pre></div></p>
+<p><strong>Serve a different model</strong> (e.g. NVIDIA Nemotron-3 Nano 4B) — drop into the container shell and point <code>llama-server</code> at any <code>-hf</code> ref:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell
+<span class="c1"># inside the container:</span>
+llama-server<span class="w"> </span>-hf<span class="w"> </span>nvidia/NVIDIA-Nemotron-3-Nano-4B-GGUF:Q4_K_M<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span><span class="w"> </span>-ngl<span class="w"> </span><span class="m">99</span>
+</code></pre></div></p>
+<h3 id="query-the-server">Query the server<a class="headerlink" href="#query-the-server" title="Permanent link">&para;</a></h3>
+<p>With <code>curl</code>:
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;messages&quot;:[{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;Explain what is NVIDIA Jetson?&quot;}]}&#39;</span>
+</code></pre></div>
+Or run the client script (prints the reply + tokens/sec; pure stdlib, works anywhere):
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson/jetson-llm/llama_client.py<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain what is NVIDIA Jetson?&quot;</span>
+<span class="c1"># reasoning models (Qwen3, Nemotron): add --no-think for a direct answer</span>
+</code></pre></div>
+See <a href="../../jetson/jetson-llm/llama_client.py"><code>llama_client.py</code></a> — it targets any OpenAI-compatible URL (<code>--url</code>, <code>--api-key</code>, <code>--model</code>).</p>
+<blockquote>
+<p><strong>External access:</strong> <code>sjsujetsontool llama</code> already binds <code>0.0.0.0</code>, so other machines can reach <code>http://&lt;jetson-ip&gt;:8080</code>. If a firewall is on: <code>sudo ufw allow 8080/tcp</code>.</p>
+</blockquote>
+<h3 id="vision-ask-about-an-image">🖼️ Vision: ask about an image<a class="headerlink" href="#vision-ask-about-an-image" title="Permanent link">&para;</a></h3>
+<p>Both <strong>Gemma 4 E2B</strong> and <strong>Qwen3.5</strong> are <em>multimodal</em> — they accept images. <code>llama-server</code> does this when it also loads the model's <strong>mmproj</strong> (multimodal projector):</p>
+<ul>
+<li><strong>On the Jetson:</strong> <code>sjsujetsontool llama</code> serves Gemma 4 E2B via <code>-hf</code>, which <strong>auto-downloads and loads the mmproj</strong> — vision is on by default, no extra step.</li>
+<li><strong>On a <code>gputool</code> server (Qwen3.5):</strong> download the projector once and it's auto-detected — see <a href="../00c_gputool_guide/">gputool guide → vision</a>.</li>
+</ul>
+<p>Send an image with the OpenAI vision format (a base64 <code>image_url</code>). Use the helper script:
+<div class="highlight"><pre><span></span><code><span class="c1"># uses a generated test image if you omit --image</span>
+python3<span class="w"> </span>jetson/jetson-llm/vision_test.py<span class="w"> </span>--image<span class="w"> </span>my_photo.jpg<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;What is in this image?&quot;</span>
+<span class="c1"># → &quot;A yellow circle on a blue square background.&quot;   (built-in test image)</span>
+</code></pre></div>
+<a href="../../jetson/jetson-llm/vision_test.py"><code>vision_test.py</code></a> targets any vision endpoint (<code>--url</code>, <code>--api-key</code>). The same works against the shared server: <code>--url https://llm.forgengi.org/node05/v1 --api-key &lt;token&gt;</code>.</p>
+<blockquote>
+<p>The CUDA build uses <code>LLAMA_CURL=OFF</code>, so pass images as <strong>base64 data URIs</strong> (the script does this) rather than remote URLs.</p>
+</blockquote>
+<hr />
+<h2 id="2-interactive-chat-one-client-three-backends">② Interactive chat — one client, three backends<a class="headerlink" href="#2-interactive-chat-one-client-three-backends" title="Permanent link">&para;</a></h2>
+<p><code>sjsujetsontool chat</code> is a streaming terminal client (Rich UI) that lets you pick <strong>where the model runs</strong>:</p>
+<p><div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>chat<span class="w">            </span><span class="c1"># menu: 1) local llama.cpp  2) NVIDIA API  3) our LLM server</span>
+sjsujetsontool<span class="w"> </span>chat<span class="w"> </span>--local<span class="w">    </span><span class="c1"># this Jetson (:8080)</span>
+</code></pre></div>
+In-chat commands: <code>/help /exit /server /save /reset /system /think /temp /set /preset /config</code>. Full reference: <strong><a href="../00_sjsujetsontool_guide/#-sjsujetsontool-chat--one-chat-client-three-backends">sjsujetsontool guide → <code>chat</code></a></strong>.</p>
+<p><strong>Experiment with generation settings.</strong> Temperature and "thinking" dramatically change a reasoning model's output. Try the <a href="https://unsloth.ai/docs/models/qwen3.5">Unsloth-recommended Qwen3.5 presets</a> without leaving the chat:
+<div class="highlight"><pre><span></span><code>/preset thinking     # creative/general: temp 1.0, top_p 0.95, top_k 20, thinking on
+/preset coding       # precise code:     temp 0.6, top_p 0.95, top_k 20, thinking on
+/preset instruct     # fast answers:     temp 0.7, top_p 0.8,  top_k 20, thinking off
+/temp 0.3            # or tune one knob; /set top_p 0.9 ; /config to view
+</code></pre></div>
+Lower temperature → more deterministic/precise; higher → more diverse/creative. Turn <code>/think on</code> for step-by-step reasoning, <code>/think off</code> for direct answers.</p>
+<hr />
+<h2 id="3-nvidia-build-api-backend-cloud">③ NVIDIA Build API backend (cloud)<a class="headerlink" href="#3-nvidia-build-api-backend-cloud" title="Permanent link">&para;</a></h2>
+<p>For models too large for the Jetson, use NVIDIA's free, OpenAI-compatible <a href="https://build.nvidia.com">Build API</a>.</p>
+<p><strong>1. Get &amp; store an API key</strong> (one time):
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>setup-nvapi<span class="w">     </span><span class="c1"># paste your key from build.nvidia.com; saved to .env.local + tested</span>
+</code></pre></div></p>
+<p><strong>2. Chat with a cloud model:</strong>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>chat<span class="w"> </span>--nvidia<span class="w">   </span><span class="c1"># then choose a Nemotron model (Nano 8B … Ultra 253B)</span>
+</code></pre></div></p>
+<p><strong>3. Or call it from a script:</strong>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson/jetson-llm/nvidia_api_client.py<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain speculative decoding.&quot;</span>
+python3<span class="w"> </span>jetson/jetson-llm/nvidia_api_client.py<span class="w"> </span>-m<span class="w"> </span>nvidia/llama-3.3-nemotron-super-49b-v1<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Hi&quot;</span>
+</code></pre></div>
+<a href="../../jetson/jetson-llm/nvidia_api_client.py"><code>nvidia_api_client.py</code></a> reads the key from <code>$NVIDIA_API_KEY</code> or <code>.env.local</code>. See also the legacy <strong><a href="../00_sjsujetsontool_guide/#-sjsujetsontool-nv-chat"><code>nv-chat</code> tutorial</a></strong>.</p>
+<hr />
+<h2 id="4-shared-gpu-server-over-headscale-no-ips">④ Shared GPU server over Headscale (no IPs)<a class="headerlink" href="#4-shared-gpu-server-over-headscale-no-ips" title="Permanent link">&para;</a></h2>
+<p>A powerful node (e.g. an RTX 5080 board) can serve a big model that <strong>every Jetson shares by name over HTTPS</strong>:</p>
+<p><div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>chat<span class="w"> </span>--server<span class="w">   </span><span class="c1"># base URL e.g. https://llm.forgengi.org/node05/v1</span>
+<span class="c1"># or directly:</span>
+python3<span class="w"> </span>jetson/jetson-llm/llama_client.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>https://llm.forgengi.org/node05/v1<span class="w"> </span>--api-key<span class="w"> </span>&lt;token&gt;<span class="w"> </span>--no-think<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Hello!&quot;</span>
+</code></pre></div>
+How the gateway works (Headscale + nginx + a friendly <code>llm.forgengi.org/&lt;node&gt;</code> name): <strong><a href="../00c_gputool_guide/">gputool guide → Share the server by name</a></strong>.</p>
+<hr />
+<h2 id="llama-cpp-python-python-bindings">🐍 llama-cpp-python (Python bindings)<a class="headerlink" href="#llama-cpp-python-python-bindings" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/abetlen/llama-cpp-python"><code>llama-cpp-python</code></a> gives a Python/OpenAI-style API and is prebuilt with CUDA inside our container. Minimal example:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">llama_cpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">Llama</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">Llama</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;/models/gemma-4-E2B-it-Q4_K_S.gguf&quot;</span><span class="p">,</span> <span class="n">n_ctx</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">n_gpu_layers</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">llm</span><span class="p">(</span><span class="s2">&quot;Explain what is NVIDIA Jetson?&quot;</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">128</span><span class="p">)[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">])</span>
+</code></pre></div>
+A complete, timed example is in <a href="../../jetson/jetson-llm/llama_cpp_pythontest.py"><code>llama_cpp_pythontest.py</code></a>:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson/jetson-llm/llama_cpp_pythontest.py
+</code></pre></div></p>
+<hr />
+<h2 id="benchmarking">📊 Benchmarking<a class="headerlink" href="#benchmarking" title="Permanent link">&para;</a></h2>
+<p>Measure tokens/sec and time-to-first-token against any served endpoint:
+<div class="highlight"><pre><span></span><code><span class="c1"># local Gemma 4 E2B</span>
+python3<span class="w"> </span>jetson/jetson-llm/benchmark_llm.py
+<span class="c1"># the shared server</span>
+python3<span class="w"> </span>jetson/jetson-llm/benchmark_llm.py<span class="w"> </span>--url<span class="w"> </span>https://llm.forgengi.org/node05/v1<span class="w"> </span>--api-key<span class="w"> </span>&lt;token&gt;
+</code></pre></div>
+<a href="../../jetson/jetson-llm/benchmark_llm.py"><code>benchmark_llm.py</code></a> reports <strong>prefill vs generation</strong> rates (from llama.cpp <code>timings</code>) averaged over several prompts and runs.</p>
+<hr />
+<h2 id="memory-performance-utilities">🧰 Memory &amp; performance utilities<a class="headerlink" href="#memory-performance-utilities" title="Permanent link">&para;</a></h2>
+<p>The board-specific tuning, memory cleanup, and a resource-monitoring context manager are collected in <a href="../../jetson/jetson-llm/jetson_llm_utils.py"><code>jetson_llm_utils.py</code></a>:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson/jetson-llm/jetson_llm_utils.py<span class="w">     </span><span class="c1"># prints env + recommended config for this board</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">jetson_llm_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">optimize_memory</span><span class="p">,</span> <span class="n">system_monitor</span><span class="p">,</span> <span class="n">get_jetson_config</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">get_jetson_config</span><span class="p">()</span>                 <span class="c1"># {&#39;n_gpu_layers&#39;: 99, &#39;n_ctx&#39;: 4096, ...}</span>
+<span class="k">with</span> <span class="n">system_monitor</span><span class="p">(</span><span class="s2">&quot;generate&quot;</span><span class="p">):</span>          <span class="c1"># times the block, reports CPU/RAM/GPU</span>
+    <span class="o">...</span>                                    <span class="c1"># your inference call</span>
+<span class="n">optimize_memory</span><span class="p">()</span>                          <span class="c1"># free GC + CUDA cache between runs</span>
+</code></pre></div></p>
+<hr />
+<h2 id="gguf-model-format">🔄 GGUF model format<a class="headerlink" href="#gguf-model-format" title="Permanent link">&para;</a></h2>
+<p><strong>GGUF</strong> is llama.cpp's single-file format: memory-mapped (no full load into RAM), embedded metadata, and multiple quantization levels.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>~Size (8B)</th>
+<th>Quality</th>
+<th>Speed</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FP16</td>
+<td>16 GB</td>
+<td>100%</td>
+<td>1×</td>
+<td>Maximum quality (too big for Orin Nano)</td>
+</tr>
+<tr>
+<td>Q6_K</td>
+<td>6.6 GB</td>
+<td>99%</td>
+<td>1.5×</td>
+<td>Best quality that fits</td>
+</tr>
+<tr>
+<td>Q4_K_M</td>
+<td>4.9 GB</td>
+<td>96%</td>
+<td>2×</td>
+<td><strong>Recommended balance</strong></td>
+</tr>
+<tr>
+<td>Q4_K_S</td>
+<td>4.5 GB</td>
+<td>95%</td>
+<td>2.1×</td>
+<td>Default for Gemma 4 E2B</td>
+</tr>
+<tr>
+<td>Q3_K_M</td>
+<td>4.0 GB</td>
+<td>90%</td>
+<td>2.5×</td>
+<td>Memory constrained</td>
+</tr>
+</tbody>
+</table>
+<p>On Orin Nano, prefer <strong>Q4_K_M / Q4_K_S</strong>; for sub-4B models you can afford Q6_K.</p>
+<hr />
+<h2 id="common-issues-tips">⚠️ Common issues &amp; tips<a class="headerlink" href="#common-issues-tips" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CUDA out of memory</strong></td>
+<td>use a smaller/quantized model, lower <code>n_ctx</code>, ensure <code>-ngl 99</code> fits; call <code>optimize_memory()</code> between runs</td>
+</tr>
+<tr>
+<td><strong>Empty reply from a reasoning model</strong></td>
+<td>Qwen3/Nemotron "think" first — raise <code>--max-tokens</code> or pass <code>--no-think</code> (sends <code>enable_thinking:false</code>)</td>
+</tr>
+<tr>
+<td><strong><code>llama-server</code> not reachable from another host</strong></td>
+<td>it binds <code>0.0.0.0</code> already; open the port: <code>sudo ufw allow 8080/tcp</code></td>
+</tr>
+<tr>
+<td><strong>NVIDIA <code>403 Forbidden</code></strong></td>
+<td>model unavailable on the free plan or quota exhausted — pick another model or re-run <code>sjsujetsontool setup-nvapi</code></td>
+</tr>
+<tr>
+<td><strong>Slow first token</strong></td>
+<td>first call loads the model + warms the KV cache; subsequent calls are faster</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary">🧭 Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Local</strong>: <code>sjsujetsontool llama</code> (Gemma 4 E2B) → query with <code>llama_client.py</code> or <code>chat --local</code>.</li>
+<li><strong>Cloud</strong>: <code>sjsujetsontool setup-nvapi</code> → <code>chat --nvidia</code> / <code>nvidia_api_client.py</code>.</li>
+<li><strong>Shared</strong>: <code>chat --server</code> → <code>https://llm.forgengi.org/&lt;node&gt;</code> over Headscale.</li>
+<li><strong>Measure &amp; tune</strong>: <code>benchmark_llm.py</code>, <code>jetson_llm_utils.py</code>.</li>
+</ul>
+<p>All hands-on code is in <a href="../../jetson/jetson-llm/"><code>jetson/jetson-llm/</code></a>; the tooling is documented in <a href="../00_sjsujetsontool_guide/"><code>00_sjsujetsontool_guide.md</code></a> and <a href="../00c_gputool_guide/"><code>00c_gputool_guide.md</code></a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

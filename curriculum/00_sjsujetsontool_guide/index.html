@@ -1,0 +1,4190 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../00b_sjsujetsontool_cheatsheet/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>✅ sjsujetsontool Guide - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#nvidia-jetson-orin-nano-student-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ✅ sjsujetsontool Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#new-here-start-with-the-lab-slides-get-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ▶ New here? Start with the Lab Slides — Get Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What Is NVIDIA Jetson Orin Nano?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-to-jetson-via-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Connecting to Jetson via ssh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mesh-vpn-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Mesh VPN Connection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-sjsujetsontool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Installing sjsujetsontool
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Installing sjsujetsontool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#one-line-install-no-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ One-line install (no sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hostname-changes-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Hostname changes (sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssd-changes-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ SSD changes (sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exter-the-container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Exter the Container Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Common Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Common Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧾 sjsujetsontool update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-healthcheck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 sjsujetsontool healthcheck
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-sysupgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 sjsujetsontool sysupgrade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-dockerfix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 sjsujetsontool dockerfix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 sjsujetsontool list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 sjsujetsontool tailscale
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 sjsujetsontool tailscale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-tailscale-if-not-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Tailscale (if not present)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#join-the-headscale-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Join the Headscale Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-re-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force Re-registration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disconnect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-jupyter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🟢 sjsujetsontool jupyter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-run-scriptpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 sjsujetsontool run &lt;script.py&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 sjsujetsontool ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-llama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 sjsujetsontool llama
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔬 sjsujetsontool llama">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling-updating-llamacpp-inside-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Compiling &amp; Updating llama.cpp inside Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving-llm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Serving LLM via Llama Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying-the-model-via-http-api-openai-compatible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Querying the Model via HTTP API (OpenAI Compatible)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vision-ask-about-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Vision: ask about an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-cli-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Running CLI Inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multimodal-vision-inference-with-gemma-4-e2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👁️ Multimodal (Vision) Inference with Gemma 4 E2B
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="👁️ Multimodal (Vision) Inference with Gemma 4 E2B">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-cli-inference-with-image-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. CLI Inference with Image Input
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-serving-vlm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Serving VLM via Llama Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-querying-the-vlm-server-via-http-api-openai-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Querying the VLM Server via HTTP API (OpenAI Format)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-comparison-default-gemma-4-e2b-vs-qwen35-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vlm-vision-verified-on-qwen35-2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👁️ VLM (vision) — verified on Qwen3.5-2B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-vllm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 sjsujetsontool vllm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 sjsujetsontool vllm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-speculative-decoding-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ How Speculative Decoding Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving-with-vllm-host-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Serving with vLLM Host Shortcut
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying-the-vllm-server-via-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Querying the vLLM Server via API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 sjsujetsontool status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-set-hostname-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 sjsujetsontool set-hostname &lt;name&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛑 sjsujetsontool stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-setup-nvapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 sjsujetsontool setup-nvapi
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 sjsujetsontool setup-nvapi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ How to Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connection-test-example-output-on-success" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Connection Test Example output on success:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-nv-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 sjsujetsontool nv-chat
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💬 sjsujetsontool nv-chat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Usage Modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Usage Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-interactive-chat-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Interactive Chat Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-single-prompt-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Single-Prompt Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Performance Metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Performance Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-output-streaming-performance-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output (Streaming + Performance Logs):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-chat-one-chat-client-many-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 sjsujetsontool chat — one chat client, many backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💬 sjsujetsontool chat — one chat client, many backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-cloud-api-keys-saved-to-envlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 Getting the cloud API keys (saved to ~/.env.local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Launch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-picking-a-cloud-backend-first-run-prompts-for-the-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example — picking a cloud backend (first run prompts for the key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-chat-slash-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-chat slash commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-setup-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ sjsujetsontool setup-check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ sjsujetsontool setup-check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-it-is-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Why It Is Needed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ How to Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Safety Guidelines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ready-to-learn-and-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Ready to Learn and Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#new-here-start-with-the-lab-slides-get-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ▶ New here? Start with the Lab Slides — Get Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What Is NVIDIA Jetson Orin Nano?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-to-jetson-via-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Connecting to Jetson via ssh
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mesh-vpn-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Mesh VPN Connection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-sjsujetsontool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Installing sjsujetsontool
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Installing sjsujetsontool">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#one-line-install-no-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ One-line install (no sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hostname-changes-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Hostname changes (sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssd-changes-sudo-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ SSD changes (sudo required)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exter-the-container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Exter the Container Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-usage-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Common Usage Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Common Usage Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧾 sjsujetsontool update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-healthcheck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 sjsujetsontool healthcheck
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-sysupgrade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 sjsujetsontool sysupgrade
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-dockerfix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 sjsujetsontool dockerfix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 sjsujetsontool list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 sjsujetsontool tailscale
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 sjsujetsontool tailscale">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-tailscale-if-not-present" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Tailscale (if not present)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#join-the-headscale-network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Join the Headscale Network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-re-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force Re-registration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disconnect" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disconnect
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-jupyter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🟢 sjsujetsontool jupyter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-run-scriptpy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 sjsujetsontool run &lt;script.py&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-ollama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 sjsujetsontool ollama
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-llama" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 sjsujetsontool llama
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔬 sjsujetsontool llama">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#compiling-updating-llamacpp-inside-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Compiling &amp; Updating llama.cpp inside Container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving-llm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Serving LLM via Llama Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying-the-model-via-http-api-openai-compatible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Querying the Model via HTTP API (OpenAI Compatible)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vision-ask-about-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖼️ Vision: ask about an image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-cli-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Running CLI Inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multimodal-vision-inference-with-gemma-4-e2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👁️ Multimodal (Vision) Inference with Gemma 4 E2B
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="👁️ Multimodal (Vision) Inference with Gemma 4 E2B">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-cli-inference-with-image-input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. CLI Inference with Image Input
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-serving-vlm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Serving VLM via Llama Server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-querying-the-vlm-server-via-http-api-openai-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Querying the VLM Server via HTTP API (OpenAI Format)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-comparison-default-gemma-4-e2b-vs-qwen35-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vlm-vision-verified-on-qwen35-2b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👁️ VLM (vision) — verified on Qwen3.5-2B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-vllm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 sjsujetsontool vllm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 sjsujetsontool vllm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-speculative-decoding-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ How Speculative Decoding Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serving-with-vllm-host-shortcut" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Serving with vLLM Host Shortcut
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying-the-vllm-server-via-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Querying the vLLM Server via API
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 sjsujetsontool status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-set-hostname-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 sjsujetsontool set-hostname &lt;name&gt;
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-stop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛑 sjsujetsontool stop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-setup-nvapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 sjsujetsontool setup-nvapi
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔑 sjsujetsontool setup-nvapi">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-to-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ How to Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connection-test-example-output-on-success" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Connection Test Example output on success:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-nv-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 sjsujetsontool nv-chat
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💬 sjsujetsontool nv-chat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#usage-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Usage Modes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ Usage Modes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-interactive-chat-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Interactive Chat Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-single-prompt-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Single-Prompt Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Performance Metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Performance Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-output-streaming-performance-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output (Streaming + Performance Logs):
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-chat-one-chat-client-many-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 sjsujetsontool chat — one chat client, many backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💬 sjsujetsontool chat — one chat client, many backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-the-cloud-api-keys-saved-to-envlocal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 Getting the cloud API keys (saved to ~/.env.local)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Launch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-picking-a-cloud-backend-first-run-prompts-for-the-key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example — picking a cloud backend (first run prompts for the key)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#in-chat-slash-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        In-chat slash commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sjsujetsontool-setup-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ sjsujetsontool setup-check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚙️ sjsujetsontool setup-check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-it-is-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Why It Is Needed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ How to Run
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safety-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Safety Guidelines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ready-to-learn-and-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Ready to Learn and Build
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="nvidia-jetson-orin-nano-student-guide">🧠 NVIDIA Jetson Orin Nano Student Guide<a class="headerlink" href="#nvidia-jetson-orin-nano-student-guide" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.<br />
+<strong>Position:</strong> Associate Professor, Computer Engineering<br />
+<strong>Institution:</strong> San Jose State University<br />
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<hr />
+<blockquote>
+<h3 id="new-here-start-with-the-lab-slides-get-started">▶ New here? Start with the <a href="../../slides/get-started.html"><strong>Lab Slides — Get Started</strong></a><a class="headerlink" href="#new-here-start-with-the-lab-slides-get-started" title="Permanent link">&para;</a></h3>
+<p>A short, click-through version of this guide (set up your Jetson and run your first AI model in
+~15 minutes). This page is the <strong>full reference</strong> — the slides link back here for the details.</p>
+</blockquote>
+<hr />
+<h2 id="overview">📌 Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This guide introduces the <strong>NVIDIA Jetson Orin Nano</strong>, explains how to install and use our custom Jetson utility script <code>sjsujetsontool</code>, and provides step-by-step instructions for development tasks such as launching servers, running AI models, setting up Jupyter, and managing devices.</p>
+<hr />
+<h2 id="what-is-nvidia-jetson-orin-nano">🧠 What Is NVIDIA Jetson Orin Nano?<a class="headerlink" href="#what-is-nvidia-jetson-orin-nano" title="Permanent link">&para;</a></h2>
+<p>The <strong>Jetson Orin Nano</strong> is a powerful, energy-efficient AI edge computing board by NVIDIA. Key features:</p>
+<ul>
+<li>✅ 6-core ARM Cortex CPU</li>
+<li>✅ Ampere GPU with up to 1024 CUDA cores</li>
+<li>✅ Ideal for robotics, vision, AI model serving, and cyber experiments</li>
+<li>✅ Supports JetPack SDK with Ubuntu, CUDA, cuDNN, TensorRT</li>
+</ul>
+<hr />
+<h2 id="connecting-to-jetson-via-ssh">🌐 Connecting to Jetson via ssh<a class="headerlink" href="#connecting-to-jetson-via-ssh" title="Permanent link">&para;</a></h2>
+<p>If you have deployed Jetson devices in the same network of your client device, e.g., Macbook, Windows, Linux, you can connect to Jetson devices via its local IP address, e.g., <code>ssh username@192.168.xx.xx</code></p>
+<p>We already enabled the Jetson devices with mDNS, so you can access the device using the <code>.local</code> hostname from the client:</p>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>username@jetson-hostname.local
+</code></pre></div>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>sjsujetson@sjsujetson-01.local
+</code></pre></div>
+<blockquote>
+<p>If this doesn't work, make sure <code>avahi-daemon</code> is running on Jetson and that your network supports mDNS.</p>
+</blockquote>
+<p>If you want to enable X11-forwarding, you can use 
+<div class="highlight"><pre><span></span><code>%<span class="w"> </span>ssh<span class="w"> </span>-X<span class="w"> </span>sjsujetson@sjsujetson-01.local
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>xclock<span class="w"> </span><span class="c1">#test x11</span>
+</code></pre></div></p>
+<p>Another option is use ethernet over usb, which is already enabled in the Jetson device. You can connect your client device to the Jetson via a USB type C cable. You can use <code>ifconfig</code> to check the additional IP address, e.g., <code>192.168.55.100</code>. You can ssh into the Jetson device via:
+<div class="highlight"><pre><span></span><code>%<span class="w"> </span>ssh<span class="w"> </span>sjsujetson@192.168.55.1
+</code></pre></div></p>
+<h2 id="mesh-vpn-connection">🌐 Mesh VPN Connection<a class="headerlink" href="#mesh-vpn-connection" title="Permanent link">&para;</a></h2>
+<p>All Jetson devices are connected through an overlay Layer 3 (L3) mesh VPN network, allowing them to communicate with each other using static IP addresses. To access another Jetson device in the mesh, simply use its assigned IP address. The IP address format is: <code>192.168.100.(10 + &lt;number&gt;)</code></p>
+<p>Here, <number> corresponds to the numeric suffix xx of the device’s hostname (sjsujetson-xx). For example, to SSH into the device sjsujetson-04, use:
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span><span class="o">[</span>username<span class="o">]</span>@192.168.100.14
+</code></pre></div>
+Replace [username] with your actual username.</p>
+<hr />
+<h2 id="installing-sjsujetsontool">⚙️ Installing <code>sjsujetsontool</code><a class="headerlink" href="#installing-sjsujetsontool" title="Permanent link">&para;</a></h2>
+<p>A command-line tool for Jetson-based workflows: container management, model serving, AI apps, and more.</p>
+<h3 id="one-line-install-no-sudo-required">✅ One-line install (no sudo required)<a class="headerlink" href="#one-line-install-no-sudo-required" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</code></pre></div>
+<p>For example:
+<div class="highlight"><pre><span></span><code>student@sjsujetson-62:~$<span class="w"> </span>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+⬇️<span class="w"> </span>Downloading<span class="w"> </span>sjsujetsontool<span class="w"> </span>from<span class="w"> </span>GitHub...
+✅<span class="w"> </span>Downloaded<span class="w"> </span>script.
+📦<span class="w"> </span>Installing<span class="w"> </span>to<span class="w"> </span>/home/student/.local/bin/sjsujetsontool
+🛠️<span class="w">  </span>Adding<span class="w"> </span>~/.local/bin<span class="w"> </span>to<span class="w"> </span>your<span class="w"> </span>PATH...
+✅<span class="w"> </span>Added<span class="w"> </span>to<span class="w"> </span>/home/student/.bashrc
+👉<span class="w"> </span>Please<span class="w"> </span>run:<span class="w"> </span><span class="nb">source</span><span class="w"> </span>/home/student/.bashrc
+✅<span class="w"> </span>Installed<span class="w"> </span>successfully.<span class="w"> </span>You<span class="w"> </span>can<span class="w"> </span>now<span class="w"> </span>run:<span class="w"> </span>sjsujetsontool
+</code></pre></div></p>
+<p>After the script installation, run <code>source /home/student/.bashrc</code> before using <code>sjsujetsontool</code>. You can also run <code>sjsujetsontool update</code> to update the local script and container image. The container update takes a long time. For example,
+<div class="highlight"><pre><span></span><code>student@sjsujetson-62:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>update
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Developer<span class="w"> </span>Kit
+🏷️<span class="w">  </span>L4T<span class="w"> </span>BSP<span class="w"> </span>Revision:<span class="w"> </span>R39.2.0
+Warning:<span class="w"> </span>xhost<span class="w"> </span><span class="nb">command</span><span class="w"> </span>failed.<span class="w"> </span>X11<span class="w"> </span>forwarding<span class="w"> </span>may<span class="w"> </span>not<span class="w"> </span>work.
+🔄<span class="w"> </span>Running<span class="w"> </span>full<span class="w"> </span>update<span class="w"> </span><span class="o">(</span>script<span class="w"> </span>+<span class="w"> </span>setup-check<span class="w"> </span>+<span class="w"> </span>container<span class="o">)</span>...
+<span class="w">  </span>Use<span class="w"> </span><span class="s1">&#39;update-container&#39;</span>,<span class="w"> </span><span class="s1">&#39;update-script&#39;</span>,<span class="w"> </span>or<span class="w"> </span><span class="s1">&#39;setup-check&#39;</span><span class="w"> </span>to<span class="w"> </span>run<span class="w"> </span>individually.
+
+📜<span class="w"> </span>Step<span class="w"> </span><span class="m">1</span>/2:<span class="w"> </span>Updating<span class="w"> </span>script<span class="w"> </span>from<span class="w"> </span>GitHub...
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Developer<span class="w"> </span>Kit
+🏷️<span class="w">  </span>L4T<span class="w"> </span>BSP<span class="w"> </span>Revision:<span class="w"> </span>R39.2.0
+Warning:<span class="w"> </span>xhost<span class="w"> </span><span class="nb">command</span><span class="w"> </span>failed.<span class="w"> </span>X11<span class="w"> </span>forwarding<span class="w"> </span>may<span class="w"> </span>not<span class="w"> </span>work.
+⬇️<span class="w"> </span>Updating<span class="w"> </span>sjsujetsontool<span class="w"> </span>script<span class="w"> </span>from<span class="w"> </span>GitHub...
+📂<span class="w"> </span>Backup<span class="w"> </span>saved<span class="w"> </span>to:<span class="w"> </span>/home/student/.local/bin/sjsujetsontool.bak
+⬇️<span class="w"> </span>Downloading<span class="w"> </span>latest<span class="w"> </span>script...
+<span class="c1">################################################################################################### 100.0%</span>
+✅<span class="w"> </span>Script<span class="w"> </span>downloaded.<span class="w"> </span>Replacing<span class="w"> </span>current<span class="w"> </span>script...
+✅<span class="w"> </span>Script<span class="w"> </span>updated<span class="w"> </span>successfully.<span class="w"> </span>Re-run<span class="w"> </span>your<span class="w"> </span><span class="nb">command</span><span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span>the<span class="w"> </span>new<span class="w"> </span>version.
+✅<span class="w"> </span>Chat<span class="w"> </span>client<span class="w"> </span>updated:<span class="w"> </span>/home/student/.local/bin/sjsujetsontool-chat.py
+
+🐳<span class="w"> </span>Step<span class="w"> </span><span class="m">2</span>/2:<span class="w"> </span>Updating<span class="w"> </span>container<span class="w"> </span>image...
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Developer<span class="w"> </span>Kit
+🏷️<span class="w">  </span>L4T<span class="w"> </span>BSP<span class="w"> </span>Revision:<span class="w"> </span>R39.2.0
+Warning:<span class="w"> </span>xhost<span class="w"> </span><span class="nb">command</span><span class="w"> </span>failed.<span class="w"> </span>X11<span class="w"> </span>forwarding<span class="w"> </span>may<span class="w"> </span>not<span class="w"> </span>work.
+🔍<span class="w"> </span>Checking<span class="w"> </span>Docker<span class="w"> </span>image<span class="w"> </span>update...
+⬇️<span class="w"> </span>Pulling<span class="w"> </span>latest<span class="w"> </span>image<span class="w"> </span>from<span class="w"> </span>Docker<span class="w"> </span>Hub...
+⠸<span class="w"> </span>Downloading<span class="w"> </span>latest<span class="w"> </span>image...<span class="w"> </span>Please<span class="w"> </span>waitlatest:<span class="w"> </span>Pulling<span class="w"> </span>from<span class="w"> </span>cmpelkk/jetson-llm
+⠴<span class="w"> </span>Downloading<span class="w"> </span>latest<span class="w"> </span>image...<span class="w"> </span>Please<span class="w"> </span>waitDigest:<span class="w"> </span>sha256:739c319cb2ac5e1696a0fe4948f7a92279d0f22e01dc81ef52da46ecdd8cff24
+Status:<span class="w"> </span>Image<span class="w"> </span>is<span class="w"> </span>up<span class="w"> </span>to<span class="w"> </span>date<span class="w"> </span><span class="k">for</span><span class="w"> </span>cmpelkk/jetson-llm:latest
+docker.io/cmpelkk/jetson-llm:latest
+✅<span class="w"> </span>Image<span class="w"> </span>downloaded<span class="w"> </span>successfully.<span class="w">                 </span>
+✅<span class="w"> </span>Local<span class="w"> </span>container<span class="w"> </span>is<span class="w"> </span>already<span class="w"> </span>up-to-date.
+</code></pre></div></p>
+<blockquote>
+<p>[!TIP]
+<strong>Zero-Downtime Updates:</strong> When a new version of the container image is downloaded, <code>sjsujetsontool</code> automatically removes the existing <code>jetson-dev</code> container. The next time you run any tool subcommand (such as <code>shell</code>, <code>llama-cli</code>, etc.), a new container is automatically recreated from the updated image—making updates completely seamless.</p>
+</blockquote>
+<p>You can also update just the script or just the container independently:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>update-script<span class="w">      </span><span class="c1"># update only this CLI script from GitHub</span>
+sjsujetsontool<span class="w"> </span>update-container<span class="w">   </span><span class="c1"># update only the Docker container image</span>
+</code></pre></div></p>
+<p>Verify and check all available commands:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>list
+</code></pre></div></p>
+<p>You can check the script and system versions:
+<div class="highlight"><pre><span></span><code>student@sjsujetson-62:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>version
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Developer<span class="w"> </span>Kit
+🏷️<span class="w">  </span>L4T<span class="w"> </span>BSP<span class="w"> </span>Revision:<span class="w"> </span>R39.2.0
+Warning:<span class="w"> </span>xhost<span class="w"> </span><span class="nb">command</span><span class="w"> </span>failed.<span class="w"> </span>X11<span class="w"> </span>forwarding<span class="w"> </span>may<span class="w"> </span>not<span class="w"> </span>work.
+🧾<span class="w"> </span>sjsujetsontool<span class="w"> </span>Script<span class="w"> </span>Version:<span class="w"> </span>v1.0.0
+🧊<span class="w"> </span>Docker<span class="w"> </span>Image:<span class="w"> </span>jetson-llm:v1
+🔍<span class="w"> </span>Image<span class="w"> </span>ID:<span class="w"> </span>sha256:739c319cb2ac5e1696a0fe4948f7a92279d0f22e01dc81ef52da46ecdd8cff24
+</code></pre></div></p>
+<p>The <code>sjsujetsontool</code> wraps python apps running via container and makes running code inside the container easy to use. <code>docker</code> without sudo is already setup in the jetson device. Check existing containers available in the Jetson:
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>docker<span class="w"> </span>images
+REPOSITORY<span class="w">                </span>TAG<span class="w">              </span>IMAGE<span class="w"> </span>ID<span class="w">       </span>CREATED<span class="w">         </span>SIZE
+jetson-llm-v1<span class="w">             </span>latest<span class="w">           </span>8236678f7ef1<span class="w">   </span><span class="m">6</span><span class="w"> </span>days<span class="w"> </span>ago<span class="w">      </span><span class="m">9</span>.89GB
+jetson-pytorch-v1<span class="w">         </span>latest<span class="w">           </span>da28af1b9eed<span class="w">   </span><span class="m">9</span><span class="w"> </span>days<span class="w"> </span>ago<span class="w">      </span><span class="m">9</span>.71GB
+hello-world<span class="w">               </span>latest<span class="w">           </span>f1f77a0f96b7<span class="w">   </span><span class="m">5</span><span class="w"> </span>months<span class="w"> </span>ago<span class="w">    </span><span class="m">5</span>.2kB
+nvcr.io/nvidia/pytorch<span class="w">    </span><span class="m">24</span>.12-py3-igpu<span class="w">   </span>ee796da7f569<span class="w">   </span><span class="m">6</span><span class="w"> </span>months<span class="w"> </span>ago<span class="w">    </span><span class="m">9</span>.63GB
+nvcr.io/nvidia/l4t-base<span class="w">   </span>r36.2.0<span class="w">          </span>46b8e6a6a6a7<span class="w">   </span><span class="m">19</span><span class="w"> </span>months<span class="w"> </span>ago<span class="w">   </span>750MB
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>shell<span class="w"> </span><span class="c1">#enter into the container</span>
+root@sjsujetson-01:/workspace#
+</code></pre></div>
+if you face errors like "Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?", restart docker:
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>docker
+sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>docker
+</code></pre></div></p>
+<blockquote>
+<p>[!NOTE]
+On Jetson platforms running newer Ubuntu releases, Docker can fail to start due to an <code>iptables</code> mode mismatch (<code>nf_tables</code> instead of <code>iptables-legacy</code>). If Docker does not start, run the automatic fix tool:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>dockerfix
+</code></pre></div></p>
+</blockquote>
+<p>The <code>\Developer</code> and <code>\Developer\models</code> folders in the jetson host are mounted to the container in the path of <code>\Developer</code> and <code>\models</code></p>
+<h3 id="hostname-changes-sudo-required">✅ Hostname changes (sudo required)<a class="headerlink" href="#hostname-changes-sudo-required" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>hostname
+sjsujetson-01
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>set-hostname<span class="w"> </span>sjsujetson-02
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+⚙️<span class="w">  </span>CUDA<span class="w"> </span>Version:<span class="w"> </span><span class="m">12</span>.6
+🔧<span class="w"> </span>Setting<span class="w"> </span>hostname<span class="w"> </span>to:<span class="w"> </span>sjsujetson-02
+<span class="o">[</span>sudo<span class="o">]</span><span class="w"> </span>password<span class="w"> </span><span class="k">for</span><span class="w"> </span>sjsujetson:<span class="w"> </span>
+📝<span class="w"> </span>Updating<span class="w"> </span>/etc/hosts...
+🔄<span class="w"> </span>Resetting<span class="w"> </span>machine-id...
+🆔<span class="w"> </span>Writing<span class="w"> </span>device<span class="w"> </span>ID<span class="w"> </span>to<span class="w"> </span>/etc/device-id
+🔁<span class="w"> </span>Please<span class="w"> </span>reboot<span class="w"> </span><span class="k">for</span><span class="w"> </span>changes<span class="w"> </span>to<span class="w"> </span>fully<span class="w"> </span>apply.
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>sudo<span class="w"> </span>reboot
+</code></pre></div>
+You will need to use the new hostname to ssh into the device
+<div class="highlight"><pre><span></span><code>%<span class="w"> </span>ssh<span class="w"> </span>-X<span class="w"> </span>sjsujetson@sjsujetson-02.local
+sjsujetson@sjsujetson-02:~$<span class="w"> </span>hostname
+sjsujetson-02
+</code></pre></div></p>
+<p>For TA, run this additional steps:
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>chfn<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;Student&quot;</span><span class="w"> </span>student
+sudo<span class="w"> </span>passwd<span class="w"> </span>student
+sjsujetson@sjsujetson-02:/Developer/edgeAI$<span class="w"> </span>sjsujetsontool<span class="w"> </span>force_git_pull
+</code></pre></div>
+If you’re logged in as student and want to change your own password: <code>passwd</code>. You’ll be prompted to enter your current password, then the new password twice.</p>
+<h3 id="ssd-changes-sudo-required">✅ SSD changes (sudo required)<a class="headerlink" href="#ssd-changes-sudo-required" title="Permanent link">&para;</a></h3>
+<p>Our default SSD image is 500GB. If the physical SSD devices installed in the jetson is larger than 500GB, you may only get 500GB in the system (shows 456G in the following example, but your <code>lsblk</code> command shows 1.8T for nvme0n1):
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>df<span class="w"> </span>-h
+Filesystem<span class="w">       </span>Size<span class="w">  </span>Used<span class="w"> </span>Avail<span class="w"> </span>Use%<span class="w"> </span>Mounted<span class="w"> </span>on
+/dev/nvme0n1p1<span class="w">   </span>456G<span class="w">   </span>83G<span class="w">  </span>351G<span class="w">  </span><span class="m">20</span>%<span class="w"> </span>/
+tmpfs<span class="w">            </span><span class="m">3</span>.8G<span class="w">  </span>136K<span class="w">  </span><span class="m">3</span>.8G<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/dev/shm
+tmpfs<span class="w">            </span><span class="m">1</span>.5G<span class="w">   </span>27M<span class="w">  </span><span class="m">1</span>.5G<span class="w">   </span><span class="m">2</span>%<span class="w"> </span>/run
+tmpfs<span class="w">            </span><span class="m">5</span>.0M<span class="w">  </span><span class="m">4</span>.0K<span class="w">  </span><span class="m">5</span>.0M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/lock
+/dev/nvme0n1p10<span class="w">   </span>63M<span class="w">  </span>112K<span class="w">   </span>63M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/boot/efi
+tmpfs<span class="w">            </span>762M<span class="w">   </span>92K<span class="w">  </span>762M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/user/128
+tmpfs<span class="w">            </span>762M<span class="w">   </span>80K<span class="w">  </span>762M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/user/1000
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>lsblk
+NAME<span class="w">         </span>MAJ:MIN<span class="w"> </span>RM<span class="w">   </span>SIZE<span class="w"> </span>RO<span class="w"> </span>TYPE<span class="w"> </span>MOUNTPOINTS
+...
+nvme0n1<span class="w">      </span><span class="m">259</span>:0<span class="w">    </span><span class="m">0</span><span class="w">   </span><span class="m">1</span>.8T<span class="w">  </span><span class="m">0</span><span class="w"> </span>disk<span class="w"> </span>
+├─nvme0n1p1<span class="w">  </span><span class="m">259</span>:1<span class="w">    </span><span class="m">0</span><span class="w"> </span><span class="m">464</span>.3G<span class="w">  </span><span class="m">0</span><span class="w"> </span>part<span class="w"> </span>/
+...
+</code></pre></div>
+You need to run the following command to re-claim the lost space.
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>cloud-guest-utils
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>sudo<span class="w"> </span>growpart<span class="w"> </span>/dev/nvme0n1<span class="w"> </span><span class="m">1</span>
+CHANGED:<span class="w"> </span><span class="nv">partition</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">start</span><span class="o">=</span><span class="m">3050048</span><span class="w"> </span>old:<span class="w"> </span><span class="nv">size</span><span class="o">=</span><span class="m">973723080</span><span class="w"> </span><span class="nv">end</span><span class="o">=</span><span class="m">976773128</span><span class="w"> </span>new:<span class="w"> </span><span class="nv">size</span><span class="o">=</span><span class="m">3903979087</span><span class="w"> </span><span class="nv">end</span><span class="o">=</span><span class="m">3907029135</span>
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>sudo<span class="w"> </span>resize2fs<span class="w"> </span>/dev/nvme0n1p1
+resize2fs<span class="w"> </span><span class="m">1</span>.46.5<span class="w"> </span><span class="o">(</span><span class="m">30</span>-Dec-2021<span class="o">)</span>
+Filesystem<span class="w"> </span>at<span class="w"> </span>/dev/nvme0n1p1<span class="w"> </span>is<span class="w"> </span>mounted<span class="w"> </span>on<span class="w"> </span>/<span class="p">;</span><span class="w"> </span>on-line<span class="w"> </span>resizing<span class="w"> </span>required
+<span class="nv">old_desc_blocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">59</span>,<span class="w"> </span><span class="nv">new_desc_blocks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">233</span>
+The<span class="w"> </span>filesystem<span class="w"> </span>on<span class="w"> </span>/dev/nvme0n1p1<span class="w"> </span>is<span class="w"> </span>now<span class="w"> </span><span class="m">487997385</span><span class="w"> </span><span class="o">(</span>4k<span class="o">)</span><span class="w"> </span>blocks<span class="w"> </span>long.
+
+sjsujetson@sjsujetson-01:~$<span class="w"> </span>df<span class="w"> </span>-h
+Filesystem<span class="w">       </span>Size<span class="w">  </span>Used<span class="w"> </span>Avail<span class="w"> </span>Use%<span class="w"> </span>Mounted<span class="w"> </span>on
+/dev/nvme0n1p1<span class="w">   </span><span class="m">1</span>.8T<span class="w">   </span>83G<span class="w">  </span><span class="m">1</span>.7T<span class="w">   </span><span class="m">5</span>%<span class="w"> </span>/
+tmpfs<span class="w">            </span><span class="m">3</span>.8G<span class="w">  </span>136K<span class="w">  </span><span class="m">3</span>.8G<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/dev/shm
+tmpfs<span class="w">            </span><span class="m">1</span>.5G<span class="w">   </span>27M<span class="w">  </span><span class="m">1</span>.5G<span class="w">   </span><span class="m">2</span>%<span class="w"> </span>/run
+tmpfs<span class="w">            </span><span class="m">5</span>.0M<span class="w">  </span><span class="m">4</span>.0K<span class="w">  </span><span class="m">5</span>.0M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/lock
+/dev/nvme0n1p10<span class="w">   </span>63M<span class="w">  </span>112K<span class="w">   </span>63M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/boot/efi
+tmpfs<span class="w">            </span>762M<span class="w">   </span>92K<span class="w">  </span>762M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/user/128
+tmpfs<span class="w">            </span>762M<span class="w">   </span>80K<span class="w">  </span>762M<span class="w">   </span><span class="m">1</span>%<span class="w"> </span>/run/user/1000
+</code></pre></div>
+Now, your <code>/dev/nvme0n1p1</code> has 1.8T space.</p>
+<h3 id="exter-the-container-shell">✅ Exter the Container Shell<a class="headerlink" href="#exter-the-container-shell" title="Permanent link">&para;</a></h3>
+<p>Run the <code>sjsujetsontool shell</code> command line to enter into the shell of the container
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:/Developer/edgeAI$<span class="w"> </span>sjsujetsontool<span class="w"> </span>shell
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+⚙️<span class="w">  </span>CUDA<span class="w"> </span>Version:<span class="w"> </span><span class="m">12</span>.6
+root@sjsujetson-01:/workspace#<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">transformers</span><span class="o">==</span><span class="m">4</span>.37.0<span class="w"> </span><span class="c1">#install transformer package</span>
+</code></pre></div></p>
+<p>Exit the container via <code>exit</code>, and the container is still running
+<div class="highlight"><pre><span></span><code>root@sjsujetson-01:/workspace#<span class="w"> </span><span class="nb">exit</span>
+<span class="nb">exit</span>
+sjsujetson@sjsujetson-01:/Developer/edgeAI$<span class="w"> </span>docker<span class="w"> </span>ps
+CONTAINER<span class="w"> </span>ID<span class="w">   </span>IMAGE<span class="w">          </span>COMMAND<span class="w">                  </span>CREATED<span class="w">      </span>STATUS<span class="w">      </span>PORTS<span class="w">     </span>NAMES
+c4010b14e9c0<span class="w">   </span>8236678f7ef1<span class="w">   </span><span class="s2">&quot;/opt/nvidia/nvidia_…&quot;</span><span class="w">   </span><span class="m">4</span><span class="w"> </span>days<span class="w"> </span>ago<span class="w">   </span>Up<span class="w"> </span><span class="m">4</span><span class="w"> </span>days<span class="w">             </span>jetson-dev
+</code></pre></div></p>
+<p>If you want to stop the container, you can use <code>sjsujetsontool stop</code>
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:/Developer/edgeAI$<span class="w"> </span>sjsujetsontool<span class="w"> </span>stop
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+⚙️<span class="w">  </span>CUDA<span class="w"> </span>Version:<span class="w"> </span><span class="m">12</span>.6
+🛑<span class="w"> </span>Stopping<span class="w"> </span>container...
+jetson-dev
+sjsujetson@sjsujetson-01:/Developer/edgeAI$<span class="w"> </span>docker<span class="w"> </span>ps
+CONTAINER<span class="w"> </span>ID<span class="w">   </span>IMAGE<span class="w">     </span>COMMAND<span class="w">   </span>CREATED<span class="w">   </span>STATUS<span class="w">    </span>PORTS<span class="w">     </span>NAMES
+</code></pre></div></p>
+<hr />
+<h2 id="common-usage-examples">🧪 Common Usage Examples<a class="headerlink" href="#common-usage-examples" title="Permanent link">&para;</a></h2>
+<h3 id="sjsujetsontool-update">🧾 <code>sjsujetsontool update</code><a class="headerlink" href="#sjsujetsontool-update" title="Permanent link">&para;</a></h3>
+<p>Updates the script from GitHub (step 1) then pulls the latest Docker container image (step 2). A backup of the current script is saved automatically.</p>
+<p>Use <code>update-script</code> or <code>update-container</code> to update individually.</p>
+<h3 id="sjsujetsontool-healthcheck">🔬 <code>sjsujetsontool healthcheck</code><a class="headerlink" href="#sjsujetsontool-healthcheck" title="Permanent link">&para;</a></h3>
+<p>Runs a deep system health check and prints a comprehensive diagnostic report. This is the recommended first step when troubleshooting or after receiving a new Jetson device.</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>healthcheck
+</code></pre></div>
+<p>Output covers:
+- 📟 <strong>Hardware &amp; OS</strong>: Jetson model, kernel, Ubuntu version, architecture
+- 📦 <strong>NVIDIA JetPack / L4T</strong>: JetPack version (inferred from L4T BSP version if the meta-package is missing), L4T BSP revision (<code>R36.4.7</code>), L4T package version
+- ⚙️ <strong>CUDA</strong>: Version detected via <code>nvcc</code> or via <code>/usr/local/cuda-*</code> directory, with PATH tip if nvcc is missing
+- 🧬 <strong>cuDNN</strong>: Parsed from <code>/usr/include/cudnn_version.h</code> headers (with <code>dpkg-query</code> package fallback if development packages are missing)
+- 🤖 <strong>TensorRT</strong>: Detected from installed <code>libnvinfer</code>/<code>tensorrt-libs</code> packages (supports TensorRT 8.x/10.x)
+- 💾 <strong>Memory</strong>: RAM and Swap usage
+- 💿 <strong>Disk</strong>: Filesystem usage with warnings if &gt;80% full
+- 🌡️ <strong>Temperatures</strong>: All thermal zones from <code>tegrastats</code>
+- ⚡ <strong>Power</strong>: Per-rail power via INA3221 sensors (<code>VDD_IN</code>, <code>VDD_CPU_GPU_CV</code>, <code>VDD_SOC</code>)
+- 🐳 <strong>Docker</strong>: Daemon status, version, NVIDIA runtime, available images, running containers, and active <code>iptables</code> driver mode
+- 🔌 <strong>Key Services</strong>: Port status for JupyterLab (8888), Ollama (11434), llama.cpp (8000), FastAPI (8001), Gradio (7860)
+- 📦 <strong>Apt Upgrades</strong>: Count and list of upgradable packages</p>
+<p>Example output snippet:
+<div class="highlight"><pre><span></span><code>════════════════════════════════════════════════════
+🔬 Jetson Deep System Health Check
+════════════════════════════════════════════════════
+
+📟 Hardware &amp; OS
+  Model     : NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+  Kernel    : 5.15.148-tegra
+  OS        : Ubuntu 22.04.5 LTS
+  Arch      : aarch64
+
+📦 NVIDIA JetPack / L4T
+  JetPack   : 6.2.1+b38
+  L4T BSP   : R36.4.7 (pkg: 36.4.7-20250918154033)
+
+⚙️  CUDA
+  CUDA      : 12.6 (via /usr/local/cuda-12.6, nvcc not in PATH)
+  Tip       : Add to ~/.bashrc: export PATH=/usr/local/cuda-12.6/bin:$PATH
+
+🧬 cuDNN
+  cuDNN     : 9.3.0
+
+🤖 TensorRT
+  TensorRT  : 10.3.0.30-1+cuda12.5
+
+💾 Memory
+               total        used        free      ...
+  Mem:         7.4Gi       1.8Gi       217Mi
+
+💿 Disk Usage
+  /dev/nvme0n1p1   1.8T   91G  1.7T   6% /
+
+🌡️  Temperatures
+  cpu@53.25C  soc2@51.09C  gpu@53.43C  tj@54.65C
+
+⚡ Power
+  VDD_IN               920mA @ 5048mV = 4644mW
+  VDD_CPU_GPU_CV       112mA @ 5040mV = 564mW
+  VDD_SOC              288mA @ 5040mV = 1451mW
+
+🐳 Docker
+  Status    : ✅ Running  (version 29.4.0)
+  Runtime   : io.containerd.runc.v2 nvidia runc
+
+🔌 Key Services
+✅ JupyterLab is running on port 8888
+❌ Ollama not running (port 11434 closed)
+
+📦 Apt Upgradable Packages
+  Available : 124 package(s) upgradable
+  Run       : sjsujetsontool sysupgrade   (to apply safe upgrades)
+
+════════════════════════════════════════════════════
+✅ Health check complete.
+════════════════════════════════════════════════════
+</code></pre></div></p>
+<h3 id="sjsujetsontool-sysupgrade">🔄 <code>sjsujetsontool sysupgrade</code><a class="headerlink" href="#sjsujetsontool-sysupgrade" title="Permanent link">&para;</a></h3>
+<p>Safely upgrades Ubuntu system packages while <strong>excluding</strong> Jetson/NVIDIA/L4T packages to prevent breaking the JetPack BSP.</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>sysupgrade
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>Important</strong>: Never run bare <code>sudo apt upgrade</code> on a Jetson — it can overwrite NVIDIA L4T kernel modules and break GPU support. Always use <code>sysupgrade</code> which filters out <code>nvidia-*</code>, <code>cuda-*</code>, <code>l4t-*</code>, and <code>libnvinfer*</code> packages.</p>
+</blockquote>
+<p>The command will:
+1. Run <code>apt-get update</code> to refresh the package index
+2. Show you the list of upgradable packages
+3. Ask for confirmation before applying
+4. Upgrade only non-Jetson packages</p>
+<h3 id="sjsujetsontool-dockerfix">🐳 <code>sjsujetsontool dockerfix</code><a class="headerlink" href="#sjsujetsontool-dockerfix" title="Permanent link">&para;</a></h3>
+<p>Fixes the Docker daemon startup failure on Jetson by switching the system's <code>iptables</code> mode from <code>nf_tables</code> (default on Ubuntu 22.04+) to <code>iptables-legacy</code> (which the Jetson kernel supports).</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>dockerfix
+</code></pre></div>
+<p>The command will:
+1. Detect current <code>iptables</code> mode. If set to <code>nf_tables</code>, switches system settings via <code>update-alternatives</code> (requires sudo password).
+2. Restarts the Docker daemon service.
+3. Performs a test pull and execution using NVIDIA GPU runtimes to ensure containerized CUDA works.</p>
+<h3 id="sjsujetsontool-list">📋 <code>sjsujetsontool list</code><a class="headerlink" href="#sjsujetsontool-list" title="Permanent link">&para;</a></h3>
+<p>Displays all available commands with usage examples.</p>
+<h3 id="sjsujetsontool-tailscale">🌐 <code>sjsujetsontool tailscale</code><a class="headerlink" href="#sjsujetsontool-tailscale" title="Permanent link">&para;</a></h3>
+<p>Manages the device's connection to the <strong>SJSU headscale</strong> (self-hosted Tailscale control server) at <code>headscale.forgengi.org</code>. This allows all Jetson devices to reach each other over a secure overlay network regardless of physical network location.</p>
+<p><strong>Subcommands:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Subcommand</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>install</code></td>
+<td>Install Tailscale if not already present</td>
+</tr>
+<tr>
+<td><code>up [--force]</code></td>
+<td>Join the headscale network (with conflict checking)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Show current Tailscale connection status</td>
+</tr>
+<tr>
+<td><code>down</code></td>
+<td>Disconnect from the Tailscale network</td>
+</tr>
+</tbody>
+</table>
+<h4 id="check-status">Check Status<a class="headerlink" href="#check-status" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>tailscale<span class="w"> </span>status
+</code></pre></div>
+<p>Example output:
+<div class="highlight"><pre><span></span><code>══════════════════════════════════════════════════
+🌐 Tailscale Status
+══════════════════════════════════════════════════
+📦 Version : 1.98.4
+🔧 Daemon  : active
+
+✅ State   : Running
+   Hostname  : sjsujetson-01
+   IPs       : 100.82.159.9, fd7a:115c:a1e0::a636:9f09
+   DNS Name  : sjsujetson-01.headscale.forgengi.org.
+   Peers     : 8 connected
+
+══════════════════════════════════════════════════
+</code></pre></div></p>
+<h4 id="install-tailscale-if-not-present">Install Tailscale (if not present)<a class="headerlink" href="#install-tailscale-if-not-present" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>tailscale<span class="w"> </span>install
+</code></pre></div>
+<p>Downloads and installs Tailscale from <code>https://tailscale.com/install.sh</code>. No action taken if already installed.</p>
+<h4 id="join-the-headscale-network">Join the Headscale Network<a class="headerlink" href="#join-the-headscale-network" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>tailscale<span class="w"> </span>up
+</code></pre></div>
+<p>This command performs the following safety checks before joining:</p>
+<ol>
+<li>✅ <strong>Verifies Tailscale is installed</strong> (installs automatically if missing)</li>
+<li>✅ <strong>Starts <code>tailscaled</code> service</strong> if not already running</li>
+<li>⚠️ <strong>Detects if already connected</strong> to any Tailscale/Headscale network and warns:</li>
+<li>If already on this headscale server → exits cleanly</li>
+<li>If on a <strong>different</strong> network → asks for confirmation before switching</li>
+<li>🔍 <strong>Checks for hostname conflicts</strong> on the headscale server via API before joining</li>
+<li>🚀 <strong>Joins the network</strong> with <code>--accept-routes</code> for full mesh routing</li>
+</ol>
+<p>Example — fresh device joining successfully:
+<div class="highlight"><pre><span></span><code>══════════════════════════════════════════════════
+🌐 Joining Headscale Network
+══════════════════════════════════════════════════
+✅ Tailscale already installed: 1.98.4
+🖥️  This device hostname : sjsujetson-03
+🌐 Headscale server     : https://headscale.forgengi.org
+
+🔍 Checking for hostname conflicts on headscale...
+  ✅ No hostname conflict: &#39;sjsujetson-03&#39; is available on the headscale server.
+
+🚀 Joining headscale network...
+
+══════════════════════════════════════════════════
+✅ Successfully joined headscale network!
+   Hostname      : sjsujetson-03
+   Tailscale IPs : 100.82.160.12
+   Backend State : Running
+   Server        : https://headscale.forgengi.org
+══════════════════════════════════════════════════
+</code></pre></div></p>
+<p>Example — hostname conflict detected:
+<div class="highlight"><pre><span></span><code>🔍 Checking for hostname conflicts on headscale...
+  ⚠️  Hostname conflict detected: &#39;sjsujetson-01&#39; is already registered on the headscale server.
+  💡 To avoid conflicts, rename this device first:
+       sjsujetsontool set-hostname &lt;new-unique-name&gt;
+     Or force re-registration with:
+       sjsujetsontool tailscale up --force
+</code></pre></div></p>
+<h4 id="force-re-registration">Force Re-registration<a class="headerlink" href="#force-re-registration" title="Permanent link">&para;</a></h4>
+<p>Use <code>--force</code> to disconnect from any current network and re-join even if a hostname conflict is detected:</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>tailscale<span class="w"> </span>up<span class="w"> </span>--force
+</code></pre></div>
+<blockquote>
+<p>⚠️ Use <code>--force</code> only when you intentionally want to replace an existing registration (e.g., after cloning a Jetson image). This will overwrite the old entry on the headscale server.</p>
+</blockquote>
+<h4 id="disconnect">Disconnect<a class="headerlink" href="#disconnect" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>tailscale<span class="w"> </span>down
+</code></pre></div>
+<h4 id="troubleshooting">🔧 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>❌ Failed to join headscale network</code></td>
+<td>Check <code>journalctl -u tailscaled -n 30 --no-pager</code></td>
+</tr>
+<tr>
+<td>Auth key error</td>
+<td>The pre-shared authkey may have expired — contact the TA for a new one</td>
+</tr>
+<tr>
+<td>Hostname conflict</td>
+<td>Run <code>sjsujetsontool set-hostname &lt;new-name&gt;</code> then retry</td>
+</tr>
+<tr>
+<td>Can't reach headscale server</td>
+<td>Check internet / VPN: <code>curl https://headscale.forgengi.org</code></td>
+</tr>
+<tr>
+<td>iptables warnings</td>
+<td>Known Jetson L4T kernel quirk — does not affect connectivity</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sjsujetsontool-jupyter">🟢 <code>sjsujetsontool jupyter</code><a class="headerlink" href="#sjsujetsontool-jupyter" title="Permanent link">&para;</a></h3>
+<p>Launches JupyterLab on port 8888 from inside the Jetson's Docker container. It allows interactive Python notebooks for AI model testing, data exploration, and debugging.</p>
+<p><div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>jupyter
+....
+<span class="w">    </span>To<span class="w"> </span>access<span class="w"> </span>the<span class="w"> </span>server,<span class="w"> </span>open<span class="w"> </span>this<span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span>a<span class="w"> </span>browser:
+<span class="w">        </span>file:///root/.local/share/jupyter/runtime/jpserver-1-open.html
+<span class="w">    </span>Or<span class="w"> </span>copy<span class="w"> </span>and<span class="w"> </span>paste<span class="w"> </span>one<span class="w"> </span>of<span class="w"> </span>these<span class="w"> </span>URLs:
+<span class="w">        </span>http://hostname:8888/lab?token<span class="o">=</span>3bbbf2fbea22e917bdbace45cb414bbaeb52f1251163adcf
+<span class="w">        </span>http://127.0.0.1:8888/lab?token<span class="o">=</span>3bbbf2fbea22e917bdbace45cb414bbaeb52f1251163adcf
+</code></pre></div>
+you can access the jupyter server via the the provided url. If you want to remote access the jupyter server from another computer, you can replace the hostname with the IP address of the device. </p>
+<h3 id="sjsujetsontool-run-scriptpy">🐍 <code>sjsujetsontool run &lt;script.py&gt;</code><a class="headerlink" href="#sjsujetsontool-run-scriptpy" title="Permanent link">&para;</a></h3>
+<p>Runs any Python script inside the preconfigured container. Ensures all ML/AI libraries and GPU drivers are properly set up. The path of <code>script.py</code> should be accessible by the container, for example, the <code>\Developer</code> path:
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-01:/Developer/models$<span class="w"> </span>sjsujetsontool<span class="w"> </span>run<span class="w"> </span>/Developer/edgeAI/jetson/test.py<span class="w"> </span>
+🧠<span class="w"> </span>Detected<span class="w"> </span>Jetson<span class="w"> </span>Model:<span class="w"> </span>NVIDIA<span class="w"> </span>Jetson<span class="w"> </span>Orin<span class="w"> </span>Nano<span class="w"> </span>Engineering<span class="w"> </span>Reference<span class="w"> </span>Developer<span class="w"> </span>Kit<span class="w"> </span>Super
+⚙️<span class="w">  </span>CUDA<span class="w"> </span>Version:<span class="w"> </span><span class="m">12</span>.6
+🐍<span class="w"> </span>Running<span class="w"> </span>Python<span class="w"> </span>script:<span class="w"> </span>/Developer/edgeAI/jetson/test.py
+📦<span class="w"> </span>Python:<span class="w"> </span><span class="m">3</span>.12.3<span class="w"> </span><span class="o">(</span>main,<span class="w"> </span>Nov<span class="w">  </span><span class="m">6</span><span class="w"> </span><span class="m">2024</span>,<span class="w"> </span><span class="m">18</span>:32:19<span class="o">)</span><span class="w"> </span><span class="o">[</span>GCC<span class="w"> </span><span class="m">13</span>.2.0<span class="o">]</span>
+🧠<span class="w"> </span>Torch:<span class="w"> </span><span class="m">2</span>.6.0a0+df5bbc09d1.nv24.12
+⚙️<span class="w">  </span>CUDA<span class="w"> </span>available:<span class="w"> </span>True
+🖥️<span class="w">  </span>CUDA<span class="w"> </span>version:<span class="w"> </span>Cuda<span class="w"> </span>compilation<span class="w"> </span>tools,<span class="w"> </span>release<span class="w"> </span><span class="m">12</span>.6,<span class="w"> </span>V12.6.85
+📚<span class="w"> </span>Transformers:<span class="w"> </span><span class="m">4</span>.37.0
+🧬<span class="w"> </span>HuggingFace<span class="w"> </span>hub:<span class="w"> </span>Version:<span class="w"> </span><span class="m">0</span>.33.2
+💡<span class="w"> </span>Platform:<span class="w"> </span>Linux-5.15.148-tegra-aarch64-with-glibc2.39
+🔍<span class="w"> </span>Ollama:<span class="w"> </span>✅<span class="w"> </span>Ollama<span class="w"> </span>installed:<span class="w"> </span>ollama<span class="w"> </span>version<span class="w"> </span>is<span class="w"> </span><span class="m">0</span>.9.2
+</code></pre></div></p>
+<h3 id="sjsujetsontool-ollama">🧠 <code>sjsujetsontool ollama</code><a class="headerlink" href="#sjsujetsontool-ollama" title="Permanent link">&para;</a></h3>
+<p>This section introduces its integrated <code>ollama</code> command group, which allows you to manage, run, and query large language models inside a Docker container on your Jetson.</p>
+<p><code>sjsujetsontool ollama &lt;subcommand&gt;</code> enables local management and interaction with Ollama models from inside a persistent Jetson container.</p>
+<p>Alternatively, you can run these top-level <strong>shortcut commands</strong> directly from the host terminal:
+* <code>sjsujetsontool ollama-serve</code> (Starts the Ollama REST API server)
+* <code>sjsujetsontool ollama-run [model]</code> (Runs the model interactively; defaults to <code>gemma4</code>)</p>
+<p>Supported subcommands:</p>
+<table>
+<thead>
+<tr>
+<th>Subcommand</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>serve</code></td>
+<td>Start Ollama REST API server (port 11434)</td>
+</tr>
+<tr>
+<td><code>run &lt;model&gt;</code></td>
+<td>Run specified model in interactive CLI</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>List all installed Ollama models</td>
+</tr>
+<tr>
+<td><code>pull &lt;model&gt;</code></td>
+<td>Download a new model</td>
+</tr>
+<tr>
+<td><code>delete &lt;model&gt;</code></td>
+<td>Remove a model from disk</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Check if Ollama server is running</td>
+</tr>
+<tr>
+<td><code>ask</code></td>
+<td>Ask model a prompt via REST API</td>
+</tr>
+</tbody>
+</table>
+<p>🚀 Commands and Usage</p>
+<ol>
+<li>Start the Ollama Server
+Using the subcommand:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>serve
+</code></pre></div>
+Or directly from the host using the shortcut:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama-serve
+</code></pre></div></li>
+</ol>
+<p>Starts the Ollama REST server inside the container, listening on http://localhost:11434.</p>
+<ol>
+<li>
+<p>Run a Model in CLI Mode
+Using the subcommand:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>run<span class="w"> </span>mistral
+</code></pre></div>
+Or directly from the host using the shortcut (defaults to <code>gemma4</code>):
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama-run<span class="w"> </span>gemma4
+</code></pre></div>
+💬 Launching model 'mistral' in CLI...
+pulling manifest 
+pulling ff82381e2bea: 100% ▕██████████████████▏ 4.1 GB                       <br />
+pulling 43070e2d4e53: 100% ▕██████████████████▏  11 KB                       <br />
+pulling 1ff5b64b61b9: 100% ▕██████████████████▏  799 B                       <br />
+pulling ed11eda7790d: 100% ▕██████████████████▏   30 B                       <br />
+pulling 42347cd80dc8: 100% ▕██████████████████▏  485 B                       <br />
+verifying sha256 digest 
+writing manifest 
+success </p>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>Send a message (/? for help)
+<div class="highlight"><pre><span></span><code>Launches interactive terminal mode using the mistral model. Enter `\exit` to exit.
+
+3. List Installed Models
+```bash
+$ sjsujetsontool ollama list
+🧠 Detected Jetson Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+⚙️  CUDA Version: 12.6
+📃 Installed models:
+NAME               ID              SIZE      MODIFIED           
+mistral:latest     3944fe81ec14    4.1 GB    About a minute ago    
+llama3.2:latest    a80c4f17acd5    2.0 GB    2 hours ago           
+qwen2:latest       dd314f039b9d    4.4 GB    9 days ago            
+llama3.2:3b        a80c4f17acd5    2.0 GB    9 days ago 
+</code></pre></div>
+Shows a table of downloaded models and their sizes.</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</li>
+<li>
+<p>Download a New Model
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>pull<span class="w"> </span>llama3
+</code></pre></div>
+Pulls the specified model into the container. Examples include:
+    •   phi3
+    •   mistral
+    •   llama3
+    •   qwen:7b</p>
+</li>
+<li>
+<p>Delete a Model
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>delete<span class="w"> </span>mistral
+</code></pre></div>
+Frees up disk space by removing the model.</p>
+</li>
+<li>
+<p>Check Server Status
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>status
+</code></pre></div>
+Checks if the REST API is running on port 11434.</p>
+</li>
+<li>
+<p>Ask a Prompt (with auto-pull + caching)
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>ask<span class="w"> </span><span class="s2">&quot;What is nvidia jetson orin?&quot;</span>
+</code></pre></div>
+Uses the last used model, or you can specify one:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>ask<span class="w"> </span>--model<span class="w"> </span>mistral<span class="w"> </span><span class="s2">&quot;Explain transformers in simple terms.&quot;</span>
+</code></pre></div>
+    •   Automatically pulls model if not available
+    •   Remembers last used model in .last_ollama_model under workspace/</p>
+</li>
+</ol>
+<p>🧪 Example: Simple Chat Session</p>
+<p>Pull and run mistral model
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>pull<span class="w"> </span>mistral
+sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>run<span class="w"> </span>mistral
+</code></pre></div>
+Ask directly via REST
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>ollama<span class="w"> </span>ask<span class="w"> </span>--model<span class="w"> </span>mistral<span class="w"> </span><span class="s2">&quot;Give me a Jetson-themed poem.&quot;</span>
+</code></pre></div></p>
+<p>⸻</p>
+<p>🧰 Troubleshooting
+    •   Port already in use: Run sudo lsof -i :11434 and kill the process if needed.
+    •   Model not found: Use sjsujetsontool ollama pull <model> manually before ask or run.
+    •   Server not running: Start with sjsujetsontool ollama serve before using REST API.</p>
+<h3 id="sjsujetsontool-llama">🔬 <code>sjsujetsontool llama</code><a class="headerlink" href="#sjsujetsontool-llama" title="Permanent link">&para;</a></h3>
+<p>Starts the <code>llama.cpp</code> server (C++ GGUF LLM inference engine) on port 8000. Loads a <code>.gguf</code> model and serves an HTTP API for tokenized prompt completion.</p>
+<h4 id="compiling-updating-llamacpp-inside-container">⚙️ Compiling &amp; Updating <code>llama.cpp</code> inside Container<a class="headerlink" href="#compiling-updating-llamacpp-inside-container" title="Permanent link">&para;</a></h4>
+<p>A current <code>llama.cpp</code> is needed for two reasons: direct Hugging Face loading via <code>-hf</code> (no manual
+GGUF downloads), and <strong>support for new model architectures</strong> — e.g. <strong>Qwen3.5</strong> uses the <code>qwen35</code>
+arch, which older builds reject with <code>unknown model architecture: 'qwen35'</code>. The build baked into the
+container is <strong>b9743</strong> (verified below). To (re)build with CUDA inside the container:</p>
+<ol>
+<li><strong>Clone the latest source</strong> (a shallow clone is fine):
+   <div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/opt<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="o">=</span><span class="m">1</span><span class="w"> </span>https://github.com/ggml-org/llama.cpp<span class="w"> </span>llamacpp-new<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>llamacpp-new
+</code></pre></div></li>
+<li><strong>Configure + build with CUDA for the Orin GPU</strong> (<code>sm_87</code>):
+   <div class="highlight"><pre><span></span><code>cmake<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-DGGML_CUDA<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DCMAKE_CUDA_ARCHITECTURES<span class="o">=</span><span class="m">87</span>
+<span class="c1"># build the tools we use (text + multimodal/vision):</span>
+cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--config<span class="w"> </span>Release<span class="w"> </span>-j<span class="s2">&quot;</span><span class="k">$(</span>nproc<span class="k">)</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--target<span class="w"> </span>llama-cli<span class="w"> </span>llama-server<span class="w"> </span>llama-bench<span class="w"> </span>llama-completion<span class="w"> </span>llama-mtmd-cli
+</code></pre></div><blockquote>
+<p>On a Jetson Orin Nano this CUDA build takes <strong>~25 minutes</strong>. Verified: build <strong>b9743</strong>, CUDA 12.6,
+<code>sm_87</code>. Note in recent builds <code>llama-cli</code> is interactive-only — use <strong><code>llama-completion</code></strong> for
+scriptable one-shot generation and <strong><code>llama-mtmd-cli</code></strong> for image input.</p>
+</blockquote>
+</li>
+<li><strong>Install into the path <code>sjsujetsontool</code> looks for</strong> (<code>/opt/llama.cpp/build_cuda/bin</code>), so the
+   <code>llama</code> / <code>llama-cli</code> shortcuts pick it up automatically:
+   <div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>/opt/llama.cpp/build_cuda/bin
+cp<span class="w"> </span>build/bin/llama-*<span class="w"> </span>build/bin/*.so<span class="w"> </span>/opt/llama.cpp/build_cuda/bin/
+</code></pre></div>
+   <em>(This is exactly how the prebuilt binaries are placed in the published container image, so all
+   devices get the qwen35-capable build after <code>sjsujetsontool update</code>.)</em></li>
+</ol>
+<h4 id="serving-llm-via-llama-server">🚀 Serving LLM via Llama Server<a class="headerlink" href="#serving-llm-via-llama-server" title="Permanent link">&para;</a></h4>
+<p>Launch <code>llama-server</code> from the host with the top-level shortcut. Running it with <strong>no arguments</strong>
+brings up an interactive menu to pick the model and whether to run in the foreground or background:</p>
+<div class="highlight"><pre><span></span><code>sjsujetson@sjsujetson-61:~$<span class="w"> </span>sjsujetsontool<span class="w"> </span>llama
+🧠<span class="w"> </span>Select<span class="w"> </span>a<span class="w"> </span>model<span class="w"> </span>to<span class="w"> </span>serve<span class="w"> </span>with<span class="w"> </span>llama.cpp:
+<span class="w">   </span><span class="m">1</span><span class="o">)</span><span class="w"> </span>Qwen3.5-2B<span class="w">    </span><span class="o">(</span>default,<span class="w"> </span>vision-capable<span class="o">)</span>
+<span class="w">   </span><span class="m">2</span><span class="o">)</span><span class="w"> </span>Qwen3.5-0.8B<span class="w">  </span><span class="o">(</span>smallest<span class="w"> </span>/<span class="w"> </span>fastest<span class="o">)</span>
+<span class="w">   </span><span class="m">3</span><span class="o">)</span><span class="w"> </span>Qwen3.5-4B<span class="w">    </span><span class="o">(</span>most<span class="w"> </span>capable<span class="o">)</span>
+<span class="w">   </span><span class="m">4</span><span class="o">)</span><span class="w"> </span>Gemma-4-E2B<span class="w">   </span><span class="o">(</span>vision-capable<span class="o">)</span>
+<span class="w">   </span><span class="m">5</span><span class="o">)</span><span class="w"> </span>Custom<span class="w">        </span><span class="o">(</span>enter<span class="w"> </span>a<span class="w"> </span>Hugging<span class="w"> </span>Face<span class="w"> </span>GGUF,<span class="w"> </span>e.g.<span class="w"> </span>unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S<span class="o">)</span>
+Choice<span class="w"> </span><span class="o">[</span><span class="m">1</span>-5<span class="o">]</span>,<span class="w"> </span>or<span class="w"> </span>press<span class="w"> </span>Enter<span class="w"> </span><span class="k">for</span><span class="w"> </span>the<span class="w"> </span>default<span class="w"> </span><span class="o">(</span>Qwen3.5-2B<span class="o">)</span>:
+Run<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="o">[</span>f<span class="o">]</span>oreground<span class="w"> </span>or<span class="w"> </span><span class="o">[</span>b<span class="o">]</span>ackground?<span class="w"> </span><span class="o">(</span><span class="nv">Enter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>foreground<span class="o">)</span>:
+</code></pre></div>
+<ul>
+<li><strong>Just press Enter</strong> at both prompts → serves the default <strong>Qwen3.5-2B</strong> in the foreground.</li>
+<li>Choosing <strong>5) Custom</strong> lets you serve <em>any</em> GGUF on Hugging Face — type its <code>repo:quant</code>, e.g.
+  <code>bartowski/Qwen_Qwen3.5-2B-GGUF:Q5_K_M</code>.</li>
+<li>The first launch of a model downloads it (cached under <code>/Developer/models</code>, shared by all accounts).</li>
+</ul>
+<p><strong>Foreground vs. background:</strong></p>
+<ul>
+<li><strong>Foreground</strong> (default): the server holds the terminal; stop it with <code>Ctrl+C</code>.</li>
+<li><strong>Background</strong>: the server keeps running after you log out. Stop it any time with:
+  <div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>llama<span class="w"> </span>stop
+</code></pre></div></li>
+</ul>
+<p><strong>Non-interactive forms</strong> (handy for scripts — no prompts):</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>llama<span class="w">                      </span><span class="c1"># interactive menu (default Qwen3.5-2B)</span>
+sjsujetsontool<span class="w"> </span>llama<span class="w"> </span>qwen4b<span class="w">               </span><span class="c1"># serve Qwen3.5-4B, foreground</span>
+sjsujetsontool<span class="w"> </span>llama<span class="w"> </span>gemma4<span class="w"> </span><span class="nb">bg</span><span class="w">            </span><span class="c1"># serve Gemma 4 E2B in the background</span>
+sjsujetsontool<span class="w"> </span>llama<span class="w"> </span>unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S<span class="w"> </span><span class="nb">bg</span><span class="w">   </span><span class="c1"># any HF model, background</span>
+sjsujetsontool<span class="w"> </span>llama<span class="w"> </span>stop<span class="w">                 </span><span class="c1"># stop the background server</span>
+</code></pre></div>
+<p>The shortcut starts the persistent container and launches <code>llama-server</code> with CUDA acceleration on
+port <code>8080</code> (with the batch sizes needed for vision models). The web UI / OpenAI-compatible API is at
+<code>http://localhost:8080</code>. For a background server, view its log with
+<code>sjsujetsontool shell</code> → <code>tail -f /tmp/llama-server.log</code>.</p>
+<p><em>(Alternatively, to run manually inside the container)</em>:
+1. Enter the container: <code>sjsujetsontool shell</code>
+2. Start the server: <code>llama-server -hf unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S --host 0.0.0.0 --port 8080 --ubatch-size 2048 --batch-size 2048 -ngl 99</code></p>
+<h4 id="querying-the-model-via-http-api-openai-compatible">💬 Querying the Model via HTTP API (OpenAI Compatible)<a class="headerlink" href="#querying-the-model-via-http-api-openai-compatible" title="Permanent link">&para;</a></h4>
+<p>You can run a local chat completion query in another terminal (host or inside the container) with <code>curl</code>.</p>
+<blockquote>
+<p>⚠️ <strong>Make answers short &amp; fast on Jetson.</strong> Qwen3.5 is a <em>reasoning</em> model — by default it "thinks"
+for hundreds–thousands of tokens before answering, which feels slow and can look like the terminal is
+stuck. The Orin Nano isn't built for long generation, so for everyday use you should:
+1. <strong>Disable thinking</strong> with <code>"chat_template_kwargs": {"enable_thinking": false}</code> (works because
+   <code>sjsujetsontool llama</code> launches the server with <code>--jinja</code>),
+2. <strong>Cap the length</strong> with <code>"max_tokens"</code>, and
+3. <strong>Stream</strong> with <code>"stream": true</code> (+ <code>curl -N</code>) so tokens appear as they're generated.</p>
+</blockquote>
+<p><strong>Fast, non‑streaming</strong> (thinking off, capped length):
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Explain what is Nvidia Jetson in 2 sentences.&quot;}],</span>
+<span class="s1">    &quot;max_tokens&quot;: 150,</span>
+<span class="s1">    &quot;temperature&quot;: 0.7,</span>
+<span class="s1">    &quot;chat_template_kwargs&quot;: {&quot;enable_thinking&quot;: false}</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+<em>Measured on jetson‑61: ~30 tokens in </em><em>1.7 s</em><em>. (The same prompt </em><em>with</em><em> thinking generated </em><em>2757</em><em>
+tokens and took far longer.)</em></p>
+<p><strong>Streaming</strong> (tokens appear live — use <code>-N</code> so <code>curl</code> doesn't buffer):
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-N<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Explain what is Nvidia Jetson in 2 sentences.&quot;}],</span>
+<span class="s1">    &quot;max_tokens&quot;: 150,</span>
+<span class="s1">    &quot;stream&quot;: true,</span>
+<span class="s1">    &quot;chat_template_kwargs&quot;: {&quot;enable_thinking&quot;: false}</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+The server replies with Server‑Sent Events — one <code>data: {…}</code> chunk per token, each carrying the next
+piece in <code>choices[0].delta.content</code>, ending with <code>data: [DONE]</code>. (To <em>keep</em> the reasoning for a hard
+problem, simply drop the <code>chat_template_kwargs</code> line.)</p>
+<h4 id="vision-ask-about-an-image">🖼️ Vision: ask about an image<a class="headerlink" href="#vision-ask-about-an-image" title="Permanent link">&para;</a></h4>
+<p>Gemma 4 E2B is <strong>multimodal</strong>. Because <code>sjsujetsontool llama</code> loads the model with <code>-hf</code>, <code>llama-server</code> automatically downloads and loads the matching <strong>mmproj</strong> (multimodal projector), so image input works with no extra setup. Send an image with the OpenAI vision format (a base64 <code>image_url</code>); the helper script does the encoding:</p>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># describe your own image (or omit --image to use a generated test image)</span>
+python3<span class="w"> </span>jetson/jetson-llm/vision_test.py<span class="w"> </span>--image<span class="w"> </span>my_photo.jpg<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;What is in this image?&quot;</span>
+<span class="c1"># → VISION REPLY: A yellow circle on a blue square background.   (built-in test image)</span>
+</code></pre></div>
+See <a href="../../jetson/jetson-llm/vision_test.py"><code>jetson/jetson-llm/vision_test.py</code></a>. The same client also works against a <code>gputool</code> server (Qwen3.5) — see the <a href="../00c_gputool_guide/">gputool guide → vision</a>. <em>(Pass images as base64 data URIs; the CUDA build does not fetch remote image URLs.)</em></p>
+<h4 id="running-cli-inference">🖥️ Running CLI Inference<a class="headerlink" href="#running-cli-inference" title="Permanent link">&para;</a></h4>
+<p>You can run Gemma 4 E2B CLI inference directly from the host using the <code>llama-cli</code> shortcut. By default, it runs the <strong>Gemma 4</strong> architecture with full <strong>GPU/CUDA hardware acceleration</strong> enabled (<code>-ngl 99</code>):
+<div class="highlight"><pre><span></span><code><span class="c1"># From the host:</span>
+sjsujetsontool<span class="w"> </span>llama-cli<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain what is Nvidia Jetson&quot;</span>
+</code></pre></div></p>
+<p>The output will automatically show model loading and GPU status logs (e.g. <code>offloaded 27/27 layers to GPU</code>), print the thinking process/final response, and output token performance stats at the end of execution:
+<div class="highlight"><pre><span></span><code>Thinking Process:
+...
+[Prompt: 39.0 t/s | Generation: 19.8 t/s]
+</code></pre></div></p>
+<p><em>(Alternatively, to run manually inside the container)</em>:
+1. Enter the container: <code>sjsujetsontool shell</code>
+2. Run inference on the GPU: <code>env LD_LIBRARY_PATH=/opt/llama.cpp/build_cuda/bin llama-cli -hf unsloth/gemma-4-E2B-it-GGUF:Q4_K_S -ngl 99 -p "Explain what is Nvidia Jetson"</code></p>
+<h4 id="multimodal-vision-inference-with-gemma-4-e2b">👁️ Multimodal (Vision) Inference with Gemma 4 E2B<a class="headerlink" href="#multimodal-vision-inference-with-gemma-4-e2b" title="Permanent link">&para;</a></h4>
+<p>Gemma 4 E2B is a natively multimodal Vision-Language Model (VLM) supporting image input.</p>
+<h5 id="1-cli-inference-with-image-input">1. CLI Inference with Image Input<a class="headerlink" href="#1-cli-inference-with-image-input" title="Permanent link">&para;</a></h5>
+<p>First, download the example image inside the container to the <code>/Developer</code> folder (or download it to <code>/Developer</code> on the host, as it maps directly):
+<div class="highlight"><pre><span></span><code><span class="c1"># On the host or inside container:</span>
+wget<span class="w"> </span>-O<span class="w"> </span>/Developer/LoveSJ-hero-4.png<span class="w"> </span>https://www.sjsu.edu/visit/pics/LoveSJ-hero-4.png
+</code></pre></div></p>
+<p>To analyze the image using the host shortcut command (which defaults to GPU offloading and correct attention batch sizes):</p>
+<blockquote>
+<p>[!IMPORTANT]
+Because Gemma 4's vision encoder uses non-causal attention, the <code>sjsujetsontool llama-cli</code> shortcut pre-configures <code>--ubatch-size 2048</code> and <code>--batch-size 2048</code> to prevent the engine from crashing when processing image tokens.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="c1"># From the host (fully GPU-accelerated by default):</span>
+sjsujetsontool<span class="w"> </span>llama-cli<span class="w"> </span>--image<span class="w"> </span>/Developer/LoveSJ-hero-4.png<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Describe this image and identify its main components.&quot;</span>
+</code></pre></div>
+<p><em>(Alternatively, to run manually inside the container)</em>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Inside the container (manually offloading to GPU):</span>
+env<span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/llama.cpp/build_cuda/bin<span class="w"> </span>llama-cli<span class="w"> </span>-hf<span class="w"> </span>unsloth/gemma-4-E2B-it-GGUF:Q4_K_S<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>/Developer/LoveSJ-hero-4.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ubatch-size<span class="w"> </span><span class="m">2048</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-ngl<span class="w"> </span><span class="m">99</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s2">&quot;Describe this image and identify its main components.&quot;</span>
+</code></pre></div></p>
+<h5 id="2-serving-vlm-via-llama-server">2. Serving VLM via Llama Server<a class="headerlink" href="#2-serving-vlm-via-llama-server" title="Permanent link">&para;</a></h5>
+<p>Simply start the server using the host shortcut:
+<div class="highlight"><pre><span></span><code><span class="c1"># From the host:</span>
+sjsujetsontool<span class="w"> </span>llama
+</code></pre></div></p>
+<p><em>(Alternatively, to run manually inside the container)</em>:
+<div class="highlight"><pre><span></span><code><span class="c1"># Inside the container:</span>
+llama-server<span class="w"> </span>-hf<span class="w"> </span>unsloth/gemma-4-E2B-it-GGUF:Q4_K_S<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ubatch-size<span class="w"> </span><span class="m">2048</span><span class="w"> </span>--batch-size<span class="w"> </span><span class="m">2048</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--port<span class="w"> </span><span class="m">8080</span>
+</code></pre></div></p>
+<h5 id="3-querying-the-vlm-server-via-http-api-openai-format">3. Querying the VLM Server via HTTP API (OpenAI Format)<a class="headerlink" href="#3-querying-the-vlm-server-via-http-api-openai-format" title="Permanent link">&para;</a></h5>
+<p>You can query the server by passing a direct public URL to the image, or by base64-encoding a local image.</p>
+<p><strong>Option A: Direct Public Image URL</strong>
+If the image is hosted publicly, pass the image URL directly in the payload:
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;messages&quot;: [</span>
+<span class="s1">      {</span>
+<span class="s1">        &quot;role&quot;: &quot;user&quot;,</span>
+<span class="s1">        &quot;content&quot;: [</span>
+<span class="s1">          {</span>
+<span class="s1">            &quot;type&quot;: &quot;image_url&quot;,</span>
+<span class="s1">            &quot;image_url&quot;: {</span>
+<span class="s1">              &quot;url&quot;: &quot;https://www.sjsu.edu/visit/pics/LoveSJ-hero-4.png&quot;</span>
+<span class="s1">            }</span>
+<span class="s1">          },</span>
+<span class="s1">          {</span>
+<span class="s1">            &quot;type&quot;: &quot;text&quot;,</span>
+<span class="s1">            &quot;text&quot;: &quot;What text is shown in this picture and what are the main elements?&quot;</span>
+<span class="s1">          }</span>
+<span class="s1">        ]</span>
+<span class="s1">      }</span>
+<span class="s1">    ]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div></p>
+<p><strong>Option B: Base64-Encoded Local Image</strong>
+If using a local file, convert it to a base64-encoded string:
+<div class="highlight"><pre><span></span><code><span class="c1"># Get base64 string portably using python:</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">IMG_B64</span><span class="o">=</span><span class="k">$(</span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import base64; print(base64.b64encode(open(&#39;/Developer/LoveSJ-hero-4.png&#39;, &#39;rb&#39;).read()).decode(&#39;utf-8&#39;))&quot;</span><span class="k">)</span>
+
+<span class="c1"># Query the server:</span>
+curl<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;messages&quot;: [</span>
+<span class="s1">      {</span>
+<span class="s1">        &quot;role&quot;: &quot;user&quot;,</span>
+<span class="s1">        &quot;content&quot;: [</span>
+<span class="s1">          {</span>
+<span class="s1">            &quot;type&quot;: &quot;image_url&quot;,</span>
+<span class="s1">            &quot;image_url&quot;: {</span>
+<span class="s1">              &quot;url&quot;: &quot;data:image/png;base64,&#39;</span><span class="s2">&quot;</span><span class="nv">$IMG_B64</span><span class="s2">&quot;</span><span class="s1">&#39;&quot;</span>
+<span class="s1">            }</span>
+<span class="s1">          },</span>
+<span class="s1">          {</span>
+<span class="s1">            &quot;type&quot;: &quot;text&quot;,</span>
+<span class="s1">            &quot;text&quot;: &quot;Identify the main text and design features in this image.&quot;</span>
+<span class="s1">          }</span>
+<span class="s1">        ]</span>
+<span class="s1">      }</span>
+<span class="s1">    ]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div></p>
+<h4 id="model-comparison-default-gemma-4-e2b-vs-qwen35-jetson-orin-nano">📊 Model comparison: default Gemma 4 E2B vs Qwen3.5 (Jetson Orin Nano)<a class="headerlink" href="#model-comparison-default-gemma-4-e2b-vs-qwen35-jetson-orin-nano" title="Permanent link">&para;</a></h4>
+<p>The default <strong>Gemma 4 E2B</strong> GGUF is multi-GB and <strong>slow to download</strong>. We benchmarked the current
+default against smaller <a href="https://huggingface.co/unsloth">Unsloth <strong>Qwen3.5</strong></a> GGUFs as lighter
+alternatives, all at the same <strong><code>Q4_K_S</code></strong> quant used by <code>sjsujetsontool llama</code>.</p>
+<p><strong>Test setup:</strong> jetson-61 = Orin Nano (8 GB), JetPack 6 / L4T R36.4.7, llama.cpp <strong>b9743</strong> CUDA,
+<code>-ngl 99</code> (all layers on GPU), quant <code>Q4_K_S</code>, ~47 Mbps link.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Params</th>
+<th>On-disk</th>
+<th>Download (≈5.9 MB/s)</th>
+<th>Weights in RAM</th>
+<th>Prompt <code>pp512</code></th>
+<th>Generation <code>tg128</code></th>
+<th>Math (3 Qs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gemma-4-E2B-it</code></td>
+<td>4.65 B</td>
+<td>3.04 GB</td>
+<td>~8.6 min (516 s)</td>
+<td>2.82 GiB</td>
+<td>~644 tok/s</td>
+<td>~20 tok/s</td>
+<td>✅ 3 / 3</td>
+</tr>
+<tr>
+<td><code>Qwen3.5-0.8B</code></td>
+<td>0.77 B</td>
+<td>0.52 GB</td>
+<td>~1.5 min (89 s)</td>
+<td>0.49 GiB</td>
+<td>~1205 tok/s</td>
+<td><strong>~35 tok/s</strong></td>
+<td>⚠️ 2 / 3</td>
+</tr>
+<tr>
+<td><code>Qwen3.5-2B</code></td>
+<td>1.94 B</td>
+<td>1.26 GB</td>
+<td>~3.6 min (216 s)</td>
+<td>1.17 GiB</td>
+<td>~750 tok/s</td>
+<td><strong>~21 tok/s</strong></td>
+<td>✅ 3 / 3</td>
+</tr>
+<tr>
+<td><code>Qwen3.5-4B</code></td>
+<td>4.33 B</td>
+<td>2.68 GB</td>
+<td>~7.6 min (456 s)</td>
+<td>2.49 GiB</td>
+<td>~307 tok/s</td>
+<td><strong>~10 tok/s</strong></td>
+<td>✅ 3 / 3</td>
+</tr>
+</tbody>
+</table>
+<p>Peak system RAM (incl. ~2–2.9 GB idle baseline + page cache) stayed under ~7.3 GB on the 8 GB board
+for every model — so even the 3 GB-class ones fit, with little headroom.</p>
+<blockquote>
+<p>💡 <strong>Headline:</strong> <strong>Gemma 4 E2B is the <em>largest</em> download (3.04 GB) yet not the fastest</strong> —
+<code>Qwen3.5-2B</code> matches its accuracy (3/3) and generation speed (~21 vs ~20 tok/s) at <strong>~⅓ the download
+size</strong> — <strong>and it is also multimodal</strong> (<code>Qwen/Qwen3.5-2B</code> is a <em>unified vision-language</em> model;
+the Unsloth GGUF repo ships an <code>mmproj</code>), so Gemma's vision is no longer a unique advantage. See the
+VLM verification below.</p>
+</blockquote>
+<p><strong>Accuracy</strong> — three high-school questions (<code>17 × 23 = 391</code>; <code>2x + 5 = 17 → x = 6</code>;
+right-triangle legs 6, 8 → hypotenuse <code>10</code>), greedy decoding:</p>
+<ul>
+<li><strong>Gemma 4 E2B</strong>, <strong>Qwen3.5-2B</strong>, <strong>Qwen3.5-4B</strong>: all three correct, clean concise answers — reliable.
+  (Gemma and Qwen3.5-2B answer directly; Qwen3.5-4B "thinks" first, then answers.)</li>
+<li><strong>Qwen3.5-0.8B</strong>: reached the right working (391; x = 6) but <strong>over-thinks badly</strong> — on the
+  hypotenuse question it kept second-guessing and never committed to a final answer even at 3072
+  tokens. Capable but unreliable at producing a final answer.</li>
+</ul>
+<p><strong>Recommendation:</strong> for a fast-downloading, reliable everyday model on the Orin Nano,
+<strong><code>Qwen3.5-2B:Q4_K_S</code></strong> is the sweet spot — same accuracy, speed, <strong>and vision</strong> as the default
+Gemma 4 E2B at <strong>~⅓ the download</strong>. Use Qwen3.5 <code>4B</code> for more reasoning headroom (~10 tok/s);
+avoid <code>0.8B</code> for tasks needing a definite answer.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># text server (inside the container, with an up-to-date llama.cpp build):</span>
+llama-server<span class="w"> </span>-hf<span class="w"> </span>unsloth/Qwen3.5-2B-MTP-GGUF:Q4_K_S<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span><span class="w"> </span>-ngl<span class="w"> </span><span class="m">99</span>
+</code></pre></div>
+<h5 id="vlm-vision-verified-on-qwen35-2b">👁️ VLM (vision) — verified on Qwen3.5-2B<a class="headerlink" href="#vlm-vision-verified-on-qwen35-2b" title="Permanent link">&para;</a></h5>
+<p><code>Qwen/Qwen3.5-2B</code> is a <strong>unified vision-language</strong> model. The Unsloth GGUF repo ships a vision
+projector (<code>mmproj-F16.gguf</code>, 0.67 GB); pair it with the text GGUF and run the multimodal CLI
+(<code>llama-mtmd-cli</code>) or <code>llama-server --mmproj</code>:</p>
+<div class="highlight"><pre><span></span><code>llama-mtmd-cli<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-m<span class="w"> </span>Qwen3.5-2B-Q4_K_S.gguf<span class="w"> </span>--mmproj<span class="w"> </span>mmproj-F16.gguf<span class="w"> </span>-ngl<span class="w"> </span><span class="m">99</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s2">&quot;Describe this image in detail, including the main object, its color, and how many people are visible.&quot;</span>
+</code></pre></div>
+<p><strong>Result on <code>bus.jpg</code></strong> (the bus + pedestrians image) — correct and detailed:</p>
+<blockquote>
+<p><em>"It's a </em><em>blue and white</em><em> electric </em><em>minibus</em><em> ('100% eléctrico', 'cero emisiones')… I see
+</em><em>three people clearly</em><em> standing/walking near the bus … plus a partial view of a person on the
+far left edge."</em></p>
+</blockquote>
+<p>It even read text off the bus (OCR) and its people count matched the YOLO detector (4 person boxes,
+one low-confidence) from the object-detection lab. Vision needs the <code>mmproj</code> + a current
+<code>llama-mtmd-cli</code> (the same b9743 build); the shipped container build cannot load it.</p>
+<h3 id="sjsujetsontool-vllm">🚀 <code>sjsujetsontool vllm</code><a class="headerlink" href="#sjsujetsontool-vllm" title="Permanent link">&para;</a></h3>
+<p>This section introduces high-performance, production-grade serving using <strong>vLLM</strong> on NVIDIA Jetson platforms. Compared to Ollama and <code>llama.cpp</code> which are highly optimized for CPU/GPU edge hardware, <strong>vLLM</strong> utilizes <strong>PagedAttention</strong> and advanced parallel speculative decoding to maximize GPU throughput and reduce latency under heavy model workloads.</p>
+<h4 id="how-speculative-decoding-works">⚙️ How Speculative Decoding Works<a class="headerlink" href="#how-speculative-decoding-works" title="Permanent link">&para;</a></h4>
+<p>Speculative decoding speeds up inference by running a smaller, faster <strong>draft model</strong> (the <em>speculator</em>) in parallel with a larger <strong>target model</strong> (the <em>verifier</em>). The speculator guesses multiple draft tokens in a single forward pass, which the verifier validates in parallel. </p>
+<p>For example, using <code>RedHatAI/Qwen3-8B-speculator.eagle3</code>, the EAGLE-3 method generates candidates rapidly, accelerating generation speed by up to 2x–3x on Jetson platforms.</p>
+<h4 id="serving-with-vllm-host-shortcut">🚀 Serving with vLLM Host Shortcut<a class="headerlink" href="#serving-with-vllm-host-shortcut" title="Permanent link">&para;</a></h4>
+<p>You can start the vLLM server directly from the host system:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Start vLLM with the default Qwen3 EAGLE-3 speculator model:</span>
+sjsujetsontool<span class="w"> </span>vllm<span class="w"> </span>RedHatAI/Qwen3-8B-speculator.eagle3
+</code></pre></div>
+<blockquote>
+<p>[!TIP]
+<strong>GPU Memory Allocation:</strong> vLLM allocates up to 90% of GPU memory by default. On resource-constrained edge devices (like the 8GB Jetson Orin Nano), the shortcut pre-configures <code>--gpu-memory-utilization 0.8</code> to leave headroom. You can customize the memory utilization or add other flags by passing them to the command:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>vllm<span class="w"> </span>RedHatAI/Qwen3-8B-speculator.eagle3<span class="w"> </span>--gpu-memory-utilization<span class="w"> </span><span class="m">0</span>.5<span class="w"> </span>--max-model-len<span class="w"> </span><span class="m">2048</span>
+</code></pre></div></p>
+</blockquote>
+<p>The server launches inside the optimized NVIDIA Jetson vLLM container (<code>ghcr.io/nvidia-ai-iot/vllm:latest-jetson-orin</code>) and runs on port <code>8000</code>.</p>
+<h4 id="querying-the-vllm-server-via-api">💬 Querying the vLLM Server via API<a class="headerlink" href="#querying-the-vllm-server-via-api" title="Permanent link">&para;</a></h4>
+<p>Once the vLLM server is running, you can perform queries using the OpenAI-compatible HTTP API:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://localhost:8000/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;model&quot;: &quot;RedHatAI/Qwen3-8B-speculator.eagle3&quot;,</span>
+<span class="s1">    &quot;messages&quot;: [</span>
+<span class="s1">      {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What are the benefits of speculative decoding?&quot;}</span>
+<span class="s1">    ]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+<h3 id="sjsujetsontool-status">📦 <code>sjsujetsontool status</code><a class="headerlink" href="#sjsujetsontool-status" title="Permanent link">&para;</a></h3>
+<p>Displays:</p>
+<ul>
+<li>Docker container state</li>
+<li>GPU stats from <code>tegrastats</code></li>
+<li>Port listening status for key services</li>
+</ul>
+<h3 id="sjsujetsontool-set-hostname-name">🔧 <code>sjsujetsontool set-hostname &lt;name&gt;</code><a class="headerlink" href="#sjsujetsontool-set-hostname-name" title="Permanent link">&para;</a></h3>
+<p>Changes device hostname, regenerates system identity, writes <code>/etc/device-id</code>.</p>
+<h3 id="sjsujetsontool-stop">🛑 <code>sjsujetsontool stop</code><a class="headerlink" href="#sjsujetsontool-stop" title="Permanent link">&para;</a></h3>
+<p>Stops the running Docker container started by previous commands.</p>
+<h3 id="sjsujetsontool-setup-nvapi">🔑 <code>sjsujetsontool setup-nvapi</code><a class="headerlink" href="#sjsujetsontool-setup-nvapi" title="Permanent link">&para;</a></h3>
+<p>Used in <a href="../11_nextjs_nemotron_app/">Lesson 11: Building a Next.js AI App with NVIDIA Nemotron</a> to set up and verify the NVIDIA NGC Build API key. </p>
+<p>Running this command will guide you through acquiring your free NGC API Key from <a href="https://build.nvidia.com">build.nvidia.com</a> and saving it locally into the <code>.env.local</code> file inside the Next.js application directory.</p>
+<h4 id="how-to-setup">⚙️ How to Setup<a class="headerlink" href="#how-to-setup" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>setup-nvapi
+</code></pre></div>
+<p>During execution, it will prompt you:
+<div class="highlight"><pre><span></span><code>🔑 Paste your NVIDIA API Key (nvapi-...): &lt;paste your key here&gt;
+</code></pre></div></p>
+<p>The script automatically:
+1. Validates the prefix format of the key.
+2. Identifies the directory structure of the Next.js application and writes or updates the key as <code>NVIDIA_API_KEY=nvapi-...</code> in <code>edgeLLM/nextjs-nemotron-app/.env.local</code>.
+3. Performs a test API query using <code>curl</code> against the <strong>Nemotron 3 Nano Omni</strong> reasoning model to verify authentication.</p>
+<h4 id="connection-test-example-output-on-success">🧪 Connection Test Example output on success:<a class="headerlink" href="#connection-test-example-output-on-success" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>🧪 Testing connection to NVIDIA Build API using model &#39;nvidia/nemotron-3-nano-omni-30b-a3b-reasoning&#39;...
+✅ API Test Succeeded (HTTP 200)!
+💬 Model response: Hello! How can I assist you today?
+</code></pre></div>
+<h3 id="sjsujetsontool-nv-chat">💬 <code>sjsujetsontool nv-chat</code><a class="headerlink" href="#sjsujetsontool-nv-chat" title="Permanent link">&para;</a></h3>
+<p>Similar to the local <code>llama</code> and <code>llama-cli</code> shortcuts, <code>sjsujetsontool</code> provides a convenient <code>nv-chat</code> utility for students to interact directly with the NVIDIA Build API backend. It supports both <strong>interactive chat</strong> and <strong>single-prompt modes</strong>, offers a selection of optimized reasoning and chat models, and returns real-time streaming tokens along with performance statistics (such as token generation speed and Time-To-First-Token).</p>
+<h4 id="usage-modes">⚙️ Usage Modes<a class="headerlink" href="#usage-modes" title="Permanent link">&para;</a></h4>
+<h5 id="1-interactive-chat-mode">1. Interactive Chat Mode<a class="headerlink" href="#1-interactive-chat-mode" title="Permanent link">&para;</a></h5>
+<p>Run <code>nv-chat</code> without any arguments to launch an interactive session. You will be prompted to select from a list of curated NVIDIA models:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>nv-chat
+</code></pre></div></p>
+<p>Upon launching, the interactive menu presents:
+<div class="highlight"><pre><span></span><code>🤖 Select NVIDIA Build Model:
+  1) Llama 3.1 Nemotron Nano (8B) [Default]
+  2) Llama 3.3 Nemotron Super (49B)
+  3) Llama 3.1 Nemotron Ultra (253B)
+  4) Nemotron 3 Nano Omni (30B reasoning)
+  5) Nemotron 3 Ultra (550B reasoning)
+  6) Nemotron 3 Super (120B reasoning)
+Select [1-6]:
+</code></pre></div></p>
+<p>Once selected, you can type your prompts interactively. Type <code>exit</code> or <code>quit</code> to end the session.</p>
+<h5 id="2-single-prompt-mode">2. Single-Prompt Mode<a class="headerlink" href="#2-single-prompt-mode" title="Permanent link">&para;</a></h5>
+<p>You can pass a prompt directly as arguments to perform a single query:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>nv-chat<span class="w"> </span><span class="s2">&quot;Explain the architecture of Nvidia Jetson Orin Nano&quot;</span>
+</code></pre></div>
+Or use the explicit flags to specify a different model or prompt:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>nv-chat<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;Explain the architecture of Nvidia Jetson Orin Nano&quot;</span><span class="w"> </span>-m<span class="w"> </span>nvidia/llama-3.3-nemotron-super-49b-v1
+</code></pre></div></p>
+<h4 id="performance-metrics">⚡ Performance Metrics<a class="headerlink" href="#performance-metrics" title="Permanent link">&para;</a></h4>
+<p>Every response is streamed in real-time. Upon completion, the tool outputs performance statistics:
+* <strong>Time-to-first-token (TTFT):</strong> Measures the initial server latency.
+* <strong>Generation speed:</strong> Tokens generated per second, along with total generation time and token count.</p>
+<h5 id="example-output-streaming-performance-logs">Example Output (Streaming + Performance Logs):<a class="headerlink" href="#example-output-streaming-performance-logs" title="Permanent link">&para;</a></h5>
+<div class="highlight"><pre><span></span><code>💬 Starting interactive chat with nvidia/llama-3.1-nemotron-nano-8b-v1...
+   Type &#39;exit&#39; to quit.
+══════════════════════════════════════════════════
+User &gt; What is NVIDIA Jetson?
+💬 [Response]: NVIDIA Jetson is a series of embedded computing boards from NVIDIA designed for bringing accelerated AI to the edge. It combines a powerful ARM CPU with an integrated NVIDIA GPU (based on architectures like Ampere, Maxwell, or Pascal) to enable high-performance deep learning inference...
+
+⚡ [Performance]: Time-to-first-token: 0.45s | Generation: 68.4 tokens/sec (124 tokens generated in 1.81s)
+</code></pre></div>
+<blockquote>
+<p>[!NOTE]
+* <strong>Reasoning Models:</strong> For reasoning models (e.g., <code>nemotron-3-nano-omni-30b-a3b-reasoning</code> or <code>nemotron-3-super-120b-a12b</code>), the tool streams the model's internal thinking process under a <code>🧠 [Thinking Process]</code> header before streaming the final answer under a <code>💬 [Response]</code> header.
+* <strong>Robustness and Timeouts:</strong> To prevent execution from hanging indefinitely on slow or cold-starting cloud endpoints, the tool imposes a strict <strong>15-second request timeout</strong>. If a connection cannot be established or a model is unresponsive, the query fails gracefully with a timeout error.
+* <strong>HTTP 403 Forbidden Errors:</strong> If you receive a <code>403 Forbidden</code> error, this indicates that the specific model name is either restricted/unavailable under your free account plan, deprecated/renamed on the NVIDIA Build platform, or your API key's free credit quota has run out. You can resolve this by checking model availability in the <a href="https://build.nvidia.com">NVIDIA API Catalog</a> or updating/renewing your API key using <code>sjsujetsontool setup-nvapi</code>.</p>
+</blockquote>
+<h3 id="sjsujetsontool-chat-one-chat-client-many-backends">💬 <code>sjsujetsontool chat</code> — one chat client, many backends<a class="headerlink" href="#sjsujetsontool-chat-one-chat-client-many-backends" title="Permanent link">&para;</a></h3>
+<p><code>sjsujetsontool chat</code> is a <strong>unified, streaming terminal chat client</strong> that talks to any OpenAI-compatible endpoint and lets you choose, at launch (and any time with <code>/server</code>), <strong>where the model runs</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Backend</th>
+<th>Runs on</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td><strong>Local Jetson llama.cpp</strong></td>
+<td>this Jetson (<code>http://localhost:8080</code>)</td>
+<td>a local server — start it with <code>sjsujetsontool llama</code></td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td><strong>NVIDIA Build API</strong></td>
+<td>NVIDIA cloud (<code>integrate.api.nvidia.com</code>)</td>
+<td><code>NVIDIA_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td><strong>OpenAI</strong></td>
+<td>OpenAI cloud (<code>api.openai.com</code>)</td>
+<td><code>OPENAI_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong>Anthropic Claude</strong></td>
+<td>Anthropic cloud (OpenAI‑compatible endpoint <code>api.anthropic.com/v1</code>)</td>
+<td><code>ANTHROPIC_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td><strong>Our shared LLM server</strong></td>
+<td>a shared GPU node via <code>https://llm.forgengi.org/&lt;node&gt;</code></td>
+<td>Headscale access (+ key if set)</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td><strong>Custom OpenAI‑compatible server</strong></td>
+<td>any URL you enter</td>
+<td>the URL (+ key if it needs one)</td>
+</tr>
+</tbody>
+</table>
+<p>It uses the same engine as <code>gputool chat</code>: <strong>streaming Markdown</strong> via <a href="https://github.com/Textualize/rich"><code>rich</code></a> when installed (plain renderer otherwise), and per‑turn <strong>prefill / generation</strong> token speeds.</p>
+<blockquote>
+<p>[!TIP]
+Nicer Markdown/code‑highlighted UI: <code>pip install rich</code> (optional). On the Jetson, prefer short
+answers — see the thinking‑off / <code>max_tokens</code> tips in the llama‑server section above.</p>
+</blockquote>
+<h4 id="getting-the-cloud-api-keys-saved-to-envlocal">🔑 Getting the cloud API keys (saved to <code>~/.env.local</code>)<a class="headerlink" href="#getting-the-cloud-api-keys-saved-to-envlocal" title="Permanent link">&para;</a></h4>
+<p>The first time you pick a cloud backend, the client <strong>prompts you for the key right in the terminal</strong>
+and saves it to <strong><code>~/.env.local</code></strong> (chmod 600), so you only enter it once. Get a key here:</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Where to get the key</th>
+<th>Variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NVIDIA</strong></td>
+<td><a href="https://build.nvidia.com">https://build.nvidia.com</a> → sign in → open any model → <strong>Get API Key</strong> (free tier)</td>
+<td><code>NVIDIA_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>OpenAI</strong></td>
+<td><a href="https://platform.openai.com/api-keys">https://platform.openai.com/api-keys</a> → <strong>Create new secret key</strong> (needs a billing method)</td>
+<td><code>OPENAI_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>Anthropic</strong></td>
+<td><a href="https://console.anthropic.com/settings/keys">https://console.anthropic.com/settings/keys</a> → <strong>Create Key</strong> (needs prepaid credit)</td>
+<td><code>ANTHROPIC_API_KEY</code></td>
+</tr>
+</tbody>
+</table>
+<p>You can also pre‑populate them manually (same file the Next.js app and <code>setup-nvapi</code> use):
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.env.local<span class="w"> </span><span class="s">&lt;&lt;&#39;EOF&#39;</span>
+<span class="s">OPENAI_API_KEY=sk-...</span>
+<span class="s">ANTHROPIC_API_KEY=sk-ant-...</span>
+<span class="s">EOF</span>
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/.env.local
+</code></pre></div></p>
+<h4 id="launch">Launch<a class="headerlink" href="#launch" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>chat<span class="w">            </span><span class="c1"># shows the backend menu, then drops you into a session</span>
+sjsujetsontool<span class="w"> </span>chat<span class="w"> </span>--local<span class="w">    </span><span class="c1"># quick shortcut to the local Jetson llama.cpp (:8080)</span>
+</code></pre></div>
+<h4 id="example-picking-a-cloud-backend-first-run-prompts-for-the-key">Example — picking a cloud backend (first run prompts for the key)<a class="headerlink" href="#example-picking-a-cloud-backend-first-run-prompts-for-the-key" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>🤖 Select a chat backend:
+  1) Local Jetson llama.cpp  (localhost:8080)
+  2) NVIDIA Build API  (free cloud)  [needs NVIDIA_API_KEY]
+  3) OpenAI  (gpt-4o, …)  [needs OPENAI_API_KEY]
+  4) Anthropic Claude  (OpenAI-compatible endpoint)  [needs ANTHROPIC_API_KEY]
+  5) Our shared LLM server  (Headscale gateway)
+  6) Custom OpenAI-compatible server  (enter URL + key)
+Select [1-6] (Enter = 1): 4
+
+🔑 This backend needs an API key (ANTHROPIC_API_KEY).
+   Create a key: https://console.anthropic.com/settings/keys  (requires prepaid credit).
+   Paste the key below; it will be saved to ~/.env.local (chmod 600) for next time.
+Enter ANTHROPIC_API_KEY: ****************
+✅ Saved ANTHROPIC_API_KEY to /home/sjsujetson/.env.local
+Models:
+  1) claude-haiku-4-5  [default]
+  2) claude-sonnet-4-6
+  3) claude-opus-4-8
+Select [1-3] (Enter = 1), or type a model name: 2
+╭─ Assistant ▸ ──────────────────────────────────────────────────╮
+│ NVIDIA Jetson is a family of embedded AI computers …            │
+╰────────────────────────────────────────────────────────────────╯
+(245 prompt + 88 completion tokens · 41.2 tok/s · 2.1s)
+</code></pre></div>
+<blockquote>
+<p>💡 <strong>Switch backends mid‑session</strong> with <code>/server</code> — it shows the same menu, so you can jump from
+the local Jetson model to OpenAI or Claude without leaving the chat.</p>
+</blockquote>
+<h4 id="in-chat-slash-commands">In-chat slash commands<a class="headerlink" href="#in-chat-slash-commands" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/exit</code>, <code>/quit</code>, <code>/q</code></td>
+<td>Leave the chat</td>
+</tr>
+<tr>
+<td><code>/server</code></td>
+<td>Switch backend (local · NVIDIA · OpenAI · Anthropic · custom) — re-opens the menu</td>
+</tr>
+<tr>
+<td><code>/save [file]</code></td>
+<td>Save the conversation (<code>.md</code> default, or <code>.json</code>)</td>
+</tr>
+<tr>
+<td><code>/reset</code></td>
+<td>Clear history (keeps the system prompt)</td>
+</tr>
+<tr>
+<td><code>/system &lt;text&gt;</code></td>
+<td>Set/clear the system prompt</td>
+</tr>
+<tr>
+<td><code>/think on\|off</code></td>
+<td>Toggle the model's reasoning output</td>
+</tr>
+<tr>
+<td><code>/temp &lt;v&gt;</code></td>
+<td>Set sampling temperature (e.g. <code>/temp 0.7</code>)</td>
+</tr>
+<tr>
+<td><code>/set &lt;k&gt; &lt;v&gt;</code></td>
+<td>Set <code>top_p</code> / <code>top_k</code> / <code>min_p</code> / <code>presence</code> / <code>max_tokens</code></td>
+</tr>
+<tr>
+<td><code>/preset &lt;name&gt;</code></td>
+<td>Apply Qwen3.5 presets: <code>thinking</code> · <code>coding</code> · <code>instruct</code></td>
+</tr>
+<tr>
+<td><code>/config</code></td>
+<td>Show current sampling settings</td>
+</tr>
+<tr>
+<td><code>/help</code></td>
+<td>Show the command help</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Test different settings live.</strong> Reasoning models like Qwen3.5 behave very differently by temperature and thinking mode. Use <code>/preset thinking</code> (creative: temp 1.0) vs <code>/preset coding</code> (precise: temp 0.6) vs <code>/preset instruct</code> (no thinking: temp 0.7), or fine-tune with <code>/temp 0.6</code> and <code>/set top_p 0.95</code>. These match <a href="https://unsloth.ai/docs/models/qwen3.5">Unsloth's recommended Qwen3.5 settings</a>.</p>
+<p>[!NOTE]
+<strong>What is "our LLM server"?</strong> A GPU node (e.g. an RTX 5080 board) runs <code>llama.cpp</code> and joins the <strong>Headscale</strong> network. The Headscale host (<code>headscale.forgengi.org</code>) reverse-proxies it under a friendly name at <code>https://llm.forgengi.org/&lt;node&gt;/v1</code> (TLS-terminated, the node's API key still required). This lets every Jetson use a big shared model <strong>by name, over HTTPS — no IP addresses</strong>. See <a href="../00c_gputool_guide/">the gputool guide</a> for how a node serves the model and how the gateway maps it.</p>
+</blockquote>
+<h3 id="sjsujetsontool-setup-check">⚙️ <code>sjsujetsontool setup-check</code><a class="headerlink" href="#sjsujetsontool-setup-check" title="Permanent link">&para;</a></h3>
+<p>Used to verify and configure the host <code>/Developer</code> directory environment and retrieve/update the <code>edgeAI</code> curriculum codebase. This is crucial when setting up brand new Jetson nodes or checking cloned systems to ensure correct container mounts.</p>
+<h4 id="why-it-is-needed">⚙️ Why It Is Needed<a class="headerlink" href="#why-it-is-needed" title="Permanent link">&para;</a></h4>
+<p>When you launch the Jetson container shell (<code>sjsujetsontool shell</code>), <code>sjsujetsontool</code> automatically mounts the host <code>/Developer</code> folder inside the container as <code>/Developer</code>. 
+* <strong>Permission Alignment:</strong> If <code>/Developer</code> does not exist on the host, the Docker daemon creates it as <code>root</code>-owned with restricted write permissions, preventing students from running git clones, code edits, or saving model weights.
+* <strong>Auto Setup Check:</strong> <code>setup-check</code> ensures <code>/Developer</code> exists on the host, sets permissions to <code>777</code> (world-writable), ensures the <code>/Developer/models</code> weights directory is set up, and downloads/pulls the <code>edgeAI</code> codebase.</p>
+<blockquote>
+<p>[!TIP]
+The <code>setup-check</code> command runs automatically as a lifecycle step inside the <strong><code>sjsujetsontool update</code></strong> subcommand and whenever <strong><code>sjsujetsontool shell</code></strong> is launched on a fresh node where the directory structure is missing.</p>
+</blockquote>
+<h4 id="how-to-run">🛠️ How to Run<a class="headerlink" href="#how-to-run" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>setup-check
+</code></pre></div>
+<p>Example Output on success:
+<div class="highlight"><pre><span></span><code>══════════════════════════════════════════════════
+⚙️  Checking /Developer folder and edgeAI git repository...
+══════════════════════════════════════════════════
+✅ Directory &#39;/Developer&#39; exists.
+✅ Directory &#39;/Developer&#39; is writable.
+✅ edgeAI repository already exists.
+🔄 Pulling latest changes from origin...
+✅ Repository updated successfully.
+══════════════════════════════════════════════════
+</code></pre></div></p>
+<hr />
+<h2 id="safety-guidelines">⚠️ Safety Guidelines<a class="headerlink" href="#safety-guidelines" title="Permanent link">&para;</a></h2>
+<ul>
+<li>🔌 <strong>Power Supply</strong>: Use a 5A USB-C adapter or official barrel jack for stability.</li>
+<li>💾 <strong>SSD Cloning</strong>: Change the hostname and machine-id after cloning to prevent network conflicts.</li>
+<li>🔐 <strong>SSH Security</strong>: Only install SSH keys from trusted GitHub accounts.</li>
+<li>🧼 <strong>Disk Cleanup</strong>: Remove cache and large datasets before creating system images.</li>
+<li>📦 <strong>Containers</strong>: Always stop containers with <code>sjsujetsontool stop</code> before unplugging.</li>
+</ul>
+<hr />
+<h2 id="ready-to-learn-and-build">🧭 Ready to Learn and Build<a class="headerlink" href="#ready-to-learn-and-build" title="Permanent link">&para;</a></h2>
+<p>You're now equipped to:</p>
+<ul>
+<li>Run AI models (LLaMA, Mistral, DeepSeek, etc.)</li>
+<li>Build and test LLM applications</li>
+<li>Access Jetson remotely with SSH or VS Code</li>
+<li>Run real-time cyber/AI experiments on the edge!</li>
+</ul>
+<hr />
+<p>Made with 💻 by <a href="mailto:kaikai.liu@sjsu.edu">Kaikai Liu</a> — <a href="https://github.com/lkk688/edgeAI">GitHub Repo</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

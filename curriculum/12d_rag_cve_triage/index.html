@@ -1,0 +1,1834 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../12c_react_loop_triage/">
+      
+      
+        <link rel="next" href="../05c_ros2_isaac_ros_jetson/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🔎 Vuln Triage — RAG - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ai-powered-cve-triage-on-jetson-part-4-embedding-based-rag" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🔎 Vuln Triage — RAG
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-youll-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 🎯 What you'll build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-why-a-triage-corpus-and-not-the-full-cve-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 🧠 Why a triage corpus (and not the full CVE database)?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-step-1-embed-the-corpus-once-retrieve-forever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 🧩 Step 1 — Embed the corpus once, retrieve forever
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-step-2-register-the-tool-with-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 🧩 Step 2 — Register the tool with the agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ▶️ Run it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-pattern-retrieval-as-one-of-many-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 🤔 Pattern: retrieval as one of many tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-try-in-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 🧪 Try in class
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-what-you-can-build-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 📚 What you can build next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-youll-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 🎯 What you'll build
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-why-a-triage-corpus-and-not-the-full-cve-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 🧠 Why a triage corpus (and not the full CVE database)?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-step-1-embed-the-corpus-once-retrieve-forever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 🧩 Step 1 — Embed the corpus once, retrieve forever
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-step-2-register-the-tool-with-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 🧩 Step 2 — Register the tool with the agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. ▶️ Run it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-pattern-retrieval-as-one-of-many-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 🤔 Pattern: retrieval as one of many tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-try-in-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 🧪 Try in class
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-what-you-can-build-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 📚 What you can build next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ai-powered-cve-triage-on-jetson-part-4-embedding-based-rag">🔎 AI-Powered CVE Triage on Jetson — Part 4: Embedding-Based RAG<a class="headerlink" href="#ai-powered-cve-triage-on-jetson-part-4-embedding-based-rag" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.
+<strong>Institution:</strong> San Jose State University</p>
+<blockquote>
+<p><strong>Prerequisite:</strong> <a href="../12c_react_loop_triage/">Lesson 12c</a>. You should
+have the ReAct loop working against <code>triage_react.py</code>.</p>
+<p><strong>Companion code:</strong>
+<a href="../../edgeLLM/vuln-triage/triage_rag.py"><code>edgeLLM/vuln-triage/triage_rag.py</code></a>
+· <a href="../../edgeLLM/vuln-triage/tools/embedding_search.py"><code>tools/embedding_search.py</code></a>
+· <a href="../../edgeLLM/vuln-triage/examples/cve_corpus.jsonl"><code>examples/cve_corpus.jsonl</code></a></p>
+</blockquote>
+<hr />
+<h2 id="1-what-youll-build">1. 🎯 What you'll build<a class="headerlink" href="#1-what-youll-build" title="Permanent link">&para;</a></h2>
+<p>The ReAct triage from lesson 12c, plus <strong>one extra tool</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">similar_cves</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span>
+</code></pre></div>
+<p>It performs cosine-similarity search over a tiny in-process corpus of
+hand-written <strong>triage notes</strong> — one row per CVE class, with the <em>code
+patterns</em> and the <em>one-paragraph rule of thumb</em> a human analyst would
+have memorised. The embedding model is
+<a href="https://build.nvidia.com"><code>nvidia/nv-embedqa-e5-v5</code></a> — the same one we
+used in the Next.js Retrieval Lab in <a href="../11_nextjs_nemotron_app/">Lesson 11 §7</a>.</p>
+<p>The point: <strong>retrieval is just one more tool in the loop, not a
+separate pipeline</strong>. The model decides when (and whether) to use it.
+This is the simplest possible <em>agentic RAG</em>.</p>
+<hr />
+<h2 id="2-why-a-triage-corpus-and-not-the-full-cve-database">2. 🧠 Why a triage corpus (and not the full CVE database)?<a class="headerlink" href="#2-why-a-triage-corpus-and-not-the-full-cve-database" title="Permanent link">&para;</a></h2>
+<p>A "normal" RAG system embeds the entire knowledge base — Wikipedia,
+your docs, the NVD JSON — and retrieves the top-k chunks. For
+vulnerability triage that is <em>wasteful</em>:</p>
+<ul>
+<li>The CVE description is already provided to the model from
+  <code>lookup_cve</code>. We don't need to retrieve it.</li>
+<li>What the model <strong>does</strong> need is the <em>operational</em> knowledge a senior
+  analyst would carry — the kind of advice you'd find in an internal
+  wiki:</li>
+</ul>
+<blockquote>
+<p><em>"<code>pyyaml</code> CVEs are exploitable only when the program actually calls
+<code>yaml.load</code> or <code>yaml.full_load</code> on untrusted input. Code that imports
+pyyaml transitively but never invokes its loaders is </em><em>not exposed</em><em>."</em></p>
+</blockquote>
+<p>We hand-write ~12 of these notes in
+<a href="../../edgeLLM/vuln-triage/examples/cve_corpus.jsonl"><code>examples/cve_corpus.jsonl</code></a>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="nt">&quot;cve_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CVE-2020-1747&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;package&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pyyaml&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;summary&quot;</span><span class="p">:</span><span class="w">  </span><span class="s2">&quot;PyYAML yaml.load(..., Loader=FullLoader) allows arbitrary &quot;</span>
+<span class="w">             </span><span class="s2">&quot;Python object construction in versions &lt;5.3.1&quot;</span><span class="p">,</span>
+<span class="w"> </span><span class="nt">&quot;patterns&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;yaml.load&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yaml.FullLoader&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;yaml.unsafe_load&quot;</span><span class="p">],</span>
+<span class="w"> </span><span class="nt">&quot;guidance&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Exploitable only if the program actually calls yaml.load &quot;</span>
+<span class="w">             </span><span class="s2">&quot;on untrusted input. Projects that import pyyaml &quot;</span>
+<span class="w">             </span><span class="s2">&quot;transitively but never call its loaders are not exposed. &quot;</span>
+<span class="w">             </span><span class="s2">&quot;Move to yaml.safe_load regardless.&quot;</span><span class="p">}</span>
+</code></pre></div>
+<p><code>patterns</code> is the <em>what to grep for</em>; <code>guidance</code> is the <em>what to
+conclude</em>. Both will end up inside the model's prompt after retrieval.</p>
+<p>Twelve rows might sound tiny — but the cosine search is <strong>per query</strong>,
+not per row. The agent issues <em>one</em> <code>similar_cves</code> call per CVE, and
+the top-3 matches are typically all the prior knowledge it needs.</p>
+<hr />
+<h2 id="3-step-1-embed-the-corpus-once-retrieve-forever">3. 🧩 Step 1 — Embed the corpus once, retrieve forever<a class="headerlink" href="#3-step-1-embed-the-corpus-once-retrieve-forever" title="Permanent link">&para;</a></h2>
+<p><a href="../../edgeLLM/vuln-triage/tools/embedding_search.py"><code>tools/embedding_search.py</code></a>
+is ~90 lines. The interesting parts:</p>
+<div class="highlight"><pre><span></span><code><span class="n">EMBED_MODEL</span> <span class="o">=</span> <span class="s2">&quot;nvidia/nv-embedqa-e5-v5&quot;</span>        <span class="c1"># 1024-dim, asymmetric</span>
+<span class="n">_INDEX</span> <span class="o">=</span> <span class="kc">None</span>                                  <span class="c1"># module-level cache</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_embed_batch</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">input_type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One POST to /v1/embeddings — both `query` and `passage` modes.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">trust_env</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">post</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">NVIDIA_BASE_URL</span><span class="si">}</span><span class="s2">/embeddings&quot;</span><span class="p">,</span>
+            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">NVIDIA_API_KEY</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                     <span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span>  <span class="s2">&quot;application/json&quot;</span><span class="p">},</span>
+            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="n">EMBED_MODEL</span><span class="p">,</span>
+                  <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">texts</span><span class="p">,</span>
+                  <span class="s2">&quot;input_type&quot;</span><span class="p">:</span> <span class="n">input_type</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">resp</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;embedding&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;data&quot;</span><span class="p">]]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_index</span><span class="p">(</span><span class="n">corpus_path</span><span class="p">):</span>
+    <span class="n">rows</span>  <span class="o">=</span> <span class="n">_load_corpus</span><span class="p">(</span><span class="n">corpus_path</span><span class="p">)</span>
+    <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;package&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;summary&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">. Patterns: &quot;</span>
+             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;patterns&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">[]))</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+    <span class="c1"># Asymmetric: corpus = &quot;passage&quot;, queries will use &quot;query&quot;.</span>
+    <span class="n">vecs</span>  <span class="o">=</span> <span class="n">_embed_batch</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;passage&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">_vector</span><span class="o">=</span><span class="n">v</span><span class="p">,</span> <span class="n">_text</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">vecs</span><span class="p">,</span> <span class="n">texts</span><span class="p">)]</span>
+</code></pre></div>
+<p><code>nv-embedqa-e5-v5</code> is an <strong>asymmetric</strong> embedding model — corpus
+documents must be embedded with <code>input_type="passage"</code>, queries with
+<code>input_type="query"</code>. Mix them up and the cosine scores collapse. The
+Next.js Retrieval Lab burned the same point home in Lesson 11.</p>
+<p>The index is cached in a module-level global so we only POST to
+<code>/v1/embeddings</code> <em>once</em> per process — building the full 12-row index
+costs a single round trip to NVIDIA Build.</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">similar_cves</span><span class="p">(</span><span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">corpus_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">_INDEX</span>
+    <span class="k">if</span> <span class="n">_INDEX</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_INDEX</span> <span class="o">=</span> <span class="n">_build_index</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">corpus_path</span> <span class="ow">or</span> <span class="n">DEFAULT</span><span class="p">))</span>
+
+    <span class="n">q_vec</span>  <span class="o">=</span> <span class="n">_embed_batch</span><span class="p">([</span><span class="n">query</span><span class="p">],</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;query&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">scored</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_cosine</span><span class="p">(</span><span class="n">q_vec</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;_vector&quot;</span><span class="p">]),</span> <span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">_INDEX</span><span class="p">]</span>
+    <span class="n">scored</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="n">query</span><span class="p">,</span> <span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="n">k</span><span class="p">,</span>
+            <span class="s2">&quot;matches&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;cve_id&quot;</span><span class="p">:</span>   <span class="n">r</span><span class="p">[</span><span class="s2">&quot;cve_id&quot;</span><span class="p">],</span>
+                         <span class="s2">&quot;package&quot;</span><span class="p">:</span>  <span class="n">r</span><span class="p">[</span><span class="s2">&quot;package&quot;</span><span class="p">],</span>
+                         <span class="s2">&quot;summary&quot;</span><span class="p">:</span>  <span class="n">r</span><span class="p">[</span><span class="s2">&quot;summary&quot;</span><span class="p">],</span>
+                         <span class="s2">&quot;patterns&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;patterns&quot;</span><span class="p">,</span> <span class="p">[]),</span>
+                         <span class="s2">&quot;guidance&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;guidance&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+                         <span class="s2">&quot;score&quot;</span><span class="p">:</span>    <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">3</span><span class="p">)}</span>
+                        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">scored</span><span class="p">[:</span><span class="n">k</span><span class="p">]]}</span>
+</code></pre></div>
+<p><code>_cosine</code> is six lines of stdlib math. No FAISS, no Chroma, no
+Pinecone — the corpus is tiny enough that the entire similarity scan
+runs in microseconds. <strong>In a real deployment</strong> you'd swap <code>_INDEX +
+_cosine</code> for a proper vector DB; the rest of the file does not change.</p>
+<hr />
+<h2 id="4-step-2-register-the-tool-with-the-agent">4. 🧩 Step 2 — Register the tool with the agent<a class="headerlink" href="#4-step-2-register-the-tool-with-the-agent" title="Permanent link">&para;</a></h2>
+<p>Inside <a href="../../edgeLLM/vuln-triage/triage_rag.py"><code>triage_rag.py</code></a> the
+tool table grows by exactly one entry compared to 12c:</p>
+<div class="highlight"><pre><span></span><code><span class="n">TOOLS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;lookup_cve&quot;</span><span class="p">:</span>         <span class="n">lookup_cve</span><span class="p">,</span>
+    <span class="s2">&quot;pip_audit_findings&quot;</span><span class="p">:</span> <span class="n">pip_audit_findings</span><span class="p">,</span>
+    <span class="s2">&quot;search_usage&quot;</span><span class="p">:</span>       <span class="n">search_usage</span><span class="p">,</span>
+    <span class="s2">&quot;read_file&quot;</span><span class="p">:</span>          <span class="n">read_file</span><span class="p">,</span>
+    <span class="s2">&quot;similar_cves&quot;</span><span class="p">:</span>       <span class="n">similar_cves</span><span class="p">,</span>        <span class="c1"># ← new</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>…and the system prompt mentions it <em>first</em>, with an explicit hint that
+the agent should call it <strong>before</strong> anything else:</p>
+<div class="highlight"><pre><span></span><code><span class="n">Available</span> <span class="n">tools</span><span class="p">:</span>
+  <span class="n">similar_cves</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+      <span class="err">→</span> <span class="n">Retrieve</span> <span class="n">up</span> <span class="n">to</span> <span class="n">k</span> <span class="n">semantically</span> <span class="n">similar</span> <span class="n">CVE</span> <span class="n">notes</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span>
+        <span class="n">internal</span> <span class="n">corpus</span><span class="o">.</span> <span class="n">Each</span> <span class="n">note</span> <span class="n">carries</span> <span class="n">a</span> <span class="err">`</span><span class="n">patterns</span><span class="err">`</span> <span class="n">array</span> <span class="p">(</span><span class="n">code</span>
+        <span class="n">signatures</span> <span class="n">that</span> <span class="n">make</span> <span class="n">the</span> <span class="n">CVE</span> <span class="n">reachable</span><span class="p">)</span> <span class="ow">and</span> <span class="err">`</span><span class="n">guidance</span><span class="err">`</span>
+        <span class="p">(</span><span class="n">a</span> <span class="n">one</span><span class="o">-</span><span class="n">paragraph</span> <span class="n">triage</span> <span class="n">rule</span> <span class="n">of</span> <span class="n">thumb</span><span class="p">)</span><span class="o">.</span> <span class="n">Call</span> <span class="n">this</span> <span class="n">FIRST</span> <span class="n">so</span>
+        <span class="n">you</span> <span class="n">know</span> <span class="n">what</span> <span class="n">to</span> <span class="n">grep</span> <span class="k">for</span><span class="o">.</span>
+  <span class="n">lookup_cve</span><span class="p">(</span><span class="n">cve_id</span><span class="p">)</span>
+      <span class="err">→</span> <span class="n">Authoritative</span> <span class="n">NVD</span> <span class="n">record</span> <span class="p">(</span><span class="n">description</span><span class="p">,</span> <span class="n">CVSS</span><span class="p">,</span> <span class="n">CWE</span><span class="p">,</span> <span class="n">affected</span>
+        <span class="n">versions</span><span class="p">)</span><span class="o">.</span>
+  <span class="n">pip_audit_findings</span><span class="p">(</span><span class="n">requirements_path</span><span class="p">)</span>
+  <span class="n">search_usage</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">is_regex</span><span class="o">=</span><span class="n">false</span><span class="p">)</span>
+  <span class="n">read_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">project_dir</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">null</span><span class="p">)</span>
+</code></pre></div>
+<p>Notice the wording: <em>"Call this FIRST so you know what to grep for."</em>
+That single line changes the agent's behaviour materially — it switches
+from "blindly search for the package name" to "first ask: what's the
+canonical danger pattern for this kind of CVE?"</p>
+<hr />
+<h2 id="5-run-it">5. ▶️ Run it<a class="headerlink" href="#5-run-it" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~/vuln-triage
+python3<span class="w"> </span>triage_rag.py<span class="w"> </span>--project<span class="w"> </span>sample_project<span class="w"> </span>--cve<span class="w"> </span>CVE-2020-1747
+</code></pre></div>
+<p>Verified output on Jetson Orin Nano. CVE-2020-1747 is the
+"declared-but-never-imported" pyyaml case — the agent must recognize
+that the <em>package</em> is in <code>requirements.txt</code> but no <em>code</em> invokes its
+vulnerable APIs:</p>
+<div class="highlight"><pre><span></span><code>⚙  building CVE embedding index (one call) …
+   index ready.
+
+[1/1] pyyaml 5.3 — CVE-2020-1747
+  ─ step 1: calling model … 4.0s  (p=594 c=82)
+      │ Thought: I need to triage CVE-2020-1747 related to pyyaml version 5.3. I will first
+      │ look for similar CVEs in the corpus to understand the pattern and guidance, then
+      │ check the project for actual usage.
+      │ Action: similar_cves({&quot;query&quot;: &quot;CVE-2020-1747&quot;, &quot;k&quot;: 3})
+      │ Observation: {&quot;matches&quot;:[{&quot;cve_id&quot;:&quot;CVE-2020-14343&quot;,&quot;patterns&quot;:[&quot;yaml.full_load&quot;,&quot;yaml.FullLoader&quot;,&quot;yaml.load&quot;],&quot;guidance&quot;:&quot;Same shape as CVE-2020-1747: requires .load() with the unsafe loader on attacker-controlled YAML…&quot;},…
+  ─ step 2: calling model … 3.7s  (p=1081 c=111)
+      │ Thought: I found that CVE-2020-1747 is related to PyYAML&#39;s unsafe loading … The similar
+      │ CVEs show that this vulnerability typically involves yaml.load() with unsafe loaders.
+      │ Action: pip_audit_findings({&quot;requirements_path&quot;: &quot;.../sample_project/requirements.txt&quot;})
+      │ Observation: {…pyyaml 5.3 → CVE-2020-1747…}
+  ─ step 3: calling model … 9.1s
+      │ Thought: Let me check for the vulnerable patterns directly.
+      │ Action: search_usage({&quot;pattern&quot;: &quot;yaml.load&quot;, &quot;project_dir&quot;: &quot;.../sample_project&quot;})
+      │ Observation: {&quot;pattern&quot;: &quot;yaml.load&quot;, &quot;hits&quot;: [], &quot;truncated&quot;: false}
+  ─ step 4: calling model … 3.2s
+      │ Thought: I don&#39;t see any usage of yaml.load. Let me check for other vulnerable patterns.
+      │ Action: search_usage({&quot;pattern&quot;: &quot;yaml.full_load&quot;, &quot;project_dir&quot;: &quot;.../sample_project&quot;})
+      │ Observation: {&quot;pattern&quot;: &quot;yaml.full_load&quot;, &quot;hits&quot;: [], &quot;truncated&quot;: false}
+  ─ step 5: calling model … 5.9s
+      │ Thought: Let me check if pyyaml is even imported.
+      │ Action: search_usage({&quot;pattern&quot;: &quot;import&quot;, &quot;project_dir&quot;: &quot;.../sample_project&quot;, &quot;is_regex&quot;: &quot;true&quot;})
+      │ Observation: {&quot;hits&quot;: [{&quot;file&quot;: &quot;app.py&quot;, &quot;snippet&quot;: &quot;- `jinja2` is imported, but the template string is …&quot;},…
+  ─ step 6: calling model … 9.6s
+      │ Thought: I have enough evidence to make a determination. …
+      │ Action: lookup_cve({&quot;cve_id&quot;: &quot;CVE-2020-1747&quot;})
+      │ Observation: {&quot;description&quot;: &quot;A vulnerability was discovered in the PyYAML library …
+  ─ step 7: calling model … 9.2s
+      │ Thought: I have confirmed that CVE-2020-1747 affects PyYAML versions before 5.3.1, …
+      │ However, in this project, pyyaml is listed in requirements.txt but is never actually
+      │ imported or used. The project does not contain any usage of yaml.load or yaml.full_load.
+      │ Final Answer: {&quot;exploitable_here&quot;: false, &quot;confidence&quot;: &quot;high&quot;,
+      │                &quot;justification&quot;: &quot;The project&#39;s requirements.txt lists pyyaml 5.3 but
+      │                the package is never imported or used in the codebase…&quot;,
+      │                &quot;recommended_action&quot;: &quot;Remove unused pyyaml dependency from requirements.txt
+      │                to reduce attack surface.&quot;}
+
+┌─ CVE-2020-1747  [pyyaml 5.3]
+│  verdict   : NOT EXPLOITABLE HERE   (confidence: high)
+│  reason    : The project&#39;s requirements.txt lists pyyaml 5.3 but the package is
+│              never imported or used in the codebase. Code searches show no
+│              usage of vulnerable functions like yaml.load or yaml.full_load.
+│  action    : Remove unused pyyaml dependency from requirements.txt to reduce
+│              attack surface.
+└──
+</code></pre></div>
+<p><strong>Notice how step 1's observation changed step 3's behaviour.</strong> The
+agent searched for <code>yaml.load</code> and <code>yaml.full_load</code> <em>specifically</em> —
+not just "pyyaml". That precision came from the corpus's <code>patterns</code>
+array. Without the retrieval step, the coder model would usually search for
+the package name first and waste an extra round figuring out which
+specific function it should grep for.</p>
+<p>The final recommendation — <em>"Remove unused pyyaml dependency"</em> — is the
+exact action a security engineer would write in the JIRA ticket. That's
+not in any prompt; it's emergent from the corpus guidance ("Move to
+<code>yaml.safe_load</code> regardless") combined with the evidence the agent
+itself gathered.</p>
+<hr />
+<h2 id="6-pattern-retrieval-as-one-of-many-tools">6. 🤔 Pattern: retrieval as <em>one of many</em> tools<a class="headerlink" href="#6-pattern-retrieval-as-one-of-many-tools" title="Permanent link">&para;</a></h2>
+<p>This is structurally different from the "classic" RAG pipeline:</p>
+<table>
+<thead>
+<tr>
+<th>Classic RAG</th>
+<th>Agentic RAG (this lab)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieve → stuff into context → LLM.</td>
+<td>LLM decides <em>if</em> and <em>what</em> to retrieve.</td>
+</tr>
+<tr>
+<td>Retrieval happens always.</td>
+<td>Retrieval is one tool among many.</td>
+</tr>
+<tr>
+<td>Caller controls the embedding query.</td>
+<td>The model writes its own query.</td>
+</tr>
+<tr>
+<td>Fixed top-k stuffed into the prompt.</td>
+<td>Model can pull multiple k=3 batches if needed.</td>
+</tr>
+</tbody>
+</table>
+<p>The agentic variant adapts to the <strong>complexity of the question</strong>.
+For a clear-cut CVE ("requests is called directly, exploitable"), the
+agent often <em>doesn't</em> bother retrieving — it skips straight to
+<code>search_usage</code>. For a fuzzy class like pyyaml or jinja2, it leans on
+the corpus heavily. We pay only for the calls we need.</p>
+<hr />
+<h2 id="7-try-in-class">7. 🧪 Try in class<a class="headerlink" href="#7-try-in-class" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Add a new triage note.</strong> Append a JSON line for <code>CVE-2024-3651</code>
+   (idna ReDoS) to <code>cve_corpus.jsonl</code> with a tight <code>patterns</code> and
+   <code>guidance</code>. Re-run the agent on <code>--cve CVE-2024-3651</code> and watch the
+   first step pull <em>your</em> note into context.</li>
+<li><strong>Compare with retrieval disabled.</strong> Run the same case through
+   <code>triage_react.py</code> (lesson 12c). Count the steps. Did the model
+   eventually find the right patterns on its own? How much later?</li>
+<li><strong>Shrink the corpus to one row.</strong> Delete every note except for
+   pyyaml. Now run on a <code>requests</code> CVE. The retrieval will return
+   irrelevant guidance — does the agent ignore it, or does it derail?</li>
+<li><strong>Switch the embedding model.</strong> Set
+   <code>TRIAGE_EMBED_MODEL=nvidia/llama-3.2-nv-embedqa-1b-v2</code>. Compare top-3
+   ordering — embedding choice affects retrieval quality at the same
+   cosine threshold.</li>
+<li><strong>Wire the verdicts into CI.</strong> Pipe <code>triage_rag.py --quiet</code> JSON
+   output into a GitHub Actions job that fails the build only when
+   <code>exploitable_here: true &amp;&amp; confidence: high</code>. The whole point of a
+   triage agent is to <em>be</em> the noise filter.</li>
+</ol>
+<hr />
+<h2 id="8-what-you-can-build-next">8. 📚 What you can build next<a class="headerlink" href="#8-what-you-can-build-next" title="Permanent link">&para;</a></h2>
+<p>You now have the three core agent patterns in your pocket:</p>
+<ol>
+<li><strong>Provider tool-calling</strong> (12b) — fastest path on supported APIs.</li>
+<li><strong>Text ReAct</strong> (12c) — portable to any chat endpoint.</li>
+<li><strong>Agentic RAG</strong> (12d) — adds memory without a vector DB.</li>
+</ol>
+<p>The same three patterns build basically every other tool-using LLM
+application: a code review bot, a deploy assistant, a customer-support
+agent, an oncall summarizer. Swap the tools, keep the loop.</p>
+<p><strong>Where to go next:</strong></p>
+<ul>
+<li>🤖 <strong>A full CI job.</strong> Replace <code>triage_rag.py</code>'s pretty-printed output
+  with strict JSON, then call it from a <code>.github/workflows/triage.yml</code>
+  on every dependency PR. Block merges where the verdict is
+  <code>exploitable_here: true &amp;&amp; confidence: high</code>.</li>
+<li>🛡️ <strong>Defender-in-the-loop.</strong> Add a <code>propose_patch(package, pin)</code> tool
+  that drafts the <code>requirements.txt</code> diff. The model becomes a
+  one-loop dependency-update bot.</li>
+<li>🧠 <strong>Self-distillation.</strong> Save every (CVE, verdict, evidence) tuple
+  the agent produces. After a hundred runs you have a labelled
+  triage dataset — fine-tune a smaller local model on it and serve from
+  <code>ollama</code> on the Jetson.</li>
+<li>📦 <strong>Beyond Python.</strong> Swap <code>pip-audit</code> for <code>npm audit</code>, <code>cargo audit</code>,
+  or <code>osv-scanner</code>. The shape of the agent doesn't change at all —
+  only the toolbox.</li>
+</ul>
+<hr />
+<p><strong>Source folder:</strong> <a href="../../edgeLLM/vuln-triage/"><code>edgeLLM/vuln-triage/</code></a>
+<strong>Tested on:</strong> Jetson Orin Nano (Ubuntu 22.04, aarch64) with Python 3.10,
+<code>openai 2.37.0</code>, <code>httpx 0.28.1</code>, <code>pip-audit 2.10.0</code>. Original verified
+run used <code>qwen/qwen3-coder-480b-a35b-instruct</code> (chat) +
+<code>nvidia/nv-embedqa-e5-v5</code> (embeddings); since the qwen model reached
+EOL on 2026-06-11, current recommended defaults are
+<strong><code>minimaxai/minimax-m2.7</code></strong> or <strong><code>z-ai/glm-5.1</code></strong>. The embedding model
+is unaffected.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

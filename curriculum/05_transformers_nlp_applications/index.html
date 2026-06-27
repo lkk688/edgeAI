@@ -1,0 +1,2366 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../04b_cnn_image_processing_jetson/">
+      
+      
+        <link rel="next" href="../05b_yolo_vlm_object_detection/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🧠 Transformers & NLP Applications - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#transformers-on-jetson" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🧠 Transformers & NLP Applications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-are-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What Are Transformers?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 What Are Transformers?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 Key Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popular-transformer-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Popular Transformer Architectures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-the-jetson-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Getting Started: the Jetson container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#huggingface-transformers-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤗 HuggingFace Transformers on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤗 HuggingFace Transformers on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-vs-accelerated-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Basic vs Accelerated Inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✨ What is NLP?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✨ What is NLP?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-nlp-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Common NLP Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hands-on-huggingface-pipeline-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Hands-on: HuggingFace pipeline examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Hands-on: HuggingFace pipeline examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-sentiment-analysis-text-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Sentiment analysis (text classification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-zero-shot-classification-no-training-your-own-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Zero-shot classification (no training, your own labels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-named-entity-recognition-ner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Named Entity Recognition (NER)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-question-answering-extractive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Question answering (extractive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Summarization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-translation-english-french" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Translation (English → French)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-fill-mask-masked-language-modeling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Fill-mask (masked language modeling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-text-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Text generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-sentence-embeddings-semantic-similarity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Sentence embeddings (semantic similarity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comprehensive-huggingface-examples-with-transformers_llm_demopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Comprehensive HuggingFace Examples with transformers_llm_demo.py
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Comprehensive HuggingFace Examples with transformers_llm_demo.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Available Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Optimization Techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Optimization Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-onnx-runtime-and-tensorrt-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. ONNX Runtime and TensorRT Acceleration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-8-bit-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 8-bit Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-jit-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JIT Compilation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-batch-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Batch Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-gpu-memory-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. GPU Memory Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-kv-caching-for-text-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. KV Caching for Text Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Using the Demo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Performance Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-are-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What Are Transformers?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 What Are Transformers?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔑 Key Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popular-transformer-architectures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Popular Transformer Architectures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-the-jetson-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Getting Started: the Jetson container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#huggingface-transformers-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤗 HuggingFace Transformers on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤗 HuggingFace Transformers on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-vs-accelerated-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Basic vs Accelerated Inference
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✨ What is NLP?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="✨ What is NLP?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-nlp-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💬 Common NLP Tasks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hands-on-huggingface-pipeline-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Hands-on: HuggingFace pipeline examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Hands-on: HuggingFace pipeline examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-sentiment-analysis-text-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Sentiment analysis (text classification)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-zero-shot-classification-no-training-your-own-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Zero-shot classification (no training, your own labels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-named-entity-recognition-ner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Named Entity Recognition (NER)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-question-answering-extractive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Question answering (extractive)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-summarization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Summarization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-translation-english-french" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Translation (English → French)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-fill-mask-masked-language-modeling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Fill-mask (masked language modeling)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-text-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Text generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-sentence-embeddings-semantic-similarity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Sentence embeddings (semantic similarity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comprehensive-huggingface-examples-with-transformers_llm_demopy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Comprehensive HuggingFace Examples with transformers_llm_demo.py
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Comprehensive HuggingFace Examples with transformers_llm_demo.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Available Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Optimization Techniques
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ Optimization Techniques">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-onnx-runtime-and-tensorrt-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. ONNX Runtime and TensorRT Acceleration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-8-bit-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 8-bit Quantization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-jit-compilation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. JIT Compilation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-batch-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Batch Processing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-gpu-memory-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. GPU Memory Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-kv-caching-for-text-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. KV Caching for Text Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Using the Demo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Performance Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="transformers-on-jetson">🤖 Transformers on Jetson<a class="headerlink" href="#transformers-on-jetson" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D.<br />
+<strong>Position:</strong> Associate Professor, Computer Engineering<br />
+<strong>Institution:</strong> San Jose State University<br />
+<strong>Contact:</strong> <a href="mailto:kaikai.liu@sjsu.edu">kaikai.liu@sjsu.edu</a></p>
+<h2 id="what-are-transformers">🧠 What Are Transformers?<a class="headerlink" href="#what-are-transformers" title="Permanent link">&para;</a></h2>
+<p>Transformers are a type of deep learning model designed to handle sequential data, such as text, audio, or even images. Introduced in the 2017 paper "Attention Is All You Need," transformers replaced recurrent neural networks in many NLP tasks.</p>
+<h3 id="key-components">🔑 Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Self-Attention</strong>: Each token attends to all other tokens in a sequence.</li>
+<li><strong>Positional Encoding</strong>: Adds order information to input tokens.</li>
+<li><strong>Multi-head Attention</strong>: Parallel attention mechanisms capture different relationships.</li>
+<li><strong>Feedforward Layers</strong>: Apply transformations independently to each position.</li>
+</ul>
+<h3 id="popular-transformer-architectures">📚 Popular Transformer Architectures<a class="headerlink" href="#popular-transformer-architectures" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Purpose</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BERT</td>
+<td>Encoder (bi-directional)</td>
+<td>Question answering, embeddings</td>
+</tr>
+<tr>
+<td>GPT</td>
+<td>Decoder (uni-directional)</td>
+<td>Text generation</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Encoder-Decoder</td>
+<td>Translation, summarization</td>
+</tr>
+<tr>
+<td>LLaMA/Qwen</td>
+<td>Open-source LLMs</td>
+<td>General language modeling</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getting-started-the-jetson-container">🚀 Getting Started: the Jetson container<a class="headerlink" href="#getting-started-the-jetson-container" title="Permanent link">&para;</a></h2>
+<p>Run everything inside the <code>jetson-dev</code> container, which ships with PyTorch (CUDA) and the HuggingFace <code>transformers</code>, <code>datasets</code>, <code>accelerate</code>, <code>sentencepiece</code>, and <code>sacremoses</code> libraries preinstalled:</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell<span class="w">                 </span><span class="c1"># /Developer is mounted into the container</span>
+<span class="nb">cd</span><span class="w"> </span>/Developer/edgeAI/jetson<span class="w">          </span><span class="c1"># toolkits live here</span>
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import transformers, torch; print(transformers.__version__, torch.cuda.is_available())&quot;</span>
+</code></pre></div>
+<p>The course repo is at <strong><code>/Developer/edgeAI</code></strong> (mounted from the host). Models download from HuggingFace on first use and are cached. Pass <code>device=0</code> to a pipeline to run on the GPU.</p>
+<blockquote>
+<p>[!TIP]
+Missing a package? <code>pip install &lt;pkg&gt;</code> inside the container; an instructor can then commit/publish the image so all nodes get it via <code>sjsujetsontool update</code>.</p>
+</blockquote>
+<h2 id="huggingface-transformers-on-jetson">🤗 HuggingFace Transformers on Jetson<a class="headerlink" href="#huggingface-transformers-on-jetson" title="Permanent link">&para;</a></h2>
+<p>While large LLMs require quantization, many HuggingFace models (BERT, DistilBERT, TinyGPT) can run on Jetson using PyTorch + Transformers with ONNX export or quantized alternatives.</p>
+<h3 id="basic-vs-accelerated-inference">🚀 Basic vs Accelerated Inference<a class="headerlink" href="#basic-vs-accelerated-inference" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Speed</th>
+<th>Memory</th>
+<th>Complexity</th>
+<th>Best For</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Basic PyTorch</strong></td>
+<td>Baseline</td>
+<td>High</td>
+<td>Low</td>
+<td>Development, prototyping</td>
+</tr>
+<tr>
+<td><strong>ONNX Runtime</strong></td>
+<td>2-3x faster</td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Production inference</td>
+</tr>
+<tr>
+<td><strong>TensorRT</strong></td>
+<td>3-5x faster</td>
+<td>Low</td>
+<td>High</td>
+<td>Optimized deployment</td>
+</tr>
+<tr>
+<td><strong>Quantization</strong></td>
+<td>2-4x faster</td>
+<td>50% less</td>
+<td>Medium</td>
+<td>Resource-constrained</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-is-nlp">✨ What is NLP?<a class="headerlink" href="#what-is-nlp" title="Permanent link">&para;</a></h2>
+<p>Natural Language Processing (NLP) is a subfield of AI that enables machines to read, understand, and generate human language.</p>
+<h3 id="common-nlp-tasks">💬 Common NLP Tasks<a class="headerlink" href="#common-nlp-tasks" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Text Classification</strong> (e.g., sentiment analysis, spam detection)</li>
+<li><strong>Named Entity Recognition (NER)</strong> (extracting entities like names, locations)</li>
+<li><strong>Machine Translation</strong> (translating between languages)</li>
+<li><strong>Question Answering</strong> (extracting answers from context)</li>
+<li><strong>Text Summarization</strong> (generating concise summaries)</li>
+<li><strong>Chatbots &amp; Conversational AI</strong> (interactive dialogue systems)</li>
+<li><strong>Text Generation</strong> (creating human-like text)</li>
+<li><strong>Information Extraction</strong> (structured data from unstructured text)</li>
+</ul>
+<hr />
+<h2 id="hands-on-huggingface-pipeline-examples">🧪 Hands-on: HuggingFace <code>pipeline</code> examples<a class="headerlink" href="#hands-on-huggingface-pipeline-examples" title="Permanent link">&para;</a></h2>
+<p>The <code>pipeline</code> API is the fastest way to run a task — it loads a suitable model + tokenizer and handles pre/post-processing. Run these inside the container (start <code>python3</code> and paste, or save to a file). Each downloads a small model on first run; add <code>device=0</code> to use the GPU.</p>
+<h3 id="1-sentiment-analysis-text-classification">1. Sentiment analysis (text classification)<a class="headerlink" href="#1-sentiment-analysis-text-classification" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pipeline</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;sentiment-analysis&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">clf</span><span class="p">(</span><span class="s2">&quot;Jetson is amazing for edge AI!&quot;</span><span class="p">))</span>
+<span class="c1"># [{&#39;label&#39;: &#39;POSITIVE&#39;, &#39;score&#39;: 0.9998}]</span>
+</code></pre></div>
+<h3 id="2-zero-shot-classification-no-training-your-own-labels">2. Zero-shot classification (no training, your own labels)<a class="headerlink" href="#2-zero-shot-classification-no-training-your-own-labels" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">clf</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;zero-shot-classification&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;valhalla/distilbart-mnli-12-1&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">clf</span><span class="p">(</span><span class="s2">&quot;The new GPU drivers improved frame rates a lot.&quot;</span><span class="p">,</span>
+          <span class="n">candidate_labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hardware&quot;</span><span class="p">,</span> <span class="s2">&quot;food&quot;</span><span class="p">,</span> <span class="s2">&quot;politics&quot;</span><span class="p">]))</span>
+<span class="c1"># highest score on &#39;hardware&#39;</span>
+</code></pre></div>
+<h3 id="3-named-entity-recognition-ner">3. Named Entity Recognition (NER)<a class="headerlink" href="#3-named-entity-recognition-ner" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">ner</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;ner&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;dslim/bert-base-NER&quot;</span><span class="p">,</span> <span class="n">aggregation_strategy</span><span class="o">=</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ner</span><span class="p">(</span><span class="s2">&quot;Dr. Liu teaches at San Jose State University in California.&quot;</span><span class="p">))</span>
+<span class="c1"># entities: PER &#39;Dr. Liu&#39;, ORG &#39;San Jose State University&#39;, LOC &#39;California&#39;</span>
+</code></pre></div>
+<h3 id="4-question-answering-extractive">4. Question answering (extractive)<a class="headerlink" href="#4-question-answering-extractive" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">qa</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;question-answering&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;distilbert-base-cased-distilled-squad&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">qa</span><span class="p">(</span><span class="n">question</span><span class="o">=</span><span class="s2">&quot;How many CUDA cores does it have?&quot;</span><span class="p">,</span>
+         <span class="n">context</span><span class="o">=</span><span class="s2">&quot;The Jetson Orin Nano has 1024 CUDA cores and 32 Tensor cores.&quot;</span><span class="p">))</span>
+<span class="c1"># {&#39;answer&#39;: &#39;1024&#39;, &#39;score&#39;: ...}</span>
+</code></pre></div>
+<h3 id="5-summarization">5. Summarization<a class="headerlink" href="#5-summarization" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">summarizer</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;summarization&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;t5-small&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;The NVIDIA Jetson Orin Nano is a compact edge AI computer with an &quot;</span>
+        <span class="s2">&quot;Ampere GPU, ideal for running CNNs and small language models locally.&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summarizer</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">min_length</span><span class="o">=</span><span class="mi">10</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;summary_text&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="6-translation-english-french">6. Translation (English → French)<a class="headerlink" href="#6-translation-english-french" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">tr</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;translation_en_to_fr&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Helsinki-NLP/opus-mt-en-fr&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">tr</span><span class="p">(</span><span class="s2">&quot;Edge AI runs models directly on the device.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;translation_text&quot;</span><span class="p">])</span>
+<span class="c1"># requires sentencepiece + sacremoses (preinstalled)</span>
+</code></pre></div>
+<h3 id="7-fill-mask-masked-language-modeling">7. Fill-mask (masked language modeling)<a class="headerlink" href="#7-fill-mask-masked-language-modeling" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">fill</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;fill-mask&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;distilbert-base-uncased&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;token_str&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">fill</span><span class="p">(</span><span class="s2">&quot;The Jetson is great for [MASK] AI.&quot;</span><span class="p">)][:</span><span class="mi">3</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="8-text-generation">8. Text generation<a class="headerlink" href="#8-text-generation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">gen</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;text-generation&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;distilgpt2&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">gen</span><span class="p">(</span><span class="s2">&quot;Edge AI on the Jetson lets you&quot;</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="o">=</span><span class="mi">30</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;generated_text&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="9-sentence-embeddings-semantic-similarity">9. Sentence embeddings (semantic similarity)<a class="headerlink" href="#9-sentence-embeddings-semantic-similarity" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">emb</span> <span class="o">=</span> <span class="n">pipeline</span><span class="p">(</span><span class="s2">&quot;feature-extraction&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s2">&quot;sentence-transformers/all-MiniLM-L6-v2&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vec</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">emb</span><span class="p">(</span><span class="n">s</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>      <span class="c1"># mean-pool token vectors</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">vec</span><span class="p">(</span><span class="s2">&quot;How fast is the Jetson?&quot;</span><span class="p">),</span> <span class="n">vec</span><span class="p">(</span><span class="s2">&quot;What is the speed of the Orin Nano?&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cosine similarity:&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span> <span class="o">@</span> <span class="n">b</span><span class="p">))</span>     <span class="c1"># ~0.5 for related sentences, lower for unrelated</span>
+</code></pre></div>
+<blockquote>
+<p>[!TIP]
+<strong>Loading a model directly</strong> (more control than <code>pipeline</code>): use <code>AutoTokenizer</code>/<code>AutoModelForSequenceClassification</code>, move it to <code>cuda</code>, and call it with <code>torch.no_grad()</code>. For Jetson, add <code>torch_dtype=torch.float16</code> to halve memory.</p>
+</blockquote>
+<hr />
+<h2 id="comprehensive-huggingface-examples-with-transformers_llm_demopy">🔧 Comprehensive HuggingFace Examples with <code>transformers_llm_demo.py</code><a class="headerlink" href="#comprehensive-huggingface-examples-with-transformers_llm_demopy" title="Permanent link">&para;</a></h2>
+<p>Instead of implementing individual examples, we've created a comprehensive demonstration script called <code>transformers_llm_demo.py</code> that showcases various NLP applications using HuggingFace transformers with optimization techniques specifically designed for Jetson devices.</p>
+<p>This script provides a modular, command-line driven interface for exploring different NLP tasks and acceleration methods. Let's explore the key features and optimization techniques implemented in this demo.</p>
+<h3 id="available-applications">📋 Available Applications<a class="headerlink" href="#available-applications" title="Permanent link">&para;</a></h3>
+<p>The <code>transformers_llm_demo.py</code> script supports seven different NLP applications:</p>
+<ol>
+<li><strong>Text Classification (Sentiment Analysis)</strong></li>
+<li>Analyzes text sentiment using DistilBERT models</li>
+<li>
+<p>Provides both basic and ONNX-optimized implementations</p>
+</li>
+<li>
+<p><strong>Text Generation (GPT-2)</strong></p>
+</li>
+<li>Generates text continuations from prompts using GPT-2</li>
+<li>
+<p>Implements both basic and quantized+GPU accelerated versions</p>
+</li>
+<li>
+<p><strong>Question Answering (BERT)</strong></p>
+</li>
+<li>Extracts answers from context passages using BERT models</li>
+<li>
+<p>Offers basic pipeline and optimized JIT-compiled implementations</p>
+</li>
+<li>
+<p><strong>Named Entity Recognition (NER)</strong></p>
+</li>
+<li>Identifies entities (people, organizations, locations) in text</li>
+<li>
+<p>Provides both basic and batch-optimized implementations</p>
+</li>
+<li>
+<p><strong>Batch Processing Demo</strong></p>
+</li>
+<li>Demonstrates efficient processing of multiple texts</li>
+<li>
+<p>Automatically determines optimal batch sizes for your hardware</p>
+</li>
+<li>
+<p><strong>Model Benchmarking</strong></p>
+</li>
+<li>Measures performance metrics across multiple runs</li>
+<li>
+<p>Reports detailed statistics on inference time and resource usage</p>
+</li>
+<li>
+<p><strong>Performance Comparison</strong></p>
+</li>
+<li>Directly compares basic vs. optimized implementations</li>
+<li>Calculates speedup factors and memory efficiency gains</li>
+</ol>
+<h3 id="optimization-techniques">⚡ Optimization Techniques<a class="headerlink" href="#optimization-techniques" title="Permanent link">&para;</a></h3>
+<p>The demo implements several optimization techniques that are particularly valuable for edge devices like the Jetson:</p>
+<h4 id="1-onnx-runtime-and-tensorrt-acceleration">1. ONNX Runtime and TensorRT Acceleration<a class="headerlink" href="#1-onnx-runtime-and-tensorrt-acceleration" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Provides hardware-optimized inference using ONNX Runtime with GPU acceleration and TensorRT integration for maximum performance on Jetson devices.</p>
+<p><strong>Implementation details:</strong>
+- Uses <code>onnxruntime</code> directly with CUDA execution provider for GPU acceleration
+- Integrates <code>tensorrt</code> for additional optimization on NVIDIA hardware
+- Automatically selects appropriate execution provider (CUDA, TensorRT, or CPU)
+- Handles fallback to basic implementation if acceleration libraries are unavailable</p>
+<p><strong>What you need to add:</strong>
+- Install ONNX Runtime GPU: <code>pip install onnxruntime-gpu</code>
+- Install TensorRT: Follow NVIDIA's installation guide for your Jetson device
+- For optimal performance, ensure both libraries are properly configured for your hardware</p>
+<h4 id="2-8-bit-quantization">2. 8-bit Quantization<a class="headerlink" href="#2-8-bit-quantization" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Reduces model precision from 32-bit to 8-bit, decreasing memory usage and increasing inference speed.</p>
+<p><strong>Implementation details:</strong>
+- Uses <code>BitsAndBytesConfig</code> for configuring quantization parameters
+- Enables FP32 CPU offloading for handling operations not supported in INT8
+- Combines with FP16 (half-precision) for operations that benefit from it</p>
+<p><strong>What you need to add:</strong>
+- Install bitsandbytes: <code>pip install bitsandbytes</code>
+- May require Jetson-specific compilation for optimal performance</p>
+<h4 id="3-jit-compilation">3. JIT Compilation<a class="headerlink" href="#3-jit-compilation" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Compiles model operations into optimized machine code at runtime.</p>
+<p><strong>Implementation details:</strong>
+- Uses <code>torch.jit.script()</code> to compile models
+- Implements graceful fallback if compilation fails
+- Applied to question answering models for faster inference</p>
+<p><strong>What you need to add:</strong>
+- No additional packages required (built into PyTorch)
+- Ensure you're using a recent PyTorch version with good JIT support</p>
+<h4 id="4-batch-processing">4. Batch Processing<a class="headerlink" href="#4-batch-processing" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Processes multiple inputs simultaneously for higher throughput.</p>
+<p><strong>Implementation details:</strong>
+- Custom <code>TextDataset</code> class for efficient batch handling
+- Dynamic batch size determination based on available memory
+- Particularly effective for NER and classification tasks</p>
+<p><strong>What you need to add:</strong>
+- No additional packages required
+- Consider adjusting batch sizes based on your specific Jetson model</p>
+<h4 id="5-gpu-memory-optimization">5. GPU Memory Optimization<a class="headerlink" href="#5-gpu-memory-optimization" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Carefully manages GPU memory to prevent out-of-memory errors on memory-constrained devices.</p>
+<p><strong>Implementation details:</strong>
+- Implements <code>find_optimal_batch_size()</code> to automatically determine the largest workable batch size
+- Uses <code>torch.cuda.empty_cache()</code> to free memory between operations
+- Monitors memory usage with the <code>performance_monitor()</code> context manager</p>
+<p><strong>What you need to add:</strong>
+- Optional: Install GPUtil for enhanced GPU monitoring: <code>pip install gputil</code></p>
+<h4 id="6-kv-caching-for-text-generation">6. KV Caching for Text Generation<a class="headerlink" href="#6-kv-caching-for-text-generation" title="Permanent link">&para;</a></h4>
+<p><strong>What it does:</strong> Caches key-value pairs in transformer attention layers to avoid redundant computations during text generation.</p>
+<p><strong>Implementation details:</strong>
+- Enables <code>use_cache=True</code> in the model generation parameters
+- Particularly effective for autoregressive generation tasks
+- Combined with quantization for maximum efficiency</p>
+<p><strong>What you need to add:</strong>
+- No additional packages required (built into transformers library)</p>
+<h3 id="using-the-demo">🚀 Using the Demo<a class="headerlink" href="#using-the-demo" title="Permanent link">&para;</a></h3>
+<p>The demo can be run from the command line with various options:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># List available applications</span>
+python<span class="w"> </span>transformers_llm_demo.py<span class="w"> </span>--list
+
+<span class="c1"># Run text classification with optimization</span>
+python<span class="w"> </span>transformers_llm_demo.py<span class="w"> </span>--app<span class="w"> </span><span class="m">1</span><span class="w"> </span>--text<span class="w"> </span><span class="s2">&quot;Jetson is amazing for edge AI!&quot;</span><span class="w"> </span>--optimize
+
+<span class="c1"># Run text generation with custom parameters</span>
+python<span class="w"> </span>transformers_llm_demo.py<span class="w"> </span>--app<span class="w"> </span><span class="m">2</span><span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;Edge AI computing with Jetson&quot;</span><span class="w"> </span>--max-length<span class="w"> </span><span class="m">100</span>
+
+<span class="c1"># Run question answering</span>
+python<span class="w"> </span>transformers_llm_demo.py<span class="w"> </span>--app<span class="w"> </span><span class="m">3</span><span class="w"> </span>--question<span class="w"> </span><span class="s2">&quot;How many CUDA cores?&quot;</span><span class="w"> </span>--context<span class="w"> </span><span class="s2">&quot;The Jetson has 1024 CUDA cores&quot;</span>
+</code></pre></div>
+<p>The script provides detailed performance metrics for each run, including:
+- Inference time
+- Memory usage
+- CPU/GPU utilization
+- Temperature monitoring (when available)</p>
+<h3 id="performance-monitoring">📊 Performance Monitoring<a class="headerlink" href="#performance-monitoring" title="Permanent link">&para;</a></h3>
+<p>The demo includes a comprehensive performance monitoring system that tracks:</p>
+<ul>
+<li>Execution time for each operation</li>
+<li>GPU memory allocation and usage</li>
+<li>CPU utilization changes</li>
+<li>GPU load and temperature (when available)</li>
+</ul>
+<p>This monitoring helps identify bottlenecks and optimize your models for the specific constraints of Jetson devices.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2053 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../05c_ros2_isaac_ros_jetson/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🦾 LeRobot & SO-ARM101 - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lerobot-so-arm101-on-jetson-orin-nano" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🦾 LeRobot & SO-ARM101
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-soarm101-lerobot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 What is SO‑ARM101 + LeRobot?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environments-on-the-orin-nano-two-venvs-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧰 Environments on the Orin Nano (two venvs, on purpose)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧰 Environments on the Orin Nano (two venvs, on purpose)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-the-cpu-collection-env-python-312" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create the CPU collection env (Python 3.12)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-the-cudarealsense-env-python-310" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create the CUDA/RealSense env (Python 3.10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jetpack-7-boxes-python-312-toward-a-single-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆕 JetPack 7 boxes (Python 3.12): toward a single env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆕 JetPack 7 boxes (Python 3.12): toward a single env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-gpu-singleenv-build-from-an-ngc-igpu-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ The GPU single‑env: build from an NGC -igpu base
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-calibrate-the-arm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 Connect &amp; calibrate the arm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unified-teleop-helper-so101_unified_teleoppy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Unified teleop helper — so101_unified_teleop.py
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎮 Unified teleop helper — so101_unified_teleop.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#leader-follower" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Leader → follower
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keyboard-jogging-headlessfriendly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard jogging (headless‑friendly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-server-jetson-http-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote server (Jetson) + HTTP control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mac-ps5-client-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mac PS5 client → Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cameras-for-lerobot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📷 Cameras for LeRobot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-soarm101-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔁 Suggested SO‑ARM101 workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-soarm101-lerobot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 What is SO‑ARM101 + LeRobot?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environments-on-the-orin-nano-two-venvs-on-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧰 Environments on the Orin Nano (two venvs, on purpose)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧰 Environments on the Orin Nano (two venvs, on purpose)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-the-cpu-collection-env-python-312" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create the CPU collection env (Python 3.12)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-the-cudarealsense-env-python-310" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create the CUDA/RealSense env (Python 3.10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jetpack-7-boxes-python-312-toward-a-single-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆕 JetPack 7 boxes (Python 3.12): toward a single env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🆕 JetPack 7 boxes (Python 3.12): toward a single env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-gpu-singleenv-build-from-an-ngc-igpu-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ The GPU single‑env: build from an NGC -igpu base
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connect-calibrate-the-arm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 Connect &amp; calibrate the arm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unified-teleop-helper-so101_unified_teleoppy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎮 Unified teleop helper — so101_unified_teleop.py
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎮 Unified teleop helper — so101_unified_teleop.py">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#leader-follower" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Leader → follower
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keyboard-jogging-headlessfriendly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard jogging (headless‑friendly)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remote-server-jetson-http-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remote server (Jetson) + HTTP control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mac-ps5-client-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mac PS5 client → Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cameras-for-lerobot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📷 Cameras for LeRobot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-soarm101-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔁 Suggested SO‑ARM101 workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="lerobot-so-arm101-on-jetson-orin-nano">🦾 LeRobot &amp; SO-ARM101 on Jetson Orin Nano<a class="headerlink" href="#lerobot-so-arm101-on-jetson-orin-nano" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D. — San Jose State University</p>
+<p>This tutorial brings the Jetson into <strong>physical robotics</strong>: teleoperating a low‑cost
+<strong>SO‑ARM101</strong> robot arm and collecting imitation‑learning datasets with Hugging Face's
+<a href="https://huggingface.co/docs/lerobot"><strong>LeRobot</strong></a>. It follows the <a href="../05c_ros2_isaac_ros_jetson/">ROS 2 &amp; Isaac ROS</a>
+tutorial — where ROS 2 is the <em>middleware</em> for perception graphs, LeRobot is an <em>end‑to‑end
+learning</em> stack: teleoperate → record → train a policy → replay.</p>
+<blockquote>
+<p>Hardware reference for everything below is a real lab box (<code>cmpe-jetson</code>, Orin Nano,
+JetPack 6.2 / L4T R36.4.7, Ubuntu 22.04, glibc 2.35). The companion hardware/camera
+log lives in <a href="../../jetson/robotics/JETSON_ORIN_NANO_SETUP.md"><code>jetson/robotics/JETSON_ORIN_NANO_SETUP.md</code></a>,
+and the teleop helper in <a href="../../jetson/robotics/so101_unified_teleop.py"><code>jetson/robotics/so101_unified_teleop.py</code></a>.</p>
+</blockquote>
+<hr />
+<h2 id="what-is-soarm101-lerobot">🤖 What is SO‑ARM101 + LeRobot?<a class="headerlink" href="#what-is-soarm101-lerobot" title="Permanent link">&para;</a></h2>
+<p><strong>SO‑ARM101</strong> is an open‑source, 3D‑printed <strong>6‑DOF</strong> robot arm (shoulder_pan, shoulder_lift,
+elbow_flex, wrist_flex, wrist_roll, gripper) driven by <strong>Feetech</strong> serial bus servos over a
+single USB‑serial link. It comes as a <strong>leader</strong> (you move it by hand) + <strong>follower</strong> (mirrors
+the leader) pair — the classic setup for collecting human demonstrations.</p>
+<p><strong>LeRobot</strong> is Hugging Face's robotics library: a common robot/teleoperator API, dataset format,
+and training/eval CLIs (<code>lerobot-calibrate</code>, <code>lerobot-teleoperate</code>, <code>lerobot-record</code>,
+<code>lerobot-train</code>, <code>lerobot-eval</code>, …). The standard learning loop is:</p>
+<div class="highlight"><pre><span></span><code>calibrate ─▶ teleoperate ─▶ record dataset ─▶ train policy ─▶ eval / replay
+</code></pre></div>
+<p>The arm + cameras are the sensors; LeRobot turns recorded <code>(observation, action)</code> pairs into a
+trained visuomotor policy (ACT, Diffusion Policy, etc.).</p>
+<hr />
+<h2 id="environments-on-the-orin-nano-two-venvs-on-purpose">🧰 Environments on the Orin Nano (two venvs, on purpose)<a class="headerlink" href="#environments-on-the-orin-nano-two-venvs-on-purpose" title="Permanent link">&para;</a></h2>
+<p>The Orin Nano's system Python is <strong>3.10</strong> and the OS ships <strong>glibc 2.35</strong>. That constrains which
+wheels load, so we keep <strong>two</strong> <code>uv</code> virtual environments with distinct jobs:</p>
+<table>
+<thead>
+<tr>
+<th>Env</th>
+<th>Python</th>
+<th>Role</th>
+<th>Key fact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/lerobot-py312</code></td>
+<td>3.12</td>
+<td>latest LeRobot 0.5.x, <strong>CPU</strong>, host‑side data collection</td>
+<td>clean isolated venv; <code>torch==2.x+cpu</code></td>
+</tr>
+<tr>
+<td><code>~/lerobot-py310-cuda</code></td>
+<td>3.10</td>
+<td><strong>CUDA</strong> torch + TensorRT + RealSense SDK + Feetech</td>
+<td><code>--system-site-packages</code> so it sees JetPack's TensorRT</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Why two? The Jetson CUDA wheel index has no compatible <strong>Python 3.12</strong> torch, and
+<code>pyrealsense2</code> 3.12 wheels need glibc 2.38 (this host has 2.35). So Python 3.10 is the
+hardware/CUDA env; Python 3.12 is for trying the newest LeRobot on CPU.</p>
+</blockquote>
+<h3 id="create-the-cpu-collection-env-python-312">Create the CPU collection env (Python 3.12)<a class="headerlink" href="#create-the-cpu-collection-env-python-312" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>~/.local/bin/uv<span class="w"> </span>python<span class="w"> </span>install<span class="w"> </span><span class="m">3</span>.12
+~/.local/bin/uv<span class="w"> </span>venv<span class="w"> </span>--python<span class="w"> </span><span class="m">3</span>.12<span class="w"> </span>~/lerobot-py312
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py312/bin/python<span class="w"> </span>pip
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py312/bin/python<span class="w"> </span><span class="s2">&quot;lerobot[feetech]==0.5.1&quot;</span>
+<span class="nb">source</span><span class="w"> </span>~/lerobot-py312/bin/activate
+lerobot-info<span class="w">        </span><span class="c1"># verify</span>
+</code></pre></div>
+<h3 id="create-the-cudarealsense-env-python-310">Create the CUDA/RealSense env (Python 3.10)<a class="headerlink" href="#create-the-cudarealsense-env-python-310" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>~/.local/bin/uv<span class="w"> </span>venv<span class="w"> </span>--system-site-packages<span class="w"> </span>--python<span class="w"> </span>/usr/bin/python3<span class="w"> </span>~/lerobot-py310-cuda
+<span class="c1"># CUDA torch from the Jetson AI Lab wheel index (cu126)</span>
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py310-cuda/bin/python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--index-url<span class="w"> </span>https://pypi.jetson-ai-lab.io/jp6/cu126<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">torch</span><span class="o">==</span><span class="m">2</span>.8.0<span class="w"> </span><span class="nv">torchvision</span><span class="o">==</span><span class="m">0</span>.23.0<span class="w"> </span><span class="nv">torchaudio</span><span class="o">==</span><span class="m">2</span>.8.0
+<span class="c1"># torch 2.8 needs libcudss.so.0 (not a JetPack system lib) — install + isolate it</span>
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py310-cuda/bin/python<span class="w"> </span>nvidia-cudss-cu12<span class="o">==</span><span class="m">0</span>.7.1.6
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/lerobot-py310-cuda/cudss-lib
+cp<span class="w"> </span>-a<span class="w"> </span>~/lerobot-py310-cuda/lib/python3.10/site-packages/nvidia/cu12/lib/libcudss*.so*<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>~/lerobot-py310-cuda/cudss-lib/
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py310-cuda/bin/python<span class="w"> </span><span class="s2">&quot;lerobot[feetech]==0.4.4&quot;</span>
+~/.local/bin/uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--python<span class="w"> </span>~/lerobot-py310-cuda/bin/python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">numpy</span><span class="o">==</span><span class="m">1</span>.26.4<span class="w"> </span>opencv-python-headless<span class="o">==</span><span class="m">4</span>.11.0.86<span class="w"> </span><span class="nv">pyrealsense2</span><span class="o">==</span><span class="m">2</span>.58.1.10581<span class="w"> </span><span class="nv">pygame</span><span class="o">==</span><span class="m">2</span>.6.1
+</code></pre></div>
+Activate it (note the <code>LD_LIBRARY_PATH</code> for the isolated cuDSS lib — <strong>only</strong> that dir, so it
+doesn't shadow JetPack's native CUDA 12.6 libraries):
+<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>~/lerobot-py310-cuda/bin/activate
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/home/cmpe/lerobot-py310-cuda/cudss-lib:<span class="nv">$LD_LIBRARY_PATH</span>
+</code></pre></div>
+Verified on <code>cmpe-jetson</code>: <code>torch 2.8.0</code>, <code>torch.cuda.is_available() = True</code> (GPU: Orin),
+TensorRT 10.3 imported from JetPack, <code>pyrealsense2</code> import OK, D435i detected.</p>
+<blockquote>
+<p>⚠️ <strong>Do not</strong> manually upgrade glibc to satisfy a 3.12 <code>pyrealsense2</code> wheel — it can break apt,
+Python, and NVIDIA user‑space libraries on JetPack 6. Keep RealSense SDK work in the 3.10 env,
+or build <code>librealsense</code> from source against glibc 2.35.</p>
+</blockquote>
+<h3 id="jetpack-7-boxes-python-312-toward-a-single-env">🆕 JetPack 7 boxes (Python 3.12): toward a <em>single</em> env<a class="headerlink" href="#jetpack-7-boxes-python-312-toward-a-single-env" title="Permanent link">&para;</a></h3>
+<p>The two‑venv split above is a <strong>JetPack 6</strong> artifact: that box's system Python is 3.10, and its
+glibc 2.35 is below the 2.38 the py312 <code>pyrealsense2</code> wheel needs. On a <strong>JetPack 7</strong> node
+(e.g. <code>jetson61</code>: Ubuntu 24.04, <strong>glibc 2.39</strong>, system <strong>Python 3.12</strong>) <em>both</em> reasons disappear.
+Verified on <code>jetson61</code>:</p>
+<ul>
+<li>A single <strong>py312</strong> env holds <code>lerobot 0.5.1</code> + <code>pyrealsense2 2.58</code> + OpenCV + <code>numpy&lt;2</code> together —
+  <code>pyrealsense2</code> now <strong>imports cleanly</strong> (no <code>GLIBC_2.38</code> error); it only needs the system lib
+  <code>libusb-1.0-0</code> (<code>sudo apt install -y libusb-1.0-0</code>).</li>
+</ul>
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>~/lerobot-py312<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>~/lerobot-py312/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;lerobot[feetech]&quot;</span><span class="w"> </span>pyrealsense2<span class="w"> </span><span class="s2">&quot;numpy&lt;2&quot;</span>
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>libusb-1.0-0<span class="w">        </span><span class="c1"># provides libusb-1.0.so.0 for pyrealsense2</span>
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>CPU‑torch caveat for the host venv above.</strong> <code>lerobot</code> needs <code>torchvision ≥ 0.21</code> (0.5.1 wants
+<code>torch ≥ 2.7</code>), and there's no CUDA <code>torch ≥ 2.7</code> for jp7/py312 on PyPI or the Jetson AI Lab wheel
+index (<code>jp7/cu130</code> → <em>"stage could not be found"</em>; only <code>jp6/cu126</code> is populated). So a plain
+<code>pip install</code> venv gets <strong>CPU</strong> torch. That's fine for host‑side tasks (teleop, calibration,
+dataset record/replay) — none need CUDA — but not for GPU training/inference.</p>
+</blockquote>
+<h4 id="the-gpu-singleenv-build-from-an-ngc-igpu-base">✅ The GPU single‑env: build from an NGC <code>-igpu</code> base<a class="headerlink" href="#the-gpu-singleenv-build-from-an-ngc-igpu-base" title="Permanent link">&para;</a></h4>
+<p>For a <strong>single py312 env with CUDA</strong>, don't fight PyPI — base a container on NVIDIA's NGC PyTorch
+<code>-igpu</code> image, which already ships CUDA torch and runs on JetPack 7 via CUDA forward‑compat. The
+repo's <a href="../../jetson/Dockerfile.jp7"><code>jetson/Dockerfile.jp7</code></a> does exactly this and is
+<strong>verified on <code>jetson61</code></strong>:</p>
+<p><div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>jetson<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>Dockerfile.jp7<span class="w"> </span>-t<span class="w"> </span>jetson-unified:jp7<span class="w"> </span>.<span class="w">          </span><span class="c1"># base: nvcr.io/nvidia/pytorch:25.08-py3-igpu</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--runtime<span class="w"> </span>nvidia<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="o">=</span>host<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">NVIDIA_VISIBLE_DEVICES</span><span class="o">=</span>all<span class="w"> </span>-v<span class="w"> </span>/Developer:/Developer<span class="w"> </span>jetson-unified:jp7
+</code></pre></div>
+Verified runtime on <code>jetson61</code> (Orin, L4T r39) — <strong>torch 2.8.0a0 / CUDA 12.9</strong>:
+<div class="highlight"><pre><span></span><code>torch.cuda.is_available() = True (Orin)
+LeRobot 0.5.1 | PyTorch built with CUDA: True | CUDA 12.9
+YOLO (ultralytics) on GPU: 6 boxes, device=cuda:0
+pyrealsense2 2.58 import OK
+</code></pre></div>
+The build pins the base's CUDA <code>torch</code>/<code>torchvision</code> via a constraints file so installing
+<code>lerobot[feetech]</code> can't swap in a CPU wheel (it fails loudly instead, telling you to bump the NGC
+tag). One tradeoff: the base's <code>torch-tensorrt</code> wants <code>numpy&lt;2</code> while lerobot/rerun want <code>≥2</code>; the
+image keeps <code>numpy&lt;2</code> (everything works except <code>rerun-sdk</code> viz). See the Dockerfile header for details.</p>
+<blockquote>
+<p><strong>Bottom line:</strong> on JetPack 7 a single py312 env does <em>all</em> LeRobot tasks — <strong>CPU</strong> via a quick
+host venv, or <strong>GPU</strong> via <code>Dockerfile.jp7</code>. The JetPack 6 two‑venv split is no longer needed.</p>
+</blockquote>
+<hr />
+<h2 id="connect-calibrate-the-arm">🔌 Connect &amp; calibrate the arm<a class="headerlink" href="#connect-calibrate-the-arm" title="Permanent link">&para;</a></h2>
+<p>Find the Feetech bus serial port (unplug/replug to identify):
+<div class="highlight"><pre><span></span><code>lerobot-find-port<span class="w">            </span><span class="c1"># e.g. /dev/ttyACM0 (follower), /dev/ttyACM1 (leader)</span>
+</code></pre></div>
+Calibrate each arm once (writes a calibration file LeRobot reuses):
+<div class="highlight"><pre><span></span><code>lerobot-calibrate<span class="w"> </span>--help<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;so101&quot;</span><span class="w"> </span>-A<span class="w"> </span><span class="m">20</span>
+</code></pre></div></p>
+<blockquote>
+<p>Always start with calibration and short <strong>dry‑run</strong> recordings before any long dataset run.</p>
+</blockquote>
+<hr />
+<h2 id="unified-teleop-helper-so101_unified_teleoppy">🎮 Unified teleop helper — <code>so101_unified_teleop.py</code><a class="headerlink" href="#unified-teleop-helper-so101_unified_teleoppy" title="Permanent link">&para;</a></h2>
+<p><a href="../../jetson/robotics/so101_unified_teleop.py"><code>so101_unified_teleop.py</code></a> wraps several teleop
+paths behind one CLI and works with <strong>both LeRobot 0.4.4 and 0.5.x</strong> (it delegates to the stable
+<code>lerobot-teleoperate</code> for leader mode, and uses the shared <code>SOFollower</code> API for the rest). Run it
+from the Python 3.10 CUDA env:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>~/lerobot-py310-cuda/bin/activate
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/home/cmpe/lerobot-py310-cuda/cudss-lib:<span class="nv">$LD_LIBRARY_PATH</span>
+python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>--help
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>leader</code></td>
+<td>Physical leader arm drives the follower (delegates to <code>lerobot-teleoperate</code>)</td>
+</tr>
+<tr>
+<td><code>keyboard</code></td>
+<td>Terminal joint jogging — <strong>no X11/pynput needed</strong> (great over SSH)</td>
+</tr>
+<tr>
+<td><code>remote-server</code></td>
+<td>UDP + HTTP server on the Jetson; calls <code>robot.send_action()</code></td>
+</tr>
+<tr>
+<td><code>mac-ps5-client</code></td>
+<td>Runs on a Mac, reads a PS5 pad via <code>pygame</code>, sends UDP to the Jetson</td>
+</tr>
+<tr>
+<td><code>gamepad-local</code></td>
+<td>LeRobot's local gamepad teleop for a pad wired/paired to the Jetson</td>
+</tr>
+</tbody>
+</table>
+<h3 id="leader-follower">Leader → follower<a class="headerlink" href="#leader-follower" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>leader<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--follower-port<span class="w"> </span>/dev/ttyACM0<span class="w"> </span>--leader-port<span class="w"> </span>/dev/ttyACM1<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--robot-id<span class="w"> </span>so101_follower<span class="w"> </span>--leader-id<span class="w"> </span>so101_leader
+</code></pre></div>
+<h3 id="keyboard-jogging-headlessfriendly">Keyboard jogging (headless‑friendly)<a class="headerlink" href="#keyboard-jogging-headlessfriendly" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>keyboard<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--follower-port<span class="w"> </span>/dev/ttyACM0<span class="w"> </span>--robot-id<span class="w"> </span>so101_follower
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>q/a: shoulder_pan   w/s: shoulder_lift   e/d: elbow_flex
+r/f: wrist_flex     t/g: wrist_roll      y/h: gripper      x or ESC: exit
+</code></pre></div></p>
+<h3 id="remote-server-jetson-http-control">Remote server (Jetson) + HTTP control<a class="headerlink" href="#remote-server-jetson-http-control" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>remote-server<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--follower-port<span class="w"> </span>/dev/ttyACM0<span class="w"> </span>--bind-host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--require-deadman<span class="w"> </span><span class="nb">true</span>
+<span class="c1"># listens on UDP 8766 and HTTP 8765</span>
+</code></pre></div>
+Send a one‑off delta over HTTP:
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>api-post<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>http://jetsonorin:8765/command<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--json<span class="w"> </span><span class="s1">&#39;{&quot;delta&quot;: {&quot;shoulder_pan.pos&quot;: 2.0}, &quot;deadman&quot;: true}&#39;</span>
+</code></pre></div></p>
+<h3 id="mac-ps5-client-jetson">Mac PS5 client → Jetson<a class="headerlink" href="#mac-ps5-client-jetson" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pygame
+python<span class="w"> </span>so101_unified_teleop.py<span class="w"> </span>mac-ps5-client<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--jetson-host<span class="w"> </span>jetsonorin<span class="w"> </span>--deadman-button<span class="w"> </span><span class="m">5</span><span class="w"> </span>--print-events
+</code></pre></div>
+Use <code>--print-events</code> first to confirm the PS5 axis/button mapping, then adjust <code>--axis-lx</code>,
+<code>--axis-ly</code>, <code>--axis-rx</code>, <code>--axis-ry</code>, <code>--axis-l2</code>, <code>--axis-r2</code> if needed. For a first real
+collection, the <strong>Mac PS5 path is easiest</strong> — the controller is known‑good on the Mac and the
+Jetson only receives network commands.</p>
+<blockquote>
+<p>PS5 <strong>directly</strong> on the Jetson (<code>gamepad-local</code>) works after Bluetooth pairing
+(<code>bluetoothctl</code> → pair/trust/connect). If Python can't read <code>/dev/input/event*</code>, add yourself to
+the <code>input</code> group: <code>sudo usermod -aG input $USER</code> and re‑login.</p>
+</blockquote>
+<hr />
+<h2 id="cameras-for-lerobot">📷 Cameras for LeRobot<a class="headerlink" href="#cameras-for-lerobot" title="Permanent link">&para;</a></h2>
+<p>LeRobot's OpenCV camera path wants a readable <strong>color V4L2</strong> device. On this Jetson:</p>
+<ul>
+<li><strong>Easiest RGB:</strong> Intel <strong>RealSense D435i</strong> color node <code>/dev/video6</code> (UVC) or any USB webcam.</li>
+<li><strong>CSI (Arducam IMX219):</strong> <code>/dev/video0</code>/<code>/dev/video1</code> expose <strong>raw Bayer RG10</strong> — OpenCV can't read
+  them directly. Capture via Argus/GStreamer (<code>nvarguscamerasrc</code>, <code>flip-method=2</code>) and bridge into
+  virtual color devices with <code>v4l2loopback</code>, then point LeRobot at those:
+  <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>v4l2loopback-dkms<span class="w"> </span>v4l2loopback-utils
+sudo<span class="w"> </span>modprobe<span class="w"> </span>v4l2loopback<span class="w"> </span><span class="nv">devices</span><span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="nv">video_nr</span><span class="o">=</span><span class="m">20</span>,21<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">card_label</span><span class="o">=</span><span class="s2">&quot;CSI Front&quot;</span>,<span class="s2">&quot;CSI Side&quot;</span><span class="w"> </span><span class="nv">exclusive_caps</span><span class="o">=</span><span class="m">1</span>
+env<span class="w"> </span>-u<span class="w"> </span>DISPLAY<span class="w"> </span>gst-launch-1.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nvarguscamerasrc<span class="w"> </span>sensor-id<span class="o">=</span><span class="m">0</span><span class="w"> </span>tnr-mode<span class="o">=</span><span class="m">2</span><span class="w"> </span>ee-mode<span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="nv">aeantibanding</span><span class="o">=</span><span class="m">3</span><span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s2">&quot;video/x-raw(memory:NVMM),width=640,height=480,framerate=30/1&quot;</span><span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nvvidconv<span class="w"> </span>flip-method<span class="o">=</span><span class="m">2</span><span class="w"> </span>!<span class="w"> </span><span class="s2">&quot;video/x-raw,format=YUY2&quot;</span><span class="w"> </span>!<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>v4l2sink<span class="w"> </span><span class="nv">device</span><span class="o">=</span>/dev/video20<span class="w"> </span><span class="nv">sync</span><span class="o">=</span><span class="nb">false</span>
+<span class="c1"># → LeRobot/OpenCV camera config uses /dev/video20, /dev/video21</span>
+</code></pre></div>
+  <code>env -u DISPLAY</code> avoids Argus <code>FrameConsumer</code> errors over SSH.</li>
+<li><strong>Avoid L515 RGB</strong> (comes out essentially black here); L515 depth works via raw V4L2 <code>Z16</code>.</li>
+<li>The Orin Nano in this setup has <strong>no hardware H.264 encoder</strong> (<code>nvv4l2h264enc</code> absent) — use
+  software <code>x264enc</code>.</li>
+</ul>
+<p>List/inspect cameras:
+<div class="highlight"><pre><span></span><code>v4l2-ctl<span class="w"> </span>--list-devices
+v4l2-ctl<span class="w"> </span>-d<span class="w"> </span>/dev/video6<span class="w"> </span>--list-formats-ext
+</code></pre></div></p>
+<hr />
+<h2 id="suggested-soarm101-workflow">🔁 Suggested SO‑ARM101 workflow<a class="headerlink" href="#suggested-soarm101-workflow" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># 1. activate (CPU collection env is fine for teleop+record; use 3.10-cuda if you need RealSense SDK)</span>
+ssh<span class="w"> </span>jetsonorin<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>~/lerobot-py312/bin/activate
+
+<span class="c1"># 2. ports + calibration</span>
+lerobot-find-port
+lerobot-calibrate<span class="w"> </span>--help<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;so101&quot;</span><span class="w"> </span>-A<span class="w"> </span><span class="m">20</span>
+
+<span class="c1"># 3. teleoperate to warm up (leader, keyboard, or PS5)</span>
+python<span class="w"> </span>~/so101_unified_teleop.py<span class="w"> </span>keyboard<span class="w"> </span>--follower-port<span class="w"> </span>/dev/ttyACM0<span class="w"> </span>--robot-id<span class="w"> </span>so101_follower
+
+<span class="c1"># 4. record a small dataset (start short!), then train + eval</span>
+lerobot-record<span class="w">  </span>--help<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-n<span class="w"> </span><span class="s2">&quot;so101&quot;</span><span class="w"> </span>-A<span class="w"> </span><span class="m">20</span>
+lerobot-train<span class="w">   </span>--help
+lerobot-eval<span class="w">    </span>--help
+</code></pre></div>
+Heavy <strong>training</strong> belongs on a workstation GPU, Jetson Thor, or a CUDA container — the Orin Nano is
+the data‑collection / inference node. Rebooting before a long run reduces Jetson unified‑memory
+fragmentation.</p>
+<hr />
+<h2 id="troubleshooting">🧯 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause / fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>torch.cuda.is_available() == False</code> in py312</td>
+<td>Expected — 3.12 has CPU torch. Use <code>~/lerobot-py310-cuda</code> for GPU.</td>
+</tr>
+<tr>
+<td><code>pyrealsense2</code> import: <code>GLIBC_2.38 not found</code></td>
+<td>3.12 wheel needs newer glibc; use the 3.10 env's <code>pyrealsense2==2.58.1.10581</code>.</td>
+</tr>
+<tr>
+<td><code>libcudss.so.0</code> missing</td>
+<td>Install <code>nvidia-cudss-cu12</code>, copy only <code>libcudss*.so*</code> into a dir, prepend just that to <code>LD_LIBRARY_PATH</code>.</td>
+</tr>
+<tr>
+<td>CSI camera black/empty in OpenCV</td>
+<td>Raw Bayer — use Argus + <code>v4l2loopback</code> (above), not direct <code>/dev/video0</code>.</td>
+</tr>
+<tr>
+<td>PS5 pad pairs but no input</td>
+<td><code>sudo usermod -aG input $USER</code>, re‑login.</td>
+</tr>
+<tr>
+<td>Argus <code>FrameConsumer</code> error over SSH</td>
+<td>Prefix the pipeline with <code>env -u DISPLAY</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="references">🔗 References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<ul>
+<li>LeRobot install: <a href="https://huggingface.co/docs/lerobot/main/en/installation">https://huggingface.co/docs/lerobot/main/en/installation</a></li>
+<li>LeRobot PyPI: <a href="https://pypi.org/project/lerobot/">https://pypi.org/project/lerobot/</a></li>
+<li>SO‑ARM101 (TheRobotStudio): <a href="https://github.com/TheRobotStudio/SO-ARM100">https://github.com/TheRobotStudio/SO-ARM100</a></li>
+<li>Arducam IMX219 on Jetson: <a href="https://docs.arducam.com/Nvidia-Jetson-Camera/Native-Camera/imx219/">https://docs.arducam.com/Nvidia-Jetson-Camera/Native-Camera/imx219/</a></li>
+<li>PyTorch for Jetson: <a href="https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform/index.html">https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform/index.html</a></li>
+<li>RealSense on Jetson: <a href="https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md">https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md</a></li>
+</ul>
+<p>→ <strong>Prev:</strong> <a href="../05c_ros2_isaac_ros_jetson/">ROS 2 &amp; NVIDIA Isaac ROS on Jetson</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

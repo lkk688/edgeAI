@@ -1,0 +1,4130 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../05_transformers_nlp_applications/">
+      
+      
+        <link rel="next" href="../06_llms_jetson/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🎯 Deep Learning Object Detection - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#deep-learning-object-detection-on-jetson-from-classical-to-zero-shot-approaches" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🎯 Deep Learning Object Detection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-containerized-development-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Getting Started: Containerized Development on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Getting Started: Containerized Development on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-launch-the-container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Launch the Container Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-mapped-directories-persistent-model-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mapped Directories &amp; Persistent Model Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-memory-optimization-troubleshooting-on-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Memory Optimization &amp; Troubleshooting on Jetson Orin Nano
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-usb-camera-setup-opencv-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. USB Camera Setup &amp; OpenCV Backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. USB Camera Setup &amp; OpenCV Backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-sjsujetsontool-shell-already-wires-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What sjsujetsontool shell already wires up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-the-toolkit-passes-cv2cap_v4l2-explicitly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the toolkit passes cv2.CAP_V4L2 explicitly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-container-can-and-cannot-do-with-this-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the container CAN and CANNOT do with this OpenCV
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-the-jetson-host-have-a-good-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does the Jetson HOST have a "good" OpenCV?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-add-ffmpeg-gstreamer-support-and-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to add FFmpeg / GStreamer support (and how)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-accelerated-gstreamer-cheat-sheet-host-side-no-opencv-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware-accelerated GStreamer cheat-sheet (host-side, no OpenCV needed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmatic-recommendation-for-this-lesson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragmatic recommendation for this lesson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-detection-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Object Detection Fundamentals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Object Detection Fundamentals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detection-pipeline-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Detection Pipeline Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Evaluation Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-stage-object-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Two-Stage Object Detectors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Two-Stage Object Detectors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#faster-r-cnn-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Faster R-CNN Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Faster R-CNN Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Key Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#faster-r-cnn-implementation-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Faster R-CNN Implementation on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Faster R-CNN Implementation on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mask-r-cnn-for-instance-segmentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎭 Mask R-CNN for Instance Segmentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎭 Mask R-CNN for Instance Segmentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loss-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📐 Loss function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-it-with-the-toolkit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Run it with the toolkit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-stage-object-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ One-Stage Object Detectors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ One-Stage Object Detectors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yolo-family-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 YOLO Family Evolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 YOLO Family Evolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yolo-with-tensorrt-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 YOLO with TensorRT Acceleration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 YOLO with TensorRT Acceleration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Why TensorRT?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-yolov8-setup-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Complete YOLOv8 Setup on Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-yolov8-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Enhanced YOLOv8 Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Enhanced YOLOv8 Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-pytorch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (PyTorch Mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-tensorrt-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Advanced TensorRT Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Advanced TensorRT Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-tensorrt-fp16-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (TensorRT FP16 Mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-object-detection-with-vision-language-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Zero-Shot Object Detection with Vision-Language Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Zero-Shot Object Detection with Vision-Language Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theory-detr-the-transformer-detector-behind-these-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory: DETR (the transformer detector behind these models)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popular-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Popular Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-installation-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Complete Installation for Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-owl-vit-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Enhanced OWL-ViT Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Enhanced OWL-ViT Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-owl-vit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (OWL-ViT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#groundingdino-superior-zero-shot-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 GroundingDINO: Superior Zero-Shot Detection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 GroundingDINO: Superior Zero-Shot Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-groundingdino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (GroundingDINO)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-techniques-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Optimization Techniques for Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-vs-two-step-detection-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Zero-Shot vs Two-Step Detection Approaches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Zero-Shot vs Two-Step Detection Approaches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approach-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Approach Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-step-approach-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Two-Step Approach Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Two-Step Approach Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yolo-clip-for-semantic-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YOLO + CLIP for Semantic Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yolo-blip-for-rich-scene-understanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YOLO + BLIP for Rich Scene Understanding
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison-on-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Performance Comparison on Jetson Orin Nano
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-each-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 When to Use Each Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 When to Use Each Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#use-zero-shot-vlms-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Zero-Shot VLMs when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-yolo-clip-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use YOLO + CLIP when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-traditional-yolo-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Traditional YOLO when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-strategies-for-each-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Optimization Strategies for Each Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Optimization Strategies for Each Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zero-shot-vlm-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Shot VLM Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-step-approach-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-Step Approach Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comprehensive-lab-exercise-detection-approaches-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Comprehensive Lab Exercise: Detection Approaches Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Comprehensive Lab Exercise: Detection Approaches Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lab-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Lab Objectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lab-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Lab Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-analysis-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 Advanced Analysis Tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔬 Advanced Analysis Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-optimization-impact-study" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Optimization Impact Study
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-novel-object-detection-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Novel Object Detection Challenge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lab-report-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Lab Report Template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-containerized-development-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Getting Started: Containerized Development on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Getting Started: Containerized Development on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-launch-the-container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Launch the Container Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-mapped-directories-persistent-model-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Mapped Directories &amp; Persistent Model Storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-memory-optimization-troubleshooting-on-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Memory Optimization &amp; Troubleshooting on Jetson Orin Nano
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-usb-camera-setup-opencv-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. USB Camera Setup &amp; OpenCV Backends
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. USB Camera Setup &amp; OpenCV Backends">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-sjsujetsontool-shell-already-wires-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What sjsujetsontool shell already wires up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-the-toolkit-passes-cv2cap_v4l2-explicitly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the toolkit passes cv2.CAP_V4L2 explicitly
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-the-container-can-and-cannot-do-with-this-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What the container CAN and CANNOT do with this OpenCV
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#does-the-jetson-host-have-a-good-opencv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does the Jetson HOST have a "good" OpenCV?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-add-ffmpeg-gstreamer-support-and-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to add FFmpeg / GStreamer support (and how)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-accelerated-gstreamer-cheat-sheet-host-side-no-opencv-needed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware-accelerated GStreamer cheat-sheet (host-side, no OpenCV needed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pragmatic-recommendation-for-this-lesson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pragmatic recommendation for this lesson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-detection-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Object Detection Fundamentals
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Object Detection Fundamentals">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detection-pipeline-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Detection Pipeline Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Evaluation Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-stage-object-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Two-Stage Object Detectors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🏗️ Two-Stage Object Detectors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#faster-r-cnn-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Faster R-CNN Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Faster R-CNN Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Key Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#theory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#faster-r-cnn-implementation-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Faster R-CNN Implementation on Jetson
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Faster R-CNN Implementation on Jetson">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mask-r-cnn-for-instance-segmentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎭 Mask R-CNN for Instance Segmentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎭 Mask R-CNN for Instance Segmentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🏗️ Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loss-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📐 Loss function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-it-with-the-toolkit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Run it with the toolkit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#one-stage-object-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ One-Stage Object Detectors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ One-Stage Object Detectors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yolo-family-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 YOLO Family Evolution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 YOLO Family Evolution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#yolo-with-tensorrt-acceleration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 YOLO with TensorRT Acceleration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 YOLO with TensorRT Acceleration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-tensorrt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Why TensorRT?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-yolov8-setup-on-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Complete YOLOv8 Setup on Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-yolov8-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Enhanced YOLOv8 Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Enhanced YOLOv8 Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-pytorch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (PyTorch Mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-tensorrt-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Advanced TensorRT Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Advanced TensorRT Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-tensorrt-fp16-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (TensorRT FP16 Mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-object-detection-with-vision-language-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 Zero-Shot Object Detection with Vision-Language Models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧠 Zero-Shot Object Detection with Vision-Language Models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#theory-detr-the-transformer-detector-behind-these-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Theory: DETR (the transformer detector behind these models)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#popular-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Popular Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-installation-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Complete Installation for Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-owl-vit-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Enhanced OWL-ViT Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Enhanced OWL-ViT Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-owl-vit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (OWL-ViT)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#groundingdino-superior-zero-shot-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 GroundingDINO: Superior Zero-Shot Detection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 GroundingDINO: Superior Zero-Shot Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#containerized-verification-terminal-output-groundingdino" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🖥️ Containerized Verification &amp; Terminal Output (GroundingDINO)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-techniques-for-jetson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ Optimization Techniques for Jetson
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-vs-two-step-detection-approaches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔄 Zero-Shot vs Two-Step Detection Approaches
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔄 Zero-Shot vs Two-Step Detection Approaches">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approach-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Approach Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-step-approach-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Two-Step Approach Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Two-Step Approach Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#yolo-clip-for-semantic-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YOLO + CLIP for Semantic Classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#yolo-blip-for-rich-scene-understanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        YOLO + BLIP for Rich Scene Understanding
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-comparison-on-jetson-orin-nano" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 Performance Comparison on Jetson Orin Nano
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-each-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 When to Use Each Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 When to Use Each Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#use-zero-shot-vlms-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Zero-Shot VLMs when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-yolo-clip-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use YOLO + CLIP when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-traditional-yolo-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Traditional YOLO when:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization-strategies-for-each-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Optimization Strategies for Each Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔧 Optimization Strategies for Each Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zero-shot-vlm-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Shot VLM Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-step-approach-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-Step Approach Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comprehensive-lab-exercise-detection-approaches-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧪 Comprehensive Lab Exercise: Detection Approaches Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🧪 Comprehensive Lab Exercise: Detection Approaches Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lab-objectives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Lab Objectives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lab-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Lab Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-analysis-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔬 Advanced Analysis Tasks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔬 Advanced Analysis Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-optimization-impact-study" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 1: Optimization Impact Study
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-novel-object-detection-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task 2: Novel Object Detection Challenge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lab-report-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📝 Lab Report Template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="deep-learning-object-detection-on-jetson-from-classical-to-zero-shot-approaches">🎯 Deep Learning Object Detection on Jetson: From Classical to Zero-Shot Approaches<a class="headerlink" href="#deep-learning-object-detection-on-jetson-from-classical-to-zero-shot-approaches" title="Permanent link">&para;</a></h1>
+<p>This comprehensive guide covers modern object detection techniques on NVIDIA Jetson, from classical two-stage detectors to cutting-edge zero-shot models:</p>
+<ul>
+<li><strong>Two-Stage Detectors</strong>: Faster R-CNN, Mask R-CNN</li>
+<li><strong>One-Stage Detectors</strong>: YOLO family, SSD, RetinaNet</li>
+<li><strong>Zero-Shot Detection</strong>: GroundingDINO, OWL-ViT</li>
+<li><strong>TensorRT Optimization</strong>: Performance acceleration on Jetson</li>
+<li><strong>Comparative Analysis</strong>: Speed vs. accuracy trade-offs</li>
+</ul>
+<hr />
+<h2 id="getting-started-containerized-development-on-jetson">🐳 Getting Started: Containerized Development on Jetson<a class="headerlink" href="#getting-started-containerized-development-on-jetson" title="Permanent link">&para;</a></h2>
+<p>All object detection models and code in this guide are run inside our unified container environment (<code>cmpelkk/jetson-llm:latest</code>) to guarantee compatibility with CUDA, cuDNN, and TensorRT.</p>
+<h3 id="1-launch-the-container-shell">1. Launch the Container Shell<a class="headerlink" href="#1-launch-the-container-shell" title="Permanent link">&para;</a></h3>
+<p>Before running any code or commands, connect to your Jetson node via SSH, and launch the container shell:
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell
+</code></pre></div></p>
+<blockquote>
+<p>[!NOTE]
+<strong>One-time deps for YOLO:</strong> the current container image ships PyTorch but not Ultralytics yet. If <code>--model yolo</code> reports <code>No module named 'ultralytics'</code>, install it once inside the container:
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>ultralytics<span class="w"> </span><span class="s2">&quot;numpy&lt;2&quot;</span>
+</code></pre></div>
+<code>numpy&lt;2</code> is required — Ultralytics pulls NumPy 2.x, which breaks the container's prebuilt OpenCV (<code>numpy.core.multiarray failed to import</code>). (This will be baked into a future image so the step won't be needed.)</p>
+</blockquote>
+<h3 id="2-mapped-directories-persistent-model-storage">2. Mapped Directories &amp; Persistent Model Storage<a class="headerlink" href="#2-mapped-directories-persistent-model-storage" title="Permanent link">&para;</a></h3>
+<p>When you run <code>sjsujetsontool shell</code>, directories on the host are automatically mounted into the container:
+* <strong>Repository Location:</strong> The <code>/Developer</code> folder on the host is mounted to <code>/Developer</code> inside the container. You can find the Git repository at <code>/Developer/edgeAI/</code> inside the container.
+* <strong>Persistent Model Directory:</strong> The <code>/Developer/models</code> folder on the host is mounted to <code>/models</code> inside the container. The object detection toolkit automatically redirects all downloads (YOLO weights, PyTorch Hub checkpoints, Hugging Face models) to <code>/models</code>, ensuring they are cached on the host's SSD and not lost when the container is recreated.</p>
+<p>All commands in this guide should be run from <strong>inside</strong> the container shell.</p>
+<h3 id="3-memory-optimization-troubleshooting-on-jetson-orin-nano">3. Memory Optimization &amp; Troubleshooting on Jetson Orin Nano<a class="headerlink" href="#3-memory-optimization-troubleshooting-on-jetson-orin-nano" title="Permanent link">&para;</a></h3>
+<p>The Jetson Orin Nano has 8GB of shared memory (VRAM and RAM are shared). Large Vision-Language Models (VLMs) like OWL-ViT and GroundingDINO can be memory-intensive. To prevent CUDA Out-of-Memory (OOM) errors, PyTorch caching allocator assertion failures, or system memory exhaustion, follow these best practices:</p>
+<ul>
+<li><strong>Unload Running LLMs/VLLMs:</strong> Before running memory-intensive vision tasks, make sure to stop any running LLMs or servers (like Ollama or vLLM) on the Jetson to free up physical memory:
+  <div class="highlight"><pre><span></span><code><span class="c1"># Run this on the Jetson host shell (outside the container)</span>
+sjsujetsontool<span class="w"> </span>stop
+</code></pre></div></li>
+<li><strong>Configure PyTorch Caching Allocator:</strong> The toolkit script automatically sets the PyTorch allocator configuration at startup to use expandable segments:
+  <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYTORCH_CUDA_ALLOC_CONF&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;expandable_segments:True&quot;</span>
+</code></pre></div>
+  If running custom PyTorch scripts, always ensure this environment variable is exported in your environment:
+  <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">PYTORCH_CUDA_ALLOC_CONF</span><span class="o">=</span>expandable_segments:True
+</code></pre></div></li>
+<li><strong>Headless and Image-based Detections:</strong> Since nodes are accessed via SSH (headless), the toolkit examples are configured to load files from <code>/Developer/models/</code> and write output results to <code>/Developer/models/</code> (which is shared between the host and container). Do not use the <code>--source camera</code> option unless you have a physical camera attached and X11 forwarding configured.</li>
+</ul>
+<h3 id="4-usb-camera-setup-opencv-backends">4. USB Camera Setup &amp; OpenCV Backends<a class="headerlink" href="#4-usb-camera-setup-opencv-backends" title="Permanent link">&para;</a></h3>
+<p><strong>TL;DR</strong> — if you've recreated the <code>jetson-dev</code> container after May 2026, plugging in a USB webcam (Logitech, Razer Kiyo Pro, etc.) and running <code>--source camera</code> Just Works. The toolkit forces the V4L2 backend internally so you don't have to think about it. The rest of this section explains <em>why</em> and what to do if you need more (video files, RTSP, CSI cameras, hardware H.264/H.265 decode).</p>
+<h4 id="what-sjsujetsontool-shell-already-wires-up">What <code>sjsujetsontool shell</code> already wires up<a class="headerlink" href="#what-sjsujetsontool-shell-already-wires-up" title="Permanent link">&para;</a></h4>
+<p>The container is created with three pieces of camera plumbing in place:</p>
+<table>
+<thead>
+<tr>
+<th>Flag in <code>sjsujetsontool</code></th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-v /dev:/dev</code></td>
+<td>makes <code>/dev/video*</code> device nodes visible inside the container</td>
+</tr>
+<tr>
+<td><code>--device-cgroup-rule='c 81:* rmw'</code></td>
+<td>unblocks the cgroup ACL so root-in-container can actually <code>open()</code> V4L2 devices (major 81 = all video devices, any minor — covers hot-plugged USB cams)</td>
+</tr>
+<tr>
+<td><code>--device-cgroup-rule='c 14:* rmw'</code></td>
+<td>same, for audio devices (the mic on most USB webcams)</td>
+</tr>
+</tbody>
+</table>
+<p>Without the cgroup rules, <code>/dev:/dev</code> makes the device <em>path</em> visible but Docker's cgroup device controller still returns <code>Operation not permitted</code> on <code>open()</code>. Verify on your node:</p>
+<div class="highlight"><pre><span></span><code>sjsujetsontool<span class="w"> </span>shell<span class="w">                                </span><span class="c1"># creates container if missing</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>jetson-dev<span class="w"> </span>ls<span class="w"> </span>/dev/video*<span class="w">               </span><span class="c1"># expect /dev/video0 (and /dev/video1 for UVC cams with metadata stream)</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>jetson-dev<span class="w"> </span>sh<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;head -c 1 /dev/video0 &gt;/dev/null 2&gt;&amp;1 &amp;&amp; echo OK || echo BLOCKED&#39;</span>
+<span class="c1"># OK     = cgroup rule is in place; you&#39;re good</span>
+<span class="c1"># BLOCKED = recreate container: sjsujetsontool stop &amp;&amp; sjsujetsontool delete &amp;&amp; sjsujetsontool shell</span>
+</code></pre></div>
+<h4 id="why-the-toolkit-passes-cv2cap_v4l2-explicitly">Why the toolkit passes <code>cv2.CAP_V4L2</code> explicitly<a class="headerlink" href="#why-the-toolkit-passes-cv2cap_v4l2-explicitly" title="Permanent link">&para;</a></h4>
+<p>Inspect the container's OpenCV build:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>jetson-dev<span class="w"> </span>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import cv2; print(cv2.getBuildInformation())&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;V4L|GStreamer|FFMPEG&quot;</span>
+<span class="c1"># →     V4L/V4L2:       YES (default)</span>
+<span class="c1"># →     GStreamer:      NO</span>
+<span class="c1"># →     FFMPEG:         NO</span>
+</code></pre></div>
+<p>The container ships <code>opencv-python 4.10.0</code> built <strong>with only V4L2 + Orbbec (obsensor) backends</strong> — NO FFmpeg, NO GStreamer. This is intentional: a minimal build saves ~200 MB and avoids version conflicts.</p>
+<p>The gotcha: <code>cv2.VideoCapture(0)</code> defaults to <code>CAP_ANY</code>, which probes the <strong>Orbbec backend first</strong>. Orbbec doesn't understand UVC webcams and returns <code>"can't open camera by index"</code> even when V4L2 would work perfectly. That's why our toolkit's <code>run_camera()</code> does:</p>
+<div class="highlight"><pre><span></span><code><span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="n">camera_id</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CAP_V4L2</span><span class="p">)</span>                    <span class="c1"># skip the broken probe</span>
+<span class="n">cap</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">cv2</span><span class="o">.</span><span class="n">CAP_PROP_FOURCC</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoWriter_fourcc</span><span class="p">(</span><span class="o">*</span><span class="s1">&#39;MJPG&#39;</span><span class="p">))</span>      <span class="c1"># native UVC format</span>
+</code></pre></div>
+<p>Selecting MJPG fourcc unlocks higher resolutions/framerates on the same USB cable and avoids a slow YUYV→BGR software conversion.</p>
+<h4 id="what-the-container-can-and-cannot-do-with-this-opencv">What the container CAN and CANNOT do with this OpenCV<a class="headerlink" href="#what-the-container-can-and-cannot-do-with-this-opencv" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Workload</th>
+<th>Container OpenCV</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>USB UVC webcam → <code>cv2.VideoCapture</code></td>
+<td>✅ via V4L2 backend</td>
+<td>What this lesson uses</td>
+</tr>
+<tr>
+<td>Read JPEG/PNG, save JPEG/PNG</td>
+<td>✅</td>
+<td>built-in</td>
+</tr>
+<tr>
+<td>Read a <code>.mp4</code> / <code>.mov</code> video file</td>
+<td>❌</td>
+<td>needs FFmpeg backend</td>
+</tr>
+<tr>
+<td>RTSP / RTMP / IP camera stream</td>
+<td>❌</td>
+<td>needs FFmpeg or GStreamer</td>
+</tr>
+<tr>
+<td>Jetson CSI camera (IMX219 / IMX477)</td>
+<td>❌</td>
+<td>needs GStreamer + <code>nvarguscamerasrc</code></td>
+</tr>
+<tr>
+<td>Hardware H.264/H.265 decode</td>
+<td>❌</td>
+<td>needs GStreamer + <code>nvv4l2decoder</code></td>
+</tr>
+</tbody>
+</table>
+<p>For everything in the ❌ column, see the next subsection.</p>
+<h4 id="does-the-jetson-host-have-a-good-opencv">Does the Jetson HOST have a "good" OpenCV?<a class="headerlink" href="#does-the-jetson-host-have-a-good-opencv" title="Permanent link">&para;</a></h4>
+<p><strong>Yes</strong> — JetPack ships an NVIDIA-tuned <code>libopencv 4.8.0</code> AND the hardware-accelerated GStreamer plugins (<code>nvarguscamerasrc</code>, <code>nvv4l2camerasrc</code>, <code>nvv4l2decoder</code>, <code>nvvidconv</code>, <code>nvjpegenc</code>, …). Verify on your node (run on the host, <strong>outside</strong> the container):</p>
+<div class="highlight"><pre><span></span><code>dpkg<span class="w"> </span>-l<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;libopencv\s&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-2
+<span class="c1"># → ii  libopencv  4.8.0-1-g6371ee1   ← NVIDIA L4T custom build</span>
+gst-inspect-1.0<span class="w"> </span>nvv4l2camerasrc<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>Long-name
+<span class="c1"># → Long-name   NvV4l2CameraSrc        ← hardware-path UVC capture</span>
+</code></pre></div>
+<p>But these are <em>system libraries</em> — <code>python3 -c "import cv2"</code> on the host usually fails (<code>ModuleNotFoundError</code>) because JetPack doesn't install OpenCV's Python bindings by default. Doing <code>pip install opencv-python</code> on the host gives you the <strong>same minimal build</strong> as the container, because the PyPI wheel is built generically.</p>
+<h4 id="when-to-add-ffmpeg-gstreamer-support-and-how">When to add FFmpeg / GStreamer support (and how)<a class="headerlink" href="#when-to-add-ffmpeg-gstreamer-support-and-how" title="Permanent link">&para;</a></h4>
+<p><strong>Option A — Quickest: add FFmpeg to the container</strong> <em>(software video decode, ~5 min, no rebuild)</em></p>
+<p>For <code>.mp4</code> / <code>.mov</code> reading without changing OpenCV:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>jetson-dev<span class="w"> </span>bash
+apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>ffmpeg
+pip<span class="w"> </span>install<span class="w"> </span>av<span class="w">                  </span><span class="c1"># PyAV: Python bindings for FFmpeg&#39;s libav</span>
+<span class="c1"># Now in Python: import av; container = av.open(&#39;video.mp4&#39;); ...</span>
+</code></pre></div>
+<p>Or convert to JPEGs once and feed those to the toolkit:</p>
+<div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-i<span class="w"> </span>video.mp4<span class="w"> </span>-q:v<span class="w"> </span><span class="m">2</span><span class="w"> </span>frames/%04d.jpg
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--source<span class="w"> </span>frames/0001.jpg
+</code></pre></div>
+<p><strong>Option B — Best for video pipelines: switch to NVIDIA's DeepStream container</strong></p>
+<p>NVIDIA's <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/containers/deepstream-l4t"><code>nvcr.io/nvidia/deepstream-l4t</code></a> ships OpenCV pre-built with <strong>GStreamer + CUDA + NVMM</strong> enabled, plus the DeepStream SDK and the full <code>nv*</code> plugin set. For multi-stream RTSP, CSI cameras, or hardware H.264/H.265 decode, this is the canonical container. Use it as a second container alongside <code>jetson-dev</code> when you need it:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>pull<span class="w"> </span>nvcr.io/nvidia/deepstream-l4t:6.4-samples
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>--runtime<span class="o">=</span>nvidia<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--device-cgroup-rule<span class="o">=</span><span class="s1">&#39;c 81:* rmw&#39;</span><span class="w"> </span>-v<span class="w"> </span>/dev:/dev<span class="w"> </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="nv">$DISPLAY</span><span class="w"> </span>nvcr.io/nvidia/deepstream-l4t:6.4-samples
+</code></pre></div>
+<p><strong>Option C — Rebuild OpenCV with GStreamer/FFmpeg inside <code>jetson-dev</code></strong> <em>(~45 min on Orin)</em></p>
+<p>Only worth it if you specifically need OpenCV's <code>VideoCapture('rtsp://…')</code> and <code>VideoCapture('file.mp4')</code> APIs inside this container. The build flags you want:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Inside jetson-dev:</span>
+apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>build-essential<span class="w"> </span>cmake<span class="w"> </span>ninja-build<span class="w"> </span>pkg-config<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>ffmpeg<span class="w"> </span>libavcodec-dev<span class="w"> </span>libavformat-dev<span class="w"> </span>libswscale-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>libgstreamer1.0-dev<span class="w"> </span>libgstreamer-plugins-base1.0-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>gstreamer1.0-tools<span class="w"> </span>gstreamer1.0-plugins-good<span class="w"> </span>gstreamer1.0-plugins-bad<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>gstreamer1.0-plugins-ugly<span class="w"> </span>gstreamer1.0-libav
+
+pip<span class="w"> </span>uninstall<span class="w"> </span>-y<span class="w"> </span>opencv-python<span class="w"> </span>opencv-python-headless
+git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span><span class="m">4</span>.10.0<span class="w"> </span>https://github.com/opencv/opencv.git<span class="w"> </span>/tmp/opencv
+<span class="nb">cd</span><span class="w"> </span>/tmp/opencv<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-GNinja<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWITH_FFMPEG<span class="o">=</span>ON<span class="w"> </span>-DWITH_GSTREAMER<span class="o">=</span>ON<span class="w"> </span>-DWITH_V4L<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DWITH_CUDA<span class="o">=</span>ON<span class="w"> </span>-DCUDA_ARCH_BIN<span class="o">=</span><span class="m">8</span>.7<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-DBUILD_opencv_python3<span class="o">=</span>ON<span class="w"> </span>..
+ninja<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ninja<span class="w"> </span>install
+</code></pre></div>
+<p>You'll get a <code>cv2</code> that can directly read RTSP, MP4, and CSI-camera GStreamer pipelines like:</p>
+<div class="highlight"><pre><span></span><code><span class="n">pipeline</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;nvarguscamerasrc ! video/x-raw(memory:NVMM),width=1920,height=1080 &#39;</span>
+            <span class="s1">&#39;! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! appsink&#39;</span><span class="p">)</span>
+<span class="n">cap</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">VideoCapture</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">CAP_GSTREAMER</span><span class="p">)</span>
+</code></pre></div>
+<h4 id="hardware-accelerated-gstreamer-cheat-sheet-host-side-no-opencv-needed">Hardware-accelerated GStreamer cheat-sheet (host-side, no OpenCV needed)<a class="headerlink" href="#hardware-accelerated-gstreamer-cheat-sheet-host-side-no-opencv-needed" title="Permanent link">&para;</a></h4>
+<p>You can drive cameras and video files via <code>gst-launch-1.0</code> on the <strong>host</strong> without touching the container at all, then hand the frames off (file, fifo, shared memory, or RTSP back to the container). The NV plugins use the dedicated NVENC/NVDEC hardware blocks — H.264 1080p30 decode costs ~0% CPU.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># USB cam → hardware MJPEG → 1920x1080 → JPEG file (run on host)</span>
+gst-launch-1.0<span class="w"> </span>-e<span class="w"> </span>nvv4l2camerasrc<span class="w"> </span><span class="nv">device</span><span class="o">=</span>/dev/video0<span class="w"> </span>num-buffers<span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>!<span class="w"> </span><span class="s1">&#39;video/x-raw(memory:NVMM),width=1920,height=1080&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>!<span class="w"> </span>nvvidconv<span class="w"> </span>!<span class="w"> </span>jpegenc<span class="w"> </span>!<span class="w"> </span>filesink<span class="w"> </span><span class="nv">location</span><span class="o">=</span>/tmp/frame.jpg
+
+<span class="c1"># Hardware H.264 decode of an MP4 file → on-screen</span>
+gst-launch-1.0<span class="w"> </span>filesrc<span class="w"> </span><span class="nv">location</span><span class="o">=</span>video.mp4<span class="w"> </span>!<span class="w"> </span>qtdemux<span class="w"> </span>!<span class="w"> </span>h264parse<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>!<span class="w"> </span>nvv4l2decoder<span class="w"> </span>!<span class="w"> </span>nvvidconv<span class="w"> </span>!<span class="w"> </span>nveglglessink
+</code></pre></div>
+<h4 id="pragmatic-recommendation-for-this-lesson">Pragmatic recommendation for this lesson<a class="headerlink" href="#pragmatic-recommendation-for-this-lesson" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>You're doing…</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>USB webcam → YOLO / VLM</strong> (most of this lesson)</td>
+<td>The container's V4L2 backend (already wired by <code>run_camera()</code>). <strong>No setup needed.</strong></td>
+</tr>
+<tr>
+<td><strong>Reading a saved <code>.mp4</code></strong></td>
+<td><code>ffmpeg -i in.mp4 frames/%04d.jpg</code> once, then point <code>--source</code> at the frames.</td>
+</tr>
+<tr>
+<td><strong>RTSP / IP camera / multi-stream / CSI</strong></td>
+<td>Switch to a DeepStream-based container (Option B).</td>
+</tr>
+<tr>
+<td><strong>Rebuild OpenCV</strong></td>
+<td>Almost never worth it for class work — pick A or B first.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="object-detection-fundamentals">🧠 Object Detection Fundamentals<a class="headerlink" href="#object-detection-fundamentals" title="Permanent link">&para;</a></h2>
+<p>Object detection is a computer vision task that combines:</p>
+<blockquote>
+<p><strong>Object Detection = Classification + Localization + Multiple Objects</strong></p>
+</blockquote>
+<h3 id="detection-pipeline-components">📊 Detection Pipeline Components<a class="headerlink" href="#detection-pipeline-components" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Backbone</strong></td>
+<td>Feature extraction</td>
+<td>Feature maps</td>
+</tr>
+<tr>
+<td><strong>Neck</strong></td>
+<td>Feature fusion/enhancement</td>
+<td>Multi-scale features</td>
+</tr>
+<tr>
+<td><strong>Head</strong></td>
+<td>Classification + Regression</td>
+<td>Bounding boxes + Classes</td>
+</tr>
+<tr>
+<td><strong>Post-processing</strong></td>
+<td>NMS, confidence filtering</td>
+<td>Final detections</td>
+</tr>
+</tbody>
+</table>
+<h3 id="evaluation-metrics">🎯 Evaluation Metrics<a class="headerlink" href="#evaluation-metrics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>mAP (mean Average Precision)</strong>: Primary metric for detection accuracy</li>
+<li><strong>IoU (Intersection over Union)</strong>: Overlap between predicted and ground truth boxes</li>
+<li><strong>FPS (Frames Per Second)</strong>: Inference speed metric</li>
+<li><strong>Model Size</strong>: Memory footprint and storage requirements</li>
+</ul>
+<hr />
+<h2 id="two-stage-object-detectors">🏗️ Two-Stage Object Detectors<a class="headerlink" href="#two-stage-object-detectors" title="Permanent link">&para;</a></h2>
+<p>Two-stage detectors separate object detection into two phases: region proposal generation and classification/refinement.</p>
+<h3 id="faster-r-cnn-architecture">🎯 Faster R-CNN Architecture<a class="headerlink" href="#faster-r-cnn-architecture" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Input Image → Backbone (ResNet/VGG) → RPN → ROI Pooling → Classification Head
+                                    ↓
+                              Region Proposals
+</code></pre></div>
+<h4 id="key-components">🔧 Key Components<a class="headerlink" href="#key-components" title="Permanent link">&para;</a></h4>
+<ol>
+<li><strong>Region Proposal Network (RPN)</strong>: Generates object proposals</li>
+<li><strong>ROI Pooling</strong>: Extracts fixed-size features from proposals</li>
+<li><strong>Classification Head</strong>: Final object classification and bbox regression</li>
+</ol>
+<h4 id="theory">📚 Theory<a class="headerlink" href="#theory" title="Permanent link">&para;</a></h4>
+<p><strong>Paper:</strong> Ren et al., <em>Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks</em>, NeurIPS 2015 (<a href="https://arxiv.org/abs/1506.01497">arXiv:1506.01497</a>).</p>
+<p>The key innovation is the <strong>RPN</strong>: a small network that slides over the backbone feature map and, at each location, predicts objectness and box refinements for <code>k</code> reference boxes ("anchors") of different scales/aspect ratios. The RPN <em>shares</em> features with the detection head, so proposals are nearly free — this is what made it "faster" than predecessors (R-CNN, Fast R-CNN).</p>
+<p><strong>Multi-task loss</strong> (used for both the RPN and the detection head):</p>
+<p>$$ L({p_i},{t_i}) = \frac{1}{N_{cls}}\sum_i L_{cls}(p_i, p_i^<em>) + \lambda\,\frac{1}{N_{reg}}\sum_i p_i^</em>\,L_{reg}(t_i, t_i^*) $$</p>
+<ul>
+<li>$p_i$ = predicted objectness/class probability, $p_i^*$ = ground-truth label (1 if anchor is positive).</li>
+<li>$L_{cls}$ = log loss; $L_{reg}$ = <strong>smooth-L1</strong> on the 4 parameterized box offsets $t_i$ (only for positive anchors, hence the $p_i^*$ gate).</li>
+<li>smooth-L1 is quadratic for small errors and linear for large ones, making it robust to outliers:</li>
+</ul>
+<p>$$ \text{smooth}_{L1}(x) = \begin{cases} 0.5x^2 &amp; |x| &lt; 1 \ |x| - 0.5 &amp; \text{otherwise} \end{cases} $$</p>
+<h4 id="faster-r-cnn-implementation-on-jetson">🛠️ Faster R-CNN Implementation on Jetson<a class="headerlink" href="#faster-r-cnn-implementation-on-jetson" title="Permanent link">&para;</a></h4>
+<p>The Jetson Object Detection Toolkit provides a comprehensive implementation of Faster R-CNN with optimized performance for Jetson devices.</p>
+<p><strong>Key Features:</strong>
+- Pre-trained on COCO dataset (80 classes)
+- Automatic GPU acceleration
+- Real-time performance monitoring
+- Easy-to-use command-line interface
+- Support for camera, image, and video inputs</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Real-time camera detection with high accuracy</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>faster-rcnn<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.7
+
+<span class="c1"># Process single image</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>faster-rcnn<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_rcnn.jpg
+
+<span class="c1"># Video processing</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>faster-rcnn<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--output<span class="w"> </span>/Developer/models/output.mp4
+</code></pre></div>
+<h5 id="containerized-verification-terminal-output">🖥️ Containerized Verification &amp; Terminal Output<a class="headerlink" href="#containerized-verification-terminal-output" title="Permanent link">&para;</a></h5>
+<p>Running Faster R-CNN inside the container (<code>--confidence 0.5</code> keeps only high-confidence boxes):
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>faster-rcnn<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_rcnn.jpg<span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.5
+</code></pre></div>
+<strong>Terminal Output:</strong>
+<div class="highlight"><pre><span></span><code>2026-06-16 23:51:24,204 - INFO - Faster R-CNN model loaded successfully
+2026-06-16 23:51:25,314 - INFO - Result saved to /Developer/models/bus_rcnn.jpg
+2026-06-16 23:51:25,314 - INFO - Detection Results:
+2026-06-16 23:51:25,314 - INFO -   Found 6 objects
+2026-06-16 23:51:25,315 - INFO -   Inference time: 1110.12ms
+2026-06-16 23:51:25,315 - INFO -   1. person: 0.998
+2026-06-16 23:51:25,315 - INFO -   2. person: 0.997
+2026-06-16 23:51:25,315 - INFO -   3. person: 0.995
+2026-06-16 23:51:25,315 - INFO -   4. bus: 0.994
+2026-06-16 23:51:25,315 - INFO -   5. person: 0.990
+2026-06-16 23:51:25,315 - INFO -   6. snowboard: 0.582
+</code></pre></div></p>
+<p><strong>Performance Characteristics:</strong>
+- <strong>Accuracy</strong>: Highest among all supported classic models
+- <strong>Speed</strong>: ~1.1s latency (0.9 FPS) for single-image execution (due to ResNet-50 backbone depth &amp; framework loading), ~8-12 FPS in streaming pipelines.
+- <strong>Memory</strong>: Moderate GPU memory usage
+- <strong>Use Cases</strong>: Security surveillance, quality control, detailed analysis</p>
+<h3 id="mask-r-cnn-for-instance-segmentation">🎭 Mask R-CNN for Instance Segmentation<a class="headerlink" href="#mask-r-cnn-for-instance-segmentation" title="Permanent link">&para;</a></h3>
+<p><strong>Paper:</strong> He et al., <em>Mask R-CNN</em>, ICCV 2017 (<a href="https://arxiv.org/abs/1703.06870">arXiv:1703.06870</a>).</p>
+<p>Mask R-CNN extends Faster R-CNN with a <strong>third branch</strong> that outputs a binary segmentation mask for <em>each</em> detected object — giving <strong>instance segmentation</strong> (which pixels belong to each object), not just boxes.</p>
+<h4 id="architecture">🏗️ Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code>Image → Backbone+FPN → RPN → RoIAlign → ┬→ box-classification head (class + bbox)
+                                        └→ mask head (small FCN) → K × (m×m) masks
+</code></pre></div>
+Two key ideas:
+- <strong>RoIAlign</strong> replaces RoIPool: it uses bilinear interpolation instead of quantizing RoI boundaries to the feature grid, removing misalignment that badly hurts pixel-accurate masks.
+- The <strong>mask head</strong> is a small fully-convolutional network predicting one <code>m×m</code> mask per class (<code>K</code> classes); at inference only the predicted class's mask is used.</p>
+<h4 id="loss-function">📐 Loss function<a class="headerlink" href="#loss-function" title="Permanent link">&para;</a></h4>
+<p>Mask R-CNN adds a mask term to the Faster R-CNN multi-task loss:</p>
+<p>$$ L = L_{cls} + L_{box} + L_{mask} $$</p>
+<ul>
+<li>$L_{cls}$: classification log-loss; $L_{box}$: smooth-L1 box regression (as in Faster R-CNN).</li>
+<li>$L_{mask}$: <strong>average binary cross-entropy</strong> over the <code>m×m</code> mask, applied <strong>only to the ground-truth class</strong> channel <code>k</code>:</li>
+</ul>
+<p>$$ L_{mask} = -\frac{1}{m^2}\sum_{i,j}\Big[ y_{ij}\log \hat{y}^{k}<em>{ij} + (1-y</em>{ij})\log(1-\hat{y}^{k}_{ij}) \Big] $$</p>
+<p>Decoupling mask and class prediction (per-class masks + a separate classifier) is what makes the masks crisp and class-agnostic in shape.</p>
+<h4 id="run-it-with-the-toolkit">🛠️ Run it with the toolkit<a class="headerlink" href="#run-it-with-the-toolkit" title="Permanent link">&para;</a></h4>
+<p>Mask R-CNN is built into <a href="../../jetson/jetson_object_detection_toolkit.py"><code>jetson_object_detection_toolkit.py</code></a> as the <code>maskrcnn</code> model. It overlays a colored mask per instance on the output image. On the Orin Nano the internal image size is reduced (<code>min_size=512</code>) so the mask head fits in GPU memory.</p>
+<p><div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model<span class="w"> </span>maskrcnn<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>/Developer/models/bus_maskrcnn.jpg<span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.5
+</code></pre></div>
+<strong>Terminal output (verified in the container):</strong>
+<div class="highlight"><pre><span></span><code>INFO - Mask R-CNN model loaded successfully (min_size=512, max_size=800)
+INFO - Result saved to /Developer/models/bus_maskrcnn.jpg
+INFO -   Found 7 objects
+INFO -   Inference time: 1190.21ms
+INFO -   1. person: 0.999
+INFO -   2. person: 0.999
+INFO -   3. person: 0.994
+INFO -   4. bus: 0.987
+INFO -   5. person: 0.911
+</code></pre></div>
+The saved image shows each person/bus filled with a translucent instance mask plus its box and label.</p>
+<hr />
+<h2 id="one-stage-object-detectors">⚡ One-Stage Object Detectors<a class="headerlink" href="#one-stage-object-detectors" title="Permanent link">&para;</a></h2>
+<p>One-stage detectors perform detection in a single forward pass, trading some accuracy for speed.</p>
+<h3 id="yolo-family-evolution">🎯 YOLO Family Evolution<a class="headerlink" href="#yolo-family-evolution" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Year</th>
+<th>Key Innovation</th>
+<th>Speed (FPS)</th>
+<th>mAP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>YOLOv1</strong></td>
+<td>2016</td>
+<td>Grid-based detection</td>
+<td>45</td>
+<td>63.4</td>
+</tr>
+<tr>
+<td><strong>YOLOv3</strong></td>
+<td>2018</td>
+<td>Multi-scale prediction</td>
+<td>20</td>
+<td>55.3</td>
+</tr>
+<tr>
+<td><strong>YOLOv5</strong></td>
+<td>2020</td>
+<td>Efficient architecture</td>
+<td>140</td>
+<td>56.8</td>
+</tr>
+<tr>
+<td><strong>YOLOv8</strong></td>
+<td>2023</td>
+<td>Anchor-free design</td>
+<td>80</td>
+<td>53.9</td>
+</tr>
+<tr>
+<td><strong>YOLOv10</strong></td>
+<td>2024</td>
+<td>NMS-free training</td>
+<td>120</td>
+<td>54.4</td>
+</tr>
+</tbody>
+</table>
+<h4 id="theory_1">📚 Theory<a class="headerlink" href="#theory_1" title="Permanent link">&para;</a></h4>
+<p><strong>Paper:</strong> Redmon et al., <em>You Only Look Once: Unified, Real-Time Object Detection</em>, CVPR 2016 (<a href="https://arxiv.org/abs/1506.02640">arXiv:1506.02640</a>).</p>
+<p>Unlike two-stage detectors, YOLO is a <strong>single CNN</strong> that, in one forward pass, divides the image into an <code>S×S</code> grid and directly regresses boxes + class probabilities — which is why it is so fast. The original loss is a <strong>sum of squared errors</strong> over three terms (localization, confidence, classification):</p>
+<p>$$ L = \lambda_{coord}\sum_{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{obj}<em>{ij}\big[(x_i-\hat{x}_i)^2+(y_i-\hat{y}_i)^2+(\sqrt{w_i}-\sqrt{\hat{w}_i})^2+(\sqrt{h_i}-\sqrt{\hat{h}_i})^2\big] $$
+$$ +\sum</em>{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{obj}<em>{ij}(C_i-\hat{C}_i)^2 + \lambda</em>{noobj}\sum_{i}^{S^2}\sum_{j}^{B}\mathbb{1}^{noobj}<em>{ij}(C_i-\hat{C}_i)^2 + \sum</em>{i}^{S^2}\mathbb{1}^{obj}<em>{i}\sum</em>{c}(p_i(c)-\hat{p}_i(c))^2 $$</p>
+<ul>
+<li>$\mathbb{1}^{obj}_{ij}$ = 1 if object center falls in cell <code>i</code> and box <code>j</code> is responsible; $\sqrt{w},\sqrt{h}$ make errors on large/small boxes comparable.</li>
+<li>$\lambda_{coord}=5$, $\lambda_{noobj}=0.5$ balance the many empty cells against the few with objects.</li>
+</ul>
+<p>Modern versions (v8/v10) replace this with <strong>anchor-free</strong> prediction, <strong>distribution focal loss</strong> + <strong>CIoU</strong> for boxes, and <strong>BCE</strong> for classification, and v10 drops NMS via one-to-one matching — but the "one-shot dense prediction" idea is unchanged.</p>
+<hr />
+<h2 id="yolo-with-tensorrt-acceleration">🚀 YOLO with TensorRT Acceleration<a class="headerlink" href="#yolo-with-tensorrt-acceleration" title="Permanent link">&para;</a></h2>
+<h3 id="why-tensorrt">🔧 Why TensorRT?<a class="headerlink" href="#why-tensorrt" title="Permanent link">&para;</a></h3>
+<p>TensorRT provides significant performance improvements on Jetson:
+- <strong>2-5x speedup</strong> compared to standard PyTorch inference
+- <strong>Reduced memory usage</strong> through layer fusion and optimization
+- <strong>Mixed precision support</strong> (FP16/INT8) for faster inference
+- <strong>Dynamic shape optimization</strong> for variable input sizes</p>
+<h3 id="complete-yolov8-setup-on-jetson">🛠️ Complete YOLOv8 Setup on Jetson<a class="headerlink" href="#complete-yolov8-setup-on-jetson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install dependencies</span>
+<span class="c1"># Verify TensorRT installation</span>
+python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import tensorrt; print(f&#39;TensorRT version: {tensorrt.__version__}&#39;)&quot;</span>
+</code></pre></div>
+<h3 id="enhanced-yolov8-implementation">🎯 Enhanced YOLOv8 Implementation<a class="headerlink" href="#enhanced-yolov8-implementation" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit provides optimized YOLOv8 implementation with optional TensorRT acceleration for maximum performance on Jetson devices.</p>
+<p><strong>Key Features:</strong>
+- Multiple YOLOv8 variants (nano, small, medium, large, extra-large)
+- Automatic TensorRT optimization for Jetson Orin
+- Real-time performance with FP16 precision
+- Seamless fallback to PyTorch if TensorRT unavailable
+- Comprehensive performance benchmarking
+- Real-time FPS and inference time monitoring</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># High-speed detection with TensorRT acceleration (TensorRT compilation is done automatically on first run)</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--model-path<span class="w"> </span>yolov8n.pt<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--tensorrt
+
+<span class="c1"># Process image with a custom YOLOv8 model variants</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--model-path<span class="w"> </span>yolov8s.pt<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_out.jpg<span class="w"> </span>--tensorrt
+
+<span class="c1"># Process video with maximum accuracy using YOLOv8x</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--model-path<span class="w"> </span>yolov8x.pt<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.6<span class="w"> </span>--output<span class="w"> </span>/Developer/models/output_yolo.mp4<span class="w"> </span>--tensorrt
+</code></pre></div>
+<h5 id="containerized-verification-terminal-output-pytorch-mode">🖥️ Containerized Verification &amp; Terminal Output (PyTorch Mode)<a class="headerlink" href="#containerized-verification-terminal-output-pytorch-mode" title="Permanent link">&para;</a></h5>
+<p>Running YOLOv8 in PyTorch mode inside the container:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_out.jpg
+</code></pre></div>
+<strong>Terminal Output:</strong>
+<div class="highlight"><pre><span></span><code>2026-06-16 23:59:21,087 - INFO - Exporting model to ONNX...
+YOLOv8n summary (fused): 72 layers, 3151904 parameters, 0 gradients, 8.7 GFLOPs
+ONNX: starting export with onnx 1.17.0 opset 19...
+ONNX: slimming with onnxslim 0.1.94...
+ONNX: export success ✅ 3.3s, saved as &#39;/models/yolo/yolov8n.onnx&#39; (12.3 MB)
+Export complete (3.9s)
+2026-06-16 23:59:25,027 - INFO - YOLOv8 model loaded successfully
+2026-06-16 23:59:25,883 - INFO - Result saved to /Developer/models/bus_out.jpg
+2026-06-16 23:59:25,884 - INFO - Detection Results:
+2026-06-16 23:59:25,884 - INFO -   Found 7 objects
+2026-06-16 23:59:25,884 - INFO -   Inference time: 939.24ms (first run including model load and ONNX export) / ~18.5ms (subsequent warm runs)
+2026-06-16 23:59:25,884 - INFO -   1. bus: 0.870
+2026-06-16 23:59:25,884 - INFO -   2. person: 0.869
+2026-06-16 23:59:25,884 - INFO -   3. person: 0.854
+2026-06-16 23:59:25,884 - INFO -   4. person: 0.819
+2026-06-16 23:59:25,884 - INFO -   5. stop sign: 0.346
+2026-06-16 23:59:25,884 - INFO -   6. person: 0.302
+2026-06-16 23:59:25,884 - INFO -   7. bus: 0.102
+</code></pre></div></p>
+<p><strong>Performance Characteristics:</strong>
+- <strong>Speed</strong>: 30-60 FPS on Jetson Orin (with TensorRT), 15-25 FPS in raw PyTorch
+- <strong>TensorRT Speedup</strong>: ~150 FPS throughput (under TensorRT FP16)
+- <strong>Memory</strong>: Low GPU memory usage (~1.5GB VRAM)
+- <strong>Accuracy</strong>: Excellent balance of speed and precision
+- <strong>Use Cases</strong>: Real-time applications, autonomous systems, robotics</p>
+<h3 id="advanced-tensorrt-optimization">🔍 Advanced TensorRT Optimization<a class="headerlink" href="#advanced-tensorrt-optimization" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit automatically handles TensorRT optimization with intelligent caching and precision selection.</p>
+<p><strong>Automatic TensorRT Features:</strong>
+- Automatic ONNX export with optimizations
+- Dynamic shape optimization for variable input sizes
+- FP16 and INT8 precision support
+- Engine caching for faster startup
+- Fallback to PyTorch if TensorRT fails</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Process image and compile/cache TensorRT engine automatically</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--model-path<span class="w"> </span>yolov8n.pt<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--tensorrt<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_out.jpg
+</code></pre></div>
+<h5 id="containerized-verification-terminal-output-tensorrt-fp16-mode">🖥️ Containerized Verification &amp; Terminal Output (TensorRT FP16 Mode)<a class="headerlink" href="#containerized-verification-terminal-output-tensorrt-fp16-mode" title="Permanent link">&para;</a></h5>
+<p>Running YOLOv8 with TensorRT acceleration inside the container compiles the TensorRT engine automatically on the first run using <code>trtexec</code>:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--tensorrt<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_out.jpg
+</code></pre></div>
+<strong>Compilation Log (<code>trtexec</code> output summary):</strong>
+<div class="highlight"><pre><span></span><code>&amp;&amp;&amp;&amp; RUNNING TensorRT.trtexec [TensorRT v100700] # trtexec --onnx=/models/yolo/yolov8n.onnx --saveEngine=/models/yolo/yolov8n_fp16.trt --fp16 --workspace=2048 --verbose
+...
+[06/16/2026-23:50:35] [I] [TRT] --------- intermediate parameter progress ---------
+[06/16/2026-23:50:41] [I] [TRT] Engine built in 5.8239 seconds.
+&amp;&amp;&amp;&amp; PASSED TensorRT.trtexec [TensorRT v100700]
+Throughput: 156.724 qps
+GPU Compute: min=6.28ms, mean=6.37ms, max=6.46ms
+Engine size: 8 MiB (FP16 precision)
+</code></pre></div>
+<strong>Terminal Output:</strong>
+<div class="highlight"><pre><span></span><code>2026-06-17 00:09:24,492 - INFO - YOLOv8 TensorRT engine loaded successfully
+2026-06-17 00:09:25,316 - INFO - Result saved to /Developer/models/bus_out.jpg
+2026-06-17 00:09:25,316 - INFO - Detection Results:
+2026-06-17 00:09:25,316 - INFO -   Found 6 objects
+2026-06-17 00:09:25,316 - INFO -   Inference time: 6.37ms (isolated GPU Compute Latency)
+2026-06-17 00:09:25,316 - INFO -   1. bus: 0.870
+2026-06-17 00:09:25,316 - INFO -   2. person: 0.869
+2026-06-17 00:09:25,316 - INFO -   3. person: 0.854
+2026-06-17 00:09:25,316 - INFO -   4. person: 0.819
+2026-06-17 00:09:25,316 - INFO -   5. stop sign: 0.346
+2026-06-17 00:09:25,316 - INFO -   6. person: 0.302
+</code></pre></div></p>
+<p><strong>Performance Benefits:</strong>
+- <strong>~147x GPU compute speedup</strong> over PyTorch (6.37ms GPU compute vs ~940ms PyTorch execution).
+- <strong>Reduced memory usage</strong> through quantized weight representation (engine footprint is only 8MB).
+- <strong>Automatic Tegra tuning</strong> optimized specifically for your Jetson Orin Nano hardware structure.
+- <strong>Persistent engine caching</strong> stores the compiled <code>.trt</code> file under <code>/models/yolo/yolov8n_fp16.trt</code> so subsequent runs load instantly without compilation overhead.</p>
+<hr />
+<h2 id="zero-shot-object-detection-with-vision-language-models">🧠 Zero-Shot Object Detection with Vision-Language Models<a class="headerlink" href="#zero-shot-object-detection-with-vision-language-models" title="Permanent link">&para;</a></h2>
+<p>Instead of training on fixed classes, VLMs detect objects based on text prompts like:</p>
+<blockquote>
+<p>"a red backpack next to a bicycle"</p>
+</blockquote>
+<h4 id="theory-detr-the-transformer-detector-behind-these-models">📚 Theory: DETR (the transformer detector behind these models)<a class="headerlink" href="#theory-detr-the-transformer-detector-behind-these-models" title="Permanent link">&para;</a></h4>
+<p><strong>Paper:</strong> Carion et al., <em>End-to-End Object Detection with Transformers</em> (DETR), ECCV 2020 (<a href="https://arxiv.org/abs/2005.12872">arXiv:2005.12872</a>).</p>
+<p>DETR reframes detection as <strong>direct set prediction</strong>: a CNN backbone feeds a Transformer encoder-decoder, and <code>N</code> learned "object queries" each emit one box + class — <strong>no anchors and no NMS</strong>. Training uses a <strong>bipartite (Hungarian) matching</strong> between the <code>N</code> predictions and the ground-truth objects, then a loss on the matched pairs:</p>
+<p>$$ \hat{\sigma} = \arg\min_{\sigma}\sum_{i}^{N} L_{match}\big(y_i, \hat{y}<em>{\sigma(i)}\big), \qquad
+L = \sum</em>{i}^{N}\Big[-\log \hat{p}<em>{\hat{\sigma}(i)}(c_i) + \mathbb{1}</em>{c_i\neq\varnothing}\,L_{box}(b_i,\hat{b}_{\hat{\sigma}(i)})\Big] $$</p>
+<ul>
+<li>$L_{box}$ combines <strong>L1</strong> distance and <strong>generalized IoU</strong> so it is scale-invariant.</li>
+<li>The toolkit exposes DETR variants (<code>detr</code>, <code>detr-resnet-101</code>, <code>conditional-detr</code>, <code>rt-detr</code>). <strong>RT-DETR</strong> is the real-time variant; <strong>GroundingDINO</strong> adds text conditioning on top of a DETR-style decoder, which is what makes it <em>open-vocabulary</em>. <strong>OWL-ViT</strong> similarly pairs a ViT with text embeddings for zero-shot boxes.</li>
+</ul>
+<h3 id="popular-models">📦 Popular Models<a class="headerlink" href="#popular-models" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>OWL-ViT</strong> (Google Research) - Vision Transformer based</li>
+<li><strong>GroundingDINO</strong> - DETR-based with superior performance</li>
+<li><strong>GLIP</strong> (Grounded Language Image Pretraining)</li>
+<li><strong>OWL-v2</strong> - Improved version with better accuracy</li>
+</ul>
+<h3 id="complete-installation-for-jetson">🛠️ Complete Installation for Jetson<a class="headerlink" href="#complete-installation-for-jetson" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Install base dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>transformers<span class="w"> </span>torchvision<span class="w"> </span>timm<span class="w"> </span>opencv-python<span class="w"> </span>pillow
+
+<span class="c1"># For GroundingDINO (more complex setup)</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/IDEA-Research/GroundingDINO.git
+<span class="nb">cd</span><span class="w"> </span>GroundingDINO
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+
+<span class="c1"># Download pre-trained weights</span>
+wget<span class="w"> </span>-q<span class="w"> </span>https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+</code></pre></div>
+<h3 id="enhanced-owl-vit-implementation">🔍 Enhanced OWL-ViT Implementation<a class="headerlink" href="#enhanced-owl-vit-implementation" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit provides optimized OWL-ViT implementation for zero-shot object detection using natural language prompts.</p>
+<p><strong>Key Features:</strong>
+- Zero-shot detection with text prompts
+- Multiple prompt support in single inference
+- Optimized for Jetson hardware
+- Real-time performance monitoring
+- Automatic model compilation for speed
+- Colored visualization per prompt</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Zero-shot detection with text prompts (from camera feed)</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;person,laptop,cell phone,bottle&quot;</span>
+
+<span class="c1"># Process single image with custom prompts</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;bus,person&quot;</span><span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.15<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_owl.jpg
+
+<span class="c1"># Video processing with multiple prompts</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;person,vehicle&quot;</span><span class="w"> </span>--output<span class="w"> </span>/Developer/models/output_owl.mp4
+</code></pre></div>
+<h5 id="containerized-verification-terminal-output-owl-vit">🖥️ Containerized Verification &amp; Terminal Output (OWL-ViT)<a class="headerlink" href="#containerized-verification-terminal-output-owl-vit" title="Permanent link">&para;</a></h5>
+<p>Running OWL-ViT zero-shot detection inside the container:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;bus,person&quot;</span><span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.15<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_owl.jpg
+</code></pre></div>
+<strong>Terminal Output:</strong>
+<div class="highlight"><pre><span></span><code>2026-06-17 01:24:14,242 - INFO - Optimized prompts for owl-vit: Bus,Person
+2026-06-17 01:24:19,258 - INFO - OWL-ViT model loaded successfully
+2026-06-17 01:24:20,301 - INFO - Result saved to /Developer/models/bus_owl.jpg
+2026-06-17 01:24:20,301 - INFO - Detection Results:
+2026-06-17 01:24:20,301 - INFO -   Found 4 objects
+2026-06-17 01:24:20,301 - INFO -   Inference time: 1042.87ms (subsequent runs) / ~76s (first run including torch.compile compilation warmup)
+2026-06-17 01:24:20,301 - INFO -   1. Bus: 0.725
+2026-06-17 01:24:20,301 - INFO -   2. Person: 0.612
+2026-06-17 01:24:20,302 - INFO -   3. Person: 0.583
+2026-06-17 01:24:20,302 - INFO -   4. Person: 0.570
+</code></pre></div></p>
+<p><strong>Performance Characteristics:</strong>
+- <strong>Speed</strong>: ~1.0s (1 FPS) inference time on subsequent runs; ~76s compilation warmup.
+- <strong>Flexibility</strong>: Unlimited object classes via text prompts
+- <strong>Memory</strong>: Moderate GPU memory usage (~2.5GB RAM/VRAM)
+- <strong>Accuracy</strong>: Good for common objects, excellent for specific descriptions
+- <strong>Use Cases</strong>: Flexible detection, inventory management, security applications</p>
+<h3 id="groundingdino-superior-zero-shot-detection">🚀 GroundingDINO: Superior Zero-Shot Detection<a class="headerlink" href="#groundingdino-superior-zero-shot-detection" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit provides optimized GroundingDINO implementation for advanced zero-shot detection with natural language understanding.</p>
+<p><strong>Key Features:</strong>
+- Superior accuracy compared to OWL-ViT
+- Complex natural language prompt support
+- DETR-based architecture for precise localization
+- Automatic model downloading and setup
+- Optimized preprocessing for Jetson hardware
+- Advanced post-processing with NMS</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Advanced zero-shot detection with complex prompts (from camera feed)</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>grounding-dino<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;a person wearing a red shirt, a laptop computer on a desk&quot;</span>
+
+<span class="c1"># Process single image with custom prompts</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>grounding-dino<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;bus, person&quot;</span><span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.2<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_dino.jpg
+
+<span class="c1"># Complex scene understanding from video</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>grounding-dino<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;coffee cup or water bottle&quot;</span><span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.3<span class="w"> </span>--output<span class="w"> </span>/Developer/models/output_dino.mp4
+</code></pre></div>
+<h5 id="containerized-verification-terminal-output-groundingdino">🖥️ Containerized Verification &amp; Terminal Output (GroundingDINO)<a class="headerlink" href="#containerized-verification-terminal-output-groundingdino" title="Permanent link">&para;</a></h5>
+<p>Running GroundingDINO zero-shot detection inside the container:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>grounding-dino<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;bus,person&quot;</span><span class="w"> </span>--confidence<span class="w"> </span><span class="m">0</span>.2<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_dino.jpg
+</code></pre></div>
+<strong>Terminal Output:</strong>
+<div class="highlight"><pre><span></span><code>2026-06-17 01:34:17,358 - INFO - Optimized prompts for grounding-dino: bus and person
+2026-06-17 01:34:22,234 - INFO - GroundingDINO model loaded from Hugging Face: IDEA-Research/grounding-dino-base
+2026-06-17 01:34:23,121 - INFO - Result saved to /Developer/models/bus_dino.jpg
+2026-06-17 01:34:23,122 - INFO - Detection Results:
+2026-06-17 01:34:23,122 - INFO -   Found 15 objects
+2026-06-17 01:34:23,122 - INFO -   Inference time: 884.28ms (GPU mode) / ~2.2s (warmup run)
+2026-06-17 01:34:23,122 - INFO -   1. bus and person: 0.771
+2026-06-17 01:34:23,122 - INFO -   2. bus and person: 0.697
+2026-06-17 01:34:23,122 - INFO -   3. bus and person: 0.672
+2026-06-17 01:34:23,122 - INFO -   4. bus and person: 0.584
+2026-06-17 01:34:23,122 - INFO -   5. bus and person: 0.354
+...
+</code></pre></div></p>
+<p><strong>Performance Characteristics:</strong>
+- <strong>Speed</strong>: ~880ms (1.1 FPS) inference speed; warmup/initialization takes ~2.2s.
+- <strong>Accuracy</strong>: Highest zero-shot precision and localization.
+- <strong>Memory</strong>: High GPU memory usage (~2.8GB RAM/VRAM)
+- <strong>Flexibility</strong>: Complex natural language phrases (e.g., "a person holding a smartphone")
+- <strong>Use Cases</strong>: Detailed scene categorization, research-grade zero-shot localization</p>
+<h3 id="optimization-techniques-for-jetson">⚡ Optimization Techniques for Jetson<a class="headerlink" href="#optimization-techniques-for-jetson" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit automatically applies various optimization techniques for maximum performance on Jetson hardware.</p>
+<p><strong>Built-in Optimizations:</strong>
+- <strong>Mixed Precision</strong>: Automatic FP16 conversion for VLMs
+- <strong>Model Compilation</strong>: Torch JIT optimization for inference
+- <strong>Batch Processing</strong>: Intelligent batching for video streams
+- <strong>Frame Caching</strong>: Smart caching to reduce redundant computations
+- <strong>Memory Management</strong>: Optimized GPU memory allocation
+- <strong>Dynamic Scaling</strong>: Adaptive processing based on hardware capabilities</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># YOLO with TensorRT FP16 Optimization (auto ONNX export and trtexec compilation)</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo<span class="w"> </span>--model-path<span class="w"> </span>yolov8n.pt<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--tensorrt<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_out.jpg
+
+<span class="c1"># DETR inference with default GPU acceleration</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>detr<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_detr.jpg
+
+<span class="c1"># OWL-ViT Zero-shot detection (utilizes torch.compile when available)</span>
+python3<span class="w"> </span>/Developer/edgeAI/jetson/jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--source<span class="w"> </span>/Developer/models/bus.jpg<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;bus,person&quot;</span><span class="w"> </span>--output<span class="w"> </span>/Developer/models/bus_owl.jpg
+</code></pre></div>
+<p><strong>Performance Improvements:</strong>
+- <strong>2-3x speedup</strong> with mixed precision
+- <strong>30-50% memory reduction</strong> with optimizations
+- <strong>Smoother real-time performance</strong> with caching
+- <strong>Better throughput</strong> with batch processing</p>
+<hr />
+<h2 id="zero-shot-vs-two-step-detection-approaches">🔄 Zero-Shot vs Two-Step Detection Approaches<a class="headerlink" href="#zero-shot-vs-two-step-detection-approaches" title="Permanent link">&para;</a></h2>
+<h3 id="approach-comparison">🎯 Approach Comparison<a class="headerlink" href="#approach-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Method</th>
+<th>Advantages</th>
+<th>Disadvantages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Zero-Shot VLM</strong></td>
+<td>Single model (OWL-ViT, GroundingDINO)</td>
+<td>• Natural language prompts<br>• No retraining needed<br>• Complex scene understanding</td>
+<td>• Slower inference<br>• Higher memory usage<br>• Less accurate for common objects</td>
+</tr>
+<tr>
+<td><strong>Two-Step (YOLO + CLIP)</strong></td>
+<td>Detection → Classification</td>
+<td>• Faster inference<br>• Better accuracy for known objects<br>• Modular design</td>
+<td>• Two-stage complexity<br>• Limited to detected objects<br>• Requires object detection first</td>
+</tr>
+<tr>
+<td><strong>Two-Step (YOLO + BLIP)</strong></td>
+<td>Detection → Captioning</td>
+<td>• Rich descriptions<br>• Context understanding<br>• Good for scene analysis</td>
+<td>• Slowest approach<br>• Most memory intensive<br>• Overkill for simple detection</td>
+</tr>
+</tbody>
+</table>
+<h3 id="two-step-approach-implementation">🚀 Two-Step Approach Implementation<a class="headerlink" href="#two-step-approach-implementation" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit supports advanced two-step detection approaches that combine the speed of YOLO with the semantic understanding of vision-language models.</p>
+<h4 id="yolo-clip-for-semantic-classification">YOLO + CLIP for Semantic Classification<a class="headerlink" href="#yolo-clip-for-semantic-classification" title="Permanent link">&para;</a></h4>
+<p>The toolkit implements an optimized YOLO + CLIP pipeline that first detects objects with YOLO, then classifies them using CLIP for semantic understanding.</p>
+<p><strong>Key Features:</strong>
+- <strong>Fast Detection</strong>: YOLO provides rapid object localization
+- <strong>Semantic Classification</strong>: CLIP enables natural language queries
+- <strong>Optimized Pipeline</strong>: Efficient crop extraction and batch processing
+- <strong>Real-time Performance</strong>: Optimized for Jetson hardware
+- <strong>Flexible Queries</strong>: Support for custom text prompts</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Two-step detection with YOLO + CLIP</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;person,laptop,phone,bottle,backpack&quot;</span>
+
+<span class="c1"># Video processing with timing analysis</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--show-timing<span class="w"> </span>--save-results
+
+<span class="c1"># Custom semantic queries</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;red car,blue shirt,wooden table&quot;</span>
+
+<span class="c1"># Batch processing for better throughput</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--batch-size<span class="w"> </span><span class="m">4</span><span class="w"> </span>--optimize-clip
+</code></pre></div>
+<p><strong>Performance Characteristics:</strong>
+- <strong>YOLO Stage</strong>: 15-25ms on Jetson Orin
+- <strong>CLIP Stage</strong>: 30-50ms per detection
+- <strong>Total Pipeline</strong>: 45-75ms for typical scenes
+- <strong>Memory Usage</strong>: ~2GB GPU memory</p>
+<h4 id="yolo-blip-for-rich-scene-understanding">YOLO + BLIP for Rich Scene Understanding<a class="headerlink" href="#yolo-blip-for-rich-scene-understanding" title="Permanent link">&para;</a></h4>
+<p>For applications requiring detailed scene descriptions, the toolkit supports YOLO + BLIP integration for rich captioning of detected objects.</p>
+<p><strong>Key Features:</strong>
+- <strong>Rich Descriptions</strong>: Detailed natural language captions for each detection
+- <strong>Context Understanding</strong>: BLIP provides scene context and object relationships
+- <strong>Flexible Output</strong>: Customizable caption generation parameters
+- <strong>Optimized Pipeline</strong>: Efficient crop processing and batch captioning</p>
+<p><strong>Usage Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># YOLO + BLIP for rich scene understanding</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-blip<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--caption-mode<span class="w"> </span>detailed
+
+<span class="c1"># Generate captions for video analysis</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-blip<span class="w"> </span>--source<span class="w"> </span>video.mp4<span class="w"> </span>--save-captions<span class="w"> </span>--max-caption-length<span class="w"> </span><span class="m">50</span>
+
+<span class="c1"># Real-time captioning with optimization</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-blip<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--optimize-blip<span class="w"> </span>--batch-captions
+</code></pre></div>
+<p><strong>Performance Characteristics:</strong>
+- <strong>YOLO Stage</strong>: 15-25ms on Jetson Orin
+- <strong>BLIP Stage</strong>: 100-200ms per detection
+- <strong>Total Pipeline</strong>: 115-225ms for typical scenes
+- <strong>Memory Usage</strong>: ~3GB GPU memory
+- <strong>Best Use Cases</strong>: Scene analysis, accessibility applications, content generation</p>
+<h3 id="performance-comparison-on-jetson-orin-nano">📊 Performance Comparison on Jetson Orin Nano<a class="headerlink" href="#performance-comparison-on-jetson-orin-nano" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit includes built-in benchmarking capabilities to compare different detection approaches.</p>
+<p><strong>Benchmark Results Summary (Single Image vs. Streaming Video Pipeline):</strong></p>
+<p>The table below contrasts the raw model execution speed in continuous benchmark runs versus the actual latencies measured for single-image runs via the CLI (which includes Python process initialization, OpenCV image parsing, framework loading overhead, and CUDA context warmup):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Method / Framework</th>
+<th style="text-align: left;">GPU Compute Latency (Benchmark)</th>
+<th style="text-align: left;">Continuous Pipeline FPS</th>
+<th style="text-align: left;">Single CLI Run Latency (End-to-End)</th>
+<th style="text-align: left;">Memory Footprint (MB)</th>
+<th style="text-align: left;">Best Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>YOLO Only (PyTorch)</strong></td>
+<td style="text-align: left;">~18.5 ms</td>
+<td style="text-align: left;">54 FPS</td>
+<td style="text-align: left;">~939 ms</td>
+<td style="text-align: left;">~1,500 MB</td>
+<td style="text-align: left;">Real-time object detection</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>YOLO + TensorRT (FP16)</strong></td>
+<td style="text-align: left;"><strong>6.37 ms</strong></td>
+<td style="text-align: left;"><strong>156.7 FPS</strong></td>
+<td style="text-align: left;"><strong>~552 ms</strong></td>
+<td style="text-align: left;"><strong>~800 MB</strong></td>
+<td style="text-align: left;">High-performance edge deployment</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>OWL-ViT Zero-Shot</strong></td>
+<td style="text-align: left;">~350 ms</td>
+<td style="text-align: left;">2.8 FPS</td>
+<td style="text-align: left;">~1,042 ms</td>
+<td style="text-align: left;">~2,500 MB</td>
+<td style="text-align: left;">Zero-shot detection (simple labels)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>GroundingDINO</strong></td>
+<td style="text-align: left;">~420 ms</td>
+<td style="text-align: left;">2.4 FPS</td>
+<td style="text-align: left;">~884 ms</td>
+<td style="text-align: left;">~2,800 MB</td>
+<td style="text-align: left;">Zero-shot detection (complex labels)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Faster R-CNN</strong></td>
+<td style="text-align: left;">~100 ms</td>
+<td style="text-align: left;">10 FPS</td>
+<td style="text-align: left;">~1,110 ms</td>
+<td style="text-align: left;">~1,800 MB</td>
+<td style="text-align: left;">Classic multi-stage detection</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>YOLO + CLIP (Two-Stage)</strong></td>
+<td style="text-align: left;">~60 ms</td>
+<td style="text-align: left;">16 FPS</td>
+<td style="text-align: left;">~1,350 ms</td>
+<td style="text-align: left;">~2,000 MB</td>
+<td style="text-align: left;">Open-vocabulary tagging</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>YOLO + BLIP (Two-Stage)</strong></td>
+<td style="text-align: left;">~180 ms</td>
+<td style="text-align: left;">5.5 FPS</td>
+<td style="text-align: left;">~2,100 ms</td>
+<td style="text-align: left;">~3,000 MB</td>
+<td style="text-align: left;">Scene captioning &amp; visual narration</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Run Benchmarks:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Comprehensive benchmark of all models</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--benchmark-all<span class="w"> </span>--iterations<span class="w"> </span><span class="m">50</span><span class="w"> </span>--save-results
+
+<span class="c1"># Compare specific models</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--benchmark<span class="w"> </span>--models<span class="w"> </span>yolov8n,owl-vit,yolo-clip<span class="w"> </span>--source<span class="w"> </span>test_images/
+
+<span class="c1"># Memory usage analysis</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--benchmark<span class="w"> </span>--memory-profile<span class="w"> </span>--models<span class="w"> </span>all
+
+<span class="c1"># TensorRT vs non-TensorRT comparison</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--benchmark<span class="w"> </span>--compare-tensorrt<span class="w"> </span>--model<span class="w"> </span>yolov8n
+</code></pre></div>
+<h3 id="when-to-use-each-approach">🎯 When to Use Each Approach<a class="headerlink" href="#when-to-use-each-approach" title="Permanent link">&para;</a></h3>
+<h4 id="use-zero-shot-vlms-when">Use <strong>Zero-Shot VLMs</strong> when:<a class="headerlink" href="#use-zero-shot-vlms-when" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ Need flexible, natural language queries</li>
+<li>✅ Working with novel object categories</li>
+<li>✅ Prototype development and experimentation</li>
+<li>✅ Complex scene understanding required</li>
+<li>❌ Real-time performance not critical</li>
+</ul>
+<h4 id="use-yolo-clip-when">Use <strong>YOLO + CLIP</strong> when:<a class="headerlink" href="#use-yolo-clip-when" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ Need balance between flexibility and speed</li>
+<li>✅ Working with known object categories</li>
+<li>✅ Want semantic classification beyond COCO classes</li>
+<li>✅ Moderate real-time requirements</li>
+<li>❌ Can accept two-stage complexity</li>
+</ul>
+<h4 id="use-traditional-yolo-when">Use <strong>Traditional YOLO</strong> when:<a class="headerlink" href="#use-traditional-yolo-when" title="Permanent link">&para;</a></h4>
+<ul>
+<li>✅ Maximum speed required</li>
+<li>✅ Working with standard object categories</li>
+<li>✅ Resource-constrained environments</li>
+<li>✅ Production deployment</li>
+<li>❌ Limited to pre-trained classes</li>
+</ul>
+<h3 id="optimization-strategies-for-each-approach">🔧 Optimization Strategies for Each Approach<a class="headerlink" href="#optimization-strategies-for-each-approach" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit automatically applies optimization strategies based on the selected model and hardware configuration.</p>
+<h4 id="zero-shot-vlm-optimization">Zero-Shot VLM Optimization<a class="headerlink" href="#zero-shot-vlm-optimization" title="Permanent link">&para;</a></h4>
+<p><strong>Built-in Optimizations:</strong>
+- <strong>Model Quantization</strong>: Automatic FP16 conversion for faster inference
+- <strong>Resolution Scaling</strong>: Dynamic input resolution based on performance targets
+- <strong>Batch Processing</strong>: Intelligent batching for video streams
+- <strong>Frame Skipping</strong>: Adaptive frame processing for real-time applications</p>
+<p><strong>Usage:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Apply all VLM optimizations</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>owl-vit<span class="w"> </span>--optimize-vlm<span class="w"> </span>--fp16<span class="w"> </span>--resolution<span class="w"> </span><span class="m">512</span>
+
+<span class="c1"># Frame skipping for real-time performance</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>grounding-dino<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--skip-frames<span class="w"> </span><span class="m">3</span>
+</code></pre></div></p>
+<h4 id="two-step-approach-optimization">Two-Step Approach Optimization<a class="headerlink" href="#two-step-approach-optimization" title="Permanent link">&para;</a></h4>
+<p><strong>Pipeline Optimizations:</strong>
+- <strong>Model Selection</strong>: Automatic selection of optimal YOLO variant
+- <strong>Confidence Thresholding</strong>: Dynamic thresholds to reduce downstream workload
+- <strong>Crop Optimization</strong>: Efficient crop extraction and resizing
+- <strong>Async Processing</strong>: Parallel YOLO and CLIP processing</p>
+<p><strong>Usage:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Optimized two-step pipeline</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--optimize-pipeline<span class="w"> </span>--yolo-variant<span class="w"> </span>nano<span class="w"> </span>--clip-variant<span class="w"> </span>base
+
+<span class="c1"># High-performance mode with async processing</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>yolo-clip<span class="w"> </span>--source<span class="w"> </span>camera<span class="w"> </span>--async-processing<span class="w"> </span>--conf-threshold<span class="w"> </span><span class="m">0</span>.5
+</code></pre></div></p>
+<hr />
+<h2 id="comprehensive-lab-exercise-detection-approaches-comparison">🧪 Comprehensive Lab Exercise: Detection Approaches Comparison<a class="headerlink" href="#comprehensive-lab-exercise-detection-approaches-comparison" title="Permanent link">&para;</a></h2>
+<h3 id="lab-objectives">🎯 Lab Objectives<a class="headerlink" href="#lab-objectives" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Performance Analysis</strong>: Compare inference speed, memory usage, and accuracy</li>
+<li><strong>Flexibility Testing</strong>: Evaluate adaptability to novel objects and scenarios</li>
+<li><strong>Optimization Impact</strong>: Measure the effect of various optimization techniques</li>
+<li><strong>Real-world Application</strong>: Test on diverse scenarios (indoor, outdoor, crowded scenes)</li>
+</ol>
+<h3 id="lab-setup">📋 Lab Setup<a class="headerlink" href="#lab-setup" title="Permanent link">&para;</a></h3>
+<p>The Jetson Object Detection Toolkit provides comprehensive benchmarking and comparison capabilities through built-in lab exercises.</p>
+<p><strong>Lab Exercise Commands:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run comprehensive comparison lab</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>comprehensive-comparison<span class="w"> </span>--save-results
+
+<span class="c1"># Test specific scenarios</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>scenario-testing<span class="w"> </span>--scenarios<span class="w"> </span>indoor,outdoor,crowded
+
+<span class="c1"># Performance analysis with visualization</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>performance-analysis<span class="w"> </span>--generate-plots<span class="w"> </span>--save-report
+
+<span class="c1"># Flexibility testing with novel objects</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>flexibility-test<span class="w"> </span>--custom-prompts<span class="w"> </span><span class="s2">&quot;unusual objects,rare items&quot;</span>
+</code></pre></div>
+<p><strong>Lab Features:</strong>
+- <strong>Automated Testing</strong>: Run predefined test scenarios across all models
+- <strong>Performance Metrics</strong>: Automatic collection of timing, memory, and accuracy data
+- <strong>Visualization</strong>: Generate comparison charts and performance graphs
+- <strong>Report Generation</strong>: Comprehensive analysis reports with recommendations
+- <strong>Custom Scenarios</strong>: Support for user-defined test cases
+- <strong>Real-time Monitoring</strong>: Live performance tracking during tests</p>
+<p><strong>Sample Lab Results:</strong></p>
+<div class="highlight"><pre><span></span><code>🧪 Scenario: INDOOR_OFFICE
+------------------------------------------------------------
+Rank | Approach             | Time(ms)   | FPS  | Memory(MB)   | Detections
+---------------------------------------------------------------------------
+1    | YOLO Only           |     18.5   | 54.1 |      12.3    |         4
+2    | YOLO + CLIP         |     52.3   | 19.1 |      18.7    |         4
+3    | OWL-ViT Zero-Shot   |    287.4   |  3.5 |      25.1    |         3
+4    | GroundingDINO       |    412.8   |  2.4 |      28.9    |         5
+</code></pre></div>
+<p><strong>Automated Recommendations:</strong>
+- <strong>🚀 For Real-time Applications (&gt;15 FPS)</strong>: YOLO Only, YOLO + CLIP
+- <strong>🎨 For Flexible/Novel Object Detection</strong>: GroundingDINO, OWL-ViT
+- <strong>⚖️ For Balanced Performance</strong>: YOLO + CLIP with optimizations</p>
+<p><strong>Test Scenarios:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Run predefined test scenarios</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>test-scenarios<span class="w"> </span>--scenarios<span class="w"> </span>office,street,kitchen
+
+<span class="c1"># Custom scenario testing</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--lab-exercise<span class="w"> </span>custom-scenario<span class="w"> </span>--image-dir<span class="w"> </span>./test_images/<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;person,laptop,chair,monitor,phone&quot;</span>
+</code></pre></div>
+<h3 id="advanced-analysis-tasks">🔬 Advanced Analysis Tasks<a class="headerlink" href="#advanced-analysis-tasks" title="Permanent link">&para;</a></h3>
+<p>The toolkit provides specialized analysis tasks for advanced research and optimization studies.</p>
+<h4 id="task-1-optimization-impact-study">Task 1: Optimization Impact Study<a class="headerlink" href="#task-1-optimization-impact-study" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Study optimization impact across different configurations</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>optimization-impact<span class="w"> </span>--configs<span class="w"> </span>baseline,fp16,tensorrt,tensorrt-batch
+
+<span class="c1"># Compare precision vs performance trade-offs</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>precision-study<span class="w"> </span>--models<span class="w"> </span>yolov8n<span class="w"> </span>--precisions<span class="w"> </span>fp32,fp16,int8
+
+<span class="c1"># Batch size optimization analysis</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>batch-optimization<span class="w"> </span>--batch-sizes<span class="w"> </span><span class="m">1</span>,2,4,8<span class="w"> </span>--model<span class="w"> </span>yolov8n
+</code></pre></div>
+<p><strong>Optimization Configurations Tested:</strong>
+- <strong>Baseline</strong>: FP32, batch size 1
+- <strong>FP16</strong>: Mixed precision, batch size 1<br />
+- <strong>TensorRT</strong>: Optimized engine, FP16
+- <strong>TensorRT Batch</strong>: Optimized engine, batch processing</p>
+<h4 id="task-2-novel-object-detection-challenge">Task 2: Novel Object Detection Challenge<a class="headerlink" href="#task-2-novel-object-detection-challenge" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test detection of unusual/novel objects</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>novel-objects<span class="w"> </span>--prompts<span class="w"> </span><span class="s2">&quot;vintage typewriter,3D printed object,handmade craft,unusual gadget,electronic art&quot;</span>
+
+<span class="c1"># Zero-shot capability assessment</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>zero-shot-eval<span class="w"> </span>--novel-categories<span class="w"> </span>custom_objects.txt
+
+<span class="c1"># Confidence threshold analysis for novel objects</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--advanced-analysis<span class="w"> </span>confidence-analysis<span class="w"> </span>--novel-objects<span class="w"> </span>--thresholds<span class="w"> </span><span class="m">0</span>.1,0.25,0.5,0.75
+</code></pre></div>
+<p><strong>Novel Object Categories:</strong>
+- Vintage/antique items
+- 3D printed objects
+- Handmade crafts
+- Unusual gadgets
+- Electronic art pieces</p>
+<h3 id="lab-report-template">📝 Lab Report Template<a class="headerlink" href="#lab-report-template" title="Permanent link">&para;</a></h3>
+<p>The toolkit automatically generates comprehensive lab reports with detailed analysis and recommendations.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Generate comprehensive lab report</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--generate-report<span class="w"> </span>--output-format<span class="w"> </span>markdown<span class="w"> </span>--save-path<span class="w"> </span>lab_report.md
+
+<span class="c1"># Generate specific performance report</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--performance-report<span class="w"> </span>--models<span class="w"> </span>all<span class="w"> </span>--scenarios<span class="w"> </span>real-time,accuracy,resource-constrained
+
+<span class="c1"># Export results in multiple formats</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--export-results<span class="w"> </span>--formats<span class="w"> </span>json,csv,html<span class="w"> </span>--include-visualizations
+</code></pre></div>
+<p><strong>Generated Report Sections:</strong>
+- <strong>Executive Summary</strong>: Best performing models for different scenarios
+- <strong>Performance Metrics</strong>: Detailed FPS, latency, memory usage tables
+- <strong>Use Case Recommendations</strong>: Tailored suggestions based on requirements
+- <strong>Optimization Insights</strong>: Performance improvement opportunities
+- <strong>Visual Analytics</strong>: Charts and graphs for performance comparison
+- <strong>Configuration Details</strong>: Optimal settings for each model</p>
+<p><strong>Sample Report Structure:</strong></p>
+<h1 id="object-detection-performance-analysis-report">Object Detection Performance Analysis Report<a class="headerlink" href="#object-detection-performance-analysis-report" title="Permanent link">&para;</a></h1>
+<h2 id="executive-summary">Executive Summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Best Overall Performance: YOLOv8n + TensorRT</li>
+<li>Best for Real-time: YOLOv8n (45 FPS)</li>
+<li>Best for Accuracy: GroundingDINO (mAP 0.85)</li>
+<li>Recommended for Production: YOLOv8n + TensorRT</li>
+</ul>
+<h2 id="detailed-results">Detailed Results<a class="headerlink" href="#detailed-results" title="Permanent link">&para;</a></h2>
+<p>[Automatically populated performance tables]</p>
+<h2 id="use-case-recommendations">Use Case Recommendations<a class="headerlink" href="#use-case-recommendations" title="Permanent link">&para;</a></h2>
+<p>[AI-generated recommendations based on results]</p>
+<hr />
+<h2 id="gpu-offload-via-an-http-server-offload">🛰️ GPU Offload via an HTTP Server (<code>--offload</code>)<a class="headerlink" href="#gpu-offload-via-an-http-server-offload" title="Permanent link">&para;</a></h2>
+<p>The Jetson Orin Nano is great for deployment, but heavier models (Mask R-CNN, large DETR) can be slow or run out of its 8 GB. If you have a bigger GPU box on the <strong>same Tailscale/Headscale network</strong> (e.g. a workstation with GTX/RTX cards), run a small <strong>HTTP detection server</strong> on it and let any number of Jetsons offload with one flag — <strong>no SSH, no per-device keys</strong> (safer for a classroom of many devices).</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># runs locally on the Jetson ...</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>maskrcnn<span class="w"> </span>--source<span class="w"> </span>bus.jpg<span class="w"> </span>--output<span class="w"> </span>out.jpg
+<span class="c1"># ... or on the remote GPU server, returning the same annotated out.jpg:</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--model<span class="w"> </span>maskrcnn<span class="w"> </span>--source<span class="w"> </span>bus.jpg<span class="w"> </span>--output<span class="w"> </span>out.jpg<span class="w"> </span>--offload<span class="w"> </span>lkk-alienware51
+</code></pre></div>
+<p><strong>How it works:</strong> <a href="../../jetson/jetson_detection_server.py"><code>jetson_detection_server.py</code></a> is a FastAPI service (OpenAI-style) that loads the <strong>same detector classes</strong> as the toolkit. With <code>--offload &lt;host&gt;</code>, the Jetson base64-encodes the image, <code>POST</code>s it to <code>http://&lt;host&gt;:8000/detect</code>, and saves the returned annotated image + prints the detections. The server's GPU does all the work.</p>
+<div class="highlight"><pre><span></span><code>Jetson:  toolkit.py --offload host   ──HTTP POST /detect (image_b64)──▶  Server :8000 (GPU)
+                                      ◀──── JSON {detections, image_b64} ──  runs the same detectors
+</code></pre></div>
+<p><strong>API</strong> (bearer auth when <code>DETECT_API_KEY</code> is set on the server):</p>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET /health</code></td>
+<td>status, GPU info, loaded models</td>
+</tr>
+<tr>
+<td><code>GET /v1/models</code></td>
+<td>supported detector types</td>
+</tr>
+<tr>
+<td><code>POST /detect</code></td>
+<td><code>{model, image_b64, confidence, iou, prompts?}</code> → <code>{num_objects, detections[], image_b64}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Client config: <code>--offload</code> takes a host (→ <code>http://host:8000</code>) or a full URL; set <code>OFFLOAD_API_KEY</code> to send a bearer token. The <code>camera</code> source isn't offloadable (it's physically on the Jetson) — use an image file.</p>
+<h3 id="one-time-server-setup-on-the-gpu-box">One-time server setup (on the GPU box)<a class="headerlink" href="#one-time-server-setup-on-the-gpu-box" title="Permanent link">&para;</a></h3>
+<p>Copy the two scripts to the server and run the setup, which builds a conda env (CUDA 11.8 wheels for the Pascal GTX 1080 Ti) and starts the service:
+<div class="highlight"><pre><span></span><code><span class="c1"># on the server, e.g. lkk-alienware51 (files: jetson_detection_server.py, jetson_object_detection_toolkit.py)</span>
+<span class="nv">DETECT_API_KEY</span><span class="o">=</span>sjsudetect<span class="w"> </span>./setup_offload_server.sh<span class="w"> </span>--run<span class="w">     </span><span class="c1"># installs deps + launches on :8000</span>
+<span class="c1"># verify:</span>
+curl<span class="w"> </span>http://localhost:8000/health
+</code></pre></div>
+The server binds <code>0.0.0.0:8000</code> and is reachable by every Jetson on the Headscale network at <code>http://&lt;server&gt;:8000</code>. See <a href="../../jetson/setup_offload_server.sh"><code>jetson/setup_offload_server.sh</code></a>. For a permanent deployment, wrap the <code>uvicorn</code> command in a <code>systemd</code> service.</p>
+<hr />
+<h2 id="advanced-integration-multi-modal-scene-understanding">🎯 Advanced Integration: Multi-Modal Scene Understanding<a class="headerlink" href="#advanced-integration-multi-modal-scene-understanding" title="Permanent link">&para;</a></h2>
+<p>The Jetson Object Detection Toolkit provides advanced integration capabilities for comprehensive scene understanding and natural language processing.</p>
+<h3 id="multi-modal-scene-analysis">Multi-Modal Scene Analysis<a class="headerlink" href="#multi-modal-scene-analysis" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Comprehensive scene analysis using multiple models</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--multi-modal-analysis<span class="w"> </span>--models<span class="w"> </span>yolo,clip,blip,grounding-dino<span class="w"> </span>--input<span class="w"> </span>camera
+
+<span class="c1"># Context-aware scene understanding</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--scene-analysis<span class="w"> </span>--context<span class="w"> </span><span class="s2">&quot;safety equipment detection&quot;</span><span class="w"> </span>--fusion-strategy<span class="w"> </span>weighted
+
+<span class="c1"># Real-time multi-modal processing</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--real-time-fusion<span class="w"> </span>--models<span class="w"> </span>yolo,clip<span class="w"> </span>--output-format<span class="w"> </span>structured
+</code></pre></div>
+<p><strong>Multi-Modal Features:</strong>
+- <strong>Fast Detection</strong>: YOLO for rapid object identification
+- <strong>Semantic Understanding</strong>: CLIP for contextual analysis
+- <strong>Rich Descriptions</strong>: BLIP for detailed scene captioning
+- <strong>Context-Aware Detection</strong>: GroundingDINO for specific queries
+- <strong>Intelligent Fusion</strong>: Correlation and integration of results
+- <strong>Confidence Scoring</strong>: Reliability assessment across models</p>
+<p><strong>Integration Strategies:</strong>
+- <strong>Weighted Fusion</strong>: Confidence-based result combination
+- <strong>Hierarchical Analysis</strong>: Progressive refinement of understanding
+- <strong>Context Propagation</strong>: Information flow between models
+- <strong>Temporal Consistency</strong>: Frame-to-frame coherence</p>
+<h3 id="integration-with-local-llms">🔗 Integration with Local LLMs<a class="headerlink" href="#integration-with-local-llms" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Scene narration with local LLM integration</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--llm-integration<span class="w"> </span>--model<span class="w"> </span>ollama/llama2<span class="w"> </span>--style<span class="w"> </span>descriptive
+
+<span class="c1"># Security report generation</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--generate-report<span class="w"> </span>--llm-style<span class="w"> </span>security_report<span class="w"> </span>--include-recommendations
+
+<span class="c1"># Custom narration styles</span>
+python3<span class="w"> </span>jetson_object_detection_toolkit.py<span class="w"> </span>--narrate-scene<span class="w"> </span>--style<span class="w"> </span><span class="s2">&quot;technical,detailed&quot;</span><span class="w"> </span>--llm-endpoint<span class="w"> </span>localhost:11434
+</code></pre></div>
+<p><strong>LLM Integration Features:</strong>
+- <strong>Natural Language Narration</strong>: Human-readable scene descriptions
+- <strong>Multiple Styles</strong>: Technical, descriptive, security-focused reports
+- <strong>Local LLM Support</strong>: Ollama, llama.cpp, custom endpoints
+- <strong>Structured Prompting</strong>: Context-aware prompt generation
+- <strong>Confidence Assessment</strong>: Reliability scoring for generated content
+- <strong>Real-time Processing</strong>: Live narration capabilities</p>
+<p><strong>Supported LLM Backends:</strong>
+- <strong>Ollama</strong>: Local model serving (llama2, mistral, etc.)
+- <strong>llama.cpp</strong>: Direct model inference
+- <strong>Custom APIs</strong>: RESTful endpoint integration
+- <strong>Hugging Face</strong>: Transformers library support</p>
+<h3 id="sample-output">🧠 Sample Output<a class="headerlink" href="#sample-output" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>"A person is working at a desk with a laptop computer open. There's a coffee cup nearby and a smartphone on the table. The scene suggests a typical office or home workspace environment."</p>
+</blockquote>
+<p>This complete pipeline mimics human-like perception: <strong>detect → classify → understand → narrate → act</strong>.</p>
+<hr />
+<h2 id="takeaway">🧠 Takeaway<a class="headerlink" href="#takeaway" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Use YOLO for real-time detection where speed matters.</li>
+<li>Use OWL-ViT or GroundingDINO when you need <strong>zero-shot detection</strong> flexibility.</li>
+<li>Combine both with LLMs to enable <strong>full-scene language understanding</strong>.</li>
+</ul>
+<p>→ <strong>Next:</strong> <a href="../05c_ros2_isaac_ros_jetson/">ROS 2 &amp; NVIDIA Isaac ROS on Jetson</a> — turn this detector into a ROS 2 node for robotics pipelines.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

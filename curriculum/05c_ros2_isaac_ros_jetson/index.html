@@ -1,0 +1,1979 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../12d_rag_cve_triage/">
+      
+      
+        <link rel="next" href="../05d_lerobot_so101/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>🤖 ROS 2 & NVIDIA Isaac ROS on Jetson - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ros-2-nvidia-isaac-ros-on-jetson-orin-nano" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00c_gputool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-ros-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What is ROS 2?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-isaac-ros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ What is NVIDIA Isaac ROS?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-support-the-lightweight-choice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Hardware support &amp; the lightweight choice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-containers-and-which-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Why containers (and which one)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Why containers (and which one)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-sanity-check-no-gpu-1-gb-confirm-ros-2-runs-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick sanity check (no GPU, ~1 GB) — confirm ROS 2 runs at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-the-ros-2-container-with-jetson-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Install the ROS 2 container with jetson-containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Install the ROS 2 container with jetson-containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nvidia-isaac-ros-path-jetson-thor-jetpack-71-ros-2-jazzy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NVIDIA Isaac ROS path — Jetson Thor (JetPack 7.1, ROS 2 Jazzy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#play-existing-examples-inside-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ▶️ Play existing examples inside the container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-package-wrap-our-detector-as-a-ros-2-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Sample package: wrap our detector as a ROS 2 node
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Sample package: wrap our detector as a ROS 2 node">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-it-on-a-gpupytorch-base-the-smart-choice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build it — on a GPU‑PyTorch base (the smart choice)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verified-gpu-result-jetson61-orin-ros-2-jazzy-yolov8n-on-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Verified GPU result (jetson‑61, Orin, ROS 2 Jazzy, YOLOv8n on CUDA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-ros-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧠 What is ROS 2?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-nvidia-isaac-ros" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ What is NVIDIA Isaac ROS?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hardware-support-the-lightweight-choice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧭 Hardware support &amp; the lightweight choice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-containers-and-which-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐳 Why containers (and which one)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐳 Why containers (and which one)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-sanity-check-no-gpu-1-gb-confirm-ros-2-runs-at-all" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick sanity check (no GPU, ~1 GB) — confirm ROS 2 runs at all
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-the-ros-2-container-with-jetson-containers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Install the ROS 2 container with jetson-containers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📦 Install the ROS 2 container with jetson-containers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nvidia-isaac-ros-path-jetson-thor-jetpack-71-ros-2-jazzy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        NVIDIA Isaac ROS path — Jetson Thor (JetPack 7.1, ROS 2 Jazzy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#play-existing-examples-inside-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ▶️ Play existing examples inside the container
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sample-package-wrap-our-detector-as-a-ros-2-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🛠️ Sample package: wrap our detector as a ROS 2 node
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🛠️ Sample package: wrap our detector as a ROS 2 node">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-it-on-a-gpupytorch-base-the-smart-choice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build it — on a GPU‑PyTorch base (the smart choice)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Run it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verified-gpu-result-jetson61-orin-ros-2-jazzy-yolov8n-on-cuda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Verified GPU result (jetson‑61, Orin, ROS 2 Jazzy, YOLOv8n on CUDA)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🧯 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📌 Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ros-2-nvidia-isaac-ros-on-jetson-orin-nano">🤖 ROS 2 &amp; NVIDIA Isaac ROS on Jetson Orin Nano<a class="headerlink" href="#ros-2-nvidia-isaac-ros-on-jetson-orin-nano" title="Permanent link">&para;</a></h1>
+<p><strong>Author:</strong> Dr. Kaikai Liu, Ph.D. · San Jose State University</p>
+<blockquote>
+<p><strong>Prerequisite:</strong> <a href="../05b_yolo_vlm_object_detection/">05b — Object Detection on Jetson</a>. This chapter turns the <code>jetson_object_detection_toolkit.py</code> detector into a <strong>ROS 2 node</strong> so it can be part of a robotics pipeline.</p>
+</blockquote>
+<h2 id="what-is-ros-2">🧠 What is ROS 2?<a class="headerlink" href="#what-is-ros-2" title="Permanent link">&para;</a></h2>
+<p><strong>ROS 2 (Robot Operating System 2)</strong> is the de‑facto middleware for robots: a set of libraries + tools for building <strong>nodes</strong> (small programs) that talk over <strong>topics</strong> (named, typed pub/sub streams), <strong>services</strong>, and <strong>actions</strong>. It uses <strong>DDS</strong> for discovery and transport, so nodes find each other automatically on a network. The current LTS is <strong>Humble Hawksbill</strong> (Ubuntu 22.04 / 24.04), which is what Jetson + Isaac ROS use.</p>
+<p>Key concepts you'll use here:
+- <strong>Node</strong> — a process (e.g. a camera driver, a detector, a planner).
+- <strong>Topic</strong> — a typed channel, e.g. <code>/image_raw</code> carrying <code>sensor_msgs/Image</code>.
+- <strong>Message</strong> — a typed payload, e.g. <code>vision_msgs/Detection2DArray</code> for detections.
+- <strong><code>colcon</code></strong> — the ROS 2 build tool; <strong>workspace</strong> — a <code>src/</code> folder of packages built with <code>colcon build</code>.</p>
+<h2 id="what-is-nvidia-isaac-ros">⚡ What is NVIDIA Isaac ROS?<a class="headerlink" href="#what-is-nvidia-isaac-ros" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/NVIDIA-ISAAC-ROS"><strong>NVIDIA Isaac ROS</strong></a> is a collection of <strong>GPU‑accelerated ROS 2 packages ("GEMs")</strong> for perception and navigation on Jetson — e.g. stereo depth, visual SLAM (<code>isaac_ros_visual_slam</code>), AprilTags, DNN inference (<code>isaac_ros_dnn_inference</code>, <code>isaac_ros_yolov8</code>), and image processing. Its secret sauce is <strong>NITROS</strong> (NVIDIA Isaac Transport for ROS): type‑adapted, zero‑copy transport that keeps data in GPU memory between nodes, avoiding the CPU copies that normally bottleneck ROS image pipelines. Isaac ROS ships as <strong>containers</strong> built on CUDA/TensorRT bases.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Plain ROS 2</th>
+<th>Isaac ROS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transport</td>
+<td>DDS, CPU copies</td>
+<td>DDS + <strong>NITROS</strong> (GPU zero‑copy)</td>
+</tr>
+<tr>
+<td>Perception</td>
+<td>you bring your own</td>
+<td>prebuilt accelerated GEMs</td>
+</tr>
+<tr>
+<td>Best for</td>
+<td>learning, custom nodes (this chapter)</td>
+<td>production GPU perception</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="hardware-support-the-lightweight-choice">🧭 Hardware support &amp; the lightweight choice<a class="headerlink" href="#hardware-support-the-lightweight-choice" title="Permanent link">&para;</a></h2>
+<p>Isaac ROS support is <strong>hardware‑ and JetPack‑specific</strong> — check before you invest:</p>
+<table>
+<thead>
+<tr>
+<th>Isaac ROS line</th>
+<th>Target Jetson</th>
+<th>JetPack / L4T</th>
+<th>Ubuntu / ROS 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Current</strong></td>
+<td><strong>Jetson Thor</strong> (T5000/T4000)</td>
+<td>JetPack 7.1 (R38.4)</td>
+<td>24.04 / <strong>Jazzy</strong></td>
+</tr>
+<tr>
+<td><strong>Previous (3.x)</strong></td>
+<td><strong>Orin family</strong> (AGX Orin, Orin NX, <strong>Orin Nano</strong>)</td>
+<td>JetPack 6.x</td>
+<td>22.04 / <strong>Humble</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>Isaac ROS is too heavy for the Jetson Orin Nano (8 GB).</strong> Even where it's "supported" (Orin Nano on JetPack 6), the GEMs are built for the bigger Orin/Thor modules: the Docker images are multi‑GB, and the GPU perception graphs (stereo depth, DNN inference, multiple NITROS nodes) routinely exhaust the Orin Nano's 8 GB of shared CPU/GPU memory. On <strong>JetPack 7 / L4T r39</strong> Orin Nano (like our lab boxes) it's worse — that config isn't a supported Isaac ROS target at all (the new line is Thor‑only).</p>
+</blockquote>
+<p><strong>So on an Orin Nano, default to plain ROS 2</strong> (the container below) with our <code>ros2_jetson_detect</code> node — our toolkit already gives accelerated detection (YOLO+TensorRT from 05b) without NITROS, and it fits comfortably in 8 GB. Reach for Isaac ROS only on a <strong>Thor</strong> (or a bigger Orin) when you specifically need an accelerated GEM (VSLAM, stereo depth, AprilTags…).</p>
+<p><strong>Lightweight options, heaviest → lightest:</strong>
+1. Full Isaac ROS Docker dev container (<code>isaac_ros_common</code>) — multi‑GB; bigger Orin / Thor only.
+2. Isaac ROS <strong>Debian/apt</strong> packages — <code>sudo apt install ros-humble-isaac-ros-&lt;gem&gt;</code> (JetPack‑6 Orin) — installs just one GEM, no container build.
+3. Isaac ROS CLI <strong><code>venv</code>/<code>baremetal</code></strong> modes (Thor) — lighter than Docker.
+4. <strong>Plain ROS 2 + our node</strong> — the right fit for Orin Nano (used in the rest of this chapter).</p>
+<hr />
+<h2 id="why-containers-and-which-one">🐳 Why containers (and which one)<a class="headerlink" href="#why-containers-and-which-one" title="Permanent link">&para;</a></h2>
+<p>On Jetson, ROS 2 and Isaac ROS are run in <strong>Docker containers</strong> — this avoids polluting the L4T host and gives you the exact CUDA/TensorRT/ROS versions that match your JetPack. Two well‑trodden paths:</p>
+<ol>
+<li><strong><code>jetson-containers</code></strong> (Dusty‑NV) — the easiest way to get ROS 2 <strong>plus</strong> the ML stack (PyTorch, Ultralytics, OpenCV) in one image. Recipes live under <a href="https://github.com/dusty-nv/jetson-containers/tree/master/packages/physicalAI/ros"><code>packages/physicalAI/ros</code></a>. <strong>We use this for our detector node</strong> (it needs PyTorch + Ultralytics).</li>
+<li><strong>Isaac ROS dev container</strong> (<code>isaac_ros_common</code>) — the official environment for the Isaac ROS GEMs.</li>
+</ol>
+<blockquote>
+<p>✅ <strong>Verified on a JetPack 7 (L4T r39) Orin Nano</strong> (<code>sjsujetson-61</code>): ROS 2 Humble runs in a container, rclpy pub/sub works, and our node's <code>vision_msgs</code> messages build correctly. Notes below mark what was verified vs. reference steps.</p>
+</blockquote>
+<h3 id="quick-sanity-check-no-gpu-1-gb-confirm-ros-2-runs-at-all">Quick sanity check (no GPU, ~1 GB) — confirm ROS 2 runs at all<a class="headerlink" href="#quick-sanity-check-no-gpu-1-gb-confirm-ros-2-runs-at-all" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>docker<span class="w"> </span>pull<span class="w"> </span>ros:humble-ros-base
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ros:humble-ros-base<span class="w"> </span>bash<span class="w"> </span>-lc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;source /opt/ros/humble/setup.bash &amp;&amp; ros2 run demo_nodes_cpp talker&#39;</span><span class="w">   </span><span class="c1"># Ctrl-C to stop</span>
+</code></pre></div>
+✅ <em>Verified:</em> on jetson‑61 this image runs and a Python rclpy publisher→subscriber round‑trips a message. This proves your Docker + ROS 2 install is healthy before pulling the much larger GPU images.</p>
+<hr />
+<h2 id="install-the-ros-2-container-with-jetson-containers">📦 Install the ROS 2 container with <code>jetson-containers</code><a class="headerlink" href="#install-the-ros-2-container-with-jetson-containers" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># 1. Install the tooling (one time; needs sudo for apt + adds &#39;jetson-containers&#39;/&#39;autotag&#39;)</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dusty-nv/jetson-containers
+bash<span class="w"> </span>jetson-containers/install.sh
+
+<span class="c1"># 2. See which prebuilt ROS image matches your JetPack/L4T</span>
+autotag<span class="w"> </span>ros<span class="w">                      </span><span class="c1"># e.g. -&gt; dustynv/ros:humble-desktop-r36.x  (or builds if none)</span>
+
+<span class="c1"># 3. Run it, mounting the course repo so the toolkit is available inside</span>
+jetson-containers<span class="w"> </span>run<span class="w"> </span>-v<span class="w"> </span>/Developer:/Developer<span class="w"> </span><span class="k">$(</span>autotag<span class="w"> </span>ros<span class="k">)</span>
+</code></pre></div>
+<code>jetson-containers run</code> adds <code>--runtime nvidia</code>, <code>--network host</code>, device mounts, and X11 forwarding automatically. Inside the container you now have ROS 2 Humble on the GPU.</p>
+<blockquote>
+<p>If <code>autotag</code> has no prebuilt image for a brand‑new L4T (e.g. r39/JetPack 7), build a combined image once:
+<div class="highlight"><pre><span></span><code>jetson-containers<span class="w"> </span>build<span class="w"> </span>--name<span class="o">=</span>ros_ml<span class="w"> </span>ros:humble-desktop<span class="w"> </span>pytorch<span class="w"> </span>opencv
+</code></pre></div>
+Then <code>jetson-containers run -v /Developer:/Developer ros_ml</code>.</p>
+</blockquote>
+<h3 id="nvidia-isaac-ros-path-jetson-thor-jetpack-71-ros-2-jazzy">NVIDIA Isaac ROS path — Jetson Thor (JetPack 7.1, ROS 2 Jazzy)<a class="headerlink" href="#nvidia-isaac-ros-path-jetson-thor-jetpack-71-ros-2-jazzy" title="Permanent link">&para;</a></h3>
+<blockquote>
+<p>Use this <strong>only on a Jetson Thor</strong> (T5000/T4000), <em>not</em> the Orin Nano. Confirm the platform first:
+<div class="highlight"><pre><span></span><code>cat<span class="w"> </span>/etc/nv_tegra_release<span class="w">          </span><span class="c1"># expect: R38 (release), REVISION: 4.0   (JetPack 7.1)</span>
+</code></pre></div></p>
+</blockquote>
+<p>The current Isaac ROS uses a single CLI (<code>isaac-ros-cli</code>) with three isolation modes — <strong><code>docker</code></strong> (recommended), <strong><code>venv</code></strong> (apt + isolated Python, lighter), or <strong><code>baremetal</code></strong> (advanced). Per the official <strong><a href="https://nvidia-isaac-ros.github.io/getting_started/index.html">Isaac ROS getting‑started</a></strong> docs:
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. add the NVIDIA Isaac ROS apt repo + install the CLI (one time)</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>isaac-ros-cli
+
+<span class="c1"># 2. initialize an environment (pick ONE mode)</span>
+sudo<span class="w"> </span>isaac-ros<span class="w"> </span>init<span class="w"> </span>docker<span class="w">        </span><span class="c1"># full container (recommended)</span>
+<span class="c1"># sudo isaac-ros init venv        # lighter: system apt + isolated Python venv</span>
+<span class="c1"># sudo isaac-ros init baremetal   # advanced: system-level install</span>
+
+<span class="c1"># 3. enter the environment and pull/build the GEM(s) you need, e.g. accelerated YOLOv8</span>
+<span class="c1">#    (each GEM has a Quickstart under github.com/NVIDIA-ISAAC-ROS)</span>
+</code></pre></div>
+On Thor, the accelerated GEMs (NITROS, TensorRT) have the memory/compute headroom the Orin Nano lacks. The older <code>isaac_ros_common</code> + <code>./scripts/run_dev.sh</code> flow is the JetPack‑6/Orin (Humble) equivalent.</p>
+<hr />
+<h2 id="play-existing-examples-inside-the-container">▶️ Play existing examples inside the container<a class="headerlink" href="#play-existing-examples-inside-the-container" title="Permanent link">&para;</a></h2>
+<p>Open two shells into the <strong>same</strong> running container (<code>docker exec -it &lt;name&gt; bash</code>, then <code>source /opt/ros/humble/setup.bash</code> in each).</p>
+<p><strong>ROS 2 demos (talker / listener):</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># shell 1</span>
+ros2<span class="w"> </span>run<span class="w"> </span>demo_nodes_cpp<span class="w"> </span>talker
+<span class="c1"># shell 2</span>
+ros2<span class="w"> </span>run<span class="w"> </span>demo_nodes_py<span class="w"> </span>listener<span class="w">        </span><span class="c1"># prints &quot;I heard: Hello World: N&quot;</span>
+ros2<span class="w"> </span>topic<span class="w"> </span>list<span class="w">                        </span><span class="c1"># /chatter</span>
+ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/chatter<span class="w"> </span>--once
+</code></pre></div></p>
+<p><strong>turtlesim (needs an X display — <code>jetson-containers run</code> forwards it):</strong>
+<div class="highlight"><pre><span></span><code>ros2<span class="w"> </span>run<span class="w"> </span>turtlesim<span class="w"> </span>turtlesim_node<span class="w"> </span><span class="p">&amp;</span>
+ros2<span class="w"> </span>run<span class="w"> </span>turtlesim<span class="w"> </span>turtle_teleop_key<span class="w">    </span><span class="c1"># drive the turtle with arrow keys</span>
+</code></pre></div></p>
+<p><strong>Isaac ROS example (reference):</strong> each GEM has a Quickstart, e.g. <strong><code>isaac_ros_yolov8</code></strong> — run an accelerated YOLOv8 on an image and view <code>vision_msgs/Detection2DArray</code>, or <strong><code>isaac_ros_visual_slam</code></strong> for VSLAM from a stereo/RGB‑D camera. See the per‑package READMEs under <a href="https://github.com/NVIDIA-ISAAC-ROS">NVIDIA-ISAAC-ROS</a>.</p>
+<hr />
+<h2 id="sample-package-wrap-our-detector-as-a-ros-2-node">🛠️ Sample package: wrap our detector as a ROS 2 node<a class="headerlink" href="#sample-package-wrap-our-detector-as-a-ros-2-node" title="Permanent link">&para;</a></h2>
+<p>We ship a ready package, <a href="../../jetson/ros2_jetson_detect/"><code>jetson/ros2_jetson_detect</code></a>, that wraps <code>jetson_object_detection_toolkit.py</code>. It <strong>subscribes</strong> to an image topic, runs any toolkit detector on the GPU, and <strong>publishes</strong> results:</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>~/detections</code></td>
+<td><code>vision_msgs/Detection2DArray</code> (boxes + class + score)</td>
+</tr>
+<tr>
+<td><code>~/detections_image</code></td>
+<td><code>sensor_msgs/Image</code> (annotated, for RViz/rqt)</td>
+</tr>
+</tbody>
+</table>
+<p>The whole wrapper is ~120 lines — the relevant core:
+<div class="highlight"><pre><span></span><code><span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toolkit</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_detect_kwargs</span><span class="p">())</span>   <span class="c1"># reuse the 05b toolkit</span>
+<span class="k">for</span> <span class="n">box</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;boxes&#39;</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;scores&#39;</span><span class="p">],</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;class_names&#39;</span><span class="p">]):</span>
+    <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">box</span><span class="p">)</span>
+    <span class="n">det</span> <span class="o">=</span> <span class="n">Detection2D</span><span class="p">()</span>
+    <span class="n">det</span><span class="o">.</span><span class="n">bbox</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>   <span class="c1"># vision_msgs (Humble) layout</span>
+    <span class="n">det</span><span class="o">.</span><span class="n">bbox</span><span class="o">.</span><span class="n">center</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">y1</span> <span class="o">+</span> <span class="n">y2</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">det</span><span class="o">.</span><span class="n">bbox</span><span class="o">.</span><span class="n">size_x</span><span class="p">,</span> <span class="n">det</span><span class="o">.</span><span class="n">bbox</span><span class="o">.</span><span class="n">size_y</span> <span class="o">=</span> <span class="n">x2</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y2</span> <span class="o">-</span> <span class="n">y1</span>
+    <span class="n">hyp</span> <span class="o">=</span> <span class="n">ObjectHypothesisWithPose</span><span class="p">()</span>
+    <span class="n">hyp</span><span class="o">.</span><span class="n">hypothesis</span><span class="o">.</span><span class="n">class_id</span><span class="p">,</span> <span class="n">hyp</span><span class="o">.</span><span class="n">hypothesis</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+    <span class="n">det</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hyp</span><span class="p">);</span> <span class="n">arr</span><span class="o">.</span><span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">det</span><span class="p">)</span>
+</code></pre></div>
+<em>(✅ This <code>vision_msgs</code> layout was verified against real Humble messages on jetson‑61.)</em></p>
+<h3 id="build-it-on-a-gpupytorch-base-the-smart-choice">Build it — on a GPU‑PyTorch base (the smart choice)<a class="headerlink" href="#build-it-on-a-gpupytorch-base-the-smart-choice" title="Permanent link">&para;</a></h3>
+<p>The node needs <strong>both</strong> the toolkit's deps (PyTorch, Ultralytics, OpenCV) and ROS deps (<code>vision_msgs</code>, <code>cv_bridge</code>). Rather than install CUDA PyTorch from scratch, <strong>start from the <code>jetson-llm</code> container <code>sjsujetsontool</code> already uses</strong> — it ships CUDA PyTorch — and just add ROS 2 on top. Since that image is Ubuntu 24.04, the matching ROS 2 distro is <strong>Jazzy</strong> (our node's <code>vision_msgs</code> layout is the same on Humble and Jazzy):</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. a GPU container from the jetson-llm image, with the repo mounted</span>
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>ros2gpu<span class="w"> </span>--runtime<span class="w"> </span>nvidia<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="o">=</span>host<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">NVIDIA_VISIBLE_DEVICES</span><span class="o">=</span>all<span class="w"> </span>-v<span class="w"> </span>/Developer:/Developer<span class="w"> </span>jetson-llm:v1<span class="w"> </span>sleep<span class="w"> </span>infinity
+
+<span class="c1"># 2. add ROS 2 Jazzy + the message/bridge packages, and YOLO</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>ros2gpu<span class="w"> </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s1">&#39;</span>
+<span class="s1">  apt-get update &amp;&amp; apt-get install -y curl gnupg</span>
+<span class="s1">  curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \</span>
+<span class="s1">       -o /usr/share/keyrings/ros-archive-keyring.gpg</span>
+<span class="s1">  echo &quot;deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \</span>
+<span class="s1">http://packages.ros.org/ros2/ubuntu noble main&quot; &gt; /etc/apt/sources.list.d/ros2.list</span>
+<span class="s1">  apt-get update &amp;&amp; apt-get install -y ros-jazzy-ros-base ros-jazzy-vision-msgs ros-jazzy-cv-bridge</span>
+<span class="s1">  pip install ultralytics &quot;numpy&lt;2&quot;      # see gotcha below</span>
+<span class="s1">&#39;</span>
+</code></pre></div>
+<blockquote>
+<p>⚠️ <strong>numpy gotcha:</strong> <code>pip install ultralytics</code> pulls <strong>numpy 2.x</strong>, which breaks the image's prebuilt OpenCV (<code>ImportError: numpy.core.multiarray failed to import</code>). Pin <strong><code>numpy&lt;2</code></strong> (as above) to match the prebuilt cv2/torch.</p>
+</blockquote>
+<p>Then build the workspace (or run the node directly):
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>ros2gpu<span class="w"> </span>bash
+<span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
+mkdir<span class="w"> </span>-p<span class="w"> </span>~/ros2_ws/src<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ln<span class="w"> </span>-s<span class="w"> </span>/Developer/edgeAI/jetson/ros2_jetson_detect<span class="w"> </span>~/ros2_ws/src/
+<span class="nb">cd</span><span class="w"> </span>~/ros2_ws<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>ros2_jetson_detect<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>install/setup.bash
+</code></pre></div></p>
+<h3 id="run-it">Run it<a class="headerlink" href="#run-it" title="Permanent link">&para;</a></h3>
+<p>Our package includes a <strong><code>still_image_publisher</code></strong> (ROS's <code>image_publisher</code> mishandles a single <code>.jpg</code> — it treats it as an image sequence), so the launch file works on one image:
+<div class="highlight"><pre><span></span><code>ros2<span class="w"> </span>launch<span class="w"> </span>ros2_jetson_detect<span class="w"> </span>detect.launch.py<span class="w"> </span>model:<span class="o">=</span>yolo<span class="w"> </span>image:<span class="o">=</span>/Developer/models/bus.jpg
+<span class="c1"># inspect in another shell:</span>
+ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/jetson_detector/detections<span class="w"> </span>--once
+ros2<span class="w"> </span>run<span class="w"> </span>rqt_image_view<span class="w"> </span>rqt_image_view<span class="w">            </span><span class="c1"># pick /jetson_detector/detections_image</span>
+</code></pre></div>
+With a <strong>live camera</strong> instead:
+<div class="highlight"><pre><span></span><code>ros2<span class="w"> </span>run<span class="w"> </span>usb_cam<span class="w"> </span>usb_cam_node_exe<span class="w"> </span><span class="p">&amp;</span><span class="w">               </span><span class="c1"># or isaac_ros_argus for CSI cameras</span>
+ros2<span class="w"> </span>launch<span class="w"> </span>ros2_jetson_detect<span class="w"> </span>detect.launch.py<span class="w"> </span>model:<span class="o">=</span>yolo<span class="w"> </span>image_topic:<span class="o">=</span>/image_raw
+</code></pre></div>
+Switch detectors with <code>model:=</code> (<code>faster-rcnn</code>, <code>maskrcnn</code>, <code>detr</code>, <code>owl-vit</code> + <code>prompts:="person,car"</code>) — exactly as in 05b.</p>
+<h4 id="verified-gpu-result-jetson61-orin-ros-2-jazzy-yolov8n-on-cuda">✅ Verified GPU result (jetson‑61, Orin, ROS 2 Jazzy, YOLOv8n on CUDA)<a class="headerlink" href="#verified-gpu-result-jetson61-orin-ros-2-jazzy-yolov8n-on-cuda" title="Permanent link">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code>[jetson_detector]: Loading detector &#39;yolo&#39; on cuda ...
+[jetson_detector]: Detector ready.
+[jetson_detector]: Subscribed to &#39;/image_raw&#39;, publishing &#39;~/detections&#39;.
+[jetson_detector]: 6 detections (1232 ms)
+
+RECEIVED Detection2DArray with 6 detections:
+  bus          0.87  center=(414,494) size=(782x526)
+  person       0.87  center=(147,651) size=(197x504)
+  person       0.85  center=(740,635) size=(140x485)
+  person       0.83  center=(283,632) size=(123x452)
+  person       0.26  center=(32,712)  size=(63x323)
+  stop sign    0.25  center=(16,290)  size=(32x70)
+</code></pre></div>
+YOLOv8 runs on the <strong>Orin GPU inside the ROS 2 node</strong> and publishes <code>vision_msgs/Detection2DArray</code> — ready to feed any downstream planner/visualizer. <em>(For a one‑shot smoke test without <code>colcon</code>, run <a href="../../jetson/ros2_jetson_detect/test_gpu_detect.py"><code>test_gpu_detect.py</code></a>.)</em></p>
+<hr />
+<h2 id="troubleshooting">🧯 Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>colcon: command not found</code></td>
+<td>you're not in the ROS container, or didn't <code>source /opt/ros/humble/setup.bash</code></td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: jetson_object_detection_toolkit</code></td>
+<td>set <code>-p toolkit_path:=/Developer/edgeAI/jetson</code> or mount <code>/Developer</code></td>
+</tr>
+<tr>
+<td><code>No module named torch/ultralytics</code></td>
+<td>use a <code>jetson-containers</code> image that includes PyTorch, or <code>pip install</code> inside it</td>
+</tr>
+<tr>
+<td><code>cv_bridge</code>/<code>vision_msgs</code> import error</td>
+<td><code>apt-get install ros-humble-cv-bridge ros-humble-vision-msgs</code></td>
+</tr>
+<tr>
+<td>rqt/turtlesim: no display</td>
+<td>launch with <code>jetson-containers run</code> (sets up X11), or <code>xhost +local:</code> on the host</td>
+</tr>
+<tr>
+<td>node loads but 0 detections</td>
+<td>lower <code>confidence:=0.1</code>; for <code>owl-vit</code>/<code>grounding-dino</code> you must pass <code>prompts:=</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="summary">📌 Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li>ROS 2 = nodes + topics + messages; <strong>Isaac ROS</strong> adds GPU‑accelerated perception GEMs with <strong>NITROS</strong> zero‑copy transport.</li>
+<li>Run ROS 2 / Isaac ROS in <strong>containers</strong> via <code>jetson-containers</code> (easiest for ROS + ML) or <code>isaac_ros_common</code>.</li>
+<li>We wrapped the 05b detector as a ROS 2 node (<a href="../../jetson/ros2_jetson_detect/"><code>ros2_jetson_detect</code></a>) that publishes <code>vision_msgs/Detection2DArray</code> — drop it into any robot pipeline.</li>
+</ul>
+<p>→ <strong>Next:</strong> <a href="../05d_lerobot_so101/">LeRobot &amp; SO-ARM101 Teleop / Data Collection</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2766 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../00b_sjsujetsontool_cheatsheet/">
+      
+      
+        <link rel="next" href="../01_jetpack7_setup_guide/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>💻 gputool Guide - Jetson Cyber & AI Summer Camp</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gputool-user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-header__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Jetson Cyber & AI Summer Camp
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              💻 gputool Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Jetson Cyber &amp; AI Summer Camp" class="md-nav__button md-logo" aria-label="Jetson Cyber & AI Summer Camp" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Jetson Cyber & AI Summer Camp
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔰 Getting Started with Jetson
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🔰 Getting Started with Jetson
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00_sjsujetsontool_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✅ sjsujetsontool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../00b_sjsujetsontool_cheatsheet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📋 sjsujetsontool Cheatsheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💻 gputool Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sjsujetsontool-vs-gputool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆚 sjsujetsontool vs gputool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📥 Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📥 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-standard-curl-wget-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Standard (curl / wget installed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-locked-down-lab-machines-no-curl-or-wget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Locked-down Lab Machines (No curl or wget)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Command Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Command Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-machine-learning-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 AI &amp; Machine Learning Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐍 AI &amp; Machine Learning Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-miniconda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Install Miniconda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-conda-env-install-lerobot-pytorch-hf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 Create Conda Env &amp; Install LeRobot / PyTorch / HF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤖 Create Conda Env &amp; Install LeRobot / PyTorch / HF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-verification-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Verification Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-customized-conda-env-install-pytorch-hf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 Create Customized Conda Env &amp; Install PyTorch / HF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐍 Create Customized Conda Env &amp; Install PyTorch / HF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-verification-output_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Verification Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-complete-system-diagnostic-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Run Complete System Diagnostic Check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Run Complete System Diagnostic Check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llamacpp-local-llm-serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🦙 Llama.cpp &amp; Local LLM Serving
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🦙 Llama.cpp &amp; Local LLM Serving">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-compile-llamacpp-with-cuda-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compile llama.cpp with CUDA Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-download-a-gguf-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Download a GGUF Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-serve-the-llm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Serve the LLM via Llama Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Serve the LLM via Llama Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-usage-inference-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Usage &amp; Inference Query:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-chat-from-the-terminal-gputool-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Chat from the Terminal (gputool chat)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Chat from the Terminal (gputool chat)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#just-type-gputool-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Just type gputool chat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-ways-to-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other ways to launch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-share-the-server-by-name-headscale-llmforgengiorg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Share the server by name (Headscale + llm.forgengi.org)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#userspace-tailscale-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Userspace Tailscale VPN
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 Userspace Tailscale VPN">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-download-static-binaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Download Static Binaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-connect-to-the-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Connect to the VPN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-check-connection-proxy-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Check Connection &amp; Proxy Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-disconnect-and-stop-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Disconnect and Stop Daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-access-peers-proxy-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 How to Access Peers (Proxy Usage)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 How to Access Peers (Proxy Usage)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#web-requests-apis-curl-python-wget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Web Requests &amp; APIs (curl, python, wget)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secure-shell-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secure Shell (SSH)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-limitations-of-non-sudo-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Key Limitations of Non-Sudo Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01_jetpack7_setup_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ⚙️ JetPack 7 Setup Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01a_nvidia_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔧 Introduction to NVIDIA Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01b_jetson_cuda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 CUDA Programming on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🐧 Linux Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🐧 Linux Fundamentals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02a_linux_basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    💡 Linux OS Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03a_linux_networking_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Linux Networking Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03b_packet_sniffing_monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Packet Sniffing & Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 AI & LLM
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🤖 AI & LLM
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04_deeplearning_cnn/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Deep Learning & CNN
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04b_cnn_image_processing_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🖼️ CNN Image Processing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05_transformers_nlp_applications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🧠 Transformers & NLP Applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05b_yolo_vlm_object_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎯 Deep Learning Object Detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06_llms_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🚀 Large Language Models on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07_nlp_applications_llm_optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    📚 NLP Applications & LLM Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08_prompt_engineering_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ✍️ Prompt Engineering & LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09_rag_app_langchain_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 RAG Applications with LangChain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10_local_ai_agents_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 Local AI Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10b_voice_assistant_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🎙️ Voice Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11_nextjs_nemotron_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🌐 Next.js + NVIDIA Nemotron App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11b_nextjs_agent_lab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Next.js Agent Lab (follow-up)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12_vulnerability_triage_intro/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛡️ Vuln Triage — Intro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12b_basic_tool_calling_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🛠️ Vuln Triage — Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12c_react_loop_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔁 Vuln Triage — ReAct Loop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../12d_rag_cve_triage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🔎 Vuln Triage — RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 Robotics
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    🦾 Robotics
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05c_ros2_isaac_ros_jetson/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🤖 ROS 2 & NVIDIA Isaac ROS on Jetson
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05d_lerobot_so101/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    🦾 LeRobot & SO-ARM101
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sjsujetsontool-vs-gputool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🆚 sjsujetsontool vs gputool
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📥 Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📥 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-a-standard-curl-wget-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option A: Standard (curl / wget installed)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-b-locked-down-lab-machines-no-curl-or-wget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option B: Locked-down Lab Machines (No curl or wget)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📋 Command Reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📋 Command Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-machine-learning-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 AI &amp; Machine Learning Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐍 AI &amp; Machine Learning Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-miniconda" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📦 Install Miniconda
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-conda-env-install-lerobot-pytorch-hf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🤖 Create Conda Env &amp; Install LeRobot / PyTorch / HF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🤖 Create Conda Env &amp; Install LeRobot / PyTorch / HF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-verification-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Verification Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-customized-conda-env-install-pytorch-hf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐍 Create Customized Conda Env &amp; Install PyTorch / HF
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐍 Create Customized Conda Env &amp; Install PyTorch / HF">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-verification-output_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Verification Output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-complete-system-diagnostic-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Run Complete System Diagnostic Check
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔍 Run Complete System Diagnostic Check">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Output:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llamacpp-local-llm-serving" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🦙 Llama.cpp &amp; Local LLM Serving
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🦙 Llama.cpp &amp; Local LLM Serving">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-compile-llamacpp-with-cuda-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Compile llama.cpp with CUDA Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-download-a-gguf-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Download a GGUF Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-serve-the-llm-via-llama-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Serve the LLM via Llama Server
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Serve the LLM via Llama Server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-usage-inference-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Usage &amp; Inference Query:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-chat-from-the-terminal-gputool-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Chat from the Terminal (gputool chat)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Chat from the Terminal (gputool chat)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#just-type-gputool-chat" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Just type gputool chat
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-ways-to-launch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other ways to launch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-share-the-server-by-name-headscale-llmforgengiorg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Share the server by name (Headscale + llm.forgengi.org)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#userspace-tailscale-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🌐 Userspace Tailscale VPN
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🌐 Userspace Tailscale VPN">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-download-static-binaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Download Static Binaries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-connect-to-the-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Connect to the VPN
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-check-connection-proxy-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Check Connection &amp; Proxy Details
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-disconnect-and-stop-daemon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Disconnect and Stop Daemon
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-access-peers-proxy-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔌 How to Access Peers (Proxy Usage)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔌 How to Access Peers (Proxy Usage)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#web-requests-apis-curl-python-wget" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Web Requests &amp; APIs (curl, python, wget)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secure-shell-ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secure Shell (SSH)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-limitations-of-non-sudo-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚠️ Key Limitations of Non-Sudo Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="gputool-user-guide">🚀 gputool User Guide<a class="headerlink" href="#gputool-user-guide" title="Permanent link">&para;</a></h1>
+<p><strong>gputool</strong> is a lightweight, non-sudo utility CLI designed to manage services and networking in restricted or locked-down environments (such as university lab machines or shared server nodes) where you <strong>do not have root (<code>sudo</code>) privileges</strong>.</p>
+<p>Unlike the main <code>sjsujetsontool</code>, which installs system-level packages and systemd services on NVIDIA Jetson dev kits, <code>gputool</code> runs completely inside the user space, saving all of its state, logs, and sockets locally under <code>$HOME/.gputool</code>.</p>
+<hr />
+<h2 id="sjsujetsontool-vs-gputool">🆚 <code>sjsujetsontool</code> vs <code>gputool</code><a class="headerlink" href="#sjsujetsontool-vs-gputool" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th><code>sjsujetsontool</code></th>
+<th><code>gputool</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Privileges Required</strong></td>
+<td><code>sudo</code> (Root)</td>
+<td><strong>No Sudo</strong> (User space only)</td>
+</tr>
+<tr>
+<td><strong>Primary Platforms</strong></td>
+<td>NVIDIA Jetson</td>
+<td>Generic Linux (Jetson, x86 Servers, etc.)</td>
+</tr>
+<tr>
+<td><strong>Tailscale Mode</strong></td>
+<td>System kernel interface (<code>tailscale0</code> tun card)</td>
+<td>User-space networking (Proxy mode)</td>
+</tr>
+<tr>
+<td><strong>Installation</strong></td>
+<td>System-wide binaries &amp; systemd services</td>
+<td>Static binaries in user home directory</td>
+</tr>
+<tr>
+<td><strong>Download Dependencies</strong></td>
+<td>Requires system <code>curl</code> / <code>wget</code></td>
+<td>Falls back to <strong>Python 3</strong> if curl/wget are missing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="installation">📥 Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<p>Choose the command that fits your system's network tools:</p>
+<h3 id="option-a-standard-curl-wget-installed">Option A: Standard (curl / wget installed)<a class="headerlink" href="#option-a-standard-curl-wget-installed" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</code></pre></div>
+<p>or 
+<div class="highlight"><pre><span></span><code>wget<span class="w"> </span>https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh
+chmod<span class="w"> </span>+x<span class="w"> </span>install_gputool.sh
+./install_gputool.sh
+<span class="nb">source</span><span class="w"> </span>~/.bashrc
+gputool<span class="w"> </span>version
+</code></pre></div></p>
+<h3 id="option-b-locked-down-lab-machines-no-curl-or-wget">Option B: Locked-down Lab Machines (No <code>curl</code> or <code>wget</code>)<a class="headerlink" href="#option-b-locked-down-lab-machines-no-curl-or-wget" title="Permanent link">&para;</a></h3>
+<p>If the computer has neither <code>curl</code> nor <code>wget</code> (or they are blocked), use Python 3 to stream the installer:
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import urllib.request; print(urllib.request.urlopen(&#39;https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh&#39;).read().decode())&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</code></pre></div></p>
+<hr />
+<h2 id="command-reference">📋 Command Reference<a class="headerlink" href="#command-reference" title="Permanent link">&para;</a></h2>
+<h3 id="core-commands">Core Commands<a class="headerlink" href="#core-commands" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Show Help Menu:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span><span class="nb">help</span>
+</code></pre></div></li>
+<li><strong>Print Version:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>version
+</code></pre></div></li>
+<li><strong>Install/Re-install local script:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>install
+</code></pre></div></li>
+<li><strong>Update script from GitHub:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>update-script
+</code></pre></div></li>
+<li><strong>Install Miniconda:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>install-conda<span class="w"> </span><span class="o">[</span>install_path<span class="o">]</span>
+</code></pre></div></li>
+<li><strong>Run complete system check:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>check<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div></li>
+<li><strong>Create customized Conda env (PyTorch + HF):</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>setup-env<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span><span class="w"> </span><span class="o">[</span>python_ver<span class="o">]</span>
+</code></pre></div></li>
+<li><strong>Create LeRobot / PyTorch / HF Conda env:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>setup-lerobot<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="ai-machine-learning-setup">🐍 AI &amp; Machine Learning Setup<a class="headerlink" href="#ai-machine-learning-setup" title="Permanent link">&para;</a></h2>
+<p><code>gputool</code> provides helper utilities to set up localized machine learning virtual environments directly inside your user directory using Conda.</p>
+<h3 id="install-miniconda">📦 Install Miniconda<a class="headerlink" href="#install-miniconda" title="Permanent link">&para;</a></h3>
+<p>On a brand new/empty machine (where Conda is not present), you can download and install Miniconda to user space:</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>install-conda<span class="w"> </span><span class="o">[</span>install_path<span class="o">]</span>
+</code></pre></div>
+<em>(If <code>install_path</code> is omitted, it defaults to <code>$HOME/miniconda3</code>).</em></p>
+<p><strong>What it does:</strong>
+1. <strong>Downloads Installer:</strong> Downloads the latest Miniconda installer from Anaconda's repositories.
+2. <strong>Silent Install:</strong> Performs a silent batch installation in user space (no root required).
+3. <strong>ToS Auto-Acceptance:</strong> Automatically accepts the Anaconda Terms of Service to prevent <code>CondaToSNonInteractiveError</code> during package setups.
+4. <strong>Shell configuration:</strong> Runs <code>conda init</code> to automatically configure your <code>.bashrc</code> and/or <code>.zshrc</code>.</p>
+<blockquote>
+<p>[!TIP]
+If you run <code>gputool setup-lerobot</code> directly on a system where Conda is missing, <code>gputool</code> will automatically detect this and trigger the Miniconda auto-installation fallback for you!</p>
+</blockquote>
+<h3 id="create-conda-env-install-lerobot-pytorch-hf">🤖 Create Conda Env &amp; Install LeRobot / PyTorch / HF<a class="headerlink" href="#create-conda-env-install-lerobot-pytorch-hf" title="Permanent link">&para;</a></h3>
+<p>Creates a new Conda environment with Python 3.10 and automatically configures it with the Blackwell-compatible CUDA 12.8 PyTorch build, LeRobot (with extra simulator dependencies), and Hugging Face packages:</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>setup-lerobot<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div>
+<em>(If <code>env_name</code> is omitted, it defaults to <code>lerobot</code>).</em></p>
+<p><strong>What it does:</strong>
+1. <strong>Locates Conda:</strong> Dynamically scans for and sources the active Conda initialization profile (e.g. <code>miniconda3</code>, <code>anaconda3</code>, or system paths).
+2. <strong>Creates Environment:</strong> Initializes the target Conda virtual environment using Python 3.10.
+3. <strong>Installs CMake &lt; 4:</strong> Automatically configures the environment with <code>cmake&lt;4</code> from <code>conda-forge</code>. This is a critical fallback that prevents build isolation compile failures (<code>Compatibility with CMake &lt; 3.5 has been removed from CMake</code>) when compiling older robotics simulation packages like <code>egl_probe</code>/<code>hf-egl-probe</code> under newer system environments.
+4. <strong>Installs PyTorch (Auto-Detected CUDA Build):</strong> Probes the host with <code>nvidia-smi</code> and <code>nvcc</code>, then automatically selects the matching PyTorch wheel index:
+   * <strong>Modern GPUs</strong> (compute capability ≥ 7.0, including Blackwell <code>sm_120</code> RTX 5080) → CUDA 12.8 (<code>cu128</code>). This is required on Blackwell, as older wheels raise "no kernel image available" exceptions.
+   * <strong>Older GPUs</strong> (compute capability &lt; 7.0, e.g. Pascal/Maxwell) → CUDA 11.8 (<code>cu118</code>) for compatibility.
+   * <strong>No GPU / no CUDA toolkit</strong> → defaults to CUDA 12.8 (<code>cu128</code>).
+   * If the chosen wheel index fails, it falls back to the default PyPI <code>torch</code> build. The detected GPU name, compute capability, nvcc version, and selected build are printed before installation.
+5. <strong>Installs LeRobot &amp; HF:</strong> Performs a Pip installation of <code>huggingface_hub</code> and the complete LeRobot suite with simulation extras (<code>lerobot[all]</code>).
+6. <strong>Runs Verification:</strong> Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.</p>
+<p>To activate the environment after setup:
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>&lt;env_name&gt;
+</code></pre></div></p>
+<h4 id="example-verification-output">Example Verification Output<a class="headerlink" href="#example-verification-output" title="Permanent link">&para;</a></h4>
+<p>Upon successful installation, <code>gputool</code> outputs the active versions and hardware state:
+<div class="highlight"><pre><span></span><code>==================================================
+🧬 PyTorch Version    : 2.10.0+cu128
+🟢 CUDA Available      : True
+🖥️  GPU Device Name    : NVIDIA GeForce RTX 5080
+⚙️  CUDA Device Arch   : [&#39;sm_70&#39;, &#39;sm_75&#39;, &#39;sm_80&#39;, &#39;sm_86&#39;, &#39;sm_90&#39;, &#39;sm_100&#39;, &#39;sm_120&#39;]
+🤗 HF Hub Version     : 0.35.3
+🤖 LeRobot Version    : 0.4.4
+==================================================
+</code></pre></div></p>
+<h3 id="create-customized-conda-env-install-pytorch-hf">🐍 Create Customized Conda Env &amp; Install PyTorch / HF<a class="headerlink" href="#create-customized-conda-env-install-pytorch-hf" title="Permanent link">&para;</a></h3>
+<p>Creates a new Conda environment with a custom Python version (defaulting to name <code>py312</code> and Python <code>3.12</code>) and automatically configures it with the Blackwell-compatible CUDA 12.8 PyTorch build and Hugging Face:</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>setup-env<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span><span class="w"> </span><span class="o">[</span>python_ver<span class="o">]</span>
+</code></pre></div>
+<em>(If parameters are omitted, it defaults to environment name <code>py312</code> and Python version <code>3.12</code>).</em></p>
+<p><strong>What it does:</strong>
+1. <strong>Locates Conda:</strong> Dynamically scans for and sources the active Conda initialization profile (e.g., <code>miniconda3</code>, <code>anaconda3</code>, or system paths).
+2. <strong>Creates Environment:</strong> Initializes the target Conda virtual environment using the specified Python version (e.g., <code>3.12</code>).
+3. <strong>Installs PyTorch (Auto-Detected CUDA Build):</strong> Probes the host GPU and CUDA toolkit and selects the matching PyTorch wheel automatically — CUDA 12.8 (<code>cu128</code>) for modern GPUs like the Blackwell <code>sm_120</code> RTX 5080, CUDA 11.8 (<code>cu118</code>) for older GPUs (compute capability &lt; 7.0), and <code>cu128</code> as the default when no GPU/CUDA is found. Falls back to the default PyPI <code>torch</code> if the selected index fails.
+4. <strong>Installs Hugging Face:</strong> Performs a Pip installation of <code>huggingface_hub</code>.
+5. <strong>Runs Verification:</strong> Automatically verifies GPU detection, PyTorch CUDA initialization, and imports.</p>
+<p>To activate the environment after setup:
+<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>activate<span class="w"> </span>&lt;env_name&gt;
+</code></pre></div></p>
+<h4 id="example-verification-output_1">Example Verification Output<a class="headerlink" href="#example-verification-output_1" title="Permanent link">&para;</a></h4>
+<p>Upon successful installation, <code>gputool</code> outputs the active versions and hardware state:
+<div class="highlight"><pre><span></span><code>==================================================
+🧬 PyTorch Version    : 2.10.0+cu128
+🟢 CUDA Available      : True
+🖥️  GPU Device Name    : NVIDIA GeForce RTX 5080
+⚙️  CUDA Device Arch   : [&#39;sm_70&#39;, &#39;sm_75&#39;, &#39;sm_80&#39;, &#39;sm_86&#39;, &#39;sm_90&#39;, &#39;sm_100&#39;, &#39;sm_120&#39;]
+🤗 HF Hub Version     : 0.35.3
+==================================================
+</code></pre></div></p>
+<h3 id="run-complete-system-diagnostic-check">🔍 Run Complete System Diagnostic Check<a class="headerlink" href="#run-complete-system-diagnostic-check" title="Permanent link">&para;</a></h3>
+<p>To verify that the system hardware, Conda environment, PyTorch with CUDA, Hugging Face Hub, LeRobot installation, and Userspace Tailscale VPN/Proxy are all correctly configured, run:</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>check<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div>
+<em>(If <code>env_name</code> is omitted, it defaults to <code>lerobot</code>).</em></p>
+<p><strong>What it verifies:</strong>
+1. <strong>GPU &amp; Driver:</strong> Checks if <code>nvidia-smi</code> is available and reports the active GPU name, NVIDIA driver version, and host system CUDA version.
+2. <strong>Conda environment:</strong> Verifies if Conda is installed and detects if the target environment (e.g. <code>lerobot</code>) exists.
+3. <strong>PyTorch &amp; CUDA:</strong> Performs in-environment checks to verify PyTorch is installed, CUDA is active, and prints the compute capability of the GPU (e.g. Blackwell RTX 5080 capability details).
+4. <strong>Hugging Face Hub:</strong> Checks Hugging Face Hub library setup, authentication status, and tests network connectivity to <code>huggingface.co</code>.
+5. <strong>LeRobot:</strong> Confirms <code>lerobot</code> package version and checks key simulation backends (<code>gymnasium</code>, <code>mujoco</code>, <code>h5py</code>).
+6. <strong>Tailscale &amp; Proxy:</strong> Queries tailscaled daemon status, checks whether proxy port <code>1055</code> is active and listening, and displays assigned Tailscale IPs.</p>
+<h4 id="example-output">Example Output:<a class="headerlink" href="#example-output" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code>══════════════════════════════════════════════════
+🖥️  System Hardware Check
+══════════════════════════════════════════════════
+[✅] NVIDIA Driver found via nvidia-smi.
+   • GPU Name       : NVIDIA GeForce RTX 5080
+   • Driver Version : 550.54.14
+   • CUDA Version   : 12.8
+
+══════════════════════════════════════════════════
+🐍 Conda Environment Check
+══════════════════════════════════════════════════
+[✅] Conda is installed.
+   • Conda Path    : /home/student/miniconda3/bin/conda
+   • Conda Version : 24.1.2
+[✅] Conda environment &#39;lerobot&#39; exists.
+[⚙️] Running Python diagnostic checks in Conda env &#39;lerobot&#39;...
+
+════ PyTorch &amp; CUDA Diagnostic ════
+   • PyTorch Installed      : 2.10.0+cu128                   ✅
+   • CUDA Available         : True                           ✅
+   • CUDA Backend Ver       : 12.8                           ✅
+   • GPU Device Name        : NVIDIA GeForce RTX 5080        ✅
+   • Compute Capability     : (&#39;12&#39;, &#39;0&#39;)                    ✅
+
+════ Hugging Face Hub Diagnostic ════
+   • HF Hub Installed       : 0.35.3                         ✅
+   • HF Auth Status         : Logged In                      ✅
+   • HF Hub Connectivity    : Connected                      ✅
+
+════ LeRobot Diagnostic ════
+   • LeRobot Installed      : 0.4.4                          ✅
+   • Simulation Packages    : gymnasium(OK), mujoco(OK)...   ✅
+
+══════════════════════════════════════════════════
+🌐 Userspace Tailscale VPN &amp; Proxy Check
+══════════════════════════════════════════════════
+[✅] tailscaled background daemon is running.
+   • Daemon PID      : 29841
+[✅] Proxy port 1055 is listening.
+   • Tailscale IPs   : 100.64.0.15
+══════════════════════════════════════════════════
+</code></pre></div>
+<hr />
+<h2 id="llamacpp-local-llm-serving">🦙 Llama.cpp &amp; Local LLM Serving<a class="headerlink" href="#llamacpp-local-llm-serving" title="Permanent link">&para;</a></h2>
+<p><code>gputool</code> provides fully integrated commands to compile <code>llama.cpp</code> with NVIDIA CUDA support, download optimized GGUF model quantizations from Hugging Face, and manage background <code>llama-server</code> instances for local API serving with maximum GPU offloading.</p>
+<h3 id="1-compile-llamacpp-with-cuda-support">1. Compile llama.cpp with CUDA Support<a class="headerlink" href="#1-compile-llamacpp-with-cuda-support" title="Permanent link">&para;</a></h3>
+<p>This command clones <code>llama.cpp</code> from source, locates the active CUDA compiler (<code>nvcc</code>), and builds the binaries (<code>llama-cli</code> and <code>llama-server</code>) with GPU acceleration enabled:</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>setup-llamacpp<span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div>
+<em>(If <code>env_name</code> is omitted, it defaults to <code>lerobot</code>).</em></p>
+<p>For example:
+<div class="highlight"><pre><span></span><code><span class="o">(</span>py312<span class="o">)</span><span class="w"> </span><span class="m">010796032</span>@coe-cmpe-288-05:~$<span class="w"> </span>gputool<span class="w"> </span>setup-llamacpp<span class="w"> </span>py312
+</code></pre></div></p>
+<p><strong>What it does (robust, self-healing build):</strong>
+1. <strong>Locates <code>nvcc</code>:</strong> Searches <code>PATH</code>, then <code>/usr/local/cuda/bin</code>, then any <code>/usr/local/cuda-*/bin</code>, and reports the detected CUDA toolkit version, GPU name, and compute capability.
+2. <strong>Auto-installs build tools:</strong> Detects whether <code>cmake</code> and <code>ninja</code> are present <em>inside the conda env</em> and installs any that are missing from <code>conda-forge</code> (with a <code>pip</code> fallback for <code>cmake</code>). This means envs created by <code>gputool setup-env</code> (which ship PyTorch + HF only) no longer fail with <code>cmake: command not found</code>.
+3. <strong>Detects GPU architecture:</strong> Auto-configures <code>nvcc</code> for your GPU (e.g. Blackwell RTX 5080 → <code>sm_120a</code>). Uses the Ninja generator when available for a faster build, and automatically wipes a stale build directory if the generator changed.
+4. <strong>Installs binaries + libraries:</strong> Copies <code>llama-cli</code>, <code>llama-server</code>, <strong>and all shared libraries</strong> (<code>libllama</code>, <code>libggml-cuda</code>, …) into <code>~/.gputool/bin/</code> so the binaries run standalone.
+5. <strong>Verifies CUDA:</strong> Runs <code>llama-cli --list-devices</code> and confirms the GPU is visible to llama.cpp before finishing.</p>
+<blockquote>
+<p>[!NOTE]
+On fully locked-down machines with no network during the build, llama.cpp may print a warning that it could not download the embedded web UI assets — this is harmless and the server still builds and serves the API normally.</p>
+</blockquote>
+<h3 id="2-download-a-gguf-model">2. Download a GGUF Model<a class="headerlink" href="#2-download-a-gguf-model" title="Permanent link">&para;</a></h3>
+<p>Use Python's native <code>huggingface_hub</code> downloader to fetch a GGUF model directly to <code>~/.gputool/models/</code>. This avoids symlink compilation issues and handles large file streaming smoothly.</p>
+<p><div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>download-model<span class="w"> </span><span class="o">[</span>repo_id<span class="o">]</span><span class="w"> </span><span class="o">[</span>filename<span class="o">]</span><span class="w"> </span><span class="o">[</span>env_name<span class="o">]</span>
+</code></pre></div>
+* <strong>Default Model:</strong> If arguments are omitted, it defaults to the unsloth Q6_K_XL quantization of <strong>Qwen3.5 9B</strong>:
+  * Repo ID: <code>unsloth/Qwen3.5-9B-GGUF</code>
+  * Filename: <code>Qwen3.5-9B-UD-Q6_K_XL.gguf</code></p>
+<h3 id="3-serve-the-llm-via-llama-server">3. Serve the LLM via Llama Server<a class="headerlink" href="#3-serve-the-llm-via-llama-server" title="Permanent link">&para;</a></h3>
+<p>Start, stop, or check status of the local OpenAPI-compatible background serving daemon:</p>
+<ul>
+<li><strong>Start the server:</strong>
+  Offloads all model layers (<code>-ngl 99</code>) to the GPU.
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span><span class="o">[</span>model_filename_or_path<span class="o">]</span><span class="w"> </span><span class="o">[</span>port<span class="o">]</span><span class="w"> </span><span class="o">[</span>--background<span class="p">|</span>--foreground<span class="o">]</span>
+</code></pre></div>
+  <em>(Defaults: model = <code>Qwen3.5-9B-UD-Q6_K_XL.gguf</code>, port = <code>8080</code>, run mode = background)</em></li>
+</ul>
+<p><strong>Performance defaults (tuned for RTX 5080 / 16 GB + Qwen3.5-9B):</strong> the server launches with
+  <code>-ngl 99 --ctx-size 32768 --batch-size 4096 --ubatch-size 2048 --flash-attn on --cache-type-k q8_0 --cache-type-v q8_0</code>.
+  Flash-Attention plus a <strong>q8_0 KV cache</strong> roughly halves cache memory, so a <strong>32K</strong> context fits comfortably (~10 GB VRAM used, leaving headroom). The <code>32768</code> context matches Unsloth's recommended output length (the model supports up to 262K). Tune the context for other GPUs:
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--ctx-size<span class="w"> </span><span class="m">8192</span><span class="w">   </span><span class="c1"># smaller GPUs</span>
+</code></pre></div></p>
+<blockquote>
+<p>If you hit instability with the quantized cache, Unsloth suggests <code>--cache-type-k bf16 --cache-type-v bf16</code> (uses more VRAM).</p>
+</blockquote>
+<p>By default the server <strong>binds to <code>0.0.0.0</code></strong>, so it is reachable from other machines on the same network (e.g. lab peers) at <code>http://&lt;server-ip&gt;:&lt;port&gt;</code>. To restrict it to the local machine only, pass <code>--host 127.0.0.1</code>.
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w">                       </span><span class="c1"># LAN-accessible on 0.0.0.0:8080 (default)</span>
+gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--host<span class="w"> </span><span class="m">127</span>.0.0.1<span class="w">   </span><span class="c1"># local-only</span>
+</code></pre></div></p>
+<blockquote>
+<p>[!WARNING]
+Binding to <code>0.0.0.0</code> exposes the model API to every host that can route to this machine. On shared or untrusted networks, either protect it with <code>--api-key</code> (below), use <code>--host 127.0.0.1</code>, or reach it over an SSH tunnel / the Tailscale VPN.</p>
+</blockquote>
+<p><strong>Protect the API with a token (<code>--api-key</code>):</strong> Require every request to carry an <code>Authorization: Bearer &lt;token&gt;</code> header. Requests without the correct token are rejected with HTTP <code>401</code>.
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--api-key<span class="w"> </span>sjsugputool
+</code></pre></div>
+  You can also set the token via the <code>GPUTOOL_LLAMA_API_KEY</code> environment variable instead of passing it on the command line (which keeps it out of your shell history):
+  <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">GPUTOOL_LLAMA_API_KEY</span><span class="o">=</span>sjsugputool
+gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start
+</code></pre></div>
+  Clients then include the bearer token. With <code>curl</code>:
+  <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>http://10.31.96.155:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer sjsugputool&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;Hello!&quot;}]}&#39;</span>
+</code></pre></div>
+  Or, on machines without <code>curl</code>, with Python:
+  <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="n">req</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+    <span class="s2">&quot;http://&lt;server-ip&gt;:8080/v1/chat/completions&quot;</span><span class="p">,</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello!&quot;</span><span class="p">}]})</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span> <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;Bearer sjsugputool&quot;</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">))[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">])</span>
+</code></pre></div></p>
+<p><strong>Enable vision / image input (<code>--mmproj</code>):</strong> Qwen3.5 is multimodal. To accept images, <code>llama-server</code> needs the model's <strong>multimodal projector</strong> (<code>mmproj</code>) file in addition to the main GGUF. Download it once, and <code>serve-llamacpp</code> auto-detects any <code>mmproj*.gguf</code> sitting next to the model:
+  <div class="highlight"><pre><span></span><code><span class="c1"># one-time: fetch the projector into ~/.gputool/models/</span>
+gputool<span class="w"> </span>download-model<span class="w"> </span>unsloth/Qwen3.5-9B-GGUF<span class="w"> </span>mmproj-F16.gguf<span class="w"> </span>py312
+
+<span class="c1"># start — vision is enabled automatically when an mmproj is present</span>
+gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--api-key<span class="w"> </span>sjsugputool
+<span class="c1">#  [⚙️] Vision (mmproj): enabled — mmproj-F16.gguf</span>
+</code></pre></div>
+  Use <code>--mmproj &lt;file&gt;</code> to point at a specific projector, or <code>--no-mmproj</code> to force text-only. Then send an image using the OpenAI vision format (<code>image_url</code> with a base64 data URI — the build has <code>LLAMA_CURL=OFF</code>, so remote image URLs are not fetched):
+  <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>jetson/jetson-llm/vision_test.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span>http://localhost:8080/v1<span class="w"> </span>--api-key<span class="w"> </span>sjsugputool<span class="w"> </span>--image<span class="w"> </span>photo.jpg<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s2">&quot;What is in this image?&quot;</span>
+<span class="c1"># → &quot;A yellow circle on a blue square background.&quot;  (for the built-in test image)</span>
+</code></pre></div>
+  See <a href="../../jetson/jetson-llm/vision_test.py"><code>jetson/jetson-llm/vision_test.py</code></a> for the raw request shape.</p>
+<p>The run mode controls whether the server detaches from your terminal:
+  * <strong><code>--background</code> / <code>-d</code> (default):</strong> Runs as a detached <code>nohup</code> daemon, writes its PID to <code>~/.gputool/llama-server.pid</code>, and logs to <code>~/.gputool/llama-server.log</code>. The command returns immediately so you can keep using the shell (or close the SSH session) while the server keeps running.
+    <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w">            </span><span class="c1"># background (default)</span>
+gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>-d<span class="w">         </span><span class="c1"># explicit background</span>
+</code></pre></div>
+  * <strong><code>--foreground</code> / <code>-f</code>:</strong> Runs attached to your terminal and streams server logs live. Useful for debugging. Press <code>Ctrl+C</code> to stop it.
+    <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--foreground
+</code></pre></div></p>
+<ul>
+<li>
+<p><strong>Check server status:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>status
+</code></pre></div>
+  <em>(Prints process PID details and runs a connection health check to <code>/health</code>. If no tracked PID file exists, it still detects stray/foreground <code>llama-server</code> instances via <code>pgrep</code>.)</em></p>
+</li>
+<li>
+<p><strong>Stop the server:</strong>
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>stop
+</code></pre></div>
+  This stops <strong>the tracked daemon and any stray/orphaned <code>llama-server</code> processes</strong> — it collects PIDs from the PID file plus a <code>pgrep</code> match on the installed binary, terminates each gracefully (<code>SIGTERM</code>, then <code>SIGKILL</code> after a 10s grace period), and clears the PID file. Running it when nothing is active simply reports that no servers were found.</p>
+</li>
+</ul>
+<h4 id="example-usage-inference-query">Example Usage &amp; Inference Query:<a class="headerlink" href="#example-usage-inference-query" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Start the server (offloads all layers to the GPU with -ngl 99)</span>
+gputool<span class="w"> </span>serve-llamacpp<span class="w"> </span>start<span class="w"> </span>Qwen3.5-9B-UD-Q6_K_XL.gguf<span class="w"> </span><span class="m">8080</span>
+
+<span class="c1"># 2. Query completions via the OpenAI-compatible endpoint</span>
+curl<span class="w"> </span>http://localhost:8080/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;messages&quot;: [</span>
+<span class="s1">      {&quot;role&quot;: &quot;system&quot;, &quot;content&quot;: &quot;You are a helpful assistant.&quot;},</span>
+<span class="s1">      {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What GPU architecture is NVIDIA Blackwell?&quot;}</span>
+<span class="s1">    ]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+<blockquote>
+<p>[!TIP]
+<strong>No <code>curl</code> on locked-down machines?</strong> Many lab nodes ship without <code>curl</code>/<code>wget</code>. Query the server with Python's built-in <code>urllib</code> instead:
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="o">,</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="n">req</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+    <span class="s2">&quot;http://localhost:8080/v1/chat/completions&quot;</span><span class="p">,</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;What GPU architecture is NVIDIA Blackwell?&quot;</span><span class="p">}]})</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span>
+    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">))[</span><span class="s2">&quot;choices&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">])</span>
+</code></pre></div></p>
+<p>[!NOTE]
+<strong>Reasoning models (Qwen3.5):</strong> Qwen3.5 is a "thinking" model. By default it spends tokens on internal reasoning (returned in the <code>reasoning_content</code> field) before producing the final <code>content</code>, so a small <code>max_tokens</code> may return empty <code>content</code> with <code>finish_reason: "length"</code>. Either raise <code>max_tokens</code>, or disable thinking for a direct answer by adding <code>"chat_template_kwargs": {"enable_thinking": false}</code> to the request body.</p>
+</blockquote>
+<h3 id="4-chat-from-the-terminal-gputool-chat">4. Chat from the Terminal (<code>gputool chat</code>)<a class="headerlink" href="#4-chat-from-the-terminal-gputool-chat" title="Permanent link">&para;</a></h3>
+<p><code>gputool</code> ships a built-in terminal chat client that talks to any OpenAI-compatible endpoint (your local <code>llama-server</code> by default) and <strong>streams the response token-by-token</strong> with per-turn token/throughput stats.</p>
+<ul>
+<li><strong>Rich UI (Claude-Code style):</strong> if the <a href="https://github.com/Textualize/rich"><code>rich</code></a> library is installed, tokens stream smoothly into a panel (refreshes are throttled and long replies stay scrollable — no flicker/freeze at high token rates), and the completed reply is rendered as <strong>Markdown</strong> — headings, <strong>bold</strong>, lists, and syntax-highlighted code blocks.</li>
+<li><strong>Stdlib fallback:</strong> if <code>rich</code> is not available, it automatically falls back to a pure-stdlib ANSI renderer, so it still works on locked-down machines without extra <code>pip</code> packages or <code>curl</code>.</li>
+</ul>
+<p>To get the Rich UI, install it once into your environment:
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>rich<span class="w">      </span><span class="c1"># optional — enables Markdown/syntax-highlighted rendering</span>
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>chat<span class="w"> </span><span class="o">[</span>message<span class="o">]</span><span class="w"> </span><span class="o">[</span>--host<span class="w"> </span>&lt;ip&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--api-key<span class="w"> </span>&lt;token&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--system<span class="w"> </span>&lt;text&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--think<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-stream<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-color<span class="o">]</span><span class="w"> </span><span class="o">[</span>--plain<span class="o">]</span>
+</code></pre></div>
+<h4 id="just-type-gputool-chat">Just type <code>gputool chat</code><a class="headerlink" href="#just-type-gputool-chat" title="Permanent link">&para;</a></h4>
+<p>With no arguments, the client <strong>walks you through a short setup</strong> and then drops you into an interactive session. Your answers (server and API key) are <strong>saved to <code>~/.gputool/chat_config.json</code></strong> (with <code>0600</code> permissions), so on the next run you can just press Enter to reuse them — <strong>you only enter the key once</strong>.</p>
+<div class="highlight"><pre><span></span><code>$ gputool chat
+Server IP or URL [127.0.0.1:8080]: 10.31.96.155
+API key [blank if none]: ********
+╭───────────────── 🦙 gputool chat — local LLM ──────────────────╮
+│                                                                │
+│  Endpoint  http://10.31.96.155:8080/v1/chat/completions        │
+│  Model     Qwen3.5-9B-UD-Q6_K_XL.gguf                          │
+│  Auth on   Streaming on   Thinking off                         │
+│                                                                │
+│  Type a message and press Enter.  /help for commands · /exit … │
+╰────────────────────────────────────────────────────────────────╯
+/help · /exit  You ▸ What GPU architecture is NVIDIA Blackwell?
+╭─ Assistant ▸ ──────────────────────────────────────────────────╮
+│ NVIDIA Blackwell is the company&#39;s latest GPU architecture,      │
+│ succeeding Hopper — it powers the RTX 50-series and GB200.      │
+╰────────────────────────────────────────────────────────────────╯
+(prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s · 0.5s)
+/help · /exit  You ▸ /save notes.md
+💾 Saved conversation to /home/you/notes.md
+/help · /exit  You ▸ /exit
+Bye!
+</code></pre></div>
+<p>The stats line after each reply reports <strong>prefill</strong> (prompt-processing) and <strong>generation</strong> speeds separately, e.g. <code>prefill 24 tok @ 765 tok/s · gen 38 tok @ 99.2 tok/s</code>, taken from llama.cpp's <code>timings</code> (it falls back to a combined <code>tok/s</code> if the server doesn't report them). A dim <code>/help · /exit</code> hint sits next to the <code>You ▸</code> input bar.</p>
+<h4 id="other-ways-to-launch">Other ways to launch<a class="headerlink" href="#other-ways-to-launch" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>One-shot question</strong> (prints the streamed answer and exits — no prompts):
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>chat<span class="w"> </span><span class="s2">&quot;What GPU architecture is NVIDIA Blackwell?&quot;</span>
+</code></pre></div></li>
+<li><strong>Skip the prompts with flags</strong> (also saved for next time):
+  <div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>chat<span class="w"> </span>--host<span class="w"> </span><span class="m">10</span>.31.96.155<span class="w"> </span>--port<span class="w"> </span><span class="m">8080</span><span class="w"> </span>--api-key<span class="w"> </span>sjsugputool
+<span class="c1"># or set it once via env: export GPUTOOL_LLAMA_API_KEY=sjsugputool</span>
+</code></pre></div></li>
+</ul>
+<p><strong>Defaults &amp; options:</strong>
+* The saved config provides defaults; first-time defaults are <code>127.0.0.1:8080</code>. Use <code>--url http://10.31.96.155:8080/v1</code> for a full base URL, or <code>--reset-config</code> to ignore/overwrite saved values.
+* <code>--api-key</code> falls back to the <code>GPUTOOL_LLAMA_API_KEY</code> environment variable, then the saved config.
+* <code>--model</code> is auto-detected from the server's <code>/v1/models</code> endpoint if omitted.
+* Thinking/reasoning output is <strong>off by default</strong> for snappy answers; enable it with <code>--think</code> (or <code>/think on</code> during a session).
+* <code>--plain</code> forces the stdlib renderer even when <code>rich</code> is installed; <code>--no-color</code> disables colors.</p>
+<p><strong>Interactive slash commands:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/exit</code>, <code>/quit</code>, <code>/q</code></td>
+<td>Leave the chat</td>
+</tr>
+<tr>
+<td><code>/server</code></td>
+<td>Connect to a different server IP / API key (re-runs setup and saves it)</td>
+</tr>
+<tr>
+<td><code>/save [file]</code></td>
+<td>Save the conversation to a file — Markdown by default, or JSON if the name ends in <code>.json</code> (defaults to <code>gputool_chat_&lt;timestamp&gt;.md</code> in the current directory)</td>
+</tr>
+<tr>
+<td><code>/reset</code>, <code>/clear</code></td>
+<td>Clear the conversation history (keeps the system prompt)</td>
+</tr>
+<tr>
+<td><code>/system &lt;text&gt;</code></td>
+<td>Set (or clear, if empty) the system prompt</td>
+</tr>
+<tr>
+<td><code>/think on\|off</code></td>
+<td>Toggle the model's reasoning output</td>
+</tr>
+<tr>
+<td><code>/temp &lt;v&gt;</code></td>
+<td>Set sampling temperature (e.g. <code>/temp 0.7</code>)</td>
+</tr>
+<tr>
+<td><code>/set &lt;k&gt; &lt;v&gt;</code></td>
+<td>Set <code>top_p</code> / <code>top_k</code> / <code>min_p</code> / <code>presence</code> / <code>max_tokens</code></td>
+</tr>
+<tr>
+<td><code>/preset &lt;name&gt;</code></td>
+<td>Apply Qwen3.5 sampling presets: <code>thinking</code> · <code>coding</code> · <code>instruct</code></td>
+</tr>
+<tr>
+<td><code>/config</code></td>
+<td>Show the current sampling settings</td>
+</tr>
+<tr>
+<td><code>/help</code>, <code>/?</code></td>
+<td>Show the command help</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tuning generation (Unsloth's recommended Qwen3.5 settings):</strong> the <code>/preset</code> command applies these in one step, or set them individually with <code>/temp</code> and <code>/set</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>temperature</th>
+<th>top_p</th>
+<th>top_k</th>
+<th>min_p</th>
+<th>presence</th>
+<th>thinking</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>thinking</code> (general)</td>
+<td>1.0</td>
+<td>0.95</td>
+<td>20</td>
+<td>0.0</td>
+<td>1.5</td>
+<td>on</td>
+</tr>
+<tr>
+<td><code>coding</code> (precise)</td>
+<td>0.6</td>
+<td>0.95</td>
+<td>20</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>on</td>
+</tr>
+<tr>
+<td><code>instruct</code> (non-thinking)</td>
+<td>0.7</td>
+<td>0.8</td>
+<td>20</td>
+<td>0.0</td>
+<td>1.5</td>
+<td>off</td>
+</tr>
+</tbody>
+</table>
+<p>You can also start the client with these flags: <code>gputool chat --temperature 0.6 --top-p 0.95 --top-k 20 --think</code>.</p>
+<h3 id="5-share-the-server-by-name-headscale-llmforgengiorg">5. Share the server by name (Headscale + <code>llm.forgengi.org</code>)<a class="headerlink" href="#5-share-the-server-by-name-headscale-llmforgengiorg" title="Permanent link">&para;</a></h3>
+<p>Once a node serves a model and joins the <strong>Headscale</strong> network (<code>gputool tailscale up</code>), you can make it reachable from any other node <strong>by a friendly HTTPS name instead of an IP</strong>. The Headscale host (<code>headscale.forgengi.org</code>, an edge gateway) runs nginx and reverse-proxies each LLM node under a path:</p>
+<div class="highlight"><pre><span></span><code>https://llm.forgengi.org/&lt;name&gt;/v1   -&gt;   http://&lt;node-tailscale-ip&gt;:8080/v1
+</code></pre></div>
+<p>For example, the RTX 5080 board <code>coe-cmpe-288-05</code> is published as <strong><code>node05</code></strong>:
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>https://llm.forgengi.org/node05/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer sjsugputool&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;messages&quot;:[{&quot;role&quot;:&quot;user&quot;,&quot;content&quot;:&quot;Hello!&quot;}]}&#39;</span>
+</code></pre></div></p>
+<p><strong>How the gateway is built (on the Headscale host):</strong>
+1. <strong>DNS:</strong> a single record <code>llm.forgengi.org</code> → the gateway's IP (Cloudflare <em>DNS-only</em>; no per-node records needed).
+2. <strong>TLS:</strong> one Let's Encrypt cert (<code>certbot --nginx -d llm.forgengi.org</code>).
+3. <strong>Routing:</strong> a generator script, <a href="../../jetson/generate_llm_nginx.py"><code>generate_llm_nginx.py</code></a>, scans Headscale nodes, <strong>auto-detects which ones serve an LLM on <code>:8080</code></strong>, maps them to friendly names (<code>coe-cmpe-288-05 → node05</code>, <code>sjsujetson-01 → jetson01</code>), and writes the nginx <code>location</code> blocks. Adding a node is just:
+   <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>python3<span class="w"> </span>generate_llm_nginx.py<span class="w">   </span><span class="c1"># on the Headscale host; reloads nginx</span>
+</code></pre></div></p>
+<p>This is the endpoint that <strong><code>sjsujetsontool chat → "Our LLM server"</code></strong> connects to, so every Jetson can share one big GPU model over TLS without juggling IPs. Transport is encrypted end-to-end (client→gateway over HTTPS, gateway→node over the Headscale WireGuard tunnel), and the node's <code>--api-key</code> still gates completions.</p>
+<hr />
+<h2 id="userspace-tailscale-vpn">🌐 Userspace Tailscale VPN<a class="headerlink" href="#userspace-tailscale-vpn" title="Permanent link">&para;</a></h2>
+<p>Since <code>gputool</code> runs without root privileges, it cannot create a virtual network interface card (<code>tailscale0</code>). Instead, it uses <strong>user-space networking (SOCKS5/HTTP Proxy)</strong> to routing network traffic through the Headscale VPN.</p>
+<h3 id="1-download-static-binaries">1. Download Static Binaries<a class="headerlink" href="#1-download-static-binaries" title="Permanent link">&para;</a></h3>
+<p>Downloads the pre-compiled, standalone Tailscale package for your CPU architecture (AMD64, ARM64, or ARM) and configures the binaries in <code>~/.gputool/tailscale</code>:
+<div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>tailscale<span class="w"> </span>setup
+</code></pre></div></p>
+<h3 id="2-connect-to-the-vpn">2. Connect to the VPN<a class="headerlink" href="#2-connect-to-the-vpn" title="Permanent link">&para;</a></h3>
+<p>Starts the background <code>tailscaled</code> daemon in userspace proxy mode and registers this device on the SJSU Headscale network:
+<div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>tailscale<span class="w"> </span>up
+</code></pre></div>
+<em>Note: If another device is already registered under the same hostname, use <code>gputool tailscale up --force</code> to override.</em></p>
+<h3 id="3-check-connection-proxy-details">3. Check Connection &amp; Proxy Details<a class="headerlink" href="#3-check-connection-proxy-details" title="Permanent link">&para;</a></h3>
+<p>Displays the current connection state, your assigned Tailscale IP address, and proxy variables:
+<div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>tailscale<span class="w"> </span>status
+</code></pre></div>
+Example Output:
+<div class="highlight"><pre><span></span><code>══════════════════════════════════════════════════
+🌐 Userspace Tailscale VPN Status
+══════════════════════════════════════════════════
+📦 Tailscale Version : 1.68.1
+🔧 Daemon PID        : 12845
+🔌 Socket Path       : /home/student/.gputool/tailscaled.sock
+
+🟢 Connection State  : Running
+   Device Hostname   : lab-machine-01
+   Tailscale IPs     : 100.64.0.15
+   Connected Peers   : 8
+
+🛡️  User-Space Proxy Configuration:
+   • SOCKS5 Proxy    : localhost:1055
+   • HTTP Proxy      : localhost:1055
+══════════════════════════════════════════════════
+</code></pre></div></p>
+<h3 id="4-disconnect-and-stop-daemon">4. Disconnect and Stop Daemon<a class="headerlink" href="#4-disconnect-and-stop-daemon" title="Permanent link">&para;</a></h3>
+<p>Logs out of the Headscale server and stops the background tailscaled process:
+<div class="highlight"><pre><span></span><code>gputool<span class="w"> </span>tailscale<span class="w"> </span>down
+</code></pre></div></p>
+<hr />
+<h2 id="how-to-access-peers-proxy-usage">🔌 How to Access Peers (Proxy Usage)<a class="headerlink" href="#how-to-access-peers-proxy-usage" title="Permanent link">&para;</a></h2>
+<p>Because the userspace client does not have a virtual TUN adapter, outgoing traffic is routed through local proxies running on <strong>port 1055</strong>.</p>
+<h3 id="web-requests-apis-curl-python-wget">Web Requests &amp; APIs (curl, python, wget)<a class="headerlink" href="#web-requests-apis-curl-python-wget" title="Permanent link">&para;</a></h3>
+<p>To access web interfaces or APIs on other Headscale nodes, prefix or export the HTTP/HTTPS proxy:</p>
+<ul>
+<li><strong>Single command:</strong>
+  <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-x<span class="w"> </span>http://localhost:1055<span class="w"> </span>http://&lt;peer-tailscale-ip&gt;:&lt;port&gt;
+</code></pre></div></li>
+<li><strong>Export for session:</strong>
+  <div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">http_proxy</span><span class="o">=</span>http://localhost:1055
+<span class="nb">export</span><span class="w"> </span><span class="nv">https_proxy</span><span class="o">=</span>http://localhost:1055
+<span class="c1"># Now commands run transparently through the proxy</span>
+curl<span class="w"> </span>http://&lt;peer-tailscale-ip&gt;:&lt;port&gt;
+</code></pre></div></li>
+</ul>
+<h3 id="secure-shell-ssh">Secure Shell (SSH)<a class="headerlink" href="#secure-shell-ssh" title="Permanent link">&para;</a></h3>
+<p>To SSH into another machine on the Headscale network, route the connection via the SOCKS5 proxy command:
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>-o<span class="w"> </span><span class="nv">ProxyCommand</span><span class="o">=</span><span class="s2">&quot;nc -X 5 -x localhost:1055 %h %p&quot;</span><span class="w"> </span>username@&lt;peer-tailscale-ip&gt;
+</code></pre></div></p>
+<hr />
+<h2 id="key-limitations-of-non-sudo-mode">⚠️ Key Limitations of Non-Sudo Mode<a class="headerlink" href="#key-limitations-of-non-sudo-mode" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Inbound Access is Transparent:</strong> Other machines on the Headscale network can ping or access ports on this computer directly via its Tailscale IP without any proxy setup.</li>
+<li><strong>Outbound Access Requires Proxies:</strong> This machine <em>cannot</em> ping or access other nodes directly unless configured to use the proxy on <code>localhost:1055</code> (as shown in the examples above).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
