@@ -20,35 +20,45 @@ if [ -f "$RIVA_DIR/config.sh" ]; then
 else
   echo "📥 Attempting to download Riva Quickstart ARM64 package..."
   
+  # Auto-install ARM64 NGC CLI if missing
+  if ! command -v ngc &>/dev/null && [ -f "$HOME/.local/bin/ngc" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+
   if command -v ngc &>/dev/null; then
     echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
     ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
   else
-    TMP_TAR="$(mktemp)"
-    curl -sL "https://catalog.ngc.nvidia.com/api/v1/resources/nvidia/riva/riva_quickstart_arm64/versions/${RIVA_VERSION}/files/riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz" -o "$TMP_TAR" 2>/dev/null || true
-    
-    if [ -s "$TMP_TAR" ] && file "$TMP_TAR" | grep -q "gzip compressed data"; then
-      tar -xzf "$TMP_TAR" -C "$RIVA_DIR" --strip-components=1
-      rm -f "$TMP_TAR"
-      echo "✅ Extracted Riva Quickstart into $RIVA_DIR"
+    echo "📥 Installing ARM64 NGC CLI..."
+    TMP_NGC="$(mktemp -d)"
+    if curl -sL "https://ngc.nvidia.com/downloads/ngccli_arm64.zip" -o "$TMP_NGC/ngccli_arm64.zip" 2>/dev/null && [ -s "$TMP_NGC/ngccli_arm64.zip" ]; then
+      unzip -q -o "$TMP_NGC/ngccli_arm64.zip" -d "$TMP_NGC"
+      mkdir -p "$HOME/.local/bin"
+      cp -r "$TMP_NGC/ngc-cli"* "$HOME/.local/bin/"
+      ln -sf "$HOME/.local/bin/ngc-cli/ngc" "$HOME/.local/bin/ngc"
+      chmod +x "$HOME/.local/bin/ngc"
+      export PATH="$HOME/.local/bin:$PATH"
+      rm -rf "$TMP_NGC"
+      echo "✅ Installed ARM64 NGC CLI to $HOME/.local/bin/ngc"
+    fi
+
+    if command -v ngc &>/dev/null; then
+      echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
+      ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
     else
-      rm -f "$TMP_TAR"
       echo "══════════════════════════════════════════════════"
-      echo "🔑 NGC Authentication / CLI Required for Riva"
+      echo "🔑 NGC Authentication Required for Riva"
       echo "══════════════════════════════════════════════════"
-      echo "NVIDIA Riva Quickstart for ARM64 requires NGC authentication."
-      echo "To download Riva Quickstart ARM64 via NGC CLI:"
+      echo "NVIDIA Riva Quickstart for ARM64 requires an NGC API Key."
       echo
-      echo "1️⃣ Install NGC CLI (if not already installed):"
-      echo "   wget -O ngccli_linux.zip https://ngc.nvidia.com/downloads/ngccli_linux.zip"
-      echo "   unzip -o ngccli_linux.zip && chmod +x ngc-cli/ngc"
-      echo
-      echo "2️⃣ Generate your free NGC API Key:"
+      echo "1️⃣ Generate your free NGC API Key:"
       echo "   👉 Visit: https://org.ngc.nvidia.com/setup/api-key"
-      echo "   Run: ./ngc-cli/ngc config set"
+      echo
+      echo "2️⃣ Configure NGC API key on Jetson:"
+      echo "   ngc config set"
       echo
       echo "3️⃣ Download Riva Quickstart ARM64:"
-      echo "   ./ngc-cli/ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION} --dest $RIVA_DIR"
+      echo "   ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION} --dest $RIVA_DIR"
       echo "══════════════════════════════════════════════════"
       exit 1
     fi
