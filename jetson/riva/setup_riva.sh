@@ -20,14 +20,52 @@ if [ -f "$RIVA_DIR/config.sh" ]; then
 else
   echo "📥 Attempting to download Riva Quickstart ARM64 package..."
   
-  # Auto-install ARM64 NGC CLI if missing
-  if ! command -v ngc &>/dev/null && [ -f "$HOME/.local/bin/ngc" ]; then
-    export PATH="$HOME/.local/bin:$PATH"
-  fi
+  # Function to download riva quickstart with NGC CLI & handle auth
+  download_with_ngc() {
+    if ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR" 2>/dev/null; then
+      return 0
+    fi
+
+    # Download failed (likely 403 Forbidden due to missing API key)
+    echo "🔑 NGC Authentication required to download Riva resources."
+    
+    local active_key="$NGC_API_KEY"
+    if [ -z "$active_key" ] && [ -f "$HOME/.ngc/config" ]; then
+      active_key=$(grep -E '^apikey' "$HOME/.ngc/config" | head -1 | cut -d= -f2 | tr -d ' ')
+    fi
+
+    if [ -z "$active_key" ]; then
+      echo "══════════════════════════════════════════════════"
+      echo "🔑 NGC API Key Required for NVIDIA Riva"
+      echo "══════════════════════════════════════════════════"
+      echo "NVIDIA NGC requires a free API key to download Riva Speech Server."
+      echo "👉 Generate your free NGC API Key in 1 minute at:"
+      echo "   https://org.ngc.nvidia.com/setup/api-key"
+      echo "══════════════════════════════════════════════════"
+      read -sp "Enter your NGC API Key: " USER_NGC_KEY
+      echo
+      if [ -n "$USER_NGC_KEY" ]; then
+        active_key="$USER_NGC_KEY"
+        mkdir -p "$HOME/.ngc"
+        cat <<EOF > "$HOME/.ngc/config"
+[GLOBAL]
+apikey = $active_key
+format_type = ascii
+EOF
+        echo "💾 Saved NGC API key to $HOME/.ngc/config"
+      else
+        echo "❌ No NGC API key provided. Cannot download Riva Quickstart."
+        exit 1
+      fi
+    fi
+
+    echo "🚀 Retrying download with NGC API key..."
+    ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
+  }
 
   if command -v ngc &>/dev/null; then
     echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
-    ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
+    download_with_ngc
   else
     echo "📥 Installing ARM64 NGC CLI..."
     TMP_NGC="$(mktemp -d)"
@@ -44,22 +82,9 @@ else
 
     if command -v ngc &>/dev/null; then
       echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
-      ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
+      download_with_ngc
     else
-      echo "══════════════════════════════════════════════════"
-      echo "🔑 NGC Authentication Required for Riva"
-      echo "══════════════════════════════════════════════════"
-      echo "NVIDIA Riva Quickstart for ARM64 requires an NGC API Key."
-      echo
-      echo "1️⃣ Generate your free NGC API Key:"
-      echo "   👉 Visit: https://org.ngc.nvidia.com/setup/api-key"
-      echo
-      echo "2️⃣ Configure NGC API key on Jetson:"
-      echo "   ngc config set"
-      echo
-      echo "3️⃣ Download Riva Quickstart ARM64:"
-      echo "   ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION} --dest $RIVA_DIR"
-      echo "══════════════════════════════════════════════════"
+      echo "❌ Failed to install NGC CLI. Please install ngc manually."
       exit 1
     fi
   fi
