@@ -21,28 +21,25 @@
 #
 # BASE IMAGE — the one decision that matters most.
 #   JetPack-7-native PyTorch bases are NOT published yet (dustynv/pytorch tops out at r36.4;
-#   the jetson-ai-lab pip index has no jp7 channel). But NVIDIA's NGC "igpu" PyTorch images run
-#   on JetPack 7 via CUDA forward-compat (verified on jetson61, JetPack 7 / L4T r39).
-#   We base on a *recent* igpu tag whose torch satisfies LeRobot (torch>=2.7, torchvision>=0.22):
-#       24.12-py3-igpu -> torch 2.6           (TOO OLD for lerobot 0.5.x)
-#       25.02-py3-igpu -> torch 2.7
-#       25.06-py3-igpu -> torch 2.8
-#       25.08-py3-igpu -> torch 2.8.0a0 / torchvision 0.23.0a0 / CUDA 12.9 / TRT 10.11  (DEFAULT)
-#   Confirm exact versions after build with:
-#       docker run --rm --runtime nvidia <img> python -c \
-#         "import torch,torchvision,cv2;print(torch.__version__,torchvision.__version__,
-#          torch.version.cuda,cv2.__version__)"
+#   the jetson-ai-lab pip index has no jp7 channel). But NVIDIA's NGC PyTorch images run
+#   on JetPack 7 via CUDA forward-compat (verified on JetPack 7 / L4T r38 & r39).
+#
+#   Image variants:
+#     - For Jetson Orin (sm_87): nvcr.io/nvidia/pytorch:25.08-py3-igpu (torch 2.8 / CUDA 12.9)
+#     - For Jetson Thor (sm_110/sm_100): nvcr.io/nvidia/pytorch:25.08-py3 (torch 2.8 / CUDA 13.0)
+#       (Note: 25.08-py3-igpu only has sm_87 compiled in, so 25.08-py3 is required on Thor for native sm_110/CUDA 13)
 # =============================================================================
 ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3-igpu
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="kaikai.liu@sjsu.edu"
 LABEL org.opencontainers.image.title="cmpelkk/jetson-unified"
-LABEL org.opencontainers.image.description="Next-gen unified Jetson AI+robotics+LLM container (JP7 / L4T r39)"
+LABEL org.opencontainers.image.description="Next-gen unified Jetson AI+robotics+LLM container (JP7 / L4T r38/r39 / Orin / Thor)"
 LABEL org.opencontainers.image.source="https://github.com/lkk688/edgeAI/blob/main/jetson/Dockerfile.jp7"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.local/bin:/usr/local/bin:$PATH"
+ENV LD_LIBRARY_PATH="/opt/hpcx/ucx/lib:/opt/hpcx/ucc/lib:$LD_LIBRARY_PATH"
 # Jetson unified memory: reduce fragmentation/OOM for big models
 ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Pretty pip progress in non-TTY builds
@@ -66,7 +63,7 @@ EXPOSE 3000 8001 8002 8080 8765 8766 8888 11434
 # Block E — Node.js 20 (NEW): bakes in the Next.js Agent Lab dependency so
 #           `sjsujetsontool node` doesn't have to apt-install at runtime.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential git cmake ninja-build pkg-config curl wget ca-certificates gnupg \
+      build-essential git cmake ninja-build pkg-config curl wget ca-certificates gnupg zstd \
       python3-venv python-is-python3 \
       libusb-1.0-0 libgl1 libglib2.0-0 v4l-utils \
       \
@@ -146,8 +143,8 @@ RUN pip install "numpy<2"
 # gstreamer tools but not cv2 GStreamer support (saves ~35 min).
 ARG REBUILD_OPENCV=1
 ARG OPENCV_VERSION=4.10.0
-# CUDA arch: 8.7 = Orin; 7.2 = Xavier. If you also target Xavier, set "7.2;8.7".
-ARG OPENCV_CUDA_ARCH_BIN=8.7
+# CUDA arch: 8.7 = Orin; 10.0 = Thor; 7.2 = Xavier.
+ARG OPENCV_CUDA_ARCH_BIN=8.7;10.0
 RUN if [ "$REBUILD_OPENCV" = "1" ]; then \
       pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true && \
       cd /tmp && \
@@ -159,12 +156,15 @@ RUN if [ "$REBUILD_OPENCV" = "1" ]; then \
       cd opencv-${OPENCV_VERSION} && mkdir build && cd build && \
       cmake -GNinja \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DCUDA_NVCC_FLAGS="-DCCCL_IGNORE_DEPRECATED_CPP_DIALECT" \
         -DCMAKE_INSTALL_PREFIX=/usr/local \
         -DOPENCV_EXTRA_MODULES_PATH=/tmp/opencv_contrib-${OPENCV_VERSION}/modules \
         -DWITH_GSTREAMER=ON \
         -DWITH_FFMPEG=ON \
         -DWITH_V4L=ON -DWITH_LIBV4L=ON \
         -DWITH_CUDA=ON -DCUDA_ARCH_BIN=${OPENCV_CUDA_ARCH_BIN} \
+        -DWITH_NPP=OFF \
         -DENABLE_FAST_MATH=ON -DCUDA_FAST_MATH=ON \
         -DWITH_CUBLAS=ON -DWITH_CUDNN=ON -DOPENCV_DNN_CUDA=ON \
         -DWITH_GTK=OFF -DWITH_QT=OFF \
@@ -192,23 +192,41 @@ RUN if [ "$INSTALL_LLAMACPP" = "1" ]; then \
       ln -sf /opt/llama.cpp/build/bin/llama-cli   /usr/local/bin/llama-cli && \
       ln -sf /opt/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server && \
       CMAKE_ARGS="-DGGML_CUDA=on" pip install --no-cache-dir llama-cpp-python && \
-      curl -fsSL https://ollama.com/download/ollama-linux-arm64 -o /usr/local/bin/ollama && \
-      chmod +x /usr/local/bin/ollama ; \
+      curl -fsSL https://ollama.com/install.sh | sh ; \
     fi
 
 # ============================================================================
 # 9. OPTIONAL: ROS 2 Jazzy (Ubuntu 24.04)  — adds ~1.5 GB
 # ============================================================================
 ARG INSTALL_ROS=0
-RUN if [ "$INSTALL_ROS" = "1" ]; then \
+ARG INSTALL_ISAAC_ROS=0
+RUN if [ "$INSTALL_ROS" = "1" ] || [ "$INSTALL_ISAAC_ROS" = "1" ]; then \
       curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
            -o /usr/share/keyrings/ros-archive-keyring.gpg && \
       echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu noble main" \
            > /etc/apt/sources.list.d/ros2.list && \
       apt-get update && apt-get install -y --no-install-recommends \
-        ros-jazzy-ros-base ros-jazzy-vision-msgs ros-jazzy-cv-bridge ros-jazzy-image-publisher && \
+        ros-jazzy-ros-base ros-jazzy-vision-msgs ros-jazzy-cv-bridge ros-jazzy-image-publisher \
+        python3-colcon-common-extensions python3-rosdep python3-vcstool git-lfs && \
       rm -rf /var/lib/apt/lists/* && \
       echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc ; \
+    fi
+
+# ============================================================================
+# 9b. OPTIONAL: NVIDIA Isaac ROS Stack (Jetson Thor exclusive)
+# ============================================================================
+# Default: INSTALL_ISAAC_ROS=0 (keeps image small & fast for Orin Nano / standard Jetsons).
+# Set --build-arg INSTALL_ISAAC_ROS=1 when building for Jetson Thor.
+RUN if [ "$INSTALL_ISAAC_ROS" = "1" ]; then \
+      mkdir -p /etc/ros/rosdep/sources.list.d && \
+      curl -sSL https://raw.githubusercontent.com/NVIDIA-ISAAC-ROS/isaac-ros-cli/main/docker/rosdep/extra_rosdeps.yaml \
+           -o /etc/ros/rosdep/sources.list.d/nvidia-isaac.yaml && \
+      mkdir -p /opt/ros/isaac_ros_ws/src && cd /opt/ros/isaac_ros_ws/src && \
+      git clone --depth=1 https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git && \
+      git clone --depth=1 https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_nitros.git && \
+      git clone --depth=1 https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_image_pipeline.git && \
+      git clone --depth=1 https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_apriltag.git && \
+      echo "source /opt/ros/isaac_ros_ws/install/setup.bash" >> /root/.bashrc ; \
     fi
 
 # ============================================================================
@@ -259,8 +277,12 @@ PY
 #   # skip llama.cpp + Ollama:
 #   docker build -f Dockerfile.jp7 --build-arg INSTALL_LLAMACPP=0 -t cmpelkk/jetson-unified:jp7-noLLM .
 #
-#   # also bake ROS 2 Jazzy in:
-#   docker build -f Dockerfile.jp7 --build-arg INSTALL_ROS=1 -t cmpelkk/jetson-unified:jp7-ros .
+#   # build for Jetson Thor with Isaac ROS + CUDA 13 PyTorch:
+#   docker build -f Dockerfile.jp7 \
+#     --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3 \
+#     --build-arg OPENCV_CUDA_ARCH_BIN=10.0 \
+#     --build-arg INSTALL_ISAAC_ROS=1 \
+#     -t cmpelkk/jetson-unified:jp7-thor .
 #
 #   # push to docker hub:
 #   docker push cmpelkk/jetson-unified:jp7
