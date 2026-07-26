@@ -18,18 +18,23 @@ mkdir -p "$RIVA_DIR"
 if [ -f "$RIVA_DIR/config.sh" ]; then
   echo "📂 Riva Quickstart package found at $RIVA_DIR"
 else
-  echo "📥 Downloading Riva Quickstart ARM64 package..."
-  TMP_TAR="$(mktemp)"
+  echo "📥 Attempting to download Riva Quickstart ARM64 package..."
   
-  # Download Riva quickstart tarball from NGC
-  if curl -fsSL "https://ngc.nvidia.com/downloads/riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz" -o "$TMP_TAR"; then
-    tar -xzf "$TMP_TAR" -C "$RIVA_DIR" --strip-components=1
-    rm -f "$TMP_TAR"
-    echo "✅ Extracted Riva Quickstart into $RIVA_DIR"
+  if command -v ngc &>/dev/null; then
+    echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
+    ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
   else
-    echo "❌ Failed to download Riva quickstart package from NGC."
-    echo "👉 Please manually download riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz into $RIVA_DIR"
-    exit 1
+    TMP_TAR="$(mktemp)"
+    if curl -fsSL "https://catalog.ngc.nvidia.com/api/v1/resources/nvidia/riva/riva_quickstart_arm64/versions/${RIVA_VERSION}/files/riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz" -o "$TMP_TAR" 2>/dev/null && [ -s "$TMP_TAR" ]; then
+      tar -xzf "$TMP_TAR" -C "$RIVA_DIR" --strip-components=1 2>/dev/null || true
+      rm -f "$TMP_TAR"
+    else
+      echo "⚠️  NGC CLI is not installed and direct download link requires NGC authentication."
+      echo "👉 Please run the following command to download Riva Quickstart ARM64 via NGC CLI:"
+      echo "   ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}"
+      echo "   or extract the tarball into $RIVA_DIR"
+      exit 1
+    fi
   fi
 fi
 
