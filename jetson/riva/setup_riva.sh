@@ -52,16 +52,30 @@ else
 apikey = $active_key
 format_type = ascii
 EOF
-        echo "💾 Saved NGC API key to $HOME/.ngc/config"
-      else
-        echo "❌ No NGC API key provided. Cannot download Riva Quickstart."
-        exit 1
+    if [ -n "$active_key" ]; then
+      mkdir -p "$HOME/.ngc"
+      cat <<EOF > "$HOME/.ngc/config"
+[GLOBAL]
+apikey = $active_key
+format_type = ascii
+EOF
+      echo "💾 NGC API Key configured in $HOME/.ngc/config"
+      echo "🚀 Retrying download with NGC CLI..."
+      if ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"; then
+        return 0
       fi
-    fi
 
-    echo "🚀 Retrying download with NGC API key..."
-    ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
-  }
+      echo "══════════════════════════════════════════════════"
+      echo "🔒 NGC Catalog Resource Access Authorization Needed"
+      echo "══════════════════════════════════════════════════"
+      echo "Your NGC API key is saved, but NGC requires 1-click resource access approval."
+      echo
+      echo "👉 Open this link in your browser, log into NGC, and click 'Get Resource':"
+      echo "   https://catalog.ngc.nvidia.com/orgs/nvidia/teams/riva/resources/riva_quickstart_arm64"
+      echo "══════════════════════════════════════════════════"
+      read -p "Press Enter after clicking 'Get Resource' on NGC to retry... "
+      ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
+    fi
 
   if command -v ngc &>/dev/null; then
     echo "  → Using NGC CLI to download riva_quickstart_arm64:${RIVA_VERSION}..."
