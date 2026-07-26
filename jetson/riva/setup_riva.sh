@@ -25,14 +25,31 @@ else
     ngc registry resource download-version "nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}" --dest "$RIVA_DIR"
   else
     TMP_TAR="$(mktemp)"
-    if curl -fsSL "https://catalog.ngc.nvidia.com/api/v1/resources/nvidia/riva/riva_quickstart_arm64/versions/${RIVA_VERSION}/files/riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz" -o "$TMP_TAR" 2>/dev/null && [ -s "$TMP_TAR" ]; then
-      tar -xzf "$TMP_TAR" -C "$RIVA_DIR" --strip-components=1 2>/dev/null || true
+    curl -sL "https://catalog.ngc.nvidia.com/api/v1/resources/nvidia/riva/riva_quickstart_arm64/versions/${RIVA_VERSION}/files/riva_quickstart_arm64_v${RIVA_VERSION}.tar.gz" -o "$TMP_TAR" 2>/dev/null || true
+    
+    if [ -s "$TMP_TAR" ] && file "$TMP_TAR" | grep -q "gzip compressed data"; then
+      tar -xzf "$TMP_TAR" -C "$RIVA_DIR" --strip-components=1
       rm -f "$TMP_TAR"
+      echo "✅ Extracted Riva Quickstart into $RIVA_DIR"
     else
-      echo "⚠️  NGC CLI is not installed and direct download link requires NGC authentication."
-      echo "👉 Please run the following command to download Riva Quickstart ARM64 via NGC CLI:"
-      echo "   ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION}"
-      echo "   or extract the tarball into $RIVA_DIR"
+      rm -f "$TMP_TAR"
+      echo "══════════════════════════════════════════════════"
+      echo "🔑 NGC Authentication / CLI Required for Riva"
+      echo "══════════════════════════════════════════════════"
+      echo "NVIDIA Riva Quickstart for ARM64 requires NGC authentication."
+      echo "To download Riva Quickstart ARM64 via NGC CLI:"
+      echo
+      echo "1️⃣ Install NGC CLI (if not already installed):"
+      echo "   wget -O ngccli_linux.zip https://ngc.nvidia.com/downloads/ngccli_linux.zip"
+      echo "   unzip -o ngccli_linux.zip && chmod +x ngc-cli/ngc"
+      echo
+      echo "2️⃣ Generate your free NGC API Key:"
+      echo "   👉 Visit: https://org.ngc.nvidia.com/setup/api-key"
+      echo "   Run: ./ngc-cli/ngc config set"
+      echo
+      echo "3️⃣ Download Riva Quickstart ARM64:"
+      echo "   ./ngc-cli/ngc registry resource download-version nvidia/riva/riva_quickstart_arm64:${RIVA_VERSION} --dest $RIVA_DIR"
+      echo "══════════════════════════════════════════════════"
       exit 1
     fi
   fi
