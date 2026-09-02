@@ -1,0 +1,871 @@
+#!/usr/bin/env python3
+# gputool chat — terminal client for an OpenAI-compatible LLM server (e.g. llama.cpp).
+#
+# This file is the single source of truth for the `gputool chat` command. It is
+# fetched to ~/.gputool/chat.py automatically by `gputool install` and
+# `gputool update`, so new devices get it without any manual copying.
+#
+# UI: uses the `rich` library for a Claude-Code-style experience (streaming
+# Markdown, syntax-highlighted code, panels) when it is installed, and falls
+# back to a pure-stdlib ANSI renderer otherwise — so it still runs on
+# locked-down machines without pip packages or curl.
+import sys, os, json, time, argparse, threading, itertools
+import urllib.request, urllib.error
+
+try:
+    import rich  # noqa: F401
+    RICH_OK = True
+except Exception:
+    RICH_OK = False
+
+# Optional agent mode (ReAct loop + file tools) from the `edge_agent` package
+# (edgeLLM/edge_agent). Works if it is pip-installed, or found in a repo checkout;
+# if neither is present, agent mode is simply unavailable.
+# edge_agent is a declared dependency of this package, so the import below
+# normally just works. A repo checkout is still honoured for development, but
+# only relative to the current directory - never an absolute path.
+_cand = os.path.join(os.getcwd(), "edgeLLM", "edge_agent", "src")
+if os.path.isdir(_cand) and _cand not in sys.path:
+    sys.path.insert(0, _cand)
+try:
+    from edge_agent import ReActAgent
+    from edge_agent import Tools as AgentTools
+    AGENT_OK = True
+except Exception:
+    AGENT_OK = False
+
+GPUTOOL_DIR = os.path.join(os.path.expanduser("~"), ".gputool")
+CONFIG_PATH = os.path.join(GPUTOOL_DIR, "chat_config.json")
+
+# ----------------------------------------------------------------------------- config
+def load_config():
+    try:
+        with open(CONFIG_PATH) as f:
+            return json.load(f) or {}
+    except Exception:
+        return {}
+
+def save_config(cfg):
+    try:
+        os.makedirs(GPUTOOL_DIR, exist_ok=True)
+        with open(CONFIG_PATH, "w") as f:
+            json.dump(cfg, f, indent=2)
+        try:
+            os.chmod(CONFIG_PATH, 0o600)  # the file can hold an API key
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+# ----------------------------------------------------------------------------- API keys (~/.env.local)
+# All cloud API keys live in ~/.env.local (same convention as `setup-nvapi`), e.g.
+#   OPENAI_API_KEY=sk-...
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   NVIDIA_API_KEY=nvapi-...
+HOME_ENV = os.path.join(os.path.expanduser("~"), ".env.local")
+# Extra fallback locations to READ keys from (the Next.js app already stores NVIDIA_API_KEY here).
+try:
+    from ._paths import env_file_candidates as _env_candidates
+    _ENV_FALLBACKS = [str(p) for p in _env_candidates()]
+except Exception:
+    _ENV_FALLBACKS = [
+        os.path.join(os.path.expanduser("~"), ".env.local"),
+        os.path.join(os.getcwd(), ".env.local"),
+    ]
+
+def _parse_env_file(path):
+    d = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                d[k.strip()] = v.strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return d
+
+def load_env_keys():
+    """Merge ~/.env.local (preferred) with known fallback .env.local files."""
+    merged = {}
+    for p in _ENV_FALLBACKS:
+        merged.update(_parse_env_file(p))
+    merged.update(_parse_env_file(HOME_ENV))   # home wins
+    return merged
+
+def save_env_key(key, val):
+    """Upsert KEY=val into ~/.env.local (chmod 600)."""
+    lines = []
+    try:
+        with open(HOME_ENV) as f:
+            lines = f.read().splitlines()
+    except Exception:
+        pass
+    out, found = [], False
+    for line in lines:
+        if line.strip().startswith(key + "="):
+            out.append("%s=%s" % (key, val)); found = True
+        else:
+            out.append(line)
+    if not found:
+        out.append("%s=%s" % (key, val))
+    try:
+        with open(HOME_ENV, "w") as f:
+            f.write("\n".join(out) + "\n")
+        os.chmod(HOME_ENV, 0o600)
+        return True
+    except Exception:
+        return False
+
+def save_history(messages, path=None):
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    if not path:
+        path = os.path.join(os.getcwd(), "gputool_chat_%s.md" % ts)
+    path = os.path.expanduser(path)
+    if path.endswith(".json"):
+        with open(path, "w") as f:
+            json.dump(messages, f, indent=2, ensure_ascii=False)
+    else:
+        titles = {"system": "System", "user": "You", "assistant": "Assistant"}
+        out = ["# gputool chat — %s\n" % ts]
+        for m in messages:
+            out.append("## %s\n\n%s\n" % (titles.get(m["role"], m["role"]), m.get("content", "")))
+        with open(path, "w") as f:
+            f.write("\n".join(out))
+    return path
+
+# ----------------------------------------------------------------------------- helpers
+def read_line(prompt):
+    try:
+        return input(prompt)
+    except (EOFError, KeyboardInterrupt):
+        return ""
+
+def read_secret(prompt):
+    if sys.stdin.isatty():
+        try:
+            import getpass
+            return getpass.getpass(prompt)
+        except Exception:
+            pass
+    return read_line(prompt)
+
+def build_base(host, port, url):
+    if url:
+        b = url.rstrip("/")
+        return b if b.endswith("/v1") else b + "/v1"
+    return "http://%s:%s/v1" % (host, port)
+
+# ----------------------------------------------------------------------------- backends
+# Each backend is an OpenAI-compatible endpoint. `key_env` names the variable in
+# ~/.env.local; if missing, the user is prompted and it is saved there. `ntk`
+# (no_template_kwargs) skips the llama.cpp-only chat_template_kwargs field that
+# cloud APIs reject. Anthropic is reached via its OpenAI-compatible endpoint.
+BACKENDS = [
+    dict(name="Local Jetson llama.cpp  (localhost:8080)",
+         url="http://localhost:8080/v1", key_env=None, models=None, ntk=False),
+    dict(name="NVIDIA Build API  (free cloud)",
+         url="https://integrate.api.nvidia.com/v1", key_env="NVIDIA_API_KEY",
+         key_help="Get a FREE key: https://build.nvidia.com  → sign in → open any model → 'Get API Key'.",
+         models=["nvidia/llama-3.1-nemotron-nano-8b-v1",
+                 "nvidia/llama-3.3-nemotron-super-49b-v1",
+                 "nvidia/llama-3.1-nemotron-ultra-253b-v1"], ntk=True),
+    dict(name="OpenAI  (gpt-4o, …)",
+         url="https://api.openai.com/v1", key_env="OPENAI_API_KEY",
+         key_help="Create a key: https://platform.openai.com/api-keys  (requires a billing method).",
+         models=["gpt-4o-mini", "gpt-4o", "o4-mini"], ntk=True),
+    dict(name="Anthropic Claude  (OpenAI-compatible endpoint)",
+         url="https://api.anthropic.com/v1", key_env="ANTHROPIC_API_KEY",
+         key_help="Create a key: https://console.anthropic.com/settings/keys  (requires prepaid credit).",
+         models=["claude-haiku-4-5", "claude-sonnet-4-6", "claude-opus-4-8"], ntk=True),
+    dict(name="Our shared LLM server  (Headscale gateway)",
+         url="https://llm.forgengi.org/node05/v1", key_env=None, models=None, ntk=False, ask_url=True),
+    dict(name="Custom OpenAI-compatible server  (enter URL + key)",
+         url=None, key_env=None, models=None, ntk=False, ask_url=True, ask_key=True),
+]
+
+def pick_backend():
+    """Interactive backend chooser. Returns (url, key, model, no_template_kwargs)."""
+    print("\n🤖 Select a chat backend:")
+    for i, b in enumerate(BACKENDS, 1):
+        tag = ""
+        if b.get("key_env"):
+            tag = "  [needs %s]" % b["key_env"]
+        print("  %d) %s%s" % (i, b["name"], tag))
+    sel = read_line("Select [1-%d] (Enter = 1): " % len(BACKENDS)).strip()
+    try:
+        idx = (int(sel) - 1) if sel else 0
+    except ValueError:
+        idx = 0
+    if idx < 0 or idx >= len(BACKENDS):
+        idx = 0
+    b = BACKENDS[idx]
+
+    # URL (custom / shared server may ask)
+    url = b["url"]
+    if b.get("ask_url"):
+        default = url or "http://localhost:8080/v1"
+        raw = read_line("Server base URL [%s]: " % default).strip()
+        url = raw or default
+
+    # API key — read from env/~/.env.local, else prompt the student step-by-step and save it.
+    key = ""
+    if b.get("key_env"):
+        env = load_env_keys()
+        key = os.environ.get(b["key_env"]) or env.get(b["key_env"]) or ""
+        if key:
+            print("🔑 Using saved %s from ~/.env.local" % b["key_env"])
+        else:
+            print("\n🔑 This backend needs an API key (%s)." % b["key_env"])
+            if b.get("key_help"):
+                print("   " + b["key_help"])
+            print("   Paste the key below; it will be saved to ~/.env.local (chmod 600) for next time.")
+            key = read_secret("Enter %s: " % b["key_env"]).strip()
+            if key and save_env_key(b["key_env"], key):
+                print("✅ Saved %s to %s" % (b["key_env"], HOME_ENV))
+    elif b.get("ask_key"):
+        key = read_secret("API key (blank if none): ").strip()
+
+    # Model
+    model = None
+    if b.get("models"):
+        print("Models:")
+        for i, m in enumerate(b["models"], 1):
+            print("  %d) %s%s" % (i, m, "  [default]" if i == 1 else ""))
+        ms = read_line("Select [1-%d] (Enter = 1), or type a model name: " % len(b["models"])).strip()
+        if ms.isdigit() and 1 <= int(ms) <= len(b["models"]):
+            model = b["models"][int(ms) - 1]
+        elif ms:
+            model = ms
+        else:
+            model = b["models"][0]
+    return url, key, model, b.get("ntk", False)
+
+def fetch_model(base, headers):
+    try:
+        req = urllib.request.Request(base + "/models", headers=headers)
+        d = json.load(urllib.request.urlopen(req, timeout=5))
+        return (d.get("data") or [{}])[0].get("id")
+    except Exception:
+        return None
+
+def request(endpoint, headers, payload):
+    data = json.dumps(payload).encode()
+    req = urllib.request.Request(endpoint, data=data, headers=headers)
+    return urllib.request.urlopen(req, timeout=600)
+
+def err_for(e):
+    if isinstance(e, urllib.error.HTTPError):
+        body = e.read().decode("utf-8", "ignore")
+        if e.code == 401:
+            return ("Authentication failed (401). The server requires an API key — "
+                    "use /server to re-enter it, pass --api-key, or set GPUTOOL_LLAMA_API_KEY.")
+        return "HTTP %s: %s" % (e.code, body[:300])
+    if isinstance(e, urllib.error.URLError):
+        return ("Cannot connect: %s. Is the server running and reachable at the given host/port?"
+                % getattr(e, "reason", e))
+    return str(e)
+
+def iter_events(resp):
+    """Yield ('reasoning'|'content'|'usage', value) tuples from an SSE stream."""
+    for raw in resp:
+        line = raw.decode("utf-8", "ignore").strip()
+        if not line or not line.startswith("data:"):
+            continue
+        chunk = line[len("data:"):].strip()
+        if chunk == "[DONE]":
+            break
+        try:
+            obj = json.loads(chunk)
+        except json.JSONDecodeError:
+            continue
+        if obj.get("usage"):
+            yield ("usage", obj["usage"])
+        if obj.get("timings"):
+            yield ("timings", obj["timings"])
+        for ch in obj.get("choices") or []:
+            d = ch.get("delta", {})
+            if d.get("reasoning_content"):
+                yield ("reasoning", d["reasoning_content"])
+            if d.get("content"):
+                yield ("content", d["content"])
+
+def stats_line(usage, timings, dt):
+    # Prefer llama.cpp's `timings` (separate prefill vs generation rates); fall back to usage.
+    if timings:
+        pn = timings.get("prompt_n")
+        gn = timings.get("predicted_n")
+        pps = timings.get("prompt_per_second")
+        gps = timings.get("predicted_per_second")
+        if pps is None and pn and timings.get("prompt_ms"):
+            pps = pn / (timings["prompt_ms"] / 1000.0)
+        if gps is None and gn and timings.get("predicted_ms"):
+            gps = gn / (timings["predicted_ms"] / 1000.0)
+        seg = []
+        if pn is not None:
+            seg.append("prefill %d tok @ %.0f tok/s" % (pn, pps or 0))
+        if gn is not None:
+            seg.append("gen %d tok @ %.1f tok/s" % (gn, gps or 0))
+        seg.append("%.1fs" % dt)
+        return "(" + " · ".join(seg) + ")"
+    if usage:
+        ct = usage.get("completion_tokens", 0)
+        tps = (ct / dt) if dt > 0 else 0
+        return "(%d prompt + %d completion tokens · %.1f tok/s · %.1fs)" % (
+            usage.get("prompt_tokens", 0), ct, tps, dt)
+    return "(%.1fs)" % dt
+
+HELP_ROWS = [
+    ("/exit", "Quit the chat (also /quit, /q)"),
+    ("/server", "Switch backend (local · NVIDIA · OpenAI · Anthropic · custom)"),
+    ("/agent on|off", "Toggle agent mode: ReAct loop + file tools (read/grep/search/write/edit)"),
+    ("/agent dir <path>", "Set the project folder the agent may read/edit"),
+    ("/save [file]", "Save the conversation (.md default, or .json)"),
+    ("/reset", "Clear conversation history (keeps system prompt)"),
+    ("/system <text>", "Set (or clear) the system prompt"),
+    ("/think on|off", "Toggle the model's reasoning output"),
+    ("/temp <v>", "Set sampling temperature (e.g. /temp 0.7)"),
+    ("/set <k> <v>", "Set top_p | top_k | min_p | presence | max_tokens"),
+    ("/preset <name>", "Apply Qwen3.5 presets: thinking | coding | instruct"),
+    ("/config", "Show current sampling settings"),
+    ("/help", "Show this help (also /?)"),
+]
+
+# ----------------------------------------------------------------------------- plain (stdlib) renderer
+C = {}
+def setup_colors(on):
+    names = dict(reset="\033[0m", bold="\033[1m", dim="\033[2m",
+                 red="\033[31m", green="\033[32m", yellow="\033[33m",
+                 blue="\033[34m", magenta="\033[35m", cyan="\033[36m")
+    for k, v in names.items():
+        C[k] = v if on else ""
+
+class _Spinner:
+    FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+    def __init__(self, text="thinking"):
+        self.text = text; self._stop = False; self._t = None
+    def start(self):
+        if not sys.stdout.isatty():
+            return
+        def run():
+            for ch in itertools.cycle(self.FRAMES):
+                if self._stop:
+                    break
+                sys.stdout.write("\r%s%s %s...%s" % (C['dim'], ch, self.text, C['reset']))
+                sys.stdout.flush(); time.sleep(0.08)
+        self._t = threading.Thread(target=run, daemon=True); self._t.start()
+    def end(self):
+        self._stop = True
+        if self._t:
+            self._t.join(timeout=0.3)
+        if sys.stdout.isatty():
+            sys.stdout.write("\r" + " " * 48 + "\r"); sys.stdout.flush()
+
+class PlainRenderer:
+    def __init__(self, show_think, color):
+        self.show_think = show_think
+        setup_colors(color and sys.stdout.isatty() and os.environ.get("TERM") not in (None, "dumb"))
+        self._spin = None; self._first = True; self._in_think = False
+
+    def banner(self, info):
+        print("%s%s" % (C['cyan'], C['bold']))
+        print("══════════════════════════════════════════════════")
+        print(" 🦙 gputool chat — local OpenAI-compatible LLM")
+        print("══════════════════════════════════════════════════%s" % C['reset'])
+        print("%s  Endpoint : %s" % (C['dim'], info["endpoint"]))
+        print("  Model    : %s" % info["model"])
+        print("  Auth     : %s   Streaming: %s   Thinking: %s   Agent: %s%s" % (
+            info["auth"], info["streaming"], info["thinking"], info.get("agent", "off"), C['reset']))
+        print("%s  Type a message and press Enter.  /help for commands, /exit to quit.%s"
+              % (C['dim'], C['reset']))
+        print()
+
+    def help(self):
+        for cmd, desc in HELP_ROWS:
+            print("%s  %-16s%s %s" % (C['bold'], cmd, C['reset'], desc))
+
+    def info(self, msg):   print("%s%s%s" % (C['dim'], msg, C['reset']))
+    def notice(self, msg): print("%s%s%s" % (C['yellow'], msg, C['reset']))
+    def error(self, msg):  print("%s✖ %s%s" % (C['red'], msg, C['reset']))
+    def stats(self, line): print("%s%s%s" % (C['dim'], line, C['reset']))
+
+    def ask_user(self):
+        try:
+            return input("%s/help · /exit%s  %s%sYou ▸ %s" % (
+                C['dim'], C['reset'], C['green'], C['bold'], C['reset']))
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+    def begin(self):
+        self._first = True; self._in_think = False
+        self._spin = _Spinner(); self._spin.start()
+    def _label(self):
+        sys.stdout.write("%s%sAssistant ▸ %s" % (C['blue'], C['bold'], C['reset']))
+    def reasoning(self, t):
+        if not self.show_think:
+            return
+        if self._first:
+            self._spin.end(); self._label(); self._first = False
+        if not self._in_think:
+            sys.stdout.write("%s💭 " % C['dim']); self._in_think = True
+        sys.stdout.write(t); sys.stdout.flush()
+    def content(self, t):
+        if self._first:
+            self._spin.end(); self._label(); self._first = False
+        if self._in_think:
+            sys.stdout.write("%s\n           " % C['reset']); self._in_think = False
+        sys.stdout.write(t); sys.stdout.flush()
+    def end(self):
+        if self._first:
+            self._spin.end()
+        sys.stdout.write("\n")
+
+# ----------------------------------------------------------------------------- rich renderer
+class RichRenderer:
+    def __init__(self, show_think, color):
+        from rich.console import Console
+        self.show_think = show_think
+        self.console = Console(no_color=not color)
+        self._live = None; self._cbuf = ""; self._rbuf = ""
+
+    def banner(self, info):
+        from rich.panel import Panel
+        from rich.text import Text
+        body = Text()
+        body.append("Endpoint  ", style="bold"); body.append(info["endpoint"] + "\n", style="cyan")
+        body.append("Model     ", style="bold"); body.append(info["model"] + "\n")
+        body.append("Auth %s   Streaming %s   Thinking %s   Agent %s\n" % (
+            info["auth"], info["streaming"], info["thinking"], info.get("agent", "off")), style="dim")
+        body.append("\nType a message and press Enter.  ", style="dim")
+        body.append("/help", style="bold cyan"); body.append(" for commands · ", style="dim")
+        body.append("/exit", style="bold cyan"); body.append(" to quit.", style="dim")
+        self.console.print(Panel(body, title="🦙 gputool chat — local LLM",
+                                 border_style="cyan", padding=(1, 2)))
+
+    def help(self):
+        from rich.table import Table
+        t = Table(show_header=False, box=None, padding=(0, 2, 0, 0))
+        t.add_column(style="bold cyan", no_wrap=True)
+        t.add_column(style="dim")
+        for cmd, desc in HELP_ROWS:
+            t.add_row(cmd, desc)
+        self.console.print(t)
+
+    def info(self, msg):   self.console.print(msg, style="dim")
+    def notice(self, msg): self.console.print(msg, style="yellow")
+    def error(self, msg):  self.console.print("✖ " + msg, style="bold red")
+    def stats(self, line): self.console.print(line, style="dim")
+
+    def ask_user(self):
+        try:
+            # Dim command hint sits right next to the input bar.
+            return self.console.input("[dim]/help · /exit[/]  [bold green]You ▸ [/]")
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+    def _spinner_panel(self):
+        from rich.panel import Panel
+        from rich.spinner import Spinner
+        from rich.text import Text
+        return Panel(Spinner("dots", text=Text(" thinking…", style="dim")),
+                     title="Assistant ▸", border_style="blue", padding=(0, 1))
+
+    def _stream_panel(self):
+        # Plain Text while streaming — cheap to re-render, so fast token rates
+        # don't peg the CPU (re-parsing Markdown every frame is what caused the
+        # flicker/freeze). The Markdown is rendered once at the end.
+        from rich.panel import Panel
+        from rich.text import Text
+        if not self._cbuf and not self._rbuf:
+            return self._spinner_panel()
+        txt = Text()
+        if self._rbuf and self.show_think:
+            txt.append(self._rbuf, style="dim")
+            if self._cbuf:
+                txt.append("\n\n")
+        txt.append(self._cbuf)
+        return Panel(txt, title="Assistant ▸", border_style="blue", padding=(0, 1))
+
+    def _final_panel(self):
+        from rich.panel import Panel
+        from rich.markdown import Markdown
+        from rich.text import Text
+        md = ""
+        if self._rbuf and self.show_think:
+            quoted = "\n".join("> " + ln for ln in self._rbuf.strip().splitlines())
+            md += "> 💭 *thinking…*\n" + quoted + "\n\n"
+        md += self._cbuf
+        body = Markdown(md) if md.strip() else Text("…")
+        return Panel(body, title="Assistant ▸", border_style="blue", padding=(0, 1))
+
+    def begin(self):
+        from rich.live import Live
+        self._cbuf = ""; self._rbuf = ""; self._last = 0.0
+        # auto_refresh=False + manual throttled refresh avoids flicker; vertical
+        # overflow "visible" keeps long replies scrollable instead of freezing.
+        self._live = Live(self._spinner_panel(), console=self.console,
+                          auto_refresh=False, vertical_overflow="visible")
+        self._live.start(); self._live.refresh()
+
+    def _tick(self, force=False):
+        if not self._live:
+            return
+        now = time.monotonic()
+        if force or (now - self._last) >= 0.1:   # cap refreshes at ~10/s
+            self._live.update(self._stream_panel())
+            self._live.refresh()
+            self._last = now
+
+    def reasoning(self, t):
+        self._rbuf += t; self._tick()
+    def content(self, t):
+        self._cbuf += t; self._tick()
+    def end(self):
+        if self._live:
+            self._live.update(self._final_panel())  # single Markdown render
+            self._live.refresh()
+            self._live.stop(); self._live = None
+            self.console.print()  # separate the panel from the stats line
+
+# ----------------------------------------------------------------------------- chat turn
+def chat_turn(endpoint, headers, payload, renderer):
+    """Run one request. Returns (assistant_text, usage, timings) or (None, None, None) on error."""
+    try:
+        resp = request(endpoint, headers, payload)
+    except Exception as e:
+        renderer.error(err_for(e)); return None, None, None
+
+    if not payload.get("stream"):
+        try:
+            obj = json.load(resp)
+        except Exception as e:
+            renderer.error(err_for(e)); return None, None, None
+        msg = (obj.get("choices") or [{}])[0].get("message", {})
+        renderer.begin()
+        if renderer.show_think and msg.get("reasoning_content"):
+            renderer.reasoning(msg["reasoning_content"])
+        renderer.content(msg.get("content") or "")
+        renderer.end()
+        return msg.get("content") or "", obj.get("usage"), obj.get("timings")
+
+    renderer.begin()
+    parts = []; usage = None; timings = None
+    try:
+        for kind, val in iter_events(resp):
+            if kind == "usage":
+                usage = val
+            elif kind == "timings":
+                timings = val
+            elif kind == "reasoning":
+                renderer.reasoning(val)
+            elif kind == "content":
+                parts.append(val); renderer.content(val)
+    except KeyboardInterrupt:
+        pass
+    renderer.end()
+    return "".join(parts), usage, timings
+
+# ----------------------------------------------------------------------------- main
+def main():
+    ap = argparse.ArgumentParser(prog="gputool chat", add_help=True,
+        description="Chat with a local OpenAI-compatible LLM server (e.g. gputool's llama.cpp).")
+    ap.add_argument("message", nargs="*", help="one-shot message; omit to start an interactive session")
+    ap.add_argument("--host", default=None, help="server host/IP (default: saved or 127.0.0.1)")
+    ap.add_argument("--port", default=None, help="server port (default: saved or 8080)")
+    ap.add_argument("--url", default=None, help="full base URL override, e.g. http://10.31.96.155:8080/v1")
+    ap.add_argument("--api-key", default=None, help="bearer token (default: saved or $GPUTOOL_LLAMA_API_KEY)")
+    ap.add_argument("--model", default=None, help="model name (default: auto-detected from /v1/models)")
+    ap.add_argument("--system", default=None, help="system prompt")
+    ap.add_argument("--max-tokens", type=int, default=1024)
+    ap.add_argument("--temperature", type=float, default=0.7)
+    ap.add_argument("--top-p", type=float, default=None, help="nucleus sampling (e.g. 0.95)")
+    ap.add_argument("--top-k", type=int, default=None, help="top-k sampling (e.g. 20)")
+    ap.add_argument("--min-p", type=float, default=None, help="min-p sampling (e.g. 0.0)")
+    ap.add_argument("--presence-penalty", type=float, default=None, help="presence penalty (e.g. 1.5)")
+    ap.add_argument("--think", action="store_true", help="enable model reasoning/thinking output")
+    ap.add_argument("--no-stream", dest="stream", action="store_false", help="disable token streaming")
+    ap.add_argument("--no-color", dest="color", action="store_false", help="disable colored output")
+    ap.add_argument("--no-template-kwargs", action="store_true",
+                    help="don't send llama.cpp chat_template_kwargs (use for NVIDIA/other APIs)")
+    ap.add_argument("--backend", action="store_true",
+                    help="show the interactive backend chooser (local/NVIDIA/OpenAI/Anthropic/custom)")
+    ap.add_argument("--agent", action="store_true",
+                    help="start in agent mode: a ReAct loop with file tools (read/grep/search/write/edit)")
+    ap.add_argument("--agent-dir", default=".",
+                    help="project root the agent may read/edit (default: current directory)")
+    ap.add_argument("--plain", action="store_true", help="force the plain stdlib renderer (no rich)")
+    ap.add_argument("--reset-config", action="store_true", help="ignore and overwrite the saved chat config")
+    args = ap.parse_args()
+
+    cfg = {} if args.reset_config else load_config()
+
+    if args.plain or not RICH_OK:
+        renderer = PlainRenderer(args.think, args.color)
+    else:
+        renderer = RichRenderer(args.think, args.color)
+
+    env_key = os.environ.get("GPUTOOL_LLAMA_API_KEY")
+
+    def prompt_server():
+        dh = args.host or cfg.get("host") or "127.0.0.1"
+        dp = args.port or cfg.get("port") or "8080"
+        if args.url:
+            return None, None, args.url
+        raw = read_line("Server IP or URL [%s:%s]: " % (dh, dp)).strip()
+        if not raw:
+            return dh, dp, None
+        if "://" in raw:
+            return None, None, raw
+        host, port = raw, dp
+        if ":" in raw and not raw.startswith("["):
+            h, _, p = raw.partition(":")
+            host, port = (h or dh), (p or dp)
+        return host, port, None
+
+    def prompt_key():
+        saved = args.api_key or env_key or cfg.get("api_key") or ""
+        hint = " [Enter to keep saved]" if saved else " [blank if none]"
+        val = read_secret("API key%s: " % hint).strip()
+        return val if val else saved
+
+    def persist(host, port, url, key):
+        cfg["host"] = host or ""
+        cfg["port"] = port or ""
+        cfg["url"] = url or ""
+        if key:
+            cfg["api_key"] = key
+        save_config(cfg)
+
+    # Mutable connection state so /server can switch backends mid-session.
+    state = {"ntk": args.no_template_kwargs, "model": args.model}
+
+    def connect(host, port, url, key):
+        base = build_base(host, port, url)
+        endpoint = base + "/chat/completions"
+        headers = {"Content-Type": "application/json", "Accept": "text/event-stream"}
+        if key:
+            headers["Authorization"] = "Bearer " + key
+        model = state["model"] or fetch_model(base, headers) or "local-model"
+        return base, endpoint, headers, model
+
+    # Resolve the connection:
+    #  • bare `chat` or `--backend`  -> interactive backend chooser (local/NVIDIA/OpenAI/Anthropic/custom)
+    #  • a one-shot message or --url/--host/--api-key -> use those (no prompts), for scripts/gputool
+    flags_given = bool(args.url or args.host or args.api_key is not None)
+    if args.backend or (not args.message and not flags_given):
+        url, key, bmodel, bntk = pick_backend()
+        host = port = None
+        if bmodel:
+            state["model"] = bmodel
+        if bntk:
+            state["ntk"] = True
+        persist(None, None, url, key)
+    else:
+        host = args.host or cfg.get("host") or "127.0.0.1"
+        port = args.port or cfg.get("port") or "8080"
+        url = args.url or (cfg.get("url") or None)
+        key = args.api_key if args.api_key is not None else (env_key or cfg.get("api_key") or "")
+
+    base, endpoint, headers, model = connect(host, port, url, key)
+
+    think = {"enabled": args.think}
+    # Live sampling settings — adjustable in-session via /temp, /set, /preset.
+    sampling = {"temperature": args.temperature, "max_tokens": args.max_tokens,
+                "top_p": args.top_p, "top_k": args.top_k, "min_p": args.min_p,
+                "presence_penalty": args.presence_penalty}
+    messages = []
+    if args.system:
+        messages.append({"role": "system", "content": args.system})
+
+    def build_payload():
+        p = {"model": model, "messages": messages, "stream": args.stream,
+             "temperature": sampling["temperature"], "max_tokens": sampling["max_tokens"]}
+        for k in ("top_p", "top_k", "min_p", "presence_penalty"):
+            if sampling[k] is not None:
+                p[k] = sampling[k]
+        if args.stream:
+            p["stream_options"] = {"include_usage": True}
+        # `chat_template_kwargs` is a llama.cpp feature (controls Qwen thinking);
+        # skip it for backends that reject unknown fields (e.g. NVIDIA's API).
+        if not think["enabled"] and not state["ntk"]:
+            p["chat_template_kwargs"] = {"enable_thinking": False}
+        return p
+
+    def ask(user_text):
+        messages.append({"role": "user", "content": user_text})
+        renderer.show_think = think["enabled"]
+        t = time.time()
+        text, usage, timings = chat_turn(endpoint, headers, build_payload(), renderer)
+        if text is None:
+            messages.pop()
+            return False
+        messages.append({"role": "assistant", "content": text})
+        renderer.stats(stats_line(usage, timings, time.time() - t))
+        return True
+
+    def info_block():
+        return {"endpoint": endpoint, "model": model,
+                "auth": "on" if key else "off",
+                "streaming": "on" if args.stream else "off",
+                "thinking": "on" if think["enabled"] else "off",
+                "agent": "on" if agent_state["on"] else "off"}
+
+    # ----- agent mode (ReAct loop + file tools) -----
+    agent_state = {"on": bool(args.agent), "dir": args.agent_dir}
+
+    def complete_once(msgs):
+        """Non-streaming completion used by the ReAct loop. Returns assistant text."""
+        payload = {"model": model, "messages": msgs, "stream": False,
+                   "temperature": 0.2, "max_tokens": 1024}
+        if not state["ntk"]:
+            payload["chat_template_kwargs"] = {"enable_thinking": False}
+        try:
+            obj = json.load(request(endpoint, headers, payload))
+        except Exception as e:
+            renderer.error(err_for(e)); return ""
+        return (obj.get("choices") or [{}])[0].get("message", {}).get("content") or ""
+
+    def run_agent(task):
+        if not AGENT_OK:
+            renderer.error("Agent mode unavailable: react_loop.py / agent_tools.py not found "
+                           "next to chat.py. Run `sjsujetsontool update`.")
+            return False
+        root = os.path.abspath(agent_state["dir"])
+        renderer.notice("🤖 Agent working in %s … (ctrl-C to stop)" % root)
+        agent = ReActAgent(complete_once, AgentTools(root), log=renderer.info)
+        try:
+            answer = agent.run(task)
+        except KeyboardInterrupt:
+            renderer.notice("Agent interrupted."); return False
+        renderer.begin(); renderer.content(answer); renderer.end()
+        return True
+
+    # One-shot mode
+    if args.message:
+        msg = " ".join(args.message)
+        ok = run_agent(msg) if agent_state["on"] else ask(msg)
+        sys.exit(0 if ok else 1)
+
+    # Interactive mode
+    if not RICH_OK and not args.plain:
+        renderer.info("Tip: `pip install rich` for a nicer UI (streaming Markdown & syntax highlighting).")
+    renderer.banner(info_block())
+
+    while True:
+        user = renderer.ask_user()
+        if user is None:
+            renderer.notice("Bye!"); break
+        user = user.strip()
+        if not user:
+            continue
+        low = user.lower()
+        if low in ("/exit", "/quit", "/q"):
+            renderer.notice("Bye!"); break
+        if low in ("/help", "/?"):
+            renderer.help(); continue
+        if low in ("/reset", "/clear"):
+            messages[:] = [m for m in messages if m["role"] == "system"]
+            renderer.notice("↺ Conversation reset."); continue
+        if low.startswith("/save"):
+            arg = user[len("/save"):].strip() or None
+            try:
+                p = save_history(messages, arg)
+                renderer.notice("💾 Saved conversation to %s" % p)
+            except Exception as e:
+                renderer.error("Save failed: %s" % e)
+            continue
+        if low.startswith("/server"):
+            url, key, bmodel, bntk = pick_backend()
+            state["ntk"] = bntk
+            state["model"] = bmodel        # None -> connect() auto-detects via /models
+            persist(None, None, url, key)
+            base, endpoint, headers, model = connect(None, None, url, key)
+            renderer.notice("🔌 Connected to %s   (model: %s)" % (base, model))
+            continue
+        if low.startswith("/system"):
+            sp = user[len("/system"):].strip()
+            messages[:] = [m for m in messages if m["role"] != "system"]
+            if sp:
+                messages.insert(0, {"role": "system", "content": sp})
+                renderer.notice("✎ System prompt set.")
+            else:
+                renderer.notice("✎ System prompt cleared.")
+            continue
+        if low.startswith("/think"):
+            a = low[len("/think"):].strip()
+            think["enabled"] = (a == "on") if a in ("on", "off") else (not think["enabled"])
+            renderer.notice("🧠 Thinking %s." % ("enabled" if think["enabled"] else "disabled"))
+            continue
+        if low.startswith("/temp"):
+            v = user[len("/temp"):].strip()
+            try:
+                sampling["temperature"] = float(v)
+                renderer.notice("🌡️  temperature = %s" % sampling["temperature"])
+            except ValueError:
+                renderer.error("usage: /temp <number>   e.g. /temp 0.7")
+            continue
+        if low.startswith("/set"):
+            parts = user.split()
+            alias = {"temp": "temperature", "temperature": "temperature",
+                     "top_p": "top_p", "top-p": "top_p", "top_k": "top_k", "top-k": "top_k",
+                     "min_p": "min_p", "min-p": "min_p",
+                     "presence": "presence_penalty", "presence_penalty": "presence_penalty",
+                     "max_tokens": "max_tokens", "max-tokens": "max_tokens"}
+            if len(parts) != 3 or parts[1].lower() not in alias:
+                renderer.error("usage: /set <temp|top_p|top_k|min_p|presence|max_tokens> <value>")
+                continue
+            k = alias[parts[1].lower()]
+            try:
+                sampling[k] = int(parts[2]) if k in ("top_k", "max_tokens") else float(parts[2])
+                renderer.notice("✓ %s = %s" % (k, sampling[k]))
+            except ValueError:
+                renderer.error("invalid value: %s" % parts[2])
+            continue
+        if low.startswith("/preset"):
+            # Unsloth-recommended Qwen3.5 sampling presets.
+            presets = {
+                "thinking": dict(temperature=1.0, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=1.5, _think=True),
+                "coding":   dict(temperature=0.6, top_p=0.95, top_k=20, min_p=0.0, presence_penalty=0.0, _think=True),
+                "instruct": dict(temperature=0.7, top_p=0.8,  top_k=20, min_p=0.0, presence_penalty=1.5, _think=False),
+            }
+            name = low[len("/preset"):].strip()
+            if name not in presets:
+                renderer.error("presets: thinking | coding | instruct")
+                continue
+            for k, v in presets[name].items():
+                if k == "_think":
+                    think["enabled"] = v
+                else:
+                    sampling[k] = v
+            renderer.notice("🎚️  preset '%s' applied (thinking %s)" % (name, "on" if think["enabled"] else "off"))
+            continue
+        if low in ("/config", "/cfg"):
+            renderer.notice("temp=%s top_p=%s top_k=%s min_p=%s presence=%s max_tokens=%s · thinking=%s · agent=%s" % (
+                sampling["temperature"], sampling["top_p"], sampling["top_k"], sampling["min_p"],
+                sampling["presence_penalty"], sampling["max_tokens"],
+                "on" if think["enabled"] else "off", "on" if agent_state["on"] else "off"))
+            continue
+        if low.startswith("/agent"):
+            arg = user[len("/agent"):].strip()
+            if arg.lower().startswith("dir"):
+                d = arg[3:].strip()
+                if d:
+                    agent_state["dir"] = d
+                renderer.notice("📁 Agent folder: %s" % os.path.abspath(agent_state["dir"]))
+            else:
+                a = arg.lower()
+                agent_state["on"] = (a == "on") if a in ("on", "off") else (not agent_state["on"])
+                if agent_state["on"] and not AGENT_OK:
+                    renderer.error("Agent modules not found (run `sjsujetsontool update`).")
+                    agent_state["on"] = False
+                else:
+                    renderer.notice("🤖 Agent mode %s (folder: %s)" % (
+                        "ON — type a task" if agent_state["on"] else "off",
+                        os.path.abspath(agent_state["dir"])))
+            continue
+        run_agent(user) if agent_state["on"] else ask(user)
+
+if __name__ == "__main__":
+    main()

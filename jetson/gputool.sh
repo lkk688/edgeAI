@@ -247,6 +247,17 @@ show_help() {
   echo "Core Commands:"
   echo "  help                     - Show this help message"
   echo "  version                  - Show script version"
+  echo "  device [--online]        - Full device report: GPU, driver health, disk, conda, gputool"
+  echo "  profile                  - Show the serving profile this GPU gets (VRAM, NVFP4/FP8, tuned defaults)"
+  echo "  agent <start|stop|status|test> - Agent sidecar (:8002); .test. runs the full tool suite"
+  echo "  install-ai [extras]      - pip install gputool-ai (chat + agent) — no repo checkout needed"
+  echo ""
+  echo "Shared HuggingFace Cache (no sudo, campus network):"
+  echo "  hf-cache setup           - Install rclone, create a key, configure the shared-cache remote"
+  echo "  hf-cache mount           - Mount the shared cache at ~/hf-shared"
+  echo "  hf-cache enable          - Point HF_HOME at it for every new shell (auto-mounts on login)"
+  echo "  hf-cache status          - Show remote, mount, local cache size and HF_HOME"
+  echo "  hf-cache disable         - Undo enable; hf-cache unmount - detach the mount"
   echo "  install                  - Install gputool script to ~/.local/bin/ and setup PATH"
   echo "  update-script            - Pull the latest gputool script from GitHub"
   echo
@@ -257,6 +268,13 @@ show_help() {
   echo "  check [env_name]         - Run a complete diagnostic check of GPU, PyTorch, HF, LeRobot & Tailscale"
   echo
   echo "Llama.cpp & LLM Commands (RTX GPU Offloading):"
+  echo "  setup-vllm [env]         - Install vLLM into a Conda env (default: py312)"
+  echo "  vllm <action> [model] [port]             - alias of serve-vllm (same name as sjsujetsontool)"
+  echo "  llama <action> [model] [port]            - alias of serve-llamacpp (same name as sjsujetsontool)"
+  echo "  serve-vllm <action> [model] [port] [--env E] [--max-len N] [--gpu-mem F] [--api-key K] [-f|-d]"
+  echo "      start [model] [port]                 - Serve an OpenAI-compatible API (default: Qwen/Qwen3.5-4B on 8000)"
+  echo "      stop | status                        - Stop the server / show process, API and GPU memory"
+  echo ""
   echo "  setup-llamacpp [env_name] - Compile llama.cpp with CUDA support inside Conda env"
   echo "  download-model [repo] [file] [env] - Download a GGUF model from Hugging Face"
   echo "  serve-llamacpp <action> [model] [port] [--foreground|--background] - Manage llama-server"
@@ -893,6 +911,717 @@ print('==================================================')
   echo "══════════════════════════════════════════════════"
 }
 
+# ── Print one aligned "label : value" row with a status glyph ──────────────
+# Usage: _dev_row <glyph> <label> <value>
+_dev_row() {
+  local glyph="$1" label="$2" value="$3"
+  printf "   %b %-18s : %s\n" "$glyph" "$label" "$value"
+}
+_dev_ok()   { _dev_row "${GREEN}●${NC}"  "$1" "$2"; }
+_dev_warn() { _dev_row "${YELLOW}●${NC}" "$1" "$2"; }
+_dev_bad()  { _dev_row "${RED}●${NC}"    "$1" "$2"; }
+_dev_dim()  { _dev_row "${BLUE}○${NC}"   "$1" "$2"; }
+
+_dev_section() {
+  echo
+  echo -e "${BOLD}$1${NC}"
+}
+
+# ── GPU profile ───────────────────────────────────────────────────────────
+# One place that decides what this machine can serve. gputool runs on Jetson
+# iGPUs and on desktop cards from Ampere to Blackwell, and the sensible serving
+# defaults differ by a lot between them. Everything below is derived from
+# measurements on the bench rather than guessed:
+#
+#   RTX 5080  16 GB  sm_120  Qwen3.5-4B bf16 needs max-len 8192 / 0.92 / 16 seqs
+#                            (32768 OOMs during CUDA-graph profiling)
+#   RTX 4090  24 GB  sm_89   comfortably twice that
+#   RTX 3090  24 GB  sm_86   same capacity, but no FP8 and no NVFP4 kernels
+#   Jetson    shared memory  keep well clear of the system RAM budget
+#
+# Sets: GPU_PROFILE, GPU_VRAM_MB, GPU_CC, GPU_IS_JETSON,
+#       PROF_MAX_LEN, PROF_GPU_MEM, PROF_MAX_SEQS, PROF_CTX
+detect_gpu_profile() {
+  GPU_IS_JETSON=0
+  GPU_VRAM_MB=0
+  GPU_CC=""
+  GPU_PROFILE="unknown"
+
+  # Jetson exposes a model string in the device tree and shares memory with the
+  # CPU, so "free VRAM" is really "free system RAM".
+  if [[ -r /proc/device-tree/model ]] && grep -qi jetson /proc/device-tree/model 2>/dev/null; then
+    GPU_IS_JETSON=1
+  elif [[ -f /etc/nv_tegra_release ]]; then
+    GPU_IS_JETSON=1
+  fi
+
+  if command -v nvidia-smi &>/dev/null; then
+    GPU_VRAM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -n1 | tr -dc '0-9')
+    GPU_CC=$(detect_gpu_compute_cap 2>/dev/null)
+  fi
+  [[ -z "$GPU_VRAM_MB" ]] && GPU_VRAM_MB=0
+
+  if (( GPU_IS_JETSON == 1 )); then
+    # Unified memory: leave headroom for the OS or the whole board swaps.
+    GPU_PROFILE="jetson"
+    PROF_MAX_LEN=4096;  PROF_GPU_MEM=0.75; PROF_MAX_SEQS=4;  PROF_CTX=4096
+  elif (( GPU_VRAM_MB >= 40000 )); then
+    GPU_PROFILE="large"          # A100/H100/6000-class
+    PROF_MAX_LEN=32768; PROF_GPU_MEM=0.90; PROF_MAX_SEQS=64; PROF_CTX=32768
+  elif (( GPU_VRAM_MB >= 22000 )); then
+    GPU_PROFILE="24gb"           # 3090 / 4090
+    PROF_MAX_LEN=16384; PROF_GPU_MEM=0.90; PROF_MAX_SEQS=32; PROF_CTX=16384
+  elif (( GPU_VRAM_MB >= 14000 )); then
+    GPU_PROFILE="16gb"           # 5080 / 4080 — measured defaults
+    PROF_MAX_LEN=8192;  PROF_GPU_MEM=0.92; PROF_MAX_SEQS=16; PROF_CTX=8192
+  elif (( GPU_VRAM_MB > 0 )); then
+    GPU_PROFILE="small"
+    PROF_MAX_LEN=4096;  PROF_GPU_MEM=0.90; PROF_MAX_SEQS=8;  PROF_CTX=4096
+  else
+    GPU_PROFILE="cpu"
+    PROF_MAX_LEN=4096;  PROF_GPU_MEM=0.90; PROF_MAX_SEQS=4;  PROF_CTX=4096
+  fi
+  return 0
+}
+
+# True when the GPU can run NVFP4 (Blackwell, sm_120+).
+gpu_supports_nvfp4() {
+  local cc; cc=$(detect_gpu_compute_cap 2>/dev/null | tr -d '.')
+  [[ -n "$cc" ]] && (( cc >= 120 ))
+}
+# True when the GPU has hardware FP8 (Ada sm_89+).
+gpu_supports_fp8() {
+  local cc; cc=$(detect_gpu_compute_cap 2>/dev/null | tr -d '.')
+  [[ -n "$cc" ]] && (( cc >= 89 ))
+}
+
+# Print the tuned profile and what it implies for model choice.
+show_gpu_profile() {
+  detect_gpu_profile
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}🎛️  Serving profile${NC}"
+  echo "══════════════════════════════════════════════════"
+  _dev_dim "GPU" "$(detect_gpu_name 2>/dev/null || echo unknown)"
+  _dev_dim "VRAM" "${GPU_VRAM_MB} MiB"
+  _dev_dim "Compute" "${GPU_CC:-unknown}$( (( GPU_IS_JETSON == 1 )) && echo "  (Jetson, unified memory)")"
+  _dev_dim "Profile" "$GPU_PROFILE"
+  echo
+  _dev_dim "vLLM max-model-len" "$PROF_MAX_LEN"
+  _dev_dim "vLLM gpu-mem-util" "$PROF_GPU_MEM"
+  _dev_dim "vLLM max-num-seqs" "$PROF_MAX_SEQS"
+  _dev_dim "llama.cpp ctx-size" "$PROF_CTX"
+  echo
+  gpu_supports_nvfp4 && _dev_ok "NVFP4" "supported — a 12B fits where a 4B bf16 would" \
+                     || _dev_dim "NVFP4" "not supported on this GPU (needs Blackwell)"
+  gpu_supports_fp8  && _dev_ok "FP8" "supported" \
+                    || _dev_dim "FP8" "not supported (needs Ada or newer)"
+  echo "══════════════════════════════════════════════════"
+}
+
+# ── gputool-ai package ────────────────────────────────────────────────────
+# The chat client and the agent sidecar used to be delivered by fetching a
+# single chat.py from GitHub and by pointing at a repo checkout. That meant a
+# node needed the whole edgeAI tree for agent mode, and the sidecar looked for
+# an absolute /Developer path that exists only on the Jetson images.
+#
+# They are now one pip-installable package, so a bare node needs neither.
+GPUTOOL_AI_SPEC="${GPUTOOL_AI_SPEC:-git+https://github.com/lkk688/edgeAI@main#subdirectory=packages/gputool-ai}"
+
+# Echo the python that should run user-facing tools: the conda env if one is
+# active or present, otherwise the system interpreter.
+_ai_python() {
+  local p
+  for p in "$HOME/miniconda3/envs/${VLLM_DEFAULT_ENV:-py312}/bin/python" \
+           "$HOME/miniconda/envs/${VLLM_DEFAULT_ENV:-py312}/bin/python"; do
+    [[ -x "$p" ]] && { echo "$p"; return 0; }
+  done
+  command -v python3 2>/dev/null || command -v python 2>/dev/null
+}
+
+# Locate an installed console script, checking the env's bin as well as PATH.
+_ai_script() {
+  local name="$1" py bin
+  command -v "$name" &>/dev/null && { command -v "$name"; return 0; }
+  py=$(_ai_python); bin="$(dirname "$py")/$name"
+  [[ -x "$bin" ]] && { echo "$bin"; return 0; }
+  return 1
+}
+
+install_ai() {
+  local extras="${1:-all}"
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}📦 Installing gputool-ai (chat + agent)${NC}"
+  echo "══════════════════════════════════════════════════"
+  local py; py=$(_ai_python)
+  [[ -z "$py" ]] && { error "No python interpreter found."; return 1; }
+  info "Interpreter : $py"
+  info "Extras      : $extras   (base | rich | agent | all)"
+  info "Source      : $GPUTOOL_AI_SPEC"
+  echo
+
+  local spec="gputool-ai @ $GPUTOOL_AI_SPEC"
+  [[ "$extras" != "base" ]] && spec="gputool-ai[$extras] @ $GPUTOOL_AI_SPEC"
+
+  if ! "$py" -m pip install --upgrade "$spec"; then
+    error "Install failed."
+    echo "   Needs git and network access. For an offline node, copy the"
+    echo "   packages/gputool-ai directory over and run:  pip install ./gputool-ai"
+    return 1
+  fi
+  echo
+  local c a
+  c=$(_ai_script gputool-chat || echo "")
+  a=$(_ai_script gputool-agent || echo "")
+  [[ -n "$c" ]] && success "gputool-chat  -> $c"  || warn "gputool-chat not on PATH"
+  [[ -n "$a" ]] && success "gputool-agent -> $a" || warn "gputool-agent not on PATH (install the 'agent' extra)"
+  echo "   gputool chat / gputool agent now use these automatically."
+}
+
+# ── agent: FastAPI sidecar for the Agent Lab ─────────────────────────────
+# Ported from sjsujetsontool, with the Jetson-specific paths made overridable so
+# the same command works on a desktop checkout. Runs on the host (not a
+# container) because it imports the edge_agent package and reads ~/.env.local.
+AGENT_PORT="${AGENT_SIDECAR_PORT:-8002}"
+AGENT_LOG="$GPUTOOL_DIR/agent.log"
+AGENT_PIDFILE="$GPUTOOL_DIR/agent.pid"
+
+_agent_dirs() {
+  # Desktop checkouts live wherever the user cloned edgeAI; Jetson images put it
+  # under /Developer. Try the env override, then a repo-relative guess, then the
+  # Jetson path.
+  local guess_root
+  guess_root=$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo .)")/.." 2>/dev/null && pwd)
+  AGENT_APP_DIR="${GPUTOOL_AGENT_DIR:-}"
+  AGENT_PKG_DIR="${GPUTOOL_EDGE_AGENT_DIR:-}"
+  local c
+  if [[ -z "$AGENT_APP_DIR" ]]; then
+    for c in "$HOME/edgeAI/edgeLLM/nextjs-nemotron-app/agent_sidecar" \
+             "$guess_root/edgeLLM/nextjs-nemotron-app/agent_sidecar" \
+             "/Developer/edgeAI/edgeLLM/nextjs-nemotron-app/agent_sidecar"; do
+      [[ -d "$c" ]] && { AGENT_APP_DIR="$c"; break; }
+    done
+  fi
+  if [[ -z "$AGENT_PKG_DIR" ]]; then
+    for c in "$HOME/edgeAI/edgeLLM/edge_agent" \
+             "$guess_root/edgeLLM/edge_agent" \
+             "/Developer/edgeAI/edgeLLM/edge_agent"; do
+      [[ -d "$c" ]] && { AGENT_PKG_DIR="$c"; break; }
+    done
+  fi
+}
+
+agent_backend() {
+  local action="${1:-status}"
+  mkdir -p "$GPUTOOL_DIR"
+  _agent_dirs
+
+  case "$action" in
+    status)
+      echo "══════════════════════════════════════════════════"
+      echo -e "${BOLD}🤖 Agent backend${NC}"
+      echo "══════════════════════════════════════════════════"
+      local ai_agent; ai_agent=$(_ai_script gputool-agent 2>/dev/null || echo "")
+      if [[ -n "$ai_agent" ]]; then
+        _dev_ok "Source" "installed package ($ai_agent)"
+        _dev_dim "Workspace" "${GPUTOOL_WORKSPACE:-$(pwd)}"
+      else
+        _dev_warn "Source" "not installed — run: gputool install-ai"
+        _dev_dim "Repo fallback" "${AGENT_APP_DIR:-<none found>}"
+      fi
+      _dev_dim "Port" "$AGENT_PORT"
+      if wget -qO- --timeout=3 "http://localhost:$AGENT_PORT/health" >/dev/null 2>&1 \
+         || curl -fs --max-time 3 "http://localhost:$AGENT_PORT/health" >/dev/null 2>&1; then
+        _dev_ok "State" "running"
+      else
+        _dev_warn "State" "not running — start with: gputool agent start"
+      fi
+      echo "══════════════════════════════════════════════════"
+      ;;
+    start|bg|fg)
+      # Prefer the pip-installed entry point: no repo checkout needed.
+      local ai_agent; ai_agent=$(_ai_script gputool-agent 2>/dev/null || echo "")
+      if [[ -n "$ai_agent" ]]; then
+        info "Using installed gputool-agent ($ai_agent)"
+        info "Workspace: ${GPUTOOL_WORKSPACE:-$(pwd)}"
+        if [[ "$action" == "fg" ]]; then exec "$ai_agent"; fi
+        nohup "$ai_agent" > "$AGENT_LOG" 2>&1 & echo $! > "$AGENT_PIDFILE"
+        sleep 3
+        if kill -0 "$(cat "$AGENT_PIDFILE" 2>/dev/null)" 2>/dev/null; then
+          success "Agent backend started (PID $(cat "$AGENT_PIDFILE"))."
+          echo "   🔗 http://localhost:$AGENT_PORT   📜 $AGENT_LOG"
+        else
+          error "Agent backend failed to start. Last lines:"
+          tail -n 12 "$AGENT_LOG" 2>/dev/null | sed "s/^/   /"
+          return 1
+        fi
+        return 0
+      fi
+      if [[ -z "$AGENT_APP_DIR" ]]; then
+        error "Agent sidecar not found."
+        echo "   Point gputool at it:  export GPUTOOL_AGENT_DIR=/path/to/agent_sidecar"
+        return 1
+      fi
+      local py; py=$(command -v python3 || command -v python)
+      [[ -z "$py" ]] && { error "python3 not found."; return 1; }
+      # edge_agent is imported from the repo, so it has to be on PYTHONPATH.
+      [[ -n "$AGENT_PKG_DIR" ]] && export PYTHONPATH="$(dirname "$AGENT_PKG_DIR"):${PYTHONPATH:-}"
+      info "Sidecar : $AGENT_APP_DIR"
+      info "Port    : $AGENT_PORT"
+      if [[ "$action" == "fg" ]]; then
+        cd "$AGENT_APP_DIR" || return 1
+        exec "$py" -m uvicorn main:app --host 0.0.0.0 --port "$AGENT_PORT"
+      fi
+      ( cd "$AGENT_APP_DIR" && nohup "$py" -m uvicorn main:app --host 0.0.0.0 --port "$AGENT_PORT" \
+          > "$AGENT_LOG" 2>&1 & echo $! > "$AGENT_PIDFILE" )
+      sleep 3
+      if kill -0 "$(cat "$AGENT_PIDFILE" 2>/dev/null)" 2>/dev/null; then
+        success "Agent backend started (PID $(cat "$AGENT_PIDFILE"))."
+        echo "   🔗 http://localhost:$AGENT_PORT   📜 $AGENT_LOG"
+      else
+        error "Agent backend failed to start. Last lines:"
+        tail -n 12 "$AGENT_LOG" 2>/dev/null | sed 's/^/   /'
+        return 1
+      fi
+      ;;
+    test)
+      # Drive every agent tool against a real model and check the filesystem,
+      # not the model.s prose. Non-zero exit on any failure, so it fits CI.
+      shift 2>/dev/null || true
+      local tester; tester=$(_ai_script gputool-agent-test 2>/dev/null || echo "")
+      if [[ -z "$tester" ]]; then
+        error "gputool-agent-test not installed. Run: gputool install-ai"
+        return 1
+      fi
+      "$tester" --agent-url "http://127.0.0.1:$AGENT_PORT" "$@"
+      return $?
+      ;;
+    stop)
+      local pid
+      pid=$(cat "$AGENT_PIDFILE" 2>/dev/null)
+      if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+        kill "$pid" 2>/dev/null; sleep 2; kill -9 "$pid" 2>/dev/null
+        rm -f "$AGENT_PIDFILE"
+        success "Agent backend stopped."
+      else
+        info "Agent backend was not running."
+        rm -f "$AGENT_PIDFILE"
+      fi
+      ;;
+    *)
+      error "Unknown agent action: $action"
+      echo "Usage: gputool agent <start|stop|status|fg|test>"
+      return 1 ;;
+  esac
+}
+
+# ── Shared HuggingFace cache over the campus network ──────────────────────
+# The bench shares one large HF cache hosted on the RTX 4090 box. It is mounted
+# per-user over SFTP with rclone + FUSE, so nothing here needs sudo. Re-reads of
+# already-fetched blobs come from a size-capped local cache at full speed; only
+# the first touch of a blob crosses the network.
+HF_REMOTE_HOST="${HF_REMOTE_HOST:-10.31.81.235}"
+HF_REMOTE_USER="${HF_REMOTE_USER:-lkk}"
+HF_REMOTE_PATH="${HF_REMOTE_PATH:-/DATA10T/huggingface}"
+HF_MOUNT="${HF_MOUNT:-$HOME/hf-shared}"
+HF_VFS_MAX="${HF_VFS_MAX:-20G}"
+RCLONE_BIN="$HOME/.local/bin/rclone"
+RCLONE_CONF="$HOME/.config/rclone/rclone.conf"
+HF_RC_BEGIN="# >>> gputool hf-cache >>>"
+HF_RC_END="# <<< gputool hf-cache <<<"
+
+_hf_mounted() { mount 2>/dev/null | grep -q " $HF_MOUNT "; }
+
+# Install the rclone static binary into ~/.local/bin (no sudo, no package manager).
+_hf_install_rclone() {
+  if [[ -x "$RCLONE_BIN" ]]; then
+    info "rclone already present ($("$RCLONE_BIN" version | head -n1))"
+    return 0
+  fi
+  info "Downloading rclone (static binary, no sudo required)..."
+  local tmp url
+  tmp=$(mktemp -d)
+  url="https://downloads.rclone.org/rclone-current-linux-amd64.zip"
+  if command -v curl &>/dev/null; then
+    curl -fsSL "$url" -o "$tmp/rclone.zip"
+  elif command -v wget &>/dev/null; then
+    wget -qO "$tmp/rclone.zip" "$url"
+  else
+    error "Need curl or wget to download rclone."; rm -rf "$tmp"; return 1
+  fi
+  if ! ( cd "$tmp" && unzip -qo rclone.zip ); then
+    error "unzip failed (is the 'unzip' command available?)."; rm -rf "$tmp"; return 1
+  fi
+  mkdir -p "$HOME/.local/bin"
+  cp "$tmp"/rclone-*-linux-amd64/rclone "$RCLONE_BIN" && chmod +x "$RCLONE_BIN"
+  rm -rf "$tmp"
+  success "Installed rclone $("$RCLONE_BIN" version | head -n1 | awk '{print $2}')"
+}
+
+# One-time preparation: FUSE check, rclone, an SSH key, and the remote definition.
+_hf_setup() {
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}🤗 Shared HF cache — setup${NC}"
+  echo "══════════════════════════════════════════════════"
+
+  # FUSE must be usable without root; fusermount is the setuid helper that allows it.
+  if [[ ! -c /dev/fuse ]]; then
+    error "/dev/fuse is missing — this host cannot mount FUSE filesystems."
+    return 1
+  fi
+  if ! command -v fusermount3 &>/dev/null && ! command -v fusermount &>/dev/null; then
+    error "fusermount is not installed — ask an admin for the 'fuse3' package."
+    return 1
+  fi
+  success "FUSE is usable without sudo."
+
+  _hf_install_rclone || return 1
+
+  if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
+    info "Generating an SSH key for this host..."
+    ssh-keygen -t ed25519 -N "" -C "$(whoami)@$(hostname)" -f "$HOME/.ssh/id_ed25519" >/dev/null 2>&1
+    success "Key created at ~/.ssh/id_ed25519"
+  fi
+
+  # Rewrite only our [hf] stanza, leaving any other rclone remotes intact.
+  mkdir -p "$(dirname "$RCLONE_CONF")"
+  if [[ -f "$RCLONE_CONF" ]] && grep -q "^\[hf\]" "$RCLONE_CONF"; then
+    awk 'BEGIN{skip=0} /^\[hf\]$/{skip=1; next} /^\[/{skip=0} skip==0{print}' \
+      "$RCLONE_CONF" > "$RCLONE_CONF.tmp" && mv "$RCLONE_CONF.tmp" "$RCLONE_CONF"
+  fi
+  {
+    echo "[hf]"
+    echo "type = sftp"
+    echo "host = $HF_REMOTE_HOST"
+    echo "user = $HF_REMOTE_USER"
+    echo "key_file = ~/.ssh/id_ed25519"
+    echo "shell_type = unix"
+    echo "known_hosts_file = none"
+    echo "md5sum_command = md5sum"
+    echo "sha1sum_command = sha1sum"
+  } >> "$RCLONE_CONF"
+  success "rclone remote 'hf' configured for $HF_REMOTE_USER@$HF_REMOTE_HOST"
+
+  echo
+  info "Testing access to the cache host..."
+  if ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 \
+        "$HF_REMOTE_USER@$HF_REMOTE_HOST" "test -d '$HF_REMOTE_PATH'" 2>/dev/null; then
+    success "Reachable. Next: gputool hf-cache mount"
+  else
+    warn "Cannot log in to $HF_REMOTE_USER@$HF_REMOTE_HOST yet."
+    echo
+    echo "  Authorise this host once, from a machine that can already reach it:"
+    echo
+    echo -e "${CYAN}  ssh $HF_REMOTE_USER@$HF_REMOTE_HOST \"echo '$(cat "$HOME/.ssh/id_ed25519.pub")' >> ~/.ssh/authorized_keys\"${NC}"
+    echo
+    echo "  Then re-run: gputool hf-cache setup"
+    return 1
+  fi
+}
+
+_hf_mount() {
+  if [[ ! -x "$RCLONE_BIN" ]]; then
+    error "rclone not installed. Run: gputool hf-cache setup"
+    return 1
+  fi
+  if _hf_mounted; then
+    success "Already mounted at $HF_MOUNT"
+    return 0
+  fi
+  mkdir -p "$HF_MOUNT"
+  info "Mounting $HF_REMOTE_PATH from $HF_REMOTE_HOST ..."
+  # --vfs-cache-mode full keeps re-reads local; the cap bounds local disk use.
+  "$RCLONE_BIN" mount "hf:$HF_REMOTE_PATH" "$HF_MOUNT" \
+    --vfs-cache-mode full --vfs-cache-max-size "$HF_VFS_MAX" \
+    --dir-cache-time 24h --attr-timeout 1h \
+    --daemon --daemon-wait 30s 2>/dev/null
+  sleep 2
+  if _hf_mounted; then
+    success "Mounted at $HF_MOUNT"
+    echo "   This shell only    : export HF_HOME=$HF_MOUNT"
+    echo "   Every future shell : gputool hf-cache enable"
+  else
+    error "Mount failed. Verify setup with: gputool hf-cache setup"
+    return 1
+  fi
+}
+
+_hf_unmount() {
+  if ! _hf_mounted; then
+    info "Not mounted."
+    return 0
+  fi
+  fusermount3 -u "$HF_MOUNT" 2>/dev/null || fusermount -u "$HF_MOUNT" 2>/dev/null
+  sleep 1
+  if _hf_mounted; then
+    error "Could not unmount — a process is still using $HF_MOUNT"
+    return 1
+  fi
+  success "Unmounted $HF_MOUNT"
+}
+
+# Persist HF_HOME and a login auto-mount into .bashrc, inside removable markers.
+# Persist HF_HOME and a login auto-mount.
+#
+# The block is PREPENDED, not appended: Ubuntu's stock .bashrc returns early for
+# non-interactive shells, and batch jobs arrive as `ssh node 'python train.py'`,
+# which is non-interactive. Appending would leave HF_HOME unset for exactly the
+# case that matters most.
+_hf_enable() {
+  local rc="$HOME/.bashrc"
+  if grep -qF "$HF_RC_BEGIN" "$rc" 2>/dev/null; then
+    info "Already enabled in $rc"
+  else
+    local tmp; tmp=$(mktemp)
+    {
+      echo "$HF_RC_BEGIN"
+      echo "export HF_HOME=\"$HF_MOUNT\""
+      echo "# Mount on demand. The lock keeps parallel logins from racing."
+      echo "if [ -x \"\$HOME/.local/bin/gputool\" ] && ! mount 2>/dev/null | grep -q \" $HF_MOUNT \"; then"
+      echo "  mkdir -p \"\$HOME/.gputool\" 2>/dev/null"
+      echo "  if mkdir \"\$HOME/.gputool/hfmount.lock\" 2>/dev/null; then"
+      echo "    ( \"\$HOME/.local/bin/gputool\" hf-cache mount >/dev/null 2>&1"
+      echo "      rmdir \"\$HOME/.gputool/hfmount.lock\" 2>/dev/null ) &"
+      echo "  fi"
+      echo "fi"
+      echo "$HF_RC_END"
+      echo ""
+      [[ -f "$rc" ]] && cat "$rc"
+    } > "$tmp"
+    mv "$tmp" "$rc"
+    success "Enabled — HF_HOME=$HF_MOUNT in every shell, interactive or not."
+  fi
+  echo "   For the current shell: export HF_HOME=$HF_MOUNT"
+}
+
+_hf_disable() {
+  local rc="$HOME/.bashrc"
+  if ! grep -qF "$HF_RC_BEGIN" "$rc" 2>/dev/null; then
+    info "Not enabled."
+    return 0
+  fi
+  sed -i "\|$HF_RC_BEGIN|,\|$HF_RC_END|d" "$rc"
+  success "Removed the hf-cache block from $rc"
+  echo "   The mount itself is untouched — remove it with: gputool hf-cache unmount"
+}
+
+_hf_status() {
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}🤗 Shared HF cache — status${NC}"
+  echo "══════════════════════════════════════════════════"
+
+  if [[ -x "$RCLONE_BIN" ]]; then
+    _dev_ok "rclone" "$("$RCLONE_BIN" version | head -n1)"
+  else
+    _dev_bad "rclone" "not installed — run: gputool hf-cache setup"
+  fi
+  _dev_dim "Remote" "$HF_REMOTE_USER@$HF_REMOTE_HOST:$HF_REMOTE_PATH"
+
+  if ssh -o BatchMode=yes -o ConnectTimeout=6 "$HF_REMOTE_USER@$HF_REMOTE_HOST" true 2>/dev/null; then
+    _dev_ok "Reachable" "yes"
+  else
+    _dev_bad "Reachable" "no — run: gputool hf-cache setup"
+  fi
+
+  if _hf_mounted; then
+    _dev_ok  "Mount" "$HF_MOUNT"
+    _dev_dim "Capacity" "$(df -h "$HF_MOUNT" 2>/dev/null | awk 'NR==2{print $4" free of "$2}')"
+    _dev_dim "Shared models" "$(ls "$HF_MOUNT/hub" 2>/dev/null | grep -c '^models--') repos"
+  else
+    _dev_warn "Mount" "not mounted — run: gputool hf-cache mount"
+  fi
+
+  _dev_dim "Local VFS cache" "$(du -shx "$HOME/.cache/rclone" 2>/dev/null | cut -f1 || echo 0) used, cap $HF_VFS_MAX"
+
+  if [[ "${HF_HOME:-}" == "$HF_MOUNT" ]]; then
+    _dev_ok "HF_HOME" "$HF_HOME"
+  else
+    _dev_warn "HF_HOME" "${HF_HOME:-unset} — this shell is not using the shared cache"
+  fi
+
+  if grep -qF "$HF_RC_BEGIN" "$HOME/.bashrc" 2>/dev/null; then
+    _dev_ok "Persisted" "yes, via ~/.bashrc"
+  else
+    _dev_dim "Persisted" "no — enable with: gputool hf-cache enable"
+  fi
+  echo "══════════════════════════════════════════════════"
+}
+
+hf_cache() {
+  case "${1:-status}" in
+    setup)          _hf_setup ;;
+    mount)          _hf_mount ;;
+    unmount|umount) _hf_unmount ;;
+    enable)         _hf_enable ;;
+    disable)        _hf_disable ;;
+    status)         _hf_status ;;
+    *)
+      error "Unknown hf-cache subcommand: ${1:-}"
+      echo "Valid subcommands: setup, mount, unmount, enable, disable, status"
+      return 1
+      ;;
+  esac
+}
+
+# Show a complete device overview: GPU, driver health, disk, conda, gputool.
+# Read-only, no sudo, no network unless --online is passed. This is the first
+# command to run on an unfamiliar machine and the first check when a GPU job
+# fails for no obvious reason.
+device_check() {
+  local check_online=0
+  [[ "${1:-}" == "--online" || "${1:-}" == "-o" ]] && check_online=1
+
+  local issues=0
+
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}🖥️  Device Overview${NC}  ($(hostname))"
+  echo "══════════════════════════════════════════════════"
+
+  # ── Host ────────────────────────────────────────────────────────────────
+  _dev_section "Host"
+  local os_pretty="unknown"
+  [[ -r /etc/os-release ]] && os_pretty=$(. /etc/os-release; echo "$PRETTY_NAME")
+  _dev_dim "OS"        "$os_pretty"
+  _dev_dim "Kernel"    "$(uname -r)"
+  _dev_dim "Address"   "$(hostname -I 2>/dev/null | awk '{print $1}')"
+  _dev_dim "Uptime"    "$(uptime -p 2>/dev/null | sed 's/^up //')"
+  _dev_dim "CPU / RAM" "$(nproc) cores / $(free -g 2>/dev/null | awk '/^Mem:/{print $2}') GB"
+
+  # ── GPU ─────────────────────────────────────────────────────────────────
+  _dev_section "GPU"
+  if command -v nvidia-smi &>/dev/null && nvidia-smi -L &>/dev/null; then
+    local gname gdrv gcuda gmem gused gtemp gutil
+    gname=$(detect_gpu_name 2>/dev/null)
+    gdrv=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -n1)
+    gcuda=$(detect_driver_cuda_version 2>/dev/null)
+    gmem=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader 2>/dev/null | head -n1)
+    gused=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader 2>/dev/null | head -n1)
+    gtemp=$(nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader 2>/dev/null | head -n1)
+    gutil=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader 2>/dev/null | head -n1)
+    _dev_ok  "Adapter"      "$gname"
+    _dev_ok  "Driver"       "$gdrv  (CUDA $gcuda)"
+    _dev_dim "Memory"       "$gused used of $gmem"
+    _dev_dim "Load"         "${gutil:-n/a}  @  ${gtemp:-?}°C"
+    local capability; capability=$(detect_gpu_compute_cap 2>/dev/null)
+    [[ -n "$capability" ]] && _dev_dim "Compute cap" "sm_${capability//./}"
+
+    # Who is holding the GPU right now
+    local apps; apps=$(nvidia-smi --query-compute-apps=pid,used_memory --format=csv,noheader 2>/dev/null)
+    if [[ -n "$apps" ]]; then
+      _dev_warn "In use by" "$(echo "$apps" | wc -l) process(es) — run 'nvidia-smi' for detail"
+    else
+      _dev_dim "In use by" "nothing — GPU is idle"
+    fi
+  else
+    _dev_bad "Adapter" "nvidia-smi cannot reach the driver"
+    issues=$((issues+1))
+  fi
+
+  # ── Driver health ───────────────────────────────────────────────────────
+  # These four rows are what actually predict whether the GPU survives the
+  # next kernel upgrade. A node can look fine today and lose the driver on
+  # the next reboot if the module is prebuilt-only or gcc-12 is missing.
+  _dev_section "Driver health"
+  # WSL2 borrows the driver from the Windows host: there is no nvidia kernel
+  # module and no DKMS tree, so those two checks would be false alarms there.
+  if grep -qi microsoft /proc/version 2>/dev/null; then
+    _dev_dim "Kernel module" "n/a — WSL2 uses the Windows host driver"
+    _dev_dim "DKMS" "n/a — managed on the Windows side"
+  else
+    local nmods; nmods=$(lsmod 2>/dev/null | grep -c '^nvidia')
+    if (( nmods > 0 )); then
+      _dev_ok "Kernel module" "$nmods loaded"
+    else
+      _dev_bad "Kernel module" "not loaded — try: sudo modprobe nvidia"
+      issues=$((issues+1))
+    fi
+
+    local dkms_line; dkms_line=$(dkms status 2>/dev/null | grep -i nvidia | head -n1)
+    if [[ -n "$dkms_line" ]]; then
+      _dev_ok "DKMS" "$(echo "$dkms_line" | cut -c1-52)"
+    else
+      _dev_warn "DKMS" "no NVIDIA module registered — driver is prebuilt-only"
+      issues=$((issues+1))
+    fi
+  fi
+
+  local kgcc; kgcc=$(sed -nE 's/.*gcc-([0-9]+).*/\1/p' /proc/version 2>/dev/null | head -n1)
+  if [[ -n "$kgcc" ]]; then
+    if [[ -x "/usr/bin/gcc-$kgcc" ]]; then
+      _dev_ok "Build toolchain" "gcc-$kgcc present (kernel was built with it)"
+    else
+      _dev_bad "Build toolchain" "gcc-$kgcc MISSING — DKMS rebuilds will fail"
+      issues=$((issues+1))
+    fi
+  fi
+
+  local ncc; ncc=$(detect_nvcc_version 2>/dev/null)
+  [[ -n "$ncc" ]] && _dev_dim "nvcc toolkit" "$ncc" || _dev_dim "nvcc toolkit" "not installed (not required for PyTorch)"
+
+  # ── Storage ─────────────────────────────────────────────────────────────
+  _dev_section "Storage"
+  local avail_g total_s used_pct
+  avail_g=$(df --output=avail -BG / 2>/dev/null | tail -1 | tr -dc '0-9')
+  total_s=$(df -h / 2>/dev/null | awk 'NR==2{print $2}')
+  used_pct=$(df -h / 2>/dev/null | awk 'NR==2{print $5}')
+  if   (( avail_g < 15 )); then _dev_bad  "Root volume" "${avail_g}G free of $total_s ($used_pct used) — apt will fail"; issues=$((issues+1))
+  elif (( avail_g < 50 )); then _dev_warn "Root volume" "${avail_g}G free of $total_s ($used_pct used) — running low"
+  else                          _dev_ok   "Root volume" "${avail_g}G free of $total_s ($used_pct used)"
+  fi
+  _dev_dim "Home"  "$(du -shx "$HOME" 2>/dev/null | cut -f1) in $HOME"
+  _dev_dim "Caches" "$(du -shx "$HOME/.cache" 2>/dev/null | cut -f1 || echo 0) reclaimable in ~/.cache"
+
+  # ── Conda ───────────────────────────────────────────────────────────────
+  _dev_section "Conda"
+  local conda_root=""
+  for p in "$HOME/miniconda3" "$HOME/miniconda" "$HOME/anaconda3" "/opt/conda"; do
+    [[ -x "$p/bin/conda" ]] && { conda_root="$p"; break; }
+  done
+  if [[ -n "$conda_root" ]]; then
+    _dev_ok  "Install" "$("$conda_root/bin/conda" --version 2>/dev/null) at $conda_root"
+    local envs; envs=$(ls -1 "$conda_root/envs" 2>/dev/null)
+    if [[ -n "$envs" ]]; then
+      _dev_dim "Environments" "$(echo "$envs" | paste -sd, | sed 's/,/, /g')"
+    else
+      _dev_warn "Environments" "none created yet — run: gputool setup-env py312 3.12"
+    fi
+    [[ -n "${CONDA_DEFAULT_ENV:-}" ]] && _dev_dim "Active" "$CONDA_DEFAULT_ENV"
+  else
+    _dev_warn "Install" "not found — run: gputool install-conda"
+    issues=$((issues+1))
+  fi
+
+  # ── gputool ─────────────────────────────────────────────────────────────
+  _dev_section "gputool"
+  _dev_ok "Version" "$SCRIPT_VERSION"
+  if [[ -x "$SCRIPT_PATH" ]]; then
+    _dev_dim "Installed at" "$SCRIPT_PATH"
+  else
+    _dev_warn "Installed at" "not in ~/.local/bin — run: gputool install"
+  fi
+  if (( check_online )); then
+    local remote_ver
+    remote_ver=$(curl -fsSL --max-time 8 "$SCRIPT_URL" 2>/dev/null | sed -nE 's/^SCRIPT_VERSION="(.*)"/\1/p' | head -n1)
+    if [[ -z "$remote_ver" ]]; then
+      _dev_warn "Latest" "could not reach GitHub"
+    elif [[ "$remote_ver" == "$SCRIPT_VERSION" ]]; then
+      _dev_ok "Latest" "$remote_ver — up to date"
+    else
+      _dev_warn "Latest" "$remote_ver available — run: gputool update-script"
+    fi
+  fi
+
+  # ── Verdict ─────────────────────────────────────────────────────────────
+  echo
+  echo "══════════════════════════════════════════════════"
+  if (( issues == 0 )); then
+    success "Device is healthy — GPU, driver, storage and Conda all check out."
+  else
+    warn "$issues item(s) need attention — see the red and yellow rows above."
+  fi
+  echo "══════════════════════════════════════════════════"
+  return 0
+}
+
 # Run system diagnostic checks (GPU, Conda, PyTorch, Hugging Face, LeRobot, Tailscale)
 system_check() {
   local env_name="${1:-lerobot}"
@@ -1191,22 +1920,40 @@ setup_llamacpp() {
 
   # --- Ensure required build tools are present inside the conda env ---
   info "Checking build dependencies (cmake, ninja) in env '$env_name'..."
-  if ! ensure_conda_tool "$env_name" cmake "cmake" "cmake"; then
-    error "Cannot continue without cmake."
-    exit 1
+  # Resolve a cmake binary. Prefer the system one; only fall back to the conda
+  # env's copy, and then call it by absolute path so conda's compilers never
+  # get onto PATH ahead of the system toolchain (see the host-compiler note below).
+  local cmake_bin=""
+  [[ -x /usr/bin/cmake ]] && cmake_bin=/usr/bin/cmake
+  if [[ -z "$cmake_bin" ]]; then
+    if ! ensure_conda_tool "$env_name" cmake "cmake" "cmake"; then
+      error "Cannot continue without cmake."
+      exit 1
+    fi
+    cmake_bin=$(conda run -n "$env_name" bash -lc 'command -v cmake' 2>/dev/null | tr -d '\r' | tail -n1)
+    [[ -x "$cmake_bin" ]] || { error "cmake installed but could not be located."; exit 1; }
   fi
+  info "cmake          : $cmake_bin"
   # Ninja is optional but greatly speeds up the build; a failure is non-fatal.
-  local use_ninja=0
-  if ensure_conda_tool "$env_name" ninja "ninja"; then
-    use_ninja=1
-  else
+  # Because we now invoke cmake directly rather than through `conda run`, a ninja
+  # that lives only inside the conda env is not on PATH — so hand cmake its
+  # absolute path, or fall back to Make rather than failing to configure.
+  local use_ninja=0 ninja_bin=""
+  if [[ -x /usr/bin/ninja ]]; then
+    ninja_bin=/usr/bin/ninja; use_ninja=1
+  elif ensure_conda_tool "$env_name" ninja "ninja"; then
+    ninja_bin=$(conda run -n "$env_name" bash -lc 'command -v ninja' 2>/dev/null | tr -d '\r' | tail -n1)
+    [[ -x "$ninja_bin" ]] && use_ninja=1 || ninja_bin=""
+  fi
+  if (( use_ninja == 0 )); then
     warn "Proceeding without Ninja; will use the default Make generator."
   fi
 
-  # Configure build using cmake inside conda env
   local build_dir="$src_dir/build"
   local generator_args=()
-  [[ "$use_ninja" -eq 1 ]] && generator_args=(-G Ninja)
+  if (( use_ninja == 1 )); then
+    generator_args=(-G Ninja -DCMAKE_MAKE_PROGRAM="$ninja_bin")
+  fi
 
   # A pre-existing build dir created with a different generator makes cmake abort.
   # Wipe it if the cached generator no longer matches what we are about to use.
@@ -1220,30 +1967,89 @@ setup_llamacpp() {
     fi
   fi
 
+  # Pick host compilers explicitly.
+  #
+  # Conda ships its own gcc (11.2, built against an older glibc). Letting it lead
+  # the PATH works on Ubuntu 22.04 but fails on 24.04 with
+  #   undefined reference to `__libc_csu_fini'
+  # because that symbol was removed in glibc 2.34. So build with the SYSTEM
+  # compiler and pass it to cmake by absolute path. nvcc is also picky about host
+  # gcc versions, so prefer a known-good pair over whatever `cc` happens to be.
+  local host_cc="" host_cxx=""
+  local v
+  for v in 13 12 11; do
+    if [[ -x "/usr/bin/gcc-$v" && -x "/usr/bin/g++-$v" ]]; then
+      host_cc="/usr/bin/gcc-$v"; host_cxx="/usr/bin/g++-$v"; break
+    fi
+  done
+  if [[ -z "$host_cc" ]] && [[ -x /usr/bin/gcc && -x /usr/bin/g++ ]]; then
+    host_cc=/usr/bin/gcc; host_cxx=/usr/bin/g++
+  fi
+  local compiler_args=()
+  if [[ -n "$host_cc" ]]; then
+    compiler_args=(
+      -DCMAKE_C_COMPILER="$host_cc"
+      -DCMAKE_CXX_COMPILER="$host_cxx"
+      -DCMAKE_CUDA_HOST_COMPILER="$host_cc"
+    )
+    info "Host compiler  : $host_cc (system toolchain, not conda's)"
+  else
+    warn "No system gcc/g++ pair found; falling back to whatever cmake picks."
+  fi
+
+  # Build only for this machine's GPU. Compiling every architecture is slow and
+  # is what makes an unattended build look hung.
+  local cc_arch arch_args=()
+  cc_arch=$(detect_gpu_compute_cap 2>/dev/null | tr -d '.')
+  if [[ -n "$cc_arch" ]]; then
+    arch_args=(-DCMAKE_CUDA_ARCHITECTURES="$cc_arch")
+    info "CUDA arch      : sm_$cc_arch (this GPU only)"
+  fi
+
   info "Configuring build with CUDA support enabled${use_ninja:+ (Ninja generator)}..."
-  if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
+  if ! "$cmake_bin" -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
     -DCMAKE_BUILD_TYPE=Release \
     -DGGML_CUDA=ON \
     -DLLAMA_CURL=OFF \
-    -DCMAKE_CUDA_COMPILER="$nvcc_bin"; then
+    -DCMAKE_CUDA_COMPILER="$nvcc_bin" \
+    "${compiler_args[@]}" "${arch_args[@]}"; then
     warn "CMake configuration failed. Wiping build directory and retrying once..."
     rm -rf "$build_dir"
-    if ! conda run -n "$env_name" cmake -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
+    if ! "$cmake_bin" -S "$src_dir" -B "$build_dir" "${generator_args[@]}" \
       -DCMAKE_BUILD_TYPE=Release \
       -DGGML_CUDA=ON \
       -DLLAMA_CURL=OFF \
-      -DCMAKE_CUDA_COMPILER="$nvcc_bin"; then
+      -DCMAKE_CUDA_COMPILER="$nvcc_bin" \
+      "${compiler_args[@]}" "${arch_args[@]}"; then
       error "CMake configuration failed."
       exit 1
     fi
   fi
 
-  # Compile release target
-  info "Compiling llama.cpp Release binaries using all CPU cores..."
-  local num_jobs
-  num_jobs=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
-  if ! conda run -n "$env_name" cmake --build "$build_dir" --config Release -j"$num_jobs"; then
-    error "llama.cpp compilation failed."
+  # Compile release target.
+  #
+  # Parallelism is capped by AVAILABLE RAM, not core count. Each CUDA translation
+  # unit in ggml-cuda can take 2+ GB in nvcc; -j20 on a 30 GB node exhausts memory
+  # and the kernel OOM-killer picks sshd, taking the machine off the network with
+  # no way back short of a power cycle. Budget ~4 GB of headroom per job.
+  local num_jobs cores avail_gb mem_jobs
+  cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+  avail_gb=$(free -g 2>/dev/null | awk '/^Mem:/{print $7}')
+  [[ -z "$avail_gb" || "$avail_gb" -lt 1 ]] && avail_gb=4
+  mem_jobs=$(( avail_gb / 4 ))
+  (( mem_jobs < 2 )) && mem_jobs=2
+  if (( cores < mem_jobs )); then num_jobs=$cores; else num_jobs=$mem_jobs; fi
+  info "Compiling llama.cpp with -j$num_jobs (${cores} cores, ${avail_gb} GB RAM free)"
+  # Keep a full log and surface the real compiler error on failure. Piping to tee
+  # makes $? the exit status of tee, so the build result has to come from
+  # PIPESTATUS or a failed build reads as a successful one.
+  local build_log="$build_dir/gputool-build.log"
+  "$cmake_bin" --build "$build_dir" --config Release -j"$num_jobs" 2>&1 | tee "$build_log"
+  if (( ${PIPESTATUS[0]} != 0 )); then
+    error "llama.cpp compilation failed. First errors from the build:"
+    grep -iE "error:|undefined reference|No such file or directory|unsupported" "$build_log" \
+      | head -n 12 | cut -c1-160 | sed 's/^/   /'
+    echo "   Full log: $build_log"
     exit 1
   fi
 
@@ -1381,7 +2187,14 @@ serve_llamacpp() {
   local host="0.0.0.0"   # bind all interfaces by default so peers on the LAN can reach it
   local api_key="${GPUTOOL_LLAMA_API_KEY:-}"   # optional bearer token; env var provides a default
   local mmproj=""        # multimodal projector path; "" = auto-detect, "none" = disable
-  local ctx_size="32768" # context window (tuned for RTX 5080 16GB; override with --ctx-size)
+  detect_gpu_profile
+  local ctx_size="$PROF_CTX"   # from the GPU profile; override with --ctx-size
+  # Multi-token prediction. An MTP-enabled GGUF drafts several tokens per step and
+  # verifies them in one pass, worth ~1.6x on decode. llama.cpp does not support
+  # MTP together with parallel slots, so --mtp forces -np 1: fast for one user,
+  # useless for a shared node. Off unless asked for.
+  local spec_type="none"
+  local spec_n="6"
   local positional=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -1396,6 +2209,11 @@ serve_llamacpp() {
       --no-mmproj) mmproj="none" ;;
       --ctx-size|-c) ctx_size="${2:-32768}"; shift ;;
       --ctx-size=*) ctx_size="${1#*=}" ;;
+      --mtp) spec_type="draft-mtp" ;;
+      --spec-type) spec_type="${2:-none}"; shift ;;
+      --spec-type=*) spec_type="${1#*=}" ;;
+      --spec-n) spec_n="${2:-6}"; shift ;;
+      --spec-n=*) spec_n="${1#*=}" ;;
       *) positional+=("$1") ;;
     esac
     shift
@@ -1502,6 +2320,13 @@ serve_llamacpp() {
       )
       info "Context size  : $ctx_size  (flash-attn on, KV cache q8_0)"
 
+      # MTP cannot coexist with parallel slots, so pin -np 1 when it is enabled.
+      local spec_args=()
+      if [[ "$spec_type" != "none" ]]; then
+        spec_args=(--spec-type "$spec_type" --spec-draft-n-max "$spec_n" -np 1)
+        info "Speculative   : $spec_type, draft n_max=$spec_n (-np 1 forced; no batching)"
+      fi
+
       # Resolve a friendly URL host for display (0.0.0.0 isn't dialable directly).
       local url_host="$host"
       if [[ "$host" == "0.0.0.0" ]]; then
@@ -1524,6 +2349,7 @@ serve_llamacpp() {
           --port "$port" \
           -ngl 99 \
           "${perf_args[@]}" \
+          "${spec_args[@]}" \
           "${mmproj_args[@]}" \
           "${auth_args[@]}"
       fi
@@ -1536,6 +2362,7 @@ serve_llamacpp() {
         --port "$port" \
         -ngl 99 \
         "${perf_args[@]}" \
+        "${spec_args[@]}" \
         "${mmproj_args[@]}" \
         "${auth_args[@]}" \
         > "$log_file" 2>&1 &
@@ -1675,7 +2502,335 @@ serve_llamacpp() {
 # colored terminal UI. The actual client lives in chat.py (fetched to
 # ~/.gputool/chat.py by `gputool install` / `gputool update`); if it is missing
 # we download it on demand so the command is self-healing.
+# ── vLLM serving ──────────────────────────────────────────────────────────
+# vLLM serves an OpenAI-compatible API with continuous batching, which is what
+# you want when several students hit one GPU at once. llama.cpp (above) is the
+# better choice for a quantized model on a small card; vLLM is the better choice
+# for full-precision weights and concurrent requests.
+VLLM_DEFAULT_MODEL="${VLLM_DEFAULT_MODEL:-Qwen/Qwen3.5-4B}"
+VLLM_DEFAULT_PORT="${VLLM_DEFAULT_PORT:-8000}"
+VLLM_DEFAULT_ENV="${VLLM_DEFAULT_ENV:-py312}"
+
+# Resolve the python interpreter of a conda env, echoing its path.
+_vllm_python() {
+  local env_name="${1:-$VLLM_DEFAULT_ENV}" root
+  for root in "$HOME/miniconda3" "$HOME/miniconda" "$HOME/anaconda3" "/opt/conda"; do
+    if [[ -x "$root/envs/$env_name/bin/python" ]]; then
+      echo "$root/envs/$env_name/bin/python"; return 0
+    fi
+  done
+  return 1
+}
+
+# Install vLLM into a conda env. vLLM pins its own torch build, so let pip
+# resolve it rather than forcing the wheel index used elsewhere.
+setup_vllm() {
+  local env_name="${1:-$VLLM_DEFAULT_ENV}"
+  echo "══════════════════════════════════════════════════"
+  echo -e "${BOLD}⚡ vLLM setup — env '$env_name'${NC}"
+  echo "══════════════════════════════════════════════════"
+
+  local py
+  if ! py=$(_vllm_python "$env_name"); then
+    error "Conda env '$env_name' not found. Create it first:"
+    echo "   gputool setup-env $env_name 3.12"
+    return 1
+  fi
+  info "Using $py"
+
+  local have
+  have=$("$py" -c "import vllm; print(vllm.__version__)" 2>/dev/null)
+  if [[ -n "$have" ]]; then
+    success "vLLM $have already installed."
+
+    "$py" -m pip install -q ninja >/dev/null 2>&1
+  else
+    info "Installing vLLM (large download; pins its own torch build)..."
+    "$py" -m pip install --upgrade pip >/dev/null 2>&1
+    # flashinfer JIT-compiles attention kernels at runtime and shells out to ninja.
+
+    if "$py" -m pip install vllm ninja; then
+      have=$("$py" -c "import vllm; print(vllm.__version__)" 2>/dev/null)
+      success "Installed vLLM $have"
+    else
+      error "vLLM install failed. See the pip output above."
+      return 1
+    fi
+  fi
+
+  # A Blackwell card needs a CUDA 12.8+ torch build; warn early rather than at load.
+  "$py" - <<'PYCHK'
+import torch
+cc = torch.cuda.get_device_capability(0) if torch.cuda.is_available() else None
+print(f"   torch {torch.__version__} | cuda={torch.cuda.is_available()} | sm_{cc[0]}{cc[1]}" if cc else "   no GPU visible")
+PYCHK
+  echo
+  success "Ready. Serve with: gputool serve-vllm start"
+}
+
+# Put the conda env's bin and the CUDA toolkit on PATH for the server process.
+# vLLM's flashinfer backend JIT-compiles attention kernels on first run: it shells
+# out to `ninja` (installed into the env's bin, not the caller's PATH) and to
+# `nvcc` (under /usr/local/cuda, which is not on PATH on these hosts). Without
+# both, the engine dies at startup with FileNotFoundError and no useful message.
+_vllm_prepare_env() {
+  local py="$1"
+  local env_bin; env_bin="$(dirname "$py")"
+  local cuda_home=""
+  for c in /usr/local/cuda /usr/local/cuda-13 /usr/local/cuda-12; do
+    [[ -x "$c/bin/nvcc" ]] && { cuda_home="$c"; break; }
+  done
+  export PATH="$env_bin${cuda_home:+:$cuda_home/bin}:${PATH:-}"
+  # flashinfer JIT-compiles one job per core by default. On a 20-core node with
+  # 30 GB RAM that peaks near 27 GB during a first load and can OOM-kill sshd,
+  # taking the whole machine off the network. Cap it unless the caller overrode it.
+  export MAX_JOBS="${MAX_JOBS:-4}"
+  export NVCC_THREADS="${NVCC_THREADS:-1}"
+  [[ -n "$cuda_home" ]] && export CUDA_HOME="$cuda_home"
+  if ! command -v ninja &>/dev/null; then
+    warn "ninja not found — flashinfer cannot build kernels. Run: gputool setup-vllm"
+  fi
+  [[ -z "$cuda_home" ]] && warn "No CUDA toolkit found; flashinfer JIT may fail."
+  return 0
+}
+
+serve_vllm() {
+  local action="${1:-status}"
+  shift 2>/dev/null || true
+
+  local run_mode="background"
+  local host="0.0.0.0"
+  local api_key="${GPUTOOL_VLLM_API_KEY:-}"
+  local env_name="$VLLM_DEFAULT_ENV"
+  # Measured on an RTX 5080 (16 GB) with Qwen3.5-4B: at these values the engine
+  # reports 3.68 GiB of KV cache, 98,304 tokens, 12x concurrency. Raising max_len
+  # or max_seqs OOMs during CUDA-graph profiling, because this model is multimodal
+  # and the vision tower plus mm-encoder cache eat into the same budget.
+  # Defaults come from the GPU profile, so a 5080, a 4090 and a Jetson each get
+  # values that actually fit. Explicit flags still win.
+  detect_gpu_profile
+  local max_len="$PROF_MAX_LEN"
+  local gpu_mem="$PROF_GPU_MEM"
+  local max_seqs="$PROF_MAX_SEQS"
+  local extra=()
+  local positional=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -f|--foreground) run_mode="foreground" ;;
+      -d|--background) run_mode="background" ;;
+      --host) host="${2:-0.0.0.0}"; shift ;;
+      --host=*) host="${1#*=}" ;;
+      --api-key) api_key="${2:-}"; shift ;;
+      --api-key=*) api_key="${1#*=}" ;;
+      --env) env_name="${2:-$VLLM_DEFAULT_ENV}"; shift ;;
+      --env=*) env_name="${1#*=}" ;;
+      --max-len) max_len="${2:-8192}"; shift ;;
+      --max-len=*) max_len="${1#*=}" ;;
+      --gpu-mem) gpu_mem="${2:-0.92}"; shift ;;
+      --gpu-mem=*) gpu_mem="${1#*=}" ;;
+      --max-seqs) max_seqs="${2:-16}"; shift ;;
+      --max-seqs=*) max_seqs="${1#*=}" ;;
+      --) shift; extra+=("$@"); break ;;
+      *) positional+=("$1") ;;
+    esac
+    shift
+  done
+  local model="${positional[0]:-$VLLM_DEFAULT_MODEL}"
+  local port="${positional[1]:-$VLLM_DEFAULT_PORT}"
+
+  local pid_file="$GPUTOOL_DIR/vllm-server.pid"
+  local log_file="$GPUTOOL_DIR/vllm-server.log"
+  mkdir -p "$GPUTOOL_DIR"
+
+  local url_host="$host"
+  if [[ "$host" == "0.0.0.0" ]]; then
+    url_host=$(hostname -I 2>/dev/null | awk '{print $1}')
+    [[ -z "$url_host" ]] && url_host="localhost"
+  fi
+
+  case "$action" in
+    start)
+      echo "══════════════════════════════════════════════════"
+      echo -e "${BOLD}⚡ Starting vLLM server${NC}"
+      echo "══════════════════════════════════════════════════"
+
+      if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file" 2>/dev/null)" 2>/dev/null; then
+        warn "A vLLM server is already running (PID $(cat "$pid_file"))."
+        echo "   Stop it first: gputool serve-vllm stop"
+        return 1
+      fi
+
+      local py
+      if ! py=$(_vllm_python "$env_name"); then
+        error "Conda env '$env_name' not found. Run: gputool setup-vllm $env_name"
+        return 1
+      fi
+      if ! "$py" -c "import vllm" 2>/dev/null; then
+        error "vLLM is not installed in '$env_name'. Run: gputool setup-vllm $env_name"
+        return 1
+      fi
+
+      _vllm_prepare_env "$py"
+
+
+      info "Model         : $model"
+      info "Env           : $env_name"
+      info "Bind host     : $host"
+      info "Port          : $port"
+      info "Max model len : $max_len"
+      info "GPU mem util  : $gpu_mem"
+      info "Max sequences : $max_seqs"
+      if [[ -n "${HF_HOME:-}" ]]; then
+        info "HF_HOME       : $HF_HOME"
+      fi
+      if [[ -n "$api_key" ]]; then
+        info "API key auth  : enabled"
+      else
+        info "API key auth  : disabled (open access)"
+      fi
+
+      local auth_args=()
+      [[ -n "$api_key" ]] && auth_args=(--api-key "$api_key")
+
+      local serve_args=(
+        -m vllm.entrypoints.openai.api_server
+        --model "$model"
+        --host "$host"
+        --port "$port"
+        --max-model-len "$max_len"
+        --gpu-memory-utilization "$gpu_mem"
+        --max-num-seqs "$max_seqs"
+      )
+
+      if [[ "$run_mode" == "foreground" ]]; then
+        info "Starting in FOREGROUND (Ctrl+C to stop)."
+        echo "   🔗 API Base URL: http://$url_host:$port/v1"
+        echo "══════════════════════════════════════════════════"
+        exec "$py" "${serve_args[@]}" "${auth_args[@]}" "${extra[@]}"
+      fi
+
+      info "Logging to    : $log_file"
+      nohup "$py" "${serve_args[@]}" "${auth_args[@]}" "${extra[@]}" > "$log_file" 2>&1 &
+      local server_pid=$!
+      echo "$server_pid" > "$pid_file"
+
+      # First start downloads weights, so allow a generous window before giving up.
+      info "Loading weights — first run downloads the model, which can take a while."
+      local waited=0 limit=900
+      while (( waited < limit )); do
+        if ! kill -0 "$server_pid" 2>/dev/null; then
+          error "Server exited during startup. Last lines of $log_file:"
+          tail -n 15 "$log_file"
+          rm -f "$pid_file"
+          return 1
+        fi
+        if grep -qiE "Application startup complete|Uvicorn running on" "$log_file" 2>/dev/null; then
+          echo
+          success "vLLM is serving (PID $server_pid) after ${waited}s."
+          echo "   🔗 API Base URL : http://$url_host:$port/v1"
+          echo "   📋 Models       : curl http://$url_host:$port/v1/models"
+          echo "   📜 Logs         : tail -f $log_file"
+          echo "   🛑 Stop         : gputool serve-vllm stop"
+          return 0
+        fi
+        sleep 5
+        waited=$((waited+5))
+        printf "."
+      done
+      echo
+      warn "Still not ready after ${limit}s — it may still be downloading."
+      echo "   Watch progress: tail -f $log_file"
+      return 0
+      ;;
+
+    stop)
+      echo "══════════════════════════════════════════════════"
+      echo -e "${BOLD}🛑 Stopping vLLM server${NC}"
+      echo "══════════════════════════════════════════════════"
+      local stopped=0
+      if [[ -f "$pid_file" ]]; then
+        local pid; pid=$(cat "$pid_file" 2>/dev/null)
+        if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+          kill "$pid" 2>/dev/null
+          local w=0
+          while kill -0 "$pid" 2>/dev/null && (( w < 30 )); do sleep 1; w=$((w+1)); done
+          kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null
+          success "Stopped tracked server (PID $pid)."
+          stopped=1
+        fi
+        rm -f "$pid_file"
+      fi
+      # vLLM spawns worker processes; sweep any strays so the GPU is really freed.
+      local strays
+      # vLLM spawns worker processes named VLLM::EngineCore which do NOT match the
+      # entrypoint pattern. Missing them leaves the GPU fully allocated after a
+      # "successful" stop, and the next start then fails on memory. Sweep both.
+      strays=$(pgrep -u "$(whoami)" -f "vllm\.entrypoints\.openai\.api_server|VLLM::" 2>/dev/null | tr '\n' ' ')
+      if [[ -n "${strays// /}" ]]; then
+        info "Cleaning up stray vLLM processes: $strays"
+        # shellcheck disable=SC2086
+        kill $strays 2>/dev/null; sleep 3
+        # shellcheck disable=SC2086
+        kill -9 $strays 2>/dev/null
+        stopped=1
+      fi
+      (( stopped == 1 )) && success "vLLM stopped." || info "No vLLM server was running."
+      ;;
+
+    status)
+      echo "══════════════════════════════════════════════════"
+      echo -e "${BOLD}⚡ vLLM server status${NC}"
+      echo "══════════════════════════════════════════════════"
+      local running=0 pid=""
+      if [[ -f "$pid_file" ]]; then
+        pid=$(cat "$pid_file" 2>/dev/null)
+        kill -0 "$pid" 2>/dev/null && running=1
+      fi
+      if (( running == 1 )); then
+        _dev_ok "Process" "running (PID $pid)"
+      else
+        _dev_warn "Process" "not running"
+        [[ -f "$pid_file" ]] && rm -f "$pid_file"
+      fi
+      _dev_dim "Endpoint" "http://$url_host:$port/v1"
+
+      # Probe the API. curl is absent on some of these hosts, so fall back to wget.
+      local models=""
+      if command -v curl &>/dev/null; then
+        models=$(curl -fsS --max-time 5 "http://127.0.0.1:$port/v1/models" 2>/dev/null)
+      elif command -v wget &>/dev/null; then
+        models=$(wget -qO- --timeout=5 "http://127.0.0.1:$port/v1/models" 2>/dev/null)
+      fi
+      if [[ -n "$models" ]]; then
+        local served
+        served=$(echo "$models" | tr ',' '\n' | grep -oE '"id"[[:space:]]*:[[:space:]]*"[^"]+"' | head -n1 | cut -d'"' -f4)
+        _dev_ok "API" "responding — serving ${served:-unknown}"
+      else
+        _dev_warn "API" "no response on port $port"
+      fi
+
+      if command -v nvidia-smi &>/dev/null; then
+        _dev_dim "GPU memory" "$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader 2>/dev/null | head -n1)"
+      fi
+      [[ -f "$log_file" ]] && _dev_dim "Log" "$log_file ($(wc -l < "$log_file") lines)"
+      echo "══════════════════════════════════════════════════"
+      ;;
+
+    *)
+      error "Unknown serve-vllm action: $action"
+      echo "Usage: gputool serve-vllm <start|stop|status> [model] [port] [flags]"
+      return 1
+      ;;
+  esac
+}
+
 chat_llamacpp() {
+  # Prefer the pip-installed console script when present; the downloaded
+  # single-file client stays as the fallback for nodes without the package.
+  local ai_chat; ai_chat=$(_ai_script gputool-chat 2>/dev/null || echo "")
+  if [[ -n "$ai_chat" ]]; then
+    exec "$ai_chat" "$@"
+  fi
   if [[ ! -f "$CHAT_PY_PATH" ]]; then
     info "Chat client not found locally; downloading it now..."
     if ! download_chat_py; then
@@ -1726,6 +2881,25 @@ case "$CMD" in
     shift
     install_conda "${1:-}"
     ;;
+  hf-cache|hf)
+    shift
+    hf_cache "${1:-status}"
+    ;;
+  device|info)
+    shift
+    device_check "${1:-}"
+    ;;
+  profile)
+    show_gpu_profile
+    ;;
+  install-ai)
+    shift
+    install_ai "${1:-all}"
+    ;;
+  agent)
+    shift
+    agent_backend "${1:-status}" "${@:2}"
+    ;;
   check|system-check)
     shift
     system_check "${1:-}"
@@ -1738,7 +2912,15 @@ case "$CMD" in
     shift
     download_model "${1:-}" "${2:-}" "${3:-}"
     ;;
-  serve-llamacpp)
+  setup-vllm)
+    shift
+    setup_vllm "${1:-}"
+    ;;
+  vllm|serve-vllm)
+    shift
+    serve_vllm "$@"
+    ;;
+  llama|serve-llamacpp)
     shift
     serve_llamacpp "$@"
     ;;

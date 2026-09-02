@@ -1,0 +1,374 @@
+<title>Rebuilding a CMPE 288 Node</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:#F5F7F6; --surface:#FFFFFF; --sunken:#ECF0EF;
+    --ink:#141D1B; --ink-soft:#3B4A47; --muted:#64736F;
+    --line:#DCE3E1; --line-firm:#C3CECB;
+    --accent:#1B6B62; --accent-dim:#DDEAE7;
+    --ok:#2C6B4E; --ok-bg:#DFEDE5;
+    --warn:#97621B; --warn-bg:#F4E7D3;
+    --crit:#9E3A2B; --crit-bg:#F6DFDB;
+    --code-bg:#10201D; --code-ink:#D7E4E1;
+    --f-display:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+    --f-body:"IBM Plex Serif",ui-serif,Georgia,serif;
+    --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --measure:68ch; --pad:clamp(1.1rem,4vw,2.75rem);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0D1413; --surface:#141D1B; --sunken:#1A2523;
+      --ink:#E3EBE9; --ink-soft:#BFCCC9; --muted:#8B9B97;
+      --line:#253230; --line-firm:#33433F;
+      --accent:#55B5A7; --accent-dim:#1B2E2B;
+      --ok:#62B487; --ok-bg:#17301F;
+      --warn:#D6A257; --warn-bg:#33260F;
+      --crit:#DE7A68; --crit-bg:#351A16;
+      --code-bg:#08100F; --code-ink:#C7D6D3;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0D1413; --surface:#141D1B; --sunken:#1A2523;
+    --ink:#E3EBE9; --ink-soft:#BFCCC9; --muted:#8B9B97;
+    --line:#253230; --line-firm:#33433F;
+    --accent:#55B5A7; --accent-dim:#1B2E2B;
+    --ok:#62B487; --ok-bg:#17301F;
+    --warn:#D6A257; --warn-bg:#33260F;
+    --crit:#DE7A68; --crit-bg:#351A16;
+    --code-bg:#08100F; --code-ink:#C7D6D3;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-body);
+       font-size:1.0625rem;line-height:1.68;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 var(--pad) 6rem}
+  .mast{padding:clamp(2.5rem,7vw,4.5rem) 0 2rem;border-bottom:2px solid var(--ink);
+        display:flex;flex-direction:column;gap:1.1rem}
+  .eyebrow{font-family:var(--f-mono);font-size:.72rem;font-weight:500;letter-spacing:.16em;
+           text-transform:uppercase;color:var(--accent);display:flex;flex-wrap:wrap;gap:.5rem 1.1rem}
+  .eyebrow .sep{color:var(--line-firm)}
+  h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2.1rem,6vw,3.2rem);
+     line-height:1.05;letter-spacing:-.022em;margin:0;text-wrap:balance}
+  .standfirst{font-size:clamp(1.05rem,2.2vw,1.2rem);color:var(--ink-soft);max-width:var(--measure);margin:0}
+  .standfirst em{color:var(--accent);font-style:italic}
+  section{margin-top:clamp(2.75rem,7vw,4rem)}
+  h2{font-family:var(--f-display);font-weight:600;font-size:clamp(1.35rem,3.2vw,1.75rem);
+     letter-spacing:-.015em;line-height:1.2;margin:0 0 .5rem;display:flex;align-items:baseline;gap:.7rem;text-wrap:balance}
+  h2 .num{font-family:var(--f-mono);font-size:.78rem;font-weight:500;color:var(--accent);
+          letter-spacing:.1em;border:1px solid var(--accent);border-radius:2px;padding:.12rem .38rem;
+          flex:none;position:relative;top:-.22rem}
+  h3{font-family:var(--f-display);font-weight:600;font-size:1.04rem;margin:1.9rem 0 .5rem}
+  p{max-width:var(--measure);margin:0 0 1rem}
+  .lede{color:var(--ink-soft);max-width:var(--measure)}
+  ul,ol{max-width:var(--measure);padding-left:1.15rem;margin:0 0 1rem}
+  li{margin-bottom:.5rem} li::marker{color:var(--accent)}
+  code{font-family:var(--f-mono);font-size:.875em;background:var(--sunken);color:var(--ink);
+       padding:.1em .34em;border-radius:2px;border:1px solid var(--line)}
+  pre{background:var(--code-bg);color:var(--code-ink);font-family:var(--f-mono);font-size:.8rem;
+      line-height:1.62;padding:1rem 1.1rem;margin:1rem 0;overflow-x:auto;border-radius:3px;
+      border:1px solid var(--line-firm)}
+  pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+  pre .c{color:#7E958F} pre .k{color:#6FC4B4}
+  .scroll{overflow-x:auto;margin:1.25rem 0 1rem;border:1px solid var(--line);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;font-family:var(--f-mono);font-size:.82rem}
+  th,td{text-align:left;padding:.6rem .8rem;border-bottom:1px solid var(--line);white-space:nowrap;
+        font-variant-numeric:tabular-nums}
+  thead th{background:var(--sunken);font-weight:600;font-size:.7rem;letter-spacing:.09em;
+           text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line-firm)}
+  tbody tr:last-child td{border-bottom:none}
+  td.k{font-weight:600;color:var(--ink)}
+  .pill{display:inline-block;padding:.1rem .45rem;font-size:.7rem;font-weight:500;
+        letter-spacing:.04em;border-radius:2px;text-transform:uppercase}
+  .pill.ok{background:var(--ok-bg);color:var(--ok)}
+  .pill.warn{background:var(--warn-bg);color:var(--warn)}
+  .pill.crit{background:var(--crit-bg);color:var(--crit)}
+  .note{border-left:3px solid var(--accent);background:var(--accent-dim);padding:.9rem 1.1rem;
+        margin:1.25rem 0;max-width:var(--measure)}
+  .note p:last-child{margin-bottom:0}
+  .note .tag{font-family:var(--f-mono);font-size:.68rem;font-weight:600;letter-spacing:.12em;
+             text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.3rem}
+  .note.alarm{border-left-color:var(--crit);background:var(--crit-bg)}
+  .note.alarm .tag{color:var(--crit)}
+  .step{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);
+        padding:1rem 1.2rem;margin:1rem 0}
+  .step-head{font-family:var(--f-display);font-weight:600;font-size:1rem;margin-bottom:.4rem}
+  .step p{font-size:.96rem}
+  footer{margin-top:4rem;padding-top:1.4rem;border-top:1px solid var(--line);
+         font-family:var(--f-mono);font-size:.74rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:.4rem 1.2rem}
+  @media (max-width:620px){ h2{flex-direction:row} }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="eyebrow">
+      <span>SJSU CMPE 288</span><span class="sep">/</span>
+      <span>RTX 5080 bench</span><span class="sep">/</span>
+      <span>Verified on 288-01, 29 Aug 2026</span>
+    </div>
+    <h1>Rebuilding a CMPE 288 Node</h1>
+    <p class="standfirst">
+      What to install after IT reimages a bench machine, in the order that matters.
+      Every version below was read off <em>node 01 as it stands now</em>, not from
+      documentation &mdash; and the ordering exists because getting it wrong has already
+      cost this fleet three broken nodes and one power cycle.
+    </p>
+  </header>
+
+  <section>
+    <h2><span class="num">00</span> What a fresh image looks like</h2>
+    <p class="lede">Surveyed on 288-01 after the rebuild. A reimaged node arrives like this:</p>
+    <div class="scroll">
+      <table>
+        <tbody>
+          <tr><td class="k">OS</td><td>Ubuntu 22.04.5 LTS, kernel 6.8.0-138-generic</td></tr>
+          <tr><td class="k">GPU</td><td>NVIDIA <code>10de:2c02</code> (RTX 5080) + Intel iGPU</td></tr>
+          <tr><td class="k">NVIDIA driver</td><td><span class="pill crit">absent</span> — <code>nvidia-smi</code> missing, 0 modules loaded</td></tr>
+          <tr><td class="k">nouveau</td><td><span class="pill warn">11 modules loaded</span> — currently driving the card</td></tr>
+          <tr><td class="k">Docker</td><td><span class="pill crit">absent</span></td></tr>
+          <tr><td class="k">gcc-12</td><td><span class="pill crit">absent</span> — the one that breaks DKMS</td></tr>
+          <tr><td class="k">dkms / cmake / curl</td><td><span class="pill crit">absent</span></td></tr>
+          <tr><td class="k">Kernel headers</td><td><span class="pill ok">present</span> for 6.8.0-138</td></tr>
+          <tr><td class="k">Secure Boot</td><td><span class="pill ok">disabled</span> — no MOK enrolment needed</td></tr>
+          <tr><td class="k">Hardware</td><td>20 cores, 30 GB RAM, 2 GB swap, 336 GB free</td></tr>
+          <tr><td class="k">SSH keys</td><td>wiped for <em>every</em> account, host keys regenerated</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Everything below runs as <code>cmpeadmin</code>, which needs a password for
+      <code>sudo</code> &mdash; so this is a console or interactive-SSH job, not something
+      to automate over a batch connection.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="num">01</span> The NVIDIA driver</h2>
+    <p class="lede">
+      Ubuntu's own recommendation and the fleet standard agree, which makes this easy:
+      <code>ubuntu-drivers devices</code> on 288-01 marks
+      <strong>nvidia-driver-595-open</strong> as <em>recommended</em>, and that is the
+      595.84 the other six nodes already run.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Package</th><th>Version available</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="k">nvidia-driver-595-open</td><td>595.84-0ubuntu0.22.04.1</td><td>Ubuntu-recommended; matches nodes 02, 06, 07</td></tr>
+          <tr><td class="k">nvidia-dkms-595-open</td><td>595.84-0ubuntu0.22.04.1</td><td>Rebuilds the module for any future kernel</td></tr>
+          <tr><td class="k">gcc-12</td><td>12.3.0-1ubuntu1~22.04.3</td><td><strong>Install first</strong> — see below</td></tr>
+          <tr><td class="k">dkms</td><td>2.8.7-2ubuntu2.2</td><td>Pulled in anyway; listed for clarity</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <code>nvidia-driver-610-open</code> is also offered. Do not take it: parity across the
+      bench is worth more than a newer point release, and 595.84 is the version every other
+      measurement in the runbook was taken on.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">Install gcc-12 before the driver, not after</span>
+      <p>
+        Kernel 6.8.0 is built with <strong>gcc-12</strong>, and its build flags include
+        <code>-ftrivial-auto-var-init=zero</code>, which gcc-11 does not recognise. If
+        gcc-12 is missing when the DKMS trigger fires, the module build fails, dpkg is
+        left half-configured, and you get a machine whose <code>nvidia-smi</code> cannot
+        reach a driver. That is exactly what happened to nodes 01, 05 and 07 &mdash;
+        presence of gcc-12 predicted GPU health on all seven, with no exceptions.
+      </p>
+      <p>
+        The system default <code>gcc</code> does <em>not</em> need to be 12. Nodes 02 and 04
+        default to gcc-11 and build fine, because DKMS selects the kernel's compiler when it
+        is installed. What matters is only that <code>/usr/bin/gcc-12</code> exists.
+      </p>
+    </div>
+
+    <div class="step">
+      <div class="step-head">1 &middot; Toolchain first</div>
+<pre><code>sudo apt update
+sudo apt install -y gcc-12 dkms build-essential curl cmake \
+                    linux-headers-$(uname -r)</code></pre>
+    </div>
+
+    <div class="step">
+      <div class="step-head">2 &middot; Driver, both delivery paths</div>
+      <p>
+        Ubuntu ships the module two ways and a node is healthy when <em>either</em> lands one
+        in the kernel you booted. Installing both means a kernel upgrade cannot strand you.
+      </p>
+<pre><code>sudo apt install -y nvidia-driver-595-open nvidia-dkms-595-open \
+                    linux-modules-nvidia-595-open-generic-hwe-22.04</code></pre>
+      <p>
+        This also blacklists nouveau, which is currently driving the card &mdash; that is
+        why a reboot is required rather than optional.
+      </p>
+    </div>
+
+    <div class="step">
+      <div class="step-head">3 &middot; Confirm the build succeeded, then reboot</div>
+<pre><code>dkms status                 <span class="c"># expect: nvidia/595.84, 6.8.0-138-generic: installed</span>
+sudo reboot</code></pre>
+      <p>
+        Check <code>dkms status</code> <em>before</em> rebooting. If it is empty the build
+        failed, and rebooting only turns a fixable error into a machine with no display
+        driver.
+      </p>
+    </div>
+
+    <div class="step">
+      <div class="step-head">4 &middot; Verify after reboot</div>
+<pre><code>nvidia-smi                                  <span class="c"># RTX 5080, 595.84</span>
+lsmod | grep -c '^nvidia'                   <span class="c"># expect 4</span>
+lsmod | grep -c nouveau                     <span class="c"># expect 0</span></code></pre>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> Docker and GPU containers</h2>
+    <p class="lede">
+      Worth doing while you have root. Docker's absence is the only reason Terminal-Bench
+      and other container work run on the 4090 instead of the bench.
+    </p>
+
+    <p>
+      <code>docker-ce</code> is not reachable &mdash; no Docker repo is configured on the
+      fresh image. <code>docker.io</code> <strong>29.1.3</strong> is in Ubuntu's universe and
+      is the shorter path; use Docker's own repo only if you specifically need their build.
+    </p>
+
+<pre><code>sudo apt install -y docker.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker <span class="k">$USER</span>          <span class="c"># and the student account too:</span>
+sudo usermod -aG docker 010796032
+<span class="c"># group change needs a fresh login to take effect</span></code></pre>
+
+    <p>
+      For <code>--gpus all</code> you also need the NVIDIA container toolkit, which is
+      <em>not</em> in Ubuntu's repos &mdash; it needs NVIDIA's:
+    </p>
+
+<pre><code>curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+  | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+  | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+  | sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+sudo apt update &amp;&amp; sudo apt install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker</code></pre>
+
+    <p>Verify with a container that has to see the GPU:</p>
+<pre><code>docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi</code></pre>
+
+    <div class="note alarm">
+      <span class="tag">nvidia-smi passing is not the test</span>
+      <p>
+        Enumerating the device and <em>running a kernel on it</em> are different things, and
+        the gap between them is where a Blackwell card bites. The widely-recommended
+        <code>pytorch:2.5.1-cuda12.4</code> image reports the RTX 5080 correctly and then
+        fails on the first matmul:
+      </p>
+<pre><code>image arch list: sm_50 … sm_90
+device:          sm_120
+CUDA error: no kernel image is available for execution on the device</code></pre>
+      <p>
+        The cu12.4 images stop at sm_90; the 5080 is sm_120. Use a <strong>cu12.8</strong>
+        image, which carries sm_120 kernels. This one is verified computing on both cards
+        in the estate &mdash; 5080 at 20.2 TFLOPS fp32, and 4090 (sm_89, running the sm_86
+        binaries) at 35.4:
+      </p>
+<pre><code>docker run --rm --gpus all pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime \
+  python -c "import torch; a=torch.randn(4096,4096,device='cuda'); print((a@a).sum().item())"</code></pre>
+      <p>
+        Always finish acceptance with a real matmul rather than <code>nvidia-smi</code>. A
+        failure here looks like a driver fault and is not one.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Restore access before you walk away</h2>
+    <p class="lede">
+      A reimage wipes <code>authorized_keys</code> for every account and regenerates the
+      host keys. Both need attention or the node is console-only.
+    </p>
+
+<pre><code><span class="c"># on the node, for each account that needs it</span>
+mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh
+echo '&lt;your ed25519 public key&gt;' &gt;&gt; ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+
+<pre><code><span class="c"># on your workstation, clear the old host key or SSH refuses to connect</span>
+ssh-keygen -R 10.31.96.247</code></pre>
+
+    <div class="note">
+      <span class="tag">If keys are installed but still rejected</span>
+      <p>
+        <code>sshd</code> ignores <code>authorized_keys</code> when the home directory or
+        <code>.ssh</code> is group- or world-writable &mdash; a common state on a fresh
+        image. <code>sudo journalctl -u ssh -n 20</code> names the reason directly rather
+        than leaving you guessing at <code>Permission denied (publickey)</code>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> Per-user setup</h2>
+    <p class="lede">No root needed past this point. Run as the account that will use the node.</p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh | bash
+source ~/.bashrc
+
+gputool device          <span class="c"># driver health, disk, conda, gputool — one screen</span>
+gputool profile         <span class="c"># the serving defaults this GPU gets</span>
+gputool install-conda
+gputool setup-env py312 3.12
+gputool install-ai      <span class="c"># chat + agent, no repo checkout needed</span></code></pre>
+    <p>
+      <code>gputool device</code> is the acceptance test: it reports kernel module state,
+      DKMS registration and whether gcc-12 is present, which together are what predict the
+      driver surviving the next kernel upgrade.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> Two traps specific to this hardware</h2>
+
+    <div class="note alarm">
+      <span class="tag">20 cores, 30 GB RAM, 2 GB swap</span>
+      <p>
+        That ratio is the reason node 02 once had to be power-cycled. Anything that
+        parallelises per core &mdash; a CUDA build, or vLLM's flashinfer JIT compiling
+        attention kernels &mdash; spawns 20 compilers at 1&ndash;2 GB each, exhausts RAM,
+        and the kernel OOM-killer takes <code>sshd</code> with it. The machine stays
+        pingable and becomes unreachable.
+      </p>
+      <p>
+        <code>gputool</code> now caps this automatically (llama.cpp builds by free RAM,
+        <code>MAX_JOBS=4</code> for vLLM). Anything you run by hand needs the same restraint:
+      </p>
+<pre><code>make -j4                       <span class="c"># not -j$(nproc)</span>
+MAX_JOBS=4 pip install vllm    <span class="c"># flashinfer JIT respects this</span></code></pre>
+    </div>
+
+    <div class="note">
+      <span class="tag">Do not upgrade the kernel casually</span>
+      <p>
+        DKMS rebuilds for <em>every</em> installed kernel, so each stale one is another
+        chance for a build to fail and wedge the install. Clear them with
+        <code>sudo apt autoremove --purge</code>, and re-run <code>gputool device</code>
+        after any kernel change &mdash; a node whose module failed to rebuild looks
+        completely normal until someone calls <code>torch.cuda.is_available()</code>.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <span>CMPE 288 node rebuild</span><span>&middot;</span>
+    <span>Surveyed on 288-01, 29 Aug 2026</span><span>&middot;</span>
+    <span>Sections 01–02 require the cmpeadmin password</span>
+  </footer>
+</div>

@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gputool-ai"
+version = "0.1.0"
+description = "Terminal chat client and ReAct agent sidecar for gputool / sjsujetsontool — installable without the edgeAI repo."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Kaikai Liu", email = "kaikai.liu@sjsu.edu" }]
+keywords = ["llm", "agent", "chat", "llama.cpp", "vllm", "jetson", "edge-ai"]
+
+# The chat client is deliberately dependency-free: it renders with `rich` when
+# that is available and falls back to a stdlib ANSI renderer otherwise, so it
+# still runs on locked-down lab machines. edge_agent is pure stdlib too.
+dependencies = [
+  "edge-agent @ git+https://github.com/lkk688/edgeAI@main#subdirectory=edgeLLM/edge_agent",
+]
+
+[project.optional-dependencies]
+# Nicer chat rendering (streaming Markdown, syntax highlighting).
+rich = ["rich>=13.0"]
+# Everything the FastAPI agent sidecar needs. Not installed by default so a
+# node that only wants `gputool chat` stays small.
+agent = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "openai>=1.40",
+]
+all = ["gputool-ai[rich,agent]"]
+
+[project.scripts]
+gputool-chat = "gputool_ai.chat:main"
+gputool-agent = "gputool_ai.sidecar:main"
+gputool-agent-test = "gputool_ai.agent_test:main"
+
+[project.urls]
+Homepage = "https://github.com/lkk688/edgeAI"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,1446 @@
+<title>CMPE 288 GPU Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap">
+
+<style>
+  :root {
+    --ground:   #F5F7F6;
+    --surface:  #FFFFFF;
+    --sunken:   #ECF0EF;
+    --ink:      #141D1B;
+    --ink-soft: #3B4A47;
+    --muted:    #64736F;
+    --line:     #DCE3E1;
+    --line-firm:#C3CECB;
+    --accent:   #1B6B62;
+    --accent-dim:#DDEAE7;
+    --ok:       #2C6B4E;
+    --ok-bg:    #DFEDE5;
+    --warn:     #97621B;
+    --warn-bg:  #F4E7D3;
+    --crit:     #9E3A2B;
+    --crit-bg:  #F6DFDB;
+    --code-bg:  #10201D;
+    --code-ink: #D7E4E1;
+
+    --f-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --f-body:    "IBM Plex Serif", ui-serif, Georgia, serif;
+    --f-mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 68ch;
+    --pad: clamp(1.1rem, 4vw, 2.75rem);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0D1413;
+      --surface:  #141D1B;
+      --sunken:   #1A2523;
+      --ink:      #E3EBE9;
+      --ink-soft: #BFCCC9;
+      --muted:    #8B9B97;
+      --line:     #253230;
+      --line-firm:#33433F;
+      --accent:   #55B5A7;
+      --accent-dim:#1B2E2B;
+      --ok:       #62B487;
+      --ok-bg:    #17301F;
+      --warn:     #D6A257;
+      --warn-bg:  #33260F;
+      --crit:     #DE7A68;
+      --crit-bg:  #351A16;
+      --code-bg:  #08100F;
+      --code-ink: #C7D6D3;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0D1413;
+    --surface:  #141D1B;
+    --sunken:   #1A2523;
+    --ink:      #E3EBE9;
+    --ink-soft: #BFCCC9;
+    --muted:    #8B9B97;
+    --line:     #253230;
+    --line-firm:#33433F;
+    --accent:   #55B5A7;
+    --accent-dim:#1B2E2B;
+    --ok:       #62B487;
+    --ok-bg:    #17301F;
+    --warn:     #D6A257;
+    --warn-bg:  #33260F;
+    --crit:     #DE7A68;
+    --crit-bg:  #351A16;
+    --code-bg:  #08100F;
+    --code-ink: #C7D6D3;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 1.0625rem;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 var(--pad) 6rem; }
+
+  /* ---------- masthead ---------- */
+  .mast {
+    padding: clamp(2.5rem, 7vw, 4.5rem) 0 2rem;
+    border-bottom: 2px solid var(--ink);
+    display: flex; flex-direction: column; gap: 1.1rem;
+  }
+  .eyebrow {
+    font-family: var(--f-mono);
+    font-size: .72rem; font-weight: 500;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent);
+    display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; align-items: baseline;
+  }
+  .eyebrow .sep { color: var(--line-firm); }
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 6vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -.022em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    font-size: clamp(1.05rem, 2.2vw, 1.2rem);
+    color: var(--ink-soft);
+    max-width: var(--measure);
+    margin: 0;
+  }
+  .standfirst em { color: var(--accent); font-style: italic; }
+
+  /* ---------- status strip ---------- */
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: .6rem;
+    margin: 2.25rem 0 0;
+  }
+  .node {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--ok);
+    padding: .8rem .85rem .9rem;
+    display: flex; flex-direction: column; gap: .28rem;
+  }
+  .node.drift { border-top-color: var(--warn); }
+  .node .id {
+    font-family: var(--f-mono); font-weight: 600;
+    font-size: 1.02rem; letter-spacing: -.02em;
+  }
+  .node .meta {
+    font-family: var(--f-mono); font-size: .74rem;
+    color: var(--muted); font-variant-numeric: tabular-nums;
+  }
+  .node .state {
+    font-family: var(--f-mono); font-size: .7rem;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ok); font-weight: 500; margin-top: .1rem;
+  }
+  .node.drift .state { color: var(--warn); }
+
+  /* ---------- sections ---------- */
+  section { margin-top: clamp(3rem, 8vw, 4.75rem); }
+  h2 {
+    font-family: var(--f-display);
+    font-weight: 600;
+    font-size: clamp(1.4rem, 3.4vw, 1.85rem);
+    letter-spacing: -.015em;
+    line-height: 1.2;
+    margin: 0 0 .5rem;
+    text-wrap: balance;
+    display: flex; align-items: baseline; gap: .7rem;
+  }
+  h2 .num {
+    font-family: var(--f-mono); font-size: .78rem; font-weight: 500;
+    color: var(--accent); letter-spacing: .1em;
+    border: 1px solid var(--accent); border-radius: 2px;
+    padding: .12rem .38rem; flex: none;
+    position: relative; top: -.22rem;
+  }
+  h3 {
+    font-family: var(--f-display);
+    font-weight: 600; font-size: 1.06rem;
+    letter-spacing: -.005em;
+    margin: 2.1rem 0 .55rem;
+    color: var(--ink);
+  }
+  p { max-width: var(--measure); margin: 0 0 1rem; }
+  .lede { color: var(--ink-soft); max-width: var(--measure); }
+  ul, ol { max-width: var(--measure); padding-left: 1.15rem; margin: 0 0 1rem; }
+  li { margin-bottom: .5rem; }
+  li::marker { color: var(--accent); }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--f-mono); font-size: .875em;
+    background: var(--sunken); color: var(--ink);
+    padding: .1em .34em; border-radius: 2px;
+    border: 1px solid var(--line);
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  /* ---------- tables ---------- */
+  .scroll { overflow-x: auto; margin: 1.25rem 0 1rem; border: 1px solid var(--line); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-family: var(--f-mono); font-size: .82rem; }
+  th, td {
+    text-align: left; padding: .6rem .8rem;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    background: var(--sunken);
+    font-weight: 600; font-size: .7rem;
+    letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-firm);
+    position: sticky; top: 0;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.host { font-weight: 600; color: var(--ink); }
+  .pill {
+    display: inline-block; padding: .1rem .45rem;
+    font-size: .7rem; font-weight: 500; letter-spacing: .04em;
+    border-radius: 2px; text-transform: uppercase;
+  }
+  .pill.ok   { background: var(--ok-bg);   color: var(--ok); }
+  .pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .pill.crit { background: var(--crit-bg); color: var(--crit); }
+
+  /* ---------- code blocks ---------- */
+  pre {
+    background: var(--code-bg); color: var(--code-ink);
+    font-family: var(--f-mono); font-size: .8rem; line-height: 1.62;
+    padding: 1rem 1.1rem; margin: 1rem 0;
+    overflow-x: auto; border-radius: 3px;
+    border: 1px solid var(--line-firm);
+  }
+  pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+  pre .c { color: #7E958F; }
+  pre .k { color: #6FC4B4; }
+
+  /* ---------- callouts ---------- */
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    padding: .9rem 1.1rem;
+    margin: 1.25rem 0;
+    max-width: var(--measure);
+  }
+  .note p:last-child { margin-bottom: 0; }
+  .note .tag {
+    font-family: var(--f-mono); font-size: .68rem; font-weight: 600;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); display: block; margin-bottom: .3rem;
+  }
+  .note.alarm { border-left-color: var(--crit); background: var(--crit-bg); }
+  .note.alarm .tag { color: var(--crit); }
+
+  /* ---------- fault ladder ---------- */
+  .ladder { display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0; }
+  .rung {
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 3px solid var(--line-firm);
+    padding: 1.05rem 1.2rem;
+  }
+  .rung.l1 { border-left-color: var(--ok); }
+  .rung.l2 { border-left-color: var(--warn); }
+  .rung.l3 { border-left-color: var(--crit); }
+  .rung-head {
+    display: flex; flex-wrap: wrap; gap: .55rem; align-items: baseline;
+    margin-bottom: .5rem;
+  }
+  .rung-head .lvl {
+    font-family: var(--f-mono); font-size: .68rem; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  }
+  .rung-head .title {
+    font-family: var(--f-display); font-weight: 600; font-size: 1.02rem;
+  }
+  .rung .sym {
+    font-family: var(--f-mono); font-size: .78rem; color: var(--muted);
+    display: block; margin-bottom: .6rem;
+  }
+  .rung p { font-size: .96rem; margin-bottom: .6rem; }
+  .rung pre { margin-bottom: 0; }
+
+  /* ---------- def list ---------- */
+  .spec {
+    display: grid; grid-template-columns: max-content 1fr;
+    gap: .4rem 1.4rem; margin: 1.25rem 0;
+    font-family: var(--f-mono); font-size: .84rem;
+    max-width: var(--measure);
+  }
+  .spec dt { color: var(--muted); }
+  .spec dd { margin: 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  details {
+    border: 1px solid var(--line); background: var(--surface);
+    padding: .75rem 1rem; margin: 1rem 0; max-width: var(--measure);
+  }
+  summary {
+    cursor: pointer; font-family: var(--f-display);
+    font-weight: 600; font-size: .95rem;
+  }
+  details[open] summary { margin-bottom: .7rem; }
+
+  footer {
+    margin-top: 4.5rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--f-mono); font-size: .74rem;
+    color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: .4rem 1.2rem;
+  }
+
+  @media (max-width: 620px) {
+    .spec { grid-template-columns: 1fr; gap: .1rem .5rem; }
+    .spec dd { margin-bottom: .55rem; }
+    h2 { flex-direction: row; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">
+      <span>SJSU CMPE 288</span><span class="sep">/</span>
+      <span>7 &times; RTX 5080</span><span class="sep">/</span>
+      <span>Verified 26 Aug 2026</span>
+    </div>
+    <h1>CMPE 288 GPU Bench</h1>
+    <p class="standfirst">
+      Inventory and repair runbook for the seven-node teaching cluster. All seven are
+      currently <em>serving GPUs</em>. The recurring failure has a single root cause, and
+      the ladder below fixes it in the order that costs the least.
+    </p>
+  </header>
+
+  <div class="strip">
+    <div class="node"><span class="id">288-01</span><span class="meta">595.84 &middot; k138</span><span class="state">Healthy</span></div>
+    <div class="node"><span class="id">288-02</span><span class="meta">595.84 &middot; k138</span><span class="state">Healthy</span></div>
+    <div class="node drift"><span class="id">288-03</span><span class="meta">580.95 &middot; k136</span><span class="state">Drifted</span></div>
+    <div class="node drift"><span class="id">288-04</span><span class="meta">580.159 &middot; k136</span><span class="state">Drifted</span></div>
+    <div class="node"><span class="id">288-05</span><span class="meta">595.84 &middot; k138</span><span class="state">Healthy</span></div>
+    <div class="node"><span class="id">288-06</span><span class="meta">595.84 &middot; k136</span><span class="state">Healthy</span></div>
+    <div class="node"><span class="id">288-07</span><span class="meta">595.84 &middot; k136</span><span class="state">Healthy</span></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">01</span> The fleet</h2>
+    <p class="lede">
+      Seven identical Dell workstations, reachable by SSH alias from any machine holding
+      the lab key. Hardware is uniform; only the software drifted.
+    </p>
+
+    <dl class="spec">
+      <dt>GPU</dt><dd>NVIDIA GeForce RTX 5080 &mdash; 16 GB VRAM (Blackwell)</dd>
+      <dt>CPU / RAM</dt><dd>20 cores / 30 GB</dd>
+      <dt>Disk</dt><dd>468 GB root volume</dd>
+      <dt>OS</dt><dd>Ubuntu 22.04 LTS, HWE kernel 6.8.0</dd>
+      <dt>Login</dt><dd><code>010796032</code> (SJSUAD domain) &mdash; no sudo</dd>
+      <dt>Admin</dt><dd><code>cmpeadmin</code> &mdash; separate account, holds sudo</dd>
+    </dl>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Alias</th><th>Hostname</th><th>IP</th><th>Driver</th><th>CUDA</th>
+            <th>Kernel</th><th>Free disk</th><th>conda</th><th>gputool</th><th>GPU</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="host">cmpe28801</td><td>coe-cmpe-288-01</td><td>10.31.96.247</td><td>595.84</td><td>13.2</td><td>6.8.0-138</td><td>66 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28802</td><td>coe-cmpe-288-02</td><td>10.31.96.243</td><td>595.84</td><td>13.2</td><td>6.8.0-138</td><td>372 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28803</td><td>coe-cmpe-288-03</td><td>10.31.96.238</td><td>580.95.05</td><td>13.0</td><td>6.8.0-136</td><td>282 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28804</td><td>coe-cmpe-288-04</td><td>10.31.96.246</td><td>580.159.03</td><td>13.0</td><td>6.8.0-136</td><td><span class="pill warn">38 G</span></td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28805</td><td>coe-cmpe-288-05</td><td>10.31.96.155</td><td>595.84</td><td>13.2</td><td>6.8.0-138</td><td>362 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28806</td><td>coe-cmpe-288-06</td><td>10.31.96.161</td><td>595.84</td><td>13.2</td><td>6.8.0-136</td><td>410 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+          <tr><td class="host">cmpe28807</td><td>coe-cmpe-288-07</td><td>10.31.96.240</td><td>595.84</td><td>13.2</td><td>6.8.0-136</td><td>410 G</td><td>yes</td><td>current</td><td><span class="pill ok">up</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Five nodes run driver <strong>595.84</strong>. Nodes 03 and 04 sit on the 580 branch
+      at two different point releases. Nothing is broken by that, but it means a student's
+      CUDA 13.2 build can succeed on 05 and fail on 03.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">02</span> Why the driver keeps breaking</h2>
+    <p class="lede">
+      Every outage on this bench so far traces to one design fact: Ubuntu ships the NVIDIA
+      kernel module <strong>two different ways</strong>, and only one of them survives a
+      kernel upgrade.
+    </p>
+
+    <h3>Two delivery paths</h3>
+    <ul>
+      <li><strong>Prebuilt</strong> &mdash; <code>linux-modules-nvidia-595-open-6.8.0-136-generic</code>.
+        A compiled <code>.ko</code> shipped for <em>one exact kernel</em>. No compiler needed.
+        Silently useless the moment you boot a different kernel.</li>
+      <li><strong>DKMS</strong> &mdash; <code>nvidia-dkms-595-open</code>. Source that rebuilds
+        itself for whatever kernel you boot. Survives upgrades, but needs a working
+        compiler at install time.</li>
+    </ul>
+
+    <p>
+      A node is healthy when <em>at least one</em> path lands a module in the kernel it
+      actually booted. Both failures on this bench were a node where neither did.
+    </p>
+
+    <div class="note">
+      <span class="tag">The compiler rule</span>
+      <p>
+        Kernel 6.8.0 on Ubuntu 22.04 is built with <strong>gcc-12</strong>, and its build
+        flags include <code>-ftrivial-auto-var-init=zero</code>, which gcc-11 does not
+        recognize. If <code>gcc-12</code> is absent, every DKMS build fails with
+        <code>cc: error: unrecognized command-line option</code>. Presence of gcc-12
+        predicted GPU health on all seven nodes with no exceptions.
+      </p>
+    </div>
+
+    <p>
+      Note that the <em>default</em> <code>gcc</code> does not need to be 12. Nodes 01, 02
+      and 04 default to gcc-11 and build fine, because DKMS selects the kernel's compiler
+      when it is installed. What matters is that <code>/usr/bin/gcc-12</code> exists.
+    </p>
+
+    <h3>How each node actually failed</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Node</th><th>Symptom</th><th>Real cause</th><th>Fix that worked</th></tr></thead>
+        <tbody>
+          <tr><td class="host">288-07</td><td>nvidia-smi can't talk to driver</td><td>Module built and correct &mdash; never loaded</td><td><code>modprobe nvidia</code></td></tr>
+          <tr><td class="host">288-01</td><td>nvidia-smi can't talk to driver</td><td>DKMS package removed; prebuilt module stale at k124</td><td><code>apt install</code> &mdash; prebuilt resolved to running kernel</td></tr>
+          <tr><td class="host">288-05</td><td>nvidia-smi can't talk to driver</td><td>Same as 01, <em>plus</em> gcc-12 missing, <em>plus</em> prebuilt resolved to k138 while running k136</td><td>Full purge, gcc-12, reinstall, reboot</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The instructive pair is 01 and 05. The same <code>apt install</code> command fixed
+      one and broke the other. On 01 the metapackage happened to resolve prebuilt modules
+      for kernel 136 &mdash; the kernel 01 was running &mdash; so nothing needed compiling.
+      On 05 it resolved to kernel 138, which 05 was <em>not</em> running, so the system fell
+      through to DKMS and hit the missing compiler.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">03</span> Health check</h2>
+    <p class="lede">
+      Two levels: one node in full detail, or all seven at a glance. Both are read-only
+      and need no sudo.
+    </p>
+
+    <h3>One node &mdash; <code>gputool device</code></h3>
+    <p>
+      The single command to run on an unfamiliar machine, or first when a GPU job fails for
+      no obvious reason. It reports host, GPU, driver health, storage, Conda and gputool
+      itself on one screen, and closes with a verdict.
+    </p>
+
+<pre><code>gputool device            <span class="c"># full local report</span>
+gputool device --online   <span class="c"># also check GitHub for a newer gputool</span></code></pre>
+
+    <p>
+      The <strong>Driver health</strong> block is the part worth reading even when the GPU
+      looks fine &mdash; it is the only place the four conditions that predict surviving the
+      next kernel upgrade are shown together:
+    </p>
+
+<pre><code>Driver health
+   ● Kernel module      : 4 loaded
+   ● DKMS               : nvidia/595.84, 6.8.0-136-generic, x86_64: installed
+   ● Build toolchain    : gcc-12 present (kernel was built with it)
+   ○ nvcc toolkit       : 13.0</code></pre>
+
+    <p>
+      A node that shows <span style="color:var(--warn)">DKMS: no NVIDIA module registered</span>
+      or <span style="color:var(--crit)">Build toolchain: gcc-12 MISSING</span> is working
+      today and will lose its driver on the next kernel upgrade. On WSL2 the module and DKMS
+      rows read <code>n/a</code> &mdash; the driver comes from the Windows host, so there is
+      nothing to check on the Linux side.
+    </p>
+
+    <h3>All seven &mdash; one line each</h3>
+
+<pre><code><span class="c"># One line per node: GPU state, driver, kernel, compiler, DKMS count</span>
+<span class="k">for</span> h <span class="k">in</span> cmpe2880{1,2,3,4,5,6,7}; <span class="k">do</span>
+  printf <span class="k">"%-11s "</span> <span class="k">"$h"</span>
+  ssh -o BatchMode=yes -o ConnectTimeout=8 <span class="k">"$h"</span> <span class="k">'</span>
+    printf "smi=%-5s drv=%-11s krnl=%-18s gcc12=%-4s dkms=%s\n" \
+      "$(nvidia-smi -L >/dev/null 2>&1 && echo OK || echo FAIL)" \
+      "$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1)" \
+      "$(uname -r)" \
+      "$([ -x /usr/bin/gcc-12 ] && echo yes || echo NO)" \
+      "$(dkms status 2>/dev/null | grep -ci nvidia)"<span class="k">'</span>
+<span class="k">done</span></code></pre>
+
+    <p>Healthy output has <code>smi=OK</code>, <code>gcc12=yes</code>, and <code>dkms</code> of 1 or more on every line.</p>
+
+    <div class="note">
+      <span class="tag">Windows caveat</span>
+      <p>
+        If you pipe a script from a Windows checkout of <code>edgeAI</code> into
+        <code>ssh</code>, strip carriage returns first &mdash; <code>tr -d '\r' &lt; script.sh | ssh host 'bash -s'</code>.
+        The repo stores LF, but <code>core.autocrlf=true</code> hands you CRLF in the working
+        tree, and bash answers with <code>syntax error near $'{\r'</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">04</span> Repair ladder</h2>
+    <p class="lede">
+      Work top to bottom and stop at the first rung that restores <code>nvidia-smi</code>.
+      All three run as <code>cmpeadmin</code>. Only the third requires a reboot or destroys
+      state.
+    </p>
+
+    <div class="ladder">
+
+      <div class="rung l1">
+        <div class="rung-head">
+          <span class="lvl">Rung 1</span>
+          <span class="title">Module present but not loaded</span>
+        </div>
+        <span class="sym">Test: <code>modinfo nvidia</code> prints a version &nbsp;&middot;&nbsp; <code>lsmod | grep nvidia</code> is empty</span>
+        <p>Nothing is missing. The module just was not inserted &mdash; usually because the driver landed after the last boot. This was node 07. Seconds to fix, no reboot.</p>
+<pre><code>sudo modprobe nvidia nvidia-uvm nvidia-modeset
+nvidia-smi</code></pre>
+      </div>
+
+      <div class="rung l2">
+        <div class="rung-head">
+          <span class="lvl">Rung 2</span>
+          <span class="title">Module missing for the running kernel</span>
+        </div>
+        <span class="sym">Test: <code>modinfo nvidia</code> says not found &nbsp;&middot;&nbsp; <code>dkms status</code> is empty</span>
+        <p>The DKMS package was removed, or the prebuilt module targets a kernel you are not running. Install the compiler <em>first</em> &mdash; without it the DKMS trigger fails mid-install and leaves dpkg half-configured.</p>
+<pre><code><span class="c"># 1. compiler must exist before any DKMS build is triggered</span>
+sudo apt install -y gcc-12
+
+<span class="c"># 2. reinstall both delivery paths together</span>
+sudo apt install -y nvidia-driver-595-open nvidia-dkms-595-open
+
+<span class="c"># 3. confirm a module now exists for the running kernel</span>
+dkms status
+modinfo nvidia | head -2
+
+sudo reboot</code></pre>
+      </div>
+
+      <div class="rung l3">
+        <div class="rung-head">
+          <span class="lvl">Rung 3</span>
+          <span class="title">Mixed driver branches / dpkg wedged</span>
+        </div>
+        <span class="sym">Test: <code>dpkg -l | grep nvidia</code> shows <code>iF</code> or two driver branches (580 <em>and</em> 595)</span>
+        <p>This is node 05's case. Partial removals had left 580 and 595 packages interleaved and two packages half-configured. Nothing short of a clean sweep resolves it. <strong>Destructive &mdash; removes all NVIDIA packages and reboots.</strong></p>
+<pre><code><span class="c"># purge every NVIDIA package and its residue</span>
+sudo apt-get purge -y <span class="k">"*nvidia*"</span>
+sudo apt-get autoremove --purge -y
+sudo rm -rf /var/lib/dkms/nvidia* /usr/src/nvidia-*
+sudo rm -f  /lib/modules/*/updates/dkms/nvidia*.ko
+sudo rm -rf /lib/modules/*/kernel/nvidia-*/
+
+<span class="c"># rebuild the toolchain the kernel expects</span>
+sudo apt update
+sudo apt install -y build-essential dkms linux-headers-$(uname -r) gcc-12 g++-12
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 100
+
+<span class="c"># clear any half-configured state, then reinstall</span>
+sudo apt-get --fix-broken install -y
+sudo dpkg --configure -a
+sudo update-initramfs -u
+sudo apt install -y nvidia-driver-595-open nvidia-dkms-595-open
+
+sudo reboot</code></pre>
+      </div>
+    </div>
+
+    <details>
+      <summary>If a DKMS build still fails after gcc-12 is installed</summary>
+      <p>Force the compiler explicitly and rebuild for the running kernel only:</p>
+<pre><code>sudo dkms remove nvidia/595.84 --all
+sudo CC=/usr/bin/gcc-12 dkms install nvidia/595.84 -k $(uname -r)</code></pre>
+      <p>
+        Read the real error at
+        <code>/var/lib/dkms/nvidia/&lt;ver&gt;/build/make.log</code> &mdash; it is world-readable,
+        so you can inspect it from the student account before escalating. A stale
+        <code>/var/crash/nvidia-dkms-*.crash</code> file will also mask errors with
+        <code>Cannot create report: File exists</code>; delete it.
+      </p>
+    </details>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">05</span> Access</h2>
+    <p class="lede">
+      One ed25519 key covers all seven nodes plus the SJSU HPC hosts. Aliases live in
+      <code>~/.ssh/config</code> on the workstation.
+    </p>
+
+<pre><code><span class="c"># generate once</span>
+ssh-keygen -t ed25519 -a 100 -f ~/.ssh/id_ed25519 -C <span class="k">"lkk68@newalienware-win"</span>
+
+<span class="c"># install on each node (ssh-copy-id is absent from PowerShell)</span>
+<span class="k">for</span> h <span class="k">in</span> cmpe2880{1,2,3,4,5,6,7}; <span class="k">do</span>
+  ssh <span class="k">"$h"</span> <span class="k">"mkdir -p ~/.ssh &amp;&amp; chmod 700 ~/.ssh &amp;&amp; \
+    echo '$(cat ~/.ssh/id_ed25519.pub)' &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; \
+    chmod 600 ~/.ssh/authorized_keys"</span>
+<span class="k">done</span></code></pre>
+
+    <p>
+      On Windows, restrict the private key's ACL or OpenSSH refuses it:
+      <code>icacls %USERPROFILE%\.ssh\id_ed25519 /inheritance:r /grant:r "%USERNAME%:(R,W)"</code>.
+      To use the same key from WSL, copy it to <code>~/.ssh/</code> inside the distro and
+      <code>chmod 600</code>.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">06</span> gputool</h2>
+    <p>
+      Per-user helper at <code>~/.local/bin/gputool</code>, installed from the repo. It carries the <code>device</code> report and the <code>hf-cache</code> commands in section 07. No sudo,
+      so it can be reinstalled by the student account at any time.
+    </p>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_gputool.sh | bash
+source ~/.bashrc</code></pre>
+    <p>
+      The installer backs up any existing copy to <code>gputool.bak</code> before replacing
+      it.
+    </p>
+
+    <p>
+      All seven nodes carry the same build, with <code>device</code>,
+      <code>hf-cache</code>, <code>serve-vllm</code> and <code>serve-llamacpp --mtp</code>.
+    </p>
+
+    <details>
+      <summary>Why <code>setup-llamacpp</code> now avoids the conda toolchain</summary>
+      <p>
+        It used to configure and build through <code>conda run</code>, which puts conda's
+        gcc 11.2 at the front of PATH. That works on Ubuntu 22.04 and fails on 24.04 with
+        <code>undefined reference to&nbsp;<code>__libc_csu_fini</code></code> &mdash; a glibc
+        symbol removed in 2.34, newer than the compiler conda ships. The 4090 box runs
+        24.04, so llama.cpp would not build there at all; the seven 22.04 nodes were fine,
+        which is exactly why the bug went unnoticed.
+      </p>
+      <p>Four things changed:</p>
+      <ul>
+        <li><strong>System compilers, by absolute path.</strong> Picks the newest matched <code>gcc-N</code>/<code>g++-N</code> pair and passes it as <code>CMAKE_C/CXX_COMPILER</code> and <code>CMAKE_CUDA_HOST_COMPILER</code>. A matched pair matters: that machine has <code>gcc-12</code> but no <code>g++-12</code>.</li>
+        <li><strong>System cmake preferred</strong>, falling back to the conda env's copy called by absolute path, so conda's compilers never lead PATH. Ninja is resolved the same way and passed as <code>CMAKE_MAKE_PROGRAM</code>.</li>
+        <li><strong>Build only this GPU's architecture</strong>, from <code>compute_cap</code> &mdash; <code>sm_89</code> on the 4090, <code>sm_120</code> on the bench.</li>
+        <li><strong>Errors are shown.</strong> The build is teed to <code>build/gputool-build.log</code> and the first real compiler errors are printed on failure. The old code checked <code>$?</code> after a pipe, which reports <em>tee's</em> status &mdash; so a failed build could read as a successful one.</li>
+      </ul>
+      <p>
+        Verified by wiping the build directory on the 24.04 machine and rebuilding: it
+        selected <code>/usr/bin/cmake</code>, <code>/usr/bin/gcc-13</code>, <code>sm_89</code>,
+        <code>-j30</code>, and finished with the CUDA backend active and zero references to
+        <code>conda-linux-gnu</code>.
+      </p>
+    </details>
+
+    <h3>Chat and agent come from a pip package</h3>
+    <p>
+      The terminal chat client and the ReAct agent sidecar used to be delivered by
+      fetching a single <code>chat.py</code> from GitHub and by pointing at a repo
+      checkout. Agent mode therefore needed the whole <code>edgeAI</code> tree, and the
+      sidecar looked for <code>/Developer/edgeAI/&hellip;</code> &mdash; a path that exists
+      only on the Jetson images, so on a desktop the lookup silently failed and the
+      feature quietly went missing.
+    </p>
+    <p>They are now one installable package, <code>gputool-ai</code>:</p>
+
+<pre><code>gputool install-ai            <span class="c"># all extras (chat + agent)</span>
+gputool install-ai base       <span class="c"># chat only, no FastAPI stack</span>
+
+<span class="c"># or directly, on any node, with no repo checkout:</span>
+pip install <span class="k">"gputool-ai[all] @ git+https://github.com/lkk688/edgeAI@main#subdirectory=packages/gputool-ai"</span></code></pre>
+
+    <p>
+      It installs two console scripts, <code>gputool-chat</code> and
+      <code>gputool-agent</code>, and pulls <code>edge-agent</code> in automatically as a
+      dependency. <code>gputool chat</code> and <code>gputool agent</code> prefer them when
+      present and fall back to the old single-file download, so nodes that have not
+      installed the package keep working.
+    </p>
+
+    <div class="note">
+      <span class="tag">No absolute paths</span>
+      <p>Everything resolves in the same order, and never reaches outside the user's control:</p>
+      <ol>
+        <li>an environment variable &mdash; <code>GPUTOOL_WORKSPACE</code>, <code>GPUTOOL_ENV_FILE</code>, <code>GPUTOOL_DIR</code></li>
+        <li>the current working directory &mdash; so <code>cd myproject &amp;&amp; gputool agent start</code> acts on that project</li>
+        <li><code>~</code>, for the shared <code>~/.env.local</code> key file</li>
+      </ol>
+      <p>
+        <code>AGENT_WORKSPACE</code> is still honoured so existing sidecar deployments keep
+        working. Verified on a node: with <code>GPUTOOL_WORKSPACE=/tmp/wsdemo</code>, the
+        sidecar's <code>/health</code> reports
+        <code>"default_root":"/tmp/wsdemo"</code>.
+      </p>
+    </div>
+
+    <h3>Model choice, and asking for the right thing</h3>
+    <p>
+      A 4B model on the bench and a hosted model are good at different things, and the
+      prompt should say so. Picking a provider therefore also picks a command style,
+      either of which can still be overridden.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Provider</th><th>Endpoint</th><th>Default model</th><th>Style</th></tr></thead>
+        <tbody>
+          <tr><td class="host">local</td><td>127.0.0.1:8000/v1 (vLLM)</td><td>Qwen/Qwen3.5-4B</td><td>simple</td></tr>
+          <tr><td class="host">llamacpp</td><td>127.0.0.1:8080/v1</td><td>local</td><td>simple</td></tr>
+          <tr><td class="host">minimax</td><td>api.minimax.io/v1</td><td>MiniMax-M2</td><td>full</td></tr>
+          <tr><td class="host">openai</td><td>api.openai.com/v1</td><td>gpt-4o-mini</td><td>full</td></tr>
+          <tr><td class="host">nvidia</td><td>integrate.api.nvidia.com/v1</td><td>llama-3.3-70b</td><td>full</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The <strong>simple</strong> style is written for a Linux class: one short command per
+      step, no multi-line scripts or heredocs, prefer the ordinary utilities a student
+      should learn, and explain in one sentence what the command did. That is both what a
+      4B model does reliably and what a student should be reading. Asked how much disk is
+      free, the agent answers with <code>df -h</code> and nothing else &mdash; not a
+      three-line <code>awk</code> pipeline.
+    </p>
+    <p>
+      A hosted provider with no key set is reported plainly
+      (<code>minimax … NO KEY (set MINIMAX_API_KEY)</code>) rather than failing later with
+      a 401.
+    </p>
+
+    <h3>Memory: plain Markdown on disk</h3>
+    <p>
+      Every session is written to <code>~/.gputool/memory</code> as it runs &mdash;
+      incrementally, so a crash or a timeout still leaves a usable record, which is exactly
+      when you want one. Markdown rather than a database: a student can open it, a grader
+      can diff it, <code>grep</code> finds things, and it survives the tool being
+      uninstalled.
+    </p>
+
+<pre><code>memory/
+  INDEX.md                     one row per session
+  commands.md                  every command ever run, with exit status
+  sessions/2026-08-29-44f2.md  task, each step's thought + command + output, answer</code></pre>
+
+    <p>
+      <code>commands.md</code> is the file students will actually use &mdash; a searchable
+      history of what worked on this machine:
+      <code>grep -n 'tar' ~/.gputool/memory/commands.md</code>.
+    </p>
+
+    <div class="note">
+      <span class="tag">Memory that changes behaviour, not just an archive</span>
+      <p>
+        Successful commands from earlier sessions are fed back into the system prompt, so
+        the agent reuses what already worked here instead of rediscovering it. After two
+        sessions the store held <code>df -h</code> and
+        <code>du -sh /var/* | sort -hr | head -3</code>, and both were offered to the next
+        run. It is the cheapest form of long-term memory that actually affects what the
+        model does.
+      </p>
+    </div>
+
+    <h3>Testing the agent end to end</h3>
+    <p>
+      <code>gputool agent test</code> exercises every agent tool against a real model and
+      returns a non-zero exit status on any failure, so it drops straight into CI. It
+      deliberately does not mock the model: each scenario runs in a fresh scratch
+      workspace and is judged by <em>inspecting the filesystem afterwards</em>, not by
+      reading the model's answer &mdash; an agent that claims to have written a file but
+      did not still fails.
+    </p>
+
+<pre><code>gputool vllm start Qwen/Qwen3.5-4B 8000     <span class="c"># 1. a model</span>
+gputool agent start                          <span class="c"># 2. the sidecar</span>
+gputool agent test --base-url http://127.0.0.1:8000/v1 --model Qwen/Qwen3.5-4B</code></pre>
+
+<pre><code>agent    : http://127.0.0.1:8002  tools=read_file,grep,search_files,write_file,edit_file
+model    : Qwen/Qwen3.5-4B via http://127.0.0.1:8000/v1
+  [PASS] read_file        1.7s  steps=1  tools=read_file             found the token in the answer
+  [PASS] grep             3.8s  steps=2  tools=grep,read_file        located the TODO
+  [PASS] search_files     1.8s  steps=1  tools=grep                  found the helper
+  [PASS] write_file       4.2s  steps=3  tools=search_files,read_file,write_file  OUTPUT.md written
+  [PASS] edit_file        4.4s  steps=2  tools=read_file,edit_file   guard added to divide()
+
+5/5 scenarios passed | median 3.8s | total 15.9s</code></pre>
+
+    <p>
+      <code>--repeat N</code> takes the median over N runs for timing work,
+      <code>--only NAME</code> isolates one scenario, and <code>--keep</code> leaves the
+      scratch workspace behind so you can see what the agent actually did. Because
+      <code>--base-url</code> and <code>--model</code> are plain flags, the same suite
+      benchmarks any OpenAI-compatible endpoint &mdash; a local llama.cpp server, vLLM, or
+      a hosted API &mdash; which makes it a reasonable harness for comparing models on
+      tool use rather than on prose.
+    </p>
+
+    <div class="note">
+      <span class="tag">What the tools column is telling you</span>
+      <p>
+        Note the <code>search_files</code> row: the task was satisfied, but the agent
+        reached for <code>grep</code> rather than <code>search_files</code>. The scenario
+        passes because the outcome was correct, and the tools column is what surfaces the
+        divergence. When you change the tool descriptions or the ReAct prompt, that column
+        is the signal to watch &mdash; a tool the model never selects is either badly
+        described or redundant.
+      </p>
+    </div>
+
+    <h3>Giving the agent a terminal</h3>
+    <p>
+      File tools alone cannot build, test, or install anything, so the agent has a
+      <code>run_terminal</code> tool modelled on how Claude Code and Codex expose a shell:
+      working directory persists between calls, output is capped from <em>both</em> ends
+      (a 50k-line build log is useless but its head and tail are exactly what matters),
+      timeouts return partial output rather than nothing, and the exit code is always
+      reported so the model can tell "ran and failed" from "did not run".
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Backend</th><th>Runs where</th><th>Isolates</th><th>Use on</th></tr></thead>
+        <tbody>
+          <tr><td class="host">host</td><td>the node, in a <code>uv</code> virtualenv the agent owns</td><td>packages, not the filesystem</td><td>the 5080 bench (no Docker)</td></tr>
+          <tr><td class="host">docker</td><td>a long-lived container, workspace bind-mounted</td><td><span class="pill ok">everything</span></td><td>the 4090, benchmarks, GPU images</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The bench nodes have no Docker and installing it needs root, so there the agent runs
+      on the host &mdash; but package installs still must not leak. On first use the host
+      backend builds itself a <code>uv</code> virtualenv at
+      <code>~/.gputool/agent-venv</code> (override with <code>GPUTOOL_AGENT_VENV</code>) and
+      puts it at the front of PATH. It is seeded with pip and created with
+      <code>--system-site-packages</code>, so heavy things already present &mdash; torch,
+      CUDA bindings &mdash; stay visible without being copied, while anything the agent
+      installs lands only in its own environment. <code>uv</code> itself is pip-installed
+      beside the sidecar's interpreter if missing; no privileges needed.
+    </p>
+
+    <p>Verified on a node:</p>
+<pre><code>which python pip
+  ~/.gputool/agent-venv/bin/python
+  ~/.gputool/agent-venv/bin/pip
+
+pip install cowsay   →  ~/.gputool/agent-venv/lib/python3.12/site-packages/cowsay/
+conda env            →  ModuleNotFoundError: No module named 'cowsay'</code></pre>
+
+    <div class="note alarm">
+      <span class="tag">The agent never runs privileged commands</span>
+      <p>
+        <code>sudo</code>, <code>su</code>, <code>pkexec</code>, <code>doas</code> and
+        <code>runuser</code> are refused before execution &mdash; anywhere in the command,
+        including after <code>;</code> or <code>&amp;&amp;</code> and inside
+        <code>$(&hellip;)</code>. <code>sudoku</code> and
+        <code>pip install sudoku</code> are not affected.
+      </p>
+      <p>The refusal tells the model what to do instead, so it reports back rather than hunting for a workaround:</p>
+<pre><code>REFUSED: this command needs elevated privileges, and the agent does not run them.
+If a system package is genuinely required, name it in your final answer and a
+human will install it. For Python packages, use the agent's own environment:
+  uv pip install &lt;package&gt;        (or: pip install &lt;package&gt;)</code></pre>
+      <p>
+        Asked to run <code>sudo apt-get install -y cowsay</code>, the agent stopped and
+        answered: <em>"I cannot run it as it requires elevated privileges. You should
+        install it yourself by running: sudo apt-get install -y cowsay"</em> &mdash; which
+        is the behaviour you want on a shared teaching cluster. This is a policy guard, not
+        a security boundary: the host backend has your user's filesystem access, and only
+        the Docker backend actually confines it.
+      </p>
+    </div>
+
+<pre><code><span class="c"># off by default — attaching a shell is a decision, not an inherited default</span>
+GPUTOOL_AGENT_TERMINAL=1 gputool agent start
+
+<span class="c"># or per request, with a PyTorch image and the GPU passed through</span>
+{"task": "...", "terminal": true, "backend": "docker",
+ "image": "pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime", "gpus": true}</code></pre>
+
+    <p>
+      Verified on the 4090: <code>[docker] exit=0</code>, <code>nvidia-smi</code> reporting
+      the RTX 4090 from inside the container, and <code>torch 2.5.1+cu124</code> from the
+      image rather than the host. The container is reused across calls, so packages
+      installed in step 2 are still there in step 5 — which is what makes multi-step work
+      possible at all.
+    </p>
+
+    <div class="note">
+      <span class="tag">One fix worth copying if you build your own</span>
+      <p>
+        The agent's first shell task failed with <code>pytest: command not found</code>,
+        then <code>pip: command not found</code>, then <code>sudo: a password is
+        required</code> &mdash; it burned every step rediscovering that its shell had
+        nothing in it. <code>bash -lc</code> inherits the PATH the service started with,
+        and on these nodes conda goes on PATH late in <code>.bashrc</code>, after the guard
+        that returns early for non-interactive shells. The host backend now prepends the
+        directory of the interpreter actually running the sidecar, which is the environment
+        the operator meant the agent to use. After the fix the same task installed pytest
+        and reported the result in three steps.
+      </p>
+    </div>
+
+    <h3>The shell scenarios</h3>
+    <p>
+      <code>--terminal</code> adds two scenarios that only a real shell can pass: writing a
+      marker file through the shell, and writing <em>then running</em> a pytest test and
+      reporting the count.
+    </p>
+
+<pre><code>gputool agent test --terminal --max-steps 12 \
+  --base-url http://127.0.0.1:8000/v1 --model Qwen/Qwen3.5-4B
+
+  [PASS] run_terminal     2.3s  steps=1  tools=run_terminal
+  [PASS] pytest          10.5s  steps=6  tools=read_file,write_file,run_terminal x4
+
+7/7 scenarios passed | median 3.9s | total 30.8s</code></pre>
+
+    <p>
+      At the default <code>--max-steps 8</code> the pytest scenario <em>fails</em> on this
+      4B model &mdash; it uses all eight steps without converging. That is a real result
+      worth keeping: step budget is a model-capability axis, and this harness measures it.
+    </p>
+
+    <details>
+      <summary>Installing on a node with no network</summary>
+      <p>
+        The git URL needs GitHub. For an isolated node, copy the directory over and
+        install from the filesystem &mdash; the same path the built-in error message
+        suggests:
+      </p>
+<pre><code>tar czf - packages/gputool-ai | ssh node <span class="k">'cd /tmp &amp;&amp; tar xzf -'</span>
+ssh node <span class="k">'pip install "/tmp/gputool-ai[all]"'</span></code></pre>
+    </details>
+
+    <div class="note">
+      <span class="tag">Deploying an unreleased build</span>
+      <p>
+        <code>install_gputool.sh</code> always pulls from GitHub <code>main</code>. To push a
+        local edit to the bench before committing it, pipe the working copy straight in
+        &mdash; stripping CR first, since the Windows checkout stores CRLF:
+      </p>
+<pre><code><span class="k">for</span> h <span class="k">in</span> cmpe2880{1,2,3,4,5,6,7}; <span class="k">do</span>
+  tr -d <span class="k">'\r'</span> &lt; jetson/gputool.sh | ssh <span class="k">"$h"</span> <span class="k">'cat &gt; ~/.local/bin/gputool &amp;&amp; chmod +x ~/.local/bin/gputool'</span>
+<span class="k">done</span></code></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">07</span> Shared model cache</h2>
+    <p class="lede">
+      All seven nodes can mount one <strong>364 GB HuggingFace cache</strong> hosted on the
+      lab's RTX 4090 box, so a model downloaded once is available everywhere. No sudo is
+      involved anywhere in the chain.
+    </p>
+
+<pre><code>  cmpe28801..07              lkk-intel13 (RTX 4090)
+  10.31.96.x                 10.31.81.235
+  ┌──────────────┐           ┌────────────────────────┐
+  │ ~/hf-shared  │◀──SFTP───▶│ /DATA10T/huggingface   │
+  │ (rclone FUSE)│  ~11 MB/s │ 364 GB · 56 repos      │
+  │              │           │ 4.5 TB free of 9.1 TB  │
+  │ ~/.cache/    │           └────────────────────────┘
+  │  rclone 20G  │  ← hot blobs served locally at 1.4 GB/s
+  └──────────────┘</code></pre>
+
+    <p>
+      The transport is rclone over SFTP mounted with FUSE. It works unprivileged because
+      <code>/dev/fuse</code> is world-accessible on these hosts and <code>fusermount3</code>
+      is installed; rclone itself is a single static binary in <code>~/.local/bin</code>.
+    </p>
+
+    <h3>Using it</h3>
+<pre><code>gputool hf-cache setup     <span class="c"># once per node: rclone, SSH key, remote config</span>
+gputool hf-cache mount     <span class="c"># attach at ~/hf-shared</span>
+gputool hf-cache status    <span class="c"># remote, mount, local cache size, HF_HOME</span>
+
+<span class="c"># Opt in for one shell only:</span>
+export HF_HOME=~/hf-shared
+
+<span class="c"># ...or for every shell, including batch jobs:</span>
+gputool hf-cache enable
+gputool hf-cache disable   <span class="c"># undo; 'unmount' detaches the mount</span></code></pre>
+
+    <p>
+      Nothing changes until you run <code>enable</code>. All seven nodes are currently set
+      up but <em>not</em> enabled, so jobs still use each node's local cache by default.
+    </p>
+
+    <div class="note">
+      <span class="tag">Why enable writes to the top of .bashrc</span>
+      <p>
+        Ubuntu's stock <code>.bashrc</code> returns at line 8 when the shell is not
+        interactive &mdash; and a batch job arrives as <code>ssh node 'python train.py'</code>,
+        which is exactly that case. A block appended at the end never runs for the workload
+        that matters, so <code>enable</code> prepends above that guard instead. The
+        auto-mount it installs takes a lock directory so parallel logins cannot race.
+      </p>
+    </div>
+
+    <h3>What to expect</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Path</th><th>Throughput</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Warm read, local VFS cache</td><td>1.4 GB/s</td><td>Second and later reads of a blob</td></tr>
+          <tr><td>Raw ssh between the subnets</td><td>11.7 MB/s</td><td>The hard ceiling &mdash; a ~100 Mbit link</td></tr>
+          <tr><td>Cold read over the mount</td><td>11.0 MB/s</td><td>rclone adds almost no overhead</td></tr>
+          <tr><td>From WSL on the Windows box</td><td>11.4 MB/s</td><td>Same ceiling campus-wide</td></tr>
+          <tr><td>Direct from the HuggingFace CDN</td><td><span class="pill warn">5.9 MB/s</span></td><td>What you avoid by sharing</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      So the shared cache is roughly <strong>twice as fast as re-downloading</strong>, and
+      costs no local disk for the store itself. It is not, however, local-disk fast on first
+      touch: a 14 GB model takes about 20 minutes to stream in once, then loads instantly
+      from the local VFS cache. Treat it as a fast mirror, not as local storage.
+    </p>
+
+    <details>
+      <summary>Two caveats worth knowing before you rely on it</summary>
+      <p>
+        <strong>New downloads through the mount lose deduplication.</strong> SFTP cannot
+        create symlinks, so HuggingFace copies blobs into <code>snapshots/</code> instead of
+        linking them &mdash; roughly double the space on the shared volume for anything
+        fetched this way. Content already on <code>/DATA10T</code> is unaffected and reads
+        back normally, because rclone follows the server-side symlinks. To avoid the tax on
+        a large model, download it directly on the 4090 box.
+      </p>
+      <p>
+        <strong>The store is shared with other people.</strong> <code>/DATA10T/huggingface</code>
+        is world-writable and already has content from more than one account. Anything you
+        download lands where others can see and delete it, and vice versa. Do not put
+        anything gated or private there.
+      </p>
+    </details>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">08</span> Serving a model</h2>
+    <p class="lede">
+      gputool can bring up an OpenAI-compatible endpoint two ways. They are not
+      interchangeable &mdash; pick by what the GPU has to do.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Use</th><th>Command</th><th>Best for</th></tr></thead>
+        <tbody>
+          <tr><td class="host">vLLM</td><td><code>serve-vllm</code></td><td>Full-precision weights, many concurrent requests &mdash; continuous batching keeps the GPU busy when a class hits one node at once</td></tr>
+          <tr><td class="host">llama.cpp</td><td><code>serve-llamacpp</code></td><td>Quantized GGUF weights, one or two users, or a model that will not otherwise fit in 16 GB</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>vLLM</h3>
+<pre><code>gputool setup-vllm                 <span class="c"># once per env; installs into py312 by default</span>
+gputool serve-vllm start           <span class="c"># Qwen/Qwen3.5-4B on port 8000</span>
+gputool serve-vllm status          <span class="c"># process, API, GPU memory, log location</span>
+gputool serve-vllm stop            <span class="c"># kills the server and sweeps stray workers</span>
+
+<span class="c"># A different model, port, or context window:</span>
+gputool serve-vllm start Qwen/Qwen3.5-9B 8001 --max-len 4096 --max-seqs 8
+
+<span class="c"># Anything after -- is passed straight through to vLLM:</span>
+gputool serve-vllm start -- --enable-prefix-caching</code></pre>
+
+    <p>
+      Defaults are <code>--max-len 8192</code>, <code>--gpu-mem 0.92</code> and
+      <code>--max-seqs 16</code>. Those are measured, not guessed: they are the values at
+      which Qwen3.5-4B actually comes up on a 16 GB RTX 5080. The engine then reports
+    </p>
+
+<pre><code>Available KV cache memory: 3.68 GiB
+GPU KV cache size: 98,304 tokens
+Maximum concurrency for 8,192 tokens per request: 12.00x</code></pre>
+
+    <p>
+      &mdash; so roughly a dozen students can hold a full-length conversation at once on
+      one node.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">Why the ceiling is lower than you would expect</span>
+      <p>
+        <code>Qwen/Qwen3.5-4B</code> is <strong>multimodal</strong>
+        (<code>image-text-to-text</code>, <code>Qwen3_5ForConditionalGeneration</code>), so
+        the vision tower and the mm-encoder cache draw on the same 16 GB as the weights and
+        KV cache. A first attempt at <code>--max-len 16384 --gpu-mem 0.90</code> loaded the
+        weights fine and then died in CUDA-graph profiling:
+      </p>
+<pre><code>torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.03 GiB.
+GPU 0 has a total capacity of 15.47 GiB of which 1006.81 MiB is free</code></pre>
+      <p>
+        If you hit that, lower <code>--max-seqs</code> first &mdash; CUDA-graph memory
+        scales with it and it costs the least &mdash; then <code>--max-len</code>. Raising
+        <code>--gpu-mem</code> past about 0.92 does not help; it hands vLLM more of a budget
+        the card does not have.
+      </p>
+    </div>
+
+    <div class="note">
+      <span class="tag">Pair it with the shared cache</span>
+      <p>
+        <code>Qwen/Qwen3.5-4B</code> is already on <code>/DATA10T</code>, so mounting the
+        shared cache first avoids re-downloading 8.8 GB from the internet on every node:
+      </p>
+<pre><code>gputool hf-cache mount
+export HF_HOME=~/hf-shared
+gputool serve-vllm start</code></pre>
+      <p>
+        vLLM reads <code>HF_HOME</code> like any other HuggingFace client, and
+        <code>serve-vllm start</code> echoes the value it picked up so you can see which
+        cache it is about to use.
+      </p>
+    </div>
+
+    <p>
+      Startup blocks until the log reports the API is live, then prints the endpoint. First
+      run is slow &mdash; it is streaming weights &mdash; so the wait is generous; if it is
+      still loading after 15 minutes the command hands back with a
+      <code>tail -f</code> to watch. Stopping sweeps vLLM's worker processes as well as the
+      parent, because a stray worker keeps the GPU allocated and the next
+      <code>start</code> then fails on memory.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">If the engine dies at startup</span>
+      <p>
+        vLLM's flashinfer backend does not ship prebuilt attention kernels &mdash; it
+        <em>JIT-compiles them on first run</em>, shelling out to <code>ninja</code> and
+        <code>nvcc</code>. Neither is on the default PATH here: <code>ninja</code> installs
+        into the conda env's <code>bin</code>, and the CUDA toolkit lives under
+        <code>/usr/local/cuda</code>. Miss either and the engine dies with a bare
+        <code>FileNotFoundError: 'ninja'</code> buried under a long traceback, after having
+        already spent several minutes loading weights.
+      </p>
+      <p>
+        <code>setup-vllm</code> installs <code>ninja</code>, and <code>serve-vllm</code>
+        puts both the env's <code>bin</code> and the CUDA toolkit on PATH before launching,
+        warning up front if either is absent. If you run <code>vllm serve</code> by hand
+        instead, export them yourself:
+      </p>
+<pre><code>export PATH="$HOME/miniconda3/envs/py312/bin:/usr/local/cuda/bin:$PATH"
+export CUDA_HOME=/usr/local/cuda</code></pre>
+    </div>
+
+    <div class="note">
+      <span class="tag">Second start is much faster</span>
+      <p>
+        Two caches make the difference. The rclone VFS cache keeps the weights local after
+        the first read, and vLLM writes its compiled graphs to
+        <code>~/.cache/vllm/torch_compile_cache</code>. On these nodes that took a cold
+        start of roughly 14 minutes down to well under a minute.
+      </p>
+    </div>
+
+    <h3>MTP &mdash; multi-token prediction</h3>
+    <p>
+      Unsloth's <code>*-MTP-GGUF</code> repos carry a multi-token-prediction head. The model
+      drafts several tokens per step and verifies them in one pass, so decode gets faster
+      without changing the weights. llama.cpp gained support for it in May 2026; the build
+      <code>gputool setup-llamacpp</code> produces has it.
+    </p>
+
+<pre><code>gputool serve-llamacpp start Qwen3.5-4B-Q8_0.gguf 8080 --mtp
+gputool serve-llamacpp start Qwen3.5-9B-Q8_0.gguf 8080 --mtp --spec-n 8</code></pre>
+
+    <p>Measured on one node, 8-bit (<code>Q8_0</code>) weights, single stream:</p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Model</th><th>MTP</th><th>GPU</th><th>Decode</th><th>Draft accepted</th><th>Gain</th></tr></thead>
+        <tbody>
+          <tr><td class="host">Qwen3.5-4B Q8_0</td><td>off</td><td>4,979 MiB</td><td>152.7 tok/s</td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td class="host">Qwen3.5-4B Q8_0</td><td>on</td><td>5,515 MiB</td><td><span class="pill ok">239.2 tok/s</span></td><td>187/403 = 46.4%</td><td>1.57&times;</td></tr>
+          <tr><td class="host">Qwen3.5-9B Q8_0</td><td>off</td><td>8,783 MiB</td><td>92.1 tok/s</td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td class="host">Qwen3.5-9B Q8_0</td><td>on</td><td>9,467 MiB</td><td><span class="pill ok">150.4 tok/s</span></td><td>184/417 = 44.1%</td><td>1.63&times;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Both land inside the claimed 1.5&ndash;2&times;, and the draft context costs only about
+      600 MiB. The more useful way to read the table is across rows rather than down them:
+      <strong>the 9B with MTP (150.4 tok/s) runs as fast as the 4B without it (152.7)</strong>.
+      MTP buys you a model 2.25&times; larger at the same interactive speed.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">MTP forfeits batching entirely</span>
+      <p>
+        llama.cpp does not support MTP together with parallel slots, so
+        <code>--mtp</code> pins <code>-np 1</code>. One request at a time; a second student
+        waits for the first to finish. That inverts the engine choice completely:
+      </p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Setup</th><th>Single stream</th><th>8 concurrent</th><th>Right for</th></tr></thead>
+          <tbody>
+            <tr><td>vLLM, Qwen3.5-4B BF16</td><td>97.1 tok/s</td><td><span class="pill ok">660.9 tok/s</span></td><td>A class sharing one node</td></tr>
+            <tr><td>llama.cpp Q8_0, no MTP</td><td>152.7 tok/s</td><td>batched, not measured</td><td>Mixed use</td></tr>
+            <tr><td>llama.cpp Q8_0 + MTP</td><td><span class="pill ok">239.2 tok/s</span></td><td><span class="pill crit">no batching</span></td><td>One person iterating</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        For a lab section, vLLM still wins by a wide margin &mdash; 660 tok/s aggregate
+        against a single stream. Reach for MTP when the node belongs to one person for the
+        afternoon.
+      </p>
+    </div>
+
+    <h3>DFlash2 &mdash; and how far a 27B can be pushed</h3>
+    <p>
+      <code>z-lab/Qwen3.8-27B-DFlash2-GGUF</code> is <em>not a model</em>. It is a
+      block-diffusion drafter that runs beside a target model, so the GGUF files are 1&ndash;4
+      GiB for a nominally 27B repo. Its published target,
+      <code>ggml-org/Qwen3.8-27B-GGUF:Q4_K_M</code>, is <strong>17.67 GiB &mdash; larger than
+      a 5080's 15.92 GiB of VRAM</strong>, so the documented configuration needs a 24 GB
+      card. A smaller quant of the same model fits the bench.
+    </p>
+
+<pre><code>llama-server -m &lt;target.gguf&gt; --model-draft &lt;dflash2.gguf&gt; \
+  --spec-type draft-dflash --spec-draft-n-max 7 -ngl 99 -c 8192 -fa on -np 1</code></pre>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Prompt</th><th colspan="2">4090 &middot; Q4_K_M 17.7 GiB</th><th colspan="2">5080 &middot; UD-Q3_K_XL 12.2 GiB</th></tr>
+        <tr><th></th><th>base &rarr; DFlash2</th><th>accept</th><th>base &rarr; DFlash2</th><th>accept</th></tr></thead>
+        <tbody>
+          <tr><td>Highly predictable</td><td>42.9 &rarr; <strong>139.3</strong> (3.25&times;)</td><td>70.6%</td><td>57.7 &rarr; <strong>155.8</strong> (2.70&times;)</td><td>62.9%</td></tr>
+          <tr><td>Short factual</td><td>42.9 &rarr; 83.1 (1.94&times;)</td><td>36.4%</td><td>57.7 &rarr; 103.5 (1.79&times;)</td><td>36.3%</td></tr>
+          <tr><td>Long-form prose</td><td>42.8 &rarr; 74.6 (1.74&times;)</td><td>30.1%</td><td>57.6 &rarr; 94.3 (1.64&times;)</td><td>32.9%</td></tr>
+          <tr><td>Dense technical</td><td>42.9 &rarr; 56.0 (1.31&times;)</td><td>18.9%</td><td>&mdash;</td><td>&mdash;</td></tr>
+          <tr><td>GPU while serving</td><td colspan="2">18,680 &rarr; 21,518 MiB</td><td colspan="2"><span class="pill warn">12,803 &rarr; 15,541 MiB</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Baseline decode is flat (~42.9 and ~57.7 tok/s) regardless of prompt, as it should be
+      without speculation. <strong>DFlash2's gain tracks how predictable the output is</strong>
+      &mdash; 3.25&times; on repetitive text, 1.3&times; on dense technical prose. The repo's
+      headline "acceptance length 5.28&ndash;5.39" is reachable only at the predictable end;
+      budget for the low end on real work. Compare MTP (section above), which held a steadier
+      44&ndash;46% acceptance for a consistent 1.6&times;.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">The 3-bit quant fits, and is broken</span>
+      <p>
+        A 27B <em>does</em> run on a 5080 at <code>UD-Q3_K_XL</code> &mdash; 15,541 MiB of
+        16,303, only 762 MiB spare, at up to 155 tok/s. It is also the faster of the two
+        machines here, because 3-bit weights move less memory per token than the 4090's
+        4-bit copy. None of that matters, because the answers are wrong.
+      </p>
+      <p>
+        Given one identical question, the <strong>4-bit copy answered correctly in 497
+        tokens</strong> and stopped. The <strong>3-bit copy never produced an answer at
+        all</strong> &mdash; it filled 800 tokens with circular
+        <code>reasoning_content</code> and hit the length limit. Its reasoning was on-topic
+        but never converged.
+      </p>
+      <p>
+        So the 5080 fleet cannot usefully run this 27B: the quant that fits destroys the
+        reasoning, and the quant that reasons does not fit. Use the 4090 for 27B work, or
+        stay at 4B&ndash;12B on the bench where <code>Q8_0</code> and NVFP4 both hold up.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">09</span> NVFP4 on Blackwell</h2>
+    <p class="lede">
+      The RTX 5080 is Blackwell (sm_120), so it can run NVFP4 &mdash; NVIDIA's native 4-bit
+      format. The practical question is what that buys on a 16 GB card, measured rather
+      than assumed.
+    </p>
+
+    <p>
+      Both models below were served from local disk on node 02, on the <em>same</em> vLLM
+      0.28.0 build, same prompt, <code>max_tokens=256</code>, <code>temperature=0</code>,
+      and identical <code>--max-model-len 8192 --gpu-memory-utilization 0.92
+      --max-num-seqs 16</code>. Both are multimodal instruction-tuned models.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Measure</th><th>Qwen3.5-4B (BF16)</th><th>Gemma-4-12B-it-NVFP4</th><th>Delta</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Parameters</td><td>4 B</td><td>12 B</td><td>3&times; larger</td></tr>
+          <tr><td>Weights on disk</td><td>8.8 GB</td><td>8.7 GB</td><td>&mdash;</td></tr>
+          <tr><td>GPU while serving</td><td>13,121 MiB</td><td>14,659 MiB</td><td>+1.5 GB</td></tr>
+          <tr><td>KV cache memory</td><td>3.56 GiB</td><td>4.19 GiB</td><td>+0.6 GB</td></tr>
+          <tr><td>KV cache tokens</td><td>81,920</td><td><span class="pill warn">34,896</span></td><td>2.3&times; fewer</td></tr>
+          <tr><td>Concurrency @ 8k</td><td>10.00&times;</td><td><span class="pill warn">4.26&times;</span></td><td>2.3&times; fewer</td></tr>
+          <tr><td>Time to first token</td><td>0.028 s</td><td>0.035 s</td><td>+25%</td></tr>
+          <tr><td>Decode, 1 stream</td><td>97.1 tok/s</td><td>82.8 tok/s</td><td>&minus;15%</td></tr>
+          <tr><td>Aggregate, 4 concurrent</td><td>346.9 tok/s</td><td>263.9 tok/s</td><td>&minus;24%</td></tr>
+          <tr><td>Aggregate, 8 concurrent</td><td>660.9 tok/s</td><td><span class="pill ok">626.2 tok/s</span></td><td>&minus;5%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Reading the result</h3>
+    <p>
+      NVFP4 does not make a model faster &mdash; it makes a <em>bigger</em> model fit. A 12B
+      model runs here at 85% of a 4B model's single-stream speed, in 1.5 GB more VRAM. Under
+      eight concurrent requests the gap closes to 5%, because batching hides per-token cost.
+      If answer quality matters more than raw throughput, that is a good trade.
+    </p>
+    <p>
+      The real price is <strong>KV cache tokens, not memory</strong>. Gemma is given
+      <em>more</em> KV memory than Qwen (4.19 vs 3.56 GiB) yet holds 2.3&times; fewer tokens,
+      because a 12B model has more layers and heads and each cached token costs
+      proportionally more. That caps concurrency at 4.26&times; against Qwen's 10&times;. For a
+      lab section where thirty students share one node, that ceiling will bite before
+      tokens/sec does.
+    </p>
+
+    <details>
+      <summary>Output quality on an identical prompt</summary>
+      <p>Asked to explain the gcc-12 DKMS failure from section 02 in two sentences:</p>
+      <p>
+        <strong>Gemma-4-12B-NVFP4</strong> &mdash; correct, and obeyed the length constraint:
+        <em>"The cause is a version mismatch where the compiler (GCC) is too old to recognize
+        the <code>-ftrivial-auto-var-init=zero</code> flag&hellip; upgrade your GCC compiler
+        or modify the Makefile to remove that flag."</em>
+      </p>
+      <p>
+        <strong>Qwen3.5-4B</strong> reached the same diagnosis but emitted a visible
+        "Thinking Process" and was truncated at the token limit before answering. Both are
+        substantively right; the 4-bit model was not visibly degraded. This is one prompt,
+        not an evaluation.
+      </p>
+    </details>
+
+    <div class="note alarm">
+      <span class="tag">This took a node off the network &mdash; read before serving a new model</span>
+      <p>
+        A first load of an NVFP4 model made node 02 unreachable and it had to be power
+        cycled. The cause was <strong>not</strong> GPU memory. FlashInfer JIT-compiles its
+        kernels on first use and runs <em>one compile job per core</em> &mdash; 20 on these
+        machines, at 1&ndash;2 GB each. With 30 GB of RAM and only 2 GB of swap, the box
+        thrashed and the kernel OOM-killer took <code>sshd</code>.
+      </p>
+      <p>The measured difference, same model, same node:</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Load</th><th>Peak host RAM</th><th>Time to ready</th></tr></thead>
+          <tbody>
+            <tr><td>First (JIT compiling), <code>MAX_JOBS=4</code></td><td><span class="pill crit">26.9 GB of 30</span></td><td>330 s</td></tr>
+            <tr><td>Second (kernels cached)</td><td><span class="pill ok">5.4 GB</span></td><td>80 s</td></tr>
+            <tr><td>Qwen3.5-4B BF16, no JIT needed</td><td>5.9 GB</td><td>180 s</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The spike is <em>one-time per model and config</em>; once the kernels are cached the
+        same model loads in 5.4 GB. <code>gputool serve-vllm</code> now exports
+        <code>MAX_JOBS=4</code> and <code>NVCC_THREADS=1</code> by default. Even so, watch
+        <code>free -g</code> during a first load of any new quantized model, and consider a
+        watchdog that kills the server rather than letting the OOM-killer choose:
+      </p>
+<pre><code>( while sleep 5; do
+    avail=$(free -m | awk <span class="k">'/^Mem:/{print $7}'</span>)
+    [ "$avail" -lt 2500 ] &amp;&amp; { pkill -9 -f <span class="k">"[v]llm.entrypoints"</span>; break; }
+  done ) &amp;</code></pre>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">10</span> Open items</h2>
+    <p class="lede">Nothing here blocks GPU work today. Ordered by how soon it bites.</p>
+
+    <div class="note">
+      <span class="tag">Disk &mdash; watch 04</span>
+      <p>
+        Both tight nodes were cleared by purging <code>pip</code> and <code>uv</code>
+        download caches and running <code>conda clean -a</code>: <strong>01 went 35&nbsp;&rarr;&nbsp;66 GB
+        free, 04 went 18&nbsp;&rarr;&nbsp;38 GB</strong>. Node 04 is still the one to watch, and its
+        largest remaining item is <strong>77 GB of HuggingFace model weights</strong> in
+        <code>~/.cache/huggingface</code> &mdash; re-downloadable, but a deliberate choice
+        rather than a cleanup.
+      </p>
+      <p>
+        Note that <code>du</code> overstates what a cache purge will return: <code>uv</code>
+        and <code>conda</code> hardlink cache files into environments, so deleting 62 GB of
+        apparent cache on 04 returned 20 GB of real blocks. Trust <code>df</code>, not
+        <code>du</code>, when planning space.
+      </p>
+    </div>
+
+    <ul>
+      <li><strong>Driver drift on 03 and 04.</strong> They run 580.95.05 and 580.159.03 against 595.84 on the other five. Aligning all seven on 595.84 makes student builds reproducible across the bench.</li>
+      <li><strong>Obsolete kernels retained.</strong> Several nodes still carry 6.8.0-124 headers and images. DKMS rebuilds for every installed kernel, so each stale one is another chance for a build to fail and wedge the install. <code>sudo apt autoremove --purge</code> clears them.</li>
+      <li><strong>Duplicate apt source.</strong> Mozilla is registered in both <code>mozilla.list</code> and <code>mozilla.sources</code>, producing 24 warnings on every <code>apt update</code>. Harmless; delete <code>/etc/apt/sources.list.d/mozilla.list</code> to silence.</li>
+      <li><strong>No Docker on any node.</strong> Worth knowing before assigning container-based work.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">11</span> Keeping them healthy</h2>
+    <p class="lede">Four invariants. Hold these and the failure mode above cannot recur.</p>
+    <ol>
+      <li><strong>gcc-12 stays installed on every node.</strong> It is the single predictor of whether a driver survives a kernel upgrade. Install it during provisioning, never as a reaction.</li>
+      <li><strong>Prefer DKMS over prebuilt modules.</strong> <code>nvidia-dkms-*-open</code> rebuilds for any kernel; <code>linux-modules-nvidia-*</code> is pinned to one and fails silently after the next upgrade.</li>
+      <li><strong>Never leave two driver branches installed.</strong> Mixing 580 and 595 packages is what produced the wedged state on 01 and 05. Purge before switching branches.</li>
+      <li><strong>Cap compile and JIT parallelism on these nodes</strong> &mdash; 20 cores against 30 GB of RAM and 2 GB of swap is the ratio that took a node off the network. <code>gputool</code> now caps llama.cpp builds by free RAM and exports <code>MAX_JOBS=4</code> for vLLM, but anything you run by hand needs the same restraint.</li>
+      <li><strong>Prefetch big models on the 4090 box, not through the mount</strong> &mdash; downloads written over SFTP lose HuggingFace's symlink deduplication and take roughly double the space on the shared volume.</li>
+      <li><strong>Run the health check after any kernel update</strong> &mdash; and before the first lab session of the week. A node whose module failed to rebuild looks completely normal until someone calls <code>torch.cuda.is_available()</code>.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <span>CMPE 288 GPU Bench</span>
+    <span>&middot;</span>
+    <span>7 nodes verified healthy &mdash; 26 Aug 2026</span>
+    <span>&middot;</span>
+    <span>Repair procedures require the cmpeadmin account</span>
+  </footer>
+
+</div>
