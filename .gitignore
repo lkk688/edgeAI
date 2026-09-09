@@ -174,6 +174,7 @@ docs/slides/autonomous
 jetson/edgecloud-llm-gateway-guide.md
 jetson/generate_llm_nginx.py
 jetson/generate_nginx.py
+gpu\fleet-runbook.html
 *.webm
 *.mp4
 *.mov

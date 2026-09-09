@@ -145,7 +145,44 @@ install_pytorch_auto() {
   echo "   • nvcc Toolkit      : ${nvcc_ver:-Not found}"
   echo "   • Driver CUDA Max   : ${drv_ver:-Unknown}"
 
+  # Pre-Volta cards need a *pinned* PyTorch, not just an older CUDA tag.
+  # Current wheels dropped sm_61 kernels entirely: they import fine, see the
+  # GPU, and then die at the first kernel launch with "no kernel image is
+  # available for execution on the device" — which looks like a driver fault
+  # and is not one. So pin the last release that still ships Pascal kernels.
+  detect_gpu_profile
+  if [[ "$GPU_PROFILE" == "legacy" ]]; then
+    local pins index
+    pins=$(legacy_torch_plan)
+    index=$(legacy_torch_index)
+    warn "Legacy GPU (compute ${cc:-?}): installing a pinned PyTorch that still has kernels for it."
+    info "  $pins"
+    info "  from $index"
+    # shellcheck disable=SC2086
+    if conda run -n "$env_name" pip install $pins --index-url "$index"; then
+      return 0
+    fi
+    error "Pinned legacy PyTorch install failed."
+    echo "   Try a Python 3.10 env: torch 2.6 has no wheels for 3.13+."
+    return 1
+  fi
+
   tag=$(select_torch_cuda_tag)
+
+  # On Jetson, match the wheel to the JetPack toolkit rather than the generic
+  # default. Thor ships CUDA 13.0, and the aarch64 cu130 wheels exist on the
+  # official index — picking cu128 there installs a build for the wrong runtime.
+  if (( GPU_IS_JETSON == 1 )) && [[ -n "$nvcc_ver" ]]; then
+    local jetson_tag="cu${nvcc_ver//./}"
+    if conda run -n "$env_name" pip index versions torch \
+         --index-url "https://download.pytorch.org/whl/$jetson_tag" &>/dev/null; then
+      info "Jetson with CUDA $nvcc_ver: using $jetson_tag instead of $tag"
+      tag="$jetson_tag"
+    else
+      warn "No $jetson_tag wheels published; falling back to $tag."
+    fi
+  fi
+
   info "Selected PyTorch build: $tag"
   warn "⏳ Downloading PyTorch wheels (~800MB+). This can take several minutes"
   warn "   depending on your network connection speed. Please do not close the terminal..."
@@ -258,6 +295,7 @@ show_help() {
   echo "  container <action>       - Persistent PyTorch GPU container: status|pull|start|shell|run|test|stop|set"
   echo "  agent <start|stop|status|test> - Agent sidecar (:8002); .test. runs the full tool suite"
   echo "  install-ai [extras]      - pip install gputool-ai (chat + agent) — no repo checkout needed"
+  echo "  monitor <start|stop|status> - Report this node to a fleet hub every few minutes (no sudo)"
   echo ""
   echo "Shared HuggingFace Cache (no sudo, campus network):"
   echo "  hf-cache setup           - Install rclone, create a key, configure the shared-cache remote"
@@ -681,8 +719,18 @@ install_conda() {
     return 0
   fi
 
-  local miniconda_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-  local temp_installer="/tmp/Miniconda3-latest-Linux-x86_64.sh"
+  # Pick the installer for this architecture. Hardcoding x86_64 fails on every
+  # Jetson with "cannot execute binary file: Exec format error" — after the
+  # download has already succeeded, so the message points at the wrong thing.
+  local mc_arch
+  case "$(uname -m)" in
+    x86_64|amd64)  mc_arch="x86_64" ;;
+    aarch64|arm64) mc_arch="aarch64" ;;
+    *)             mc_arch="$(uname -m)" ;;
+  esac
+  local miniconda_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-${mc_arch}.sh"
+  local temp_installer="/tmp/Miniconda3-latest-Linux-${mc_arch}.sh"
+  info "Architecture: $(uname -m) -> Miniconda3-latest-Linux-${mc_arch}.sh"
 
   info "Downloading Miniconda installer..."
   echo "   URL: $miniconda_url"
@@ -952,6 +1000,7 @@ detect_gpu_profile() {
   GPU_IS_JETSON=0
   GPU_VRAM_MB=0
   GPU_CC=""
+  GPU_COUNT=0
   GPU_PROFILE="unknown"
 
   # Jetson exposes a model string in the device tree and shares memory with the
@@ -965,21 +1014,45 @@ detect_gpu_profile() {
   if command -v nvidia-smi &>/dev/null; then
     GPU_VRAM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -n1 | tr -dc '0-9')
     GPU_CC=$(detect_gpu_compute_cap 2>/dev/null)
+    GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | grep -c .)
   fi
   [[ -z "$GPU_VRAM_MB" ]] && GPU_VRAM_MB=0
+  [[ -z "$GPU_COUNT" ]] && GPU_COUNT=0
+
+  # Jetson Thor and other unified-memory boards report memory.total as [N/A],
+  # which parsed to 0 and made a 122 GB board look smaller than a laptop.
+  # On those, system RAM *is* the GPU memory budget.
+  if (( GPU_IS_JETSON == 1 )) && (( GPU_VRAM_MB == 0 )); then
+    GPU_VRAM_MB=$(free -m 2>/dev/null | awk '/^Mem:/{print $2}')
+    [[ -z "$GPU_VRAM_MB" ]] && GPU_VRAM_MB=0
+  fi
+
+  local cc_num; cc_num=$(_ver_to_int "${GPU_CC:-0}")
 
   if (( GPU_IS_JETSON == 1 )); then
-    # Unified memory: leave headroom for the OS or the whole board swaps.
+    # Unified memory: the model, the KV cache and the OS all come out of the
+    # same pool, so budget roughly half of it and leave the rest for the system.
     GPU_PROFILE="jetson"
-    PROF_MAX_LEN=4096;  PROF_GPU_MEM=0.75; PROF_MAX_SEQS=4;  PROF_CTX=4096
+    if   (( GPU_VRAM_MB >= 96000 )); then PROF_MAX_LEN=16384; PROF_MAX_SEQS=16; PROF_CTX=16384
+    elif (( GPU_VRAM_MB >= 48000 )); then PROF_MAX_LEN=8192;  PROF_MAX_SEQS=8;  PROF_CTX=8192
+    else                                  PROF_MAX_LEN=4096;  PROF_MAX_SEQS=4;  PROF_CTX=4096
+    fi
+    PROF_GPU_MEM=0.60          # never crowd out the OS on a shared pool
+  elif (( cc_num > 0 && cc_num < 70 )); then
+    # Pascal and older. The binding constraint is not memory, it is that recent
+    # PyTorch wheels no longer build for these architectures at all — see
+    # legacy_torch_plan(). Keep the serving budget modest too: no bf16 means
+    # fp16 or fp32, and fp32 doubles the KV cache.
+    GPU_PROFILE="legacy"
+    PROF_MAX_LEN=4096;  PROF_GPU_MEM=0.85; PROF_MAX_SEQS=4;  PROF_CTX=4096
   elif (( GPU_VRAM_MB >= 40000 )); then
-    GPU_PROFILE="large"          # A100/H100/6000-class
+    GPU_PROFILE="large"
     PROF_MAX_LEN=32768; PROF_GPU_MEM=0.90; PROF_MAX_SEQS=64; PROF_CTX=32768
   elif (( GPU_VRAM_MB >= 22000 )); then
-    GPU_PROFILE="24gb"           # 3090 / 4090
+    GPU_PROFILE="24gb"
     PROF_MAX_LEN=16384; PROF_GPU_MEM=0.90; PROF_MAX_SEQS=32; PROF_CTX=16384
   elif (( GPU_VRAM_MB >= 14000 )); then
-    GPU_PROFILE="16gb"           # 5080 / 4080 — measured defaults
+    GPU_PROFILE="16gb"
     PROF_MAX_LEN=8192;  PROF_GPU_MEM=0.92; PROF_MAX_SEQS=16; PROF_CTX=8192
   elif (( GPU_VRAM_MB > 0 )); then
     GPU_PROFILE="small"
@@ -991,16 +1064,36 @@ detect_gpu_profile() {
   return 0
 }
 
-# True when the GPU can run NVFP4 (Blackwell, sm_120+).
+# NVFP4 needs Blackwell. That is the whole 10.x/11.x/12.x family: sm_100
+# (B100/B200), sm_110 (Jetson Thor) and sm_120 (RTX 50). An earlier check for
+# ">= 120" wrongly told a Thor board it was unsupported.
 gpu_supports_nvfp4() {
-  local cc; cc=$(detect_gpu_compute_cap 2>/dev/null | tr -d '.')
-  [[ -n "$cc" ]] && (( cc >= 120 ))
+  local cc; cc=$(_ver_to_int "$(detect_gpu_compute_cap 2>/dev/null || echo 0)")
+  (( cc >= 100 ))
 }
-# True when the GPU has hardware FP8 (Ada sm_89+).
+# Hardware FP8 from Ada (8.9) onward.
 gpu_supports_fp8() {
-  local cc; cc=$(detect_gpu_compute_cap 2>/dev/null | tr -d '.')
-  [[ -n "$cc" ]] && (( cc >= 89 ))
+  local cc; cc=$(_ver_to_int "$(detect_gpu_compute_cap 2>/dev/null || echo 0)")
+  (( cc >= 89 ))
 }
+# bf16 needs Ampere (8.0). Pascal and Volta do fp16 or fp32 only, which is why
+# a bf16 checkpoint silently falls back to fp32 and doubles memory there.
+gpu_supports_bf16() {
+  local cc; cc=$(_ver_to_int "$(detect_gpu_compute_cap 2>/dev/null || echo 0)")
+  (( cc >= 80 ))
+}
+
+# What a pre-Volta card can actually install.
+#
+# PyTorch stopped shipping kernels for sm_61 after the 2.6 series: a current
+# wheel imports fine, sees the GPU, and then fails at the first kernel launch
+# with "no kernel image is available". So on legacy cards we pin the last
+# version that still has Pascal kernels, with the CUDA 11.8 build. The driver
+# only has to be new enough for 11.8 (>= 450), which every one of these is.
+legacy_torch_plan() {
+  echo "torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0"
+}
+legacy_torch_index() { echo "https://download.pytorch.org/whl/cu118"; }
 
 # Print the tuned profile and what it implies for model choice.
 show_gpu_profile() {
@@ -1009,7 +1102,8 @@ show_gpu_profile() {
   echo -e "${BOLD}🎛️  Serving profile${NC}"
   echo "══════════════════════════════════════════════════"
   _dev_dim "GPU" "$(detect_gpu_name 2>/dev/null || echo unknown)"
-  _dev_dim "VRAM" "${GPU_VRAM_MB} MiB"
+  _dev_dim "VRAM" "${GPU_VRAM_MB} MiB$( (( GPU_IS_JETSON == 1 )) && echo " (unified with system RAM)")"
+  (( GPU_COUNT > 1 )) && _dev_dim "GPUs" "$GPU_COUNT visible"
   _dev_dim "Compute" "${GPU_CC:-unknown}$( (( GPU_IS_JETSON == 1 )) && echo "  (Jetson, unified memory)")"
   _dev_dim "Profile" "$GPU_PROFILE"
   echo
@@ -1022,6 +1116,15 @@ show_gpu_profile() {
                      || _dev_dim "NVFP4" "not supported on this GPU (needs Blackwell)"
   gpu_supports_fp8  && _dev_ok "FP8" "supported" \
                     || _dev_dim "FP8" "not supported (needs Ada or newer)"
+  gpu_supports_bf16 && _dev_ok "bf16" "supported" \
+                     || _dev_bad "bf16" "NOT supported — bf16 checkpoints fall back to fp32 (2x memory)"
+  if [[ "$GPU_PROFILE" == "legacy" ]]; then
+    echo
+    warn "Legacy GPU (compute $GPU_CC). Current PyTorch wheels have no kernels for it."
+    echo "   Install the pinned stack instead:  gputool setup-env myenv 3.10"
+    echo "   which resolves to:  $(legacy_torch_plan)"
+    echo "   from:               $(legacy_torch_index)"
+  fi
   echo "══════════════════════════════════════════════════"
 }
 
@@ -1199,6 +1302,93 @@ print('  matmul OK - %.1f TFLOPS fp32' % (2*4096**3/dt/1e12))
       error "Unknown container action: $action"
       echo "Usage: gputool container <status|pull|start|shell|run|test|stop|set>"
       return 1 ;;
+  esac
+}
+
+# ── fleet monitor ─────────────────────────────────────────────────────────
+# A background reporter that dials out to the fleet hub every few minutes.
+# No root, no listening port, and it only ever executes gputool subcommands
+# from the agent's own allowlist — see fleet_agent.SAFE_COMMANDS.
+FLEET_PIDFILE="$GPUTOOL_DIR/fleet-agent.pid"
+FLEET_LOG="$GPUTOOL_DIR/fleet-agent.log"
+
+monitor_cmd() {
+  local action="${1:-status}"; shift 2>/dev/null || true
+  local hub="${GPUTOOL_FLEET_HUB:-}" token="${GPUTOOL_FLEET_TOKEN:-}" interval="180"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --hub) hub="${2:-}"; shift ;;
+      --hub=*) hub="${1#*=}" ;;
+      --token) token="${2:-}"; shift ;;
+      --token=*) token="${1#*=}" ;;
+      --interval) interval="${2:-180}"; shift ;;
+      --interval=*) interval="${1#*=}" ;;
+    esac
+    shift
+  done
+  mkdir -p "$GPUTOOL_DIR"
+  local runner; runner=$(_ai_script gputool-fleet-agent 2>/dev/null || echo "")
+
+  case "$action" in
+    start)
+      if [[ -z "$runner" ]]; then
+        error "gputool-fleet-agent not installed. Run: gputool install-ai"; return 1
+      fi
+      [[ -z "$hub" ]] && { error "need --hub http://host:8010 (or GPUTOOL_FLEET_HUB)"; return 1; }
+      if [[ -f "$FLEET_PIDFILE" ]] && kill -0 "$(cat "$FLEET_PIDFILE" 2>/dev/null)" 2>/dev/null; then
+        info "Monitor already running (PID $(cat "$FLEET_PIDFILE"))."; return 0
+      fi
+      info "Hub      : $hub"
+      info "Interval : ${interval}s"
+      info "Auth     : $([[ -n "$token" ]] && echo "token set" || echo "NO TOKEN (open hub)")"
+      GPUTOOL_FLEET_TOKEN="$token" nohup "$runner" --hub "$hub" --interval "$interval" \
+        > "$FLEET_LOG" 2>&1 &
+      echo $! > "$FLEET_PIDFILE"
+      sleep 2
+      if kill -0 "$(cat "$FLEET_PIDFILE")" 2>/dev/null; then
+        success "Fleet monitor started (PID $(cat "$FLEET_PIDFILE"))."
+        echo "   📜 $FLEET_LOG"
+      else
+        error "Monitor failed to start:"; tail -n 8 "$FLEET_LOG" 2>/dev/null | sed 's/^/   /'; return 1
+      fi
+      ;;
+    stop)
+      local pid; pid=$(cat "$FLEET_PIDFILE" 2>/dev/null)
+      if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+        kill "$pid" 2>/dev/null; sleep 1; kill -9 "$pid" 2>/dev/null
+        rm -f "$FLEET_PIDFILE"; success "Fleet monitor stopped."
+      else
+        info "Monitor was not running."; rm -f "$FLEET_PIDFILE"
+      fi
+      ;;
+    once)
+      [[ -z "$runner" ]] && { error "gputool-fleet-agent not installed."; return 1; }
+      [[ -z "$hub" ]] && { error "need --hub"; return 1; }
+      GPUTOOL_FLEET_TOKEN="$token" "$runner" --hub "$hub" --once
+      ;;
+    show)
+      [[ -z "$runner" ]] && { error "gputool-fleet-agent not installed."; return 1; }
+      "$runner" --show
+      ;;
+    status)
+      echo "══════════════════════════════════════════════════"
+      echo -e "${BOLD}📡 Fleet monitor${NC}"
+      echo "══════════════════════════════════════════════════"
+      local pid; pid=$(cat "$FLEET_PIDFILE" 2>/dev/null)
+      if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+        _dev_ok "State" "running (PID $pid)"
+      else
+        _dev_warn "State" "not running — gputool monitor start --hub URL"
+      fi
+      _dev_dim "Hub" "${hub:-<unset>}"
+      _dev_dim "Log" "$FLEET_LOG"
+      [[ -f "$GPUTOOL_DIR/fleet-audit.log" ]] && \
+        _dev_dim "Remote commands" "$(wc -l < "$GPUTOOL_DIR/fleet-audit.log") in the audit log"
+      echo "══════════════════════════════════════════════════"
+      ;;
+    *) error "Unknown monitor action: $action"
+       echo "Usage: gputool monitor <start|stop|status|once|show> [--hub URL] [--token T] [--interval S]"
+       return 1 ;;
   esac
 }
 
@@ -3076,6 +3266,10 @@ case "$CMD" in
   container)
     shift
     manage_container "$@"
+    ;;
+  monitor)
+    shift
+    monitor_cmd "${1:-status}" "${@:2}"
     ;;
   profile)
     show_gpu_profile

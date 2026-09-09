@@ -24,17 +24,23 @@ dependencies = [
 rich = ["rich>=13.0"]
 # Everything the FastAPI agent sidecar needs. Not installed by default so a
 # node that only wants `gputool chat` stays small.
+fleet = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+]
 agent = [
   "fastapi>=0.110",
   "uvicorn[standard]>=0.27",
   "openai>=1.40",
 ]
-all = ["gputool-ai[rich,agent]"]
+all = ["gputool-ai[rich,agent,fleet]"]
 
 [project.scripts]
 gputool-chat = "gputool_ai.chat:main"
 gputool-agent = "gputool_ai.sidecar:main"
 gputool-agent-test = "gputool_ai.agent_test:main"
+gputool-fleet-server = "gputool_ai.fleet_server:main"
+gputool-fleet-agent = "gputool_ai.fleet_agent:main"
 
 [project.urls]
 Homepage = "https://github.com/lkk688/edgeAI"

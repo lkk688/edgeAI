@@ -343,9 +343,12 @@
   <section>
     <h2><span class="num">01</span> The fleet</h2>
     <p class="lede">
-      Seven identical Dell workstations, reachable by SSH alias from any machine holding
-      the lab key. Hardware is uniform; only the software drifted.
+      Seven identical Dell teaching workstations, plus four other machines that share the
+      same tooling and SSH key. The bench is uniform; the rest spans four GPU generations,
+      which is what most of the awkwardness in this document comes from.
     </p>
+
+    <h3>The teaching bench &mdash; 7 &times; RTX 5080</h3>
 
     <dl class="spec">
       <dt>GPU</dt><dd>NVIDIA GeForce RTX 5080 &mdash; 16 GB VRAM (Blackwell)</dd>
@@ -381,6 +384,97 @@
       at two different point releases. Nothing is broken by that, but it means a student's
       CUDA 13.2 build can succeed on 05 and fail on 03.
     </p>
+
+    <h3>The other four machines</h3>
+    <p>
+      Same SSH key, same <code>gputool</code>, four different GPU generations. The spread
+      is the point: what installs cleanly on one will not run on another, and
+      <code>gputool profile</code> exists so you find that out before a job dies.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Alias</th><th>GPU</th><th>Compute</th><th>Memory</th><th>CPU / RAM</th><th>OS</th><th>PyTorch it can run</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="host">jetsonthor</td><td>NVIDIA Thor</td><td><span class="pill ok">11.0</span></td><td>123 GB unified</td><td>14 / 122 GB</td><td>24.04, JetPack R38.4</td><td>cu130, aarch64</td></tr>
+          <tr><td class="host">intel13rtx4090</td><td>RTX 4090</td><td>8.9</td><td>24 GB</td><td>32 / 125 GB</td><td>24.04</td><td>anything current</td></tr>
+          <tr><td class="host">intel13rack</td><td>2 &times; GTX 1080 Ti</td><td><span class="pill crit">6.1</span></td><td>11 GB each</td><td>32 / 125 GB</td><td>22.04</td><td><span class="pill warn">pinned 2.6.0+cu118</span></td></tr>
+          <tr><td class="host">alienwareoffice</td><td>GTX 1080 Ti</td><td><span class="pill crit">6.1</span></td><td>11 GB</td><td>8 / 62 GB</td><td>22.04</td><td><span class="pill warn">pinned 2.6.0+cu118</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Capability, not just memory</h3>
+    <p>
+      <code>gputool profile</code> reports what the silicon can actually do, because the
+      numeric formats decide which checkpoints are usable at all:
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Machine</th><th>Profile</th><th>NVFP4</th><th>FP8</th><th>bf16</th></tr></thead>
+        <tbody>
+          <tr><td class="host">RTX 5080 bench</td><td>16gb</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          <tr><td class="host">Jetson Thor</td><td>jetson</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          <tr><td class="host">RTX 4090</td><td>24gb</td><td>—</td><td>✅</td><td>✅</td></tr>
+          <tr><td class="host">GTX 1080 Ti</td><td>legacy</td><td>—</td><td>—</td><td><span class="pill crit">no</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note alarm">
+      <span class="tag">Pascal: the wheel, not the card, is the problem</span>
+      <p>
+        A 1080 Ti has 11 GB and plenty of throughput for teaching. What stops it is that
+        <strong>PyTorch stopped shipping kernels for <code>sm_61</code></strong> after the
+        2.6 series. A current wheel imports fine, reports <code>cuda.is_available() ==
+        True</code>, and then dies at the first kernel launch with <em>"no kernel image is
+        available for execution on the device"</em> &mdash; which reads like a driver fault
+        and is not one.
+      </p>
+      <p>
+        <code>gputool setup-env</code> detects the <code>legacy</code> profile and installs
+        a pinned stack instead of the current one:
+      </p>
+<pre><code>gputool setup-env pascal310 3.10
+  → torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
+  → from https://download.pytorch.org/whl/cu118</code></pre>
+      <p>
+        Verified on <code>alienwareoffice</code> by running a real matmul, not just an
+        import: <code>torch 2.6.0+cu118</code>, GTX 1080 Ti detected, <code>sm_60</code> in
+        the arch list, matmul completed on the GPU. Use Python <strong>3.10</strong> &mdash;
+        torch 2.6 has no wheels for 3.13+.
+      </p>
+      <p>
+        <code>bf16</code> also does not exist before Ampere, so a bf16 checkpoint silently
+        falls back to fp32 and doubles memory. On these cards prefer fp16 or a GGUF quant.
+      </p>
+    </div>
+
+    <div class="note">
+      <span class="tag">Two bugs these machines exposed</span>
+      <p>
+        <strong>Miniconda installed the wrong architecture.</strong>
+        <code>install-conda</code> hardcoded the x86_64 installer, so on Thor it downloaded
+        successfully and then failed with <code>cannot execute binary file: Exec format
+        error</code> &mdash; the download step reports success, so the message points at the
+        wrong stage. It now selects by <code>uname -m</code>.
+      </p>
+      <p>
+        <strong>Thor looked smaller than a laptop.</strong> Unified-memory boards report
+        <code>memory.total</code> as <code>[N/A]</code>, which parsed to 0 MiB and put a
+        123 GB machine on the most conservative profile. The Jetson path now falls back to
+        system RAM and sizes the context accordingly (16k, 16 sequences,
+        <code>gpu-mem 0.60</code> so the model never crowds out the OS).
+      </p>
+      <p>
+        A third was a plain factual error: the NVFP4 check tested <code>compute &ge;
+        12.0</code> and so told Thor it was unsupported. Blackwell is the whole 10.x/11.x/12.x
+        family &mdash; sm_100 for B100/B200, sm_110 for Thor, sm_120 for RTX 50.
+      </p>
+    </div>
   </section>
 
   <!-- ============================================================ -->
@@ -1289,7 +1383,147 @@ gputool serve-llamacpp start Qwen3.5-9B-Q8_0.gguf 8080 --mtp --spec-n 8</code></
 
   <!-- ============================================================ -->
   <section>
-    <h2><span class="num">09</span> NVFP4 on Blackwell</h2>
+    <h2><span class="num">09</span> Fleet hub</h2>
+    <p class="lede">
+      A small FastAPI service the nodes report into, so you can see eleven machines
+      without eleven SSH sessions. Nodes dial out; the hub never connects to a node.
+    </p>
+
+<pre><code><span class="c"># on whichever machine you want as the hub</span>
+gputool-fleet-server --token &lt;shared-secret&gt;      <span class="c"># dashboard on :8010</span>
+
+<span class="c"># on each node — no root, no listening port</span>
+gputool monitor start --hub http://hub:8010 --token &lt;shared-secret&gt;
+gputool monitor once   <span class="c"># report immediately, useful for testing</span>
+gputool monitor show   <span class="c"># print the payload without sending it</span></code></pre>
+
+    <h3>Why mDNS is the wrong substrate here</h3>
+    <p>
+      mDNS is link-local multicast. It does not cross a router, and it does not cross a
+      WireGuard overlay <em>at all</em>. This fleet is: two campus subnets, an office
+      machine on wifi reached over Tailscale, a rack machine on a third subnet, and Jetson
+      Orin Nanos dialling in to a self-hosted Headscale from a cloud VM. mDNS discovers
+      nothing across any of that &mdash; which is the single biggest reason PAIR's
+      discovery model does not transfer.
+    </p>
+    <p>
+      <strong>Tailscale is the substrate that does span it.</strong> Every node gets a
+      stable <code>100.x</code> address and a stable name regardless of which physical
+      network it woke up on. So the agent reports a <em>ranked</em> address list,
+      Tailscale first, and tries hub candidates in order until one answers:
+    </p>
+
+<pre><code>gputool monitor start \
+  --hub "http://100.81.219.32:8010,http://10.31.52.69:8010" \
+  --token &lt;secret&gt;
+<span class="c"># and as a last resort a MagicDNS name, so a node that moves networks re-finds the hub</span></code></pre>
+
+    <p>
+      A failed report clears the cached hub, so the next pass re-discovers rather than
+      failing forever against an address that was correct on a different wifi. Node
+      identity is a UUID on disk, not the hostname &mdash; several Orin Nanos ship with
+      the same hostname, and a node that changes network keeps its identity.
+    </p>
+
+    <div class="note alarm">
+      <span class="tag">The fleet spans two separate tailnets</span>
+      <p>
+        Worth knowing before you place the hub. <code>alienwareoffice</code> and
+        <code>jetsonthor</code> are on tailnet <code>lkk688@gmail.com</code>
+        (<code>tailcd0ea9.ts.net</code>); <code>intel13rtx4090</code> is on
+        <code>miaosen.zhou@</code>. They cannot reach each other over Tailscale at all
+        &mdash; not even ping. A hub on the 4090 was invisible to the office machine, and
+        that looked like a firewall problem until the tailnet owners were compared.
+      </p>
+      <p>
+        <code>jetsonthor</code> is the right host because it sits on <em>both</em> worlds:
+        campus LAN <code>10.31.52.69</code> and tailnet <code>100.81.219.32</code>. With
+        the hub there, seven nodes report over three different paths at once:
+      </p>
+<pre><code>coe-cmpe-288-02   ok  RTX 5080     via=lan                free=234G
+coe-cmpe-288-03   ok  RTX 5080     via=lan                free=203G
+coe-cmpe-288-05   ok  RTX 5080     via=lan                free=292G
+coe-cmpe-288-06   ok  RTX 5080     via=lan                free=334G
+lkk-AlienwareR6   ok  GTX 1080 Ti  via=tailscale,lan      free=786G
+lkk-intel13       ok  RTX 4090     via=tailscale,lan      free=513G
+lkk-intel13rack   ok  2x 1080 Ti   via=lan                free=728G</code></pre>
+      <p>
+        The longer-term fix is one tailnet for everything. <code>gputool tailscale setup</code>
+        already installs a <strong>userspace</strong> Tailscale needing no root, pointed at
+        your own Headscale &mdash; so the campus nodes, which have no Tailscale and no
+        sudo, can join the same overlay as the Jetsons and the office machine.
+      </p>
+    </div>
+
+    <h3>What a node reports</h3>
+    <p>
+      GPUs with utilisation and memory, driver version, disk, conda envs, which servers are
+      up &mdash; and the four driver-health facts from section 02, so the hub can flag a node
+      that is fine today and will lose its driver on the next kernel upgrade:
+    </p>
+<pre><code>"driver_health": { "modules_loaded": 4, "kernel_gcc": "12",
+                   "kernel_gcc_present": true, "nvidia_smi_ok": true }</code></pre>
+
+    <h3>Control, deliberately narrow</h3>
+    <p>
+      A hub that can run arbitrary commands on eleven machines is a much larger thing to
+      secure than one that can call <code>gputool device</code>. So there is no
+      "run this shell string" path at all &mdash; only a fixed allowlist of gputool
+      subcommands, and <strong>the node enforces it</strong>. The hub mirrors the list for
+      its UI, but a compromised hub still cannot make a node run something outside it.
+    </p>
+
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Allowed</th><th>Subcommands</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>device</code>, <code>profile</code>, <code>check</code></td><td>&mdash;</td><td>read-only</td></tr>
+          <tr><td><code>hf-cache</code></td><td>status, mount, unmount</td><td>no <code>enable</code>: it edits .bashrc</td></tr>
+          <tr><td><code>serve-vllm</code>, <code>serve-llamacpp</code></td><td>status, stop</td><td><code>start</code> needs <code>confirm=true</code></td></tr>
+          <tr><td><code>agent</code></td><td>status, stop</td><td><code>start</code> needs confirm</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Arguments are checked too &mdash; a model id may pass, a shell metacharacter or <code>..</code> may not. Verified against the running hub:</p>
+
+<pre><code>POST /api/nodes/&lt;n&gt;/command  {"cmd":"profile"}                  → 200  queued
+POST /api/nodes/&lt;n&gt;/command  {"cmd":"install"}                  → 400  not allowed
+POST /api/nodes/&lt;n&gt;/command  {"cmd":"serve-vllm","args":["start"]} → 409  needs confirm
+GET  /api/nodes              (no token)                         → 401</code></pre>
+
+    <p>
+      Commands are <em>queued</em>, not pushed: they sit until the node's next check-in, so
+      a wedged node means a command that never runs rather than a hub that hangs. Every
+      remote command is written to <code>~/.gputool/fleet-audit.log</code> on the node
+      itself, whatever the hub later claims happened.
+    </p>
+
+    <div class="note">
+      <span class="tag">PAIR interop</span>
+      <p>
+        NVIDIA's Personal AI Router is <strong>Apache-2.0</strong>, so unlike OpenRSI it can
+        be built against. It discovers peers over mDNS and then polls each one's
+        <code>/v1/node-info</code>; mDNS will not cross our subnets, but PAIR also accepts
+        manually-entered nodes. The hub therefore serves that exact shape &mdash; hostname,
+        CPU/memory, per-GPU memory and utilisation, and the coarse 0&ndash;3 pressure value
+        PAIR's scheduler expects, thresholded at 40/70/85% &mdash; so PAIR can consume this
+        fleet without us implementing pairing or mTLS.
+      </p>
+      <p>
+        Worth being clear that PAIR solves a different problem: it routes inference requests
+        across a personal cluster via Ollama or LM Studio. It does not do driver repair,
+        disk, environments, or anything else in this runbook, it needs root to install, and
+        it supports neither the Pascal machines nor Jetson.
+      </p>
+    </div>
+
+    
+  </section>
+
+  <!-- ============================================================ -->
+  <section>
+    <h2><span class="num">10</span> NVFP4 on Blackwell</h2>
     <p class="lede">
       The RTX 5080 is Blackwell (sm_120), so it can run NVFP4 &mdash; NVIDIA's native 4-bit
       format. The practical question is what that buys on a 16 GB card, measured rather
@@ -1392,7 +1626,7 @@ gputool serve-llamacpp start Qwen3.5-9B-Q8_0.gguf 8080 --mtp --spec-n 8</code></
 
   <!-- ============================================================ -->
   <section>
-    <h2><span class="num">10</span> Open items</h2>
+    <h2><span class="num">11</span> Open items</h2>
     <p class="lede">Nothing here blocks GPU work today. Ordered by how soon it bites.</p>
 
     <div class="note">
@@ -1423,7 +1657,7 @@ gputool serve-llamacpp start Qwen3.5-9B-Q8_0.gguf 8080 --mtp --spec-n 8</code></
 
   <!-- ============================================================ -->
   <section>
-    <h2><span class="num">11</span> Keeping them healthy</h2>
+    <h2><span class="num">12</span> Keeping them healthy</h2>
     <p class="lede">Four invariants. Hold these and the failure mode above cannot recur.</p>
     <ol>
       <li><strong>gcc-12 stays installed on every node.</strong> It is the single predictor of whether a driver survives a kernel upgrade. Install it during provisioning, never as a reaction.</li>
