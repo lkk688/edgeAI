@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" width="100%" height="100%" style="background: #0b0f19; border-radius: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <!-- Definitions for Gradients, Markers, and Filters -->
+  <defs>
+    <!-- Drop Shadows -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+    
+    <!-- Neon glows -->
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    
+    <!-- Card Gradients -->
+    <linearGradient id="grad-browser" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    
+    <linearGradient id="grad-server" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    
+    <linearGradient id="grad-nvidia" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+
+    <!-- Arrow Markers -->
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#64748b" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#38bdf8" />
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 10 5 L 0 8.5 z" fill="#a78bfa" />
+    </marker>
+  </defs>
+
+  <!-- Security Boundary Overlay -->
+  <rect x="330" y="30" width="630" height="360" rx="16" fill="none" stroke="#334155" stroke-dasharray="8 6" stroke-width="1.5" />
+  <text x="350" y="55" fill="#64748b" font-size="12" font-weight="600" letter-spacing="1">SECURE NETWORK BOUNDARY (SECRETS HIDDEN)</text>
+
+  <!-- ==================== BROWSER NODE (CLIENT) ==================== -->
+  <g transform="translate(50, 80)" filter="url(#shadow)">
+    <!-- Main Box -->
+    <rect width="230" height="240" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2" />
+    <!-- Gradient Header Bar -->
+    <rect width="230" height="12" rx="6" fill="url(#grad-browser)" />
+    <!-- Icon (Browser) -->
+    <path d="M 30 45 L 30 75 L 70 75 L 70 45 Z M 35 50 L 65 50 M 40 65 A 3 3 0 1 0 40 65.01 M 50 65 A 3 3 0 1 0 50 65.01" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+    <!-- Titles -->
+    <text x="30" y="110" fill="#f8fafc" font-size="22" font-weight="800">Browser</text>
+    <text x="30" y="135" fill="#94a3b8" font-size="15" font-weight="500">Client Environment</text>
+    
+    <!-- Code / Component Pill -->
+    <rect x="30" y="165" width="170" height="30" rx="8" fill="#0f172a" stroke="#38bdf8" stroke-width="1" />
+    <text x="45" y="185" fill="#38bdf8" font-size="13" font-family="monospace" font-weight="700">ChatUI.js</text>
+    <text x="125" y="185" fill="#64748b" font-size="11" font-family="monospace">&lt;client&gt;</text>
+    
+    <!-- Warning/Security Note -->
+    <text x="30" y="218" fill="#f43f5e" font-size="12" font-weight="700">⚠️ No API Keys Exposed</text>
+  </g>
+
+  <!-- ==================== NEXT.JS SERVER NODE ==================== -->
+  <g transform="translate(370, 80)" filter="url(#shadow)">
+    <!-- Main Box -->
+    <rect width="240" height="240" rx="16" fill="#1e293b" stroke="#059669" stroke-width="2" />
+    <!-- Gradient Header Bar -->
+    <rect width="240" height="12" rx="6" fill="url(#grad-server)" />
+    <!-- Icon (Server/Shield) -->
+    <path d="M 30 45 L 50 35 L 70 45 L 70 65 C 70 78 50 88 50 88 C 50 88 30 78 30 65 Z" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round" />
+    <path d="M 45 53 L 49 57 L 57 49" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" />
+    <!-- Titles -->
+    <text x="30" y="110" fill="#f8fafc" font-size="22" font-weight="800">Next.js Server</text>
+    <text x="30" y="135" fill="#94a3b8" font-size="15" font-weight="500">Node.js Runtime</text>
+    
+    <!-- Code / Component Pill -->
+    <rect x="30" y="165" width="180" height="30" rx="8" fill="#0f172a" stroke="#10b981" stroke-width="1" />
+    <text x="45" y="185" fill="#10b981" font-size="12" font-family="monospace" font-weight="700">api/chat/route.js</text>
+    
+    <!-- Key Pill -->
+    <rect x="30" y="202" width="180" height="26" rx="6" fill="#064e3b" />
+    <text x="42" y="219" fill="#34d399" font-size="11" font-weight="700" font-family="monospace">🔑 NVIDIA_API_KEY</text>
+  </g>
+
+  <!-- ==================== NVIDIA BUILD NODE ==================== -->
+  <g transform="translate(710, 80)" filter="url(#shadow)">
+    <!-- Main Box -->
+    <rect width="230" height="240" rx="16" fill="#1e293b" stroke="#334155" stroke-width="2" />
+    <!-- Gradient Header Bar -->
+    <rect width="230" height="12" rx="6" fill="url(#grad-nvidia)" />
+    <!-- Icon (Cloud / AI) -->
+    <path d="M 40 70 A 12 12 0 0 1 50 48 A 18 18 0 0 1 82 50 A 14 14 0 0 1 90 70 Z" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linejoin="round" />
+    <!-- Titles -->
+    <text x="30" y="110" fill="#f8fafc" font-size="22" font-weight="800">NVIDIA Build</text>
+    <text x="30" y="135" fill="#94a3b8" font-size="15" font-weight="500">Hosted API Catalog</text>
+    
+    <!-- Endpoint info -->
+    <rect x="30" y="165" width="170" height="50" rx="8" fill="#0f172a" stroke="#475569" stroke-width="1" />
+    <text x="40" y="183" fill="#cbd5e1" font-size="11" font-weight="600">Endpoint Model:</text>
+    <text x="40" y="200" fill="#c084fc" font-size="10" font-family="monospace">llama-3.3-nemotron</text>
+  </g>
+
+  <!-- ==================== FLOW ARROWS ==================== -->
+
+  <!-- 1. Browser -> Server (Request) -->
+  <path d="M 280 160 L 370 160" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)" />
+  <text x="325" y="145" fill="#cbd5e1" font-size="11" font-weight="700" text-anchor="middle">POST</text>
+  <text x="325" y="20" transform="translate(0, 160)" fill="#64748b" font-size="10" font-family="monospace" text-anchor="middle">/api/chat</text>
+
+  <!-- 2. Server -> Browser (Streamed Tokens) -->
+  <path d="M 370 240 L 286 240" fill="none" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow-blue)" filter="url(#glow-green)" />
+  <text x="325" y="225" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">Streamed Tokens</text>
+  <text x="325" y="255" fill="#64748b" font-size="9" text-anchor="middle">Server-Sent Events (SSE)</text>
+
+  <!-- 3. Server -> NVIDIA Build (Request with key) -->
+  <path d="M 610 160 L 700 160" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-gray)" />
+  <text x="655" y="130" fill="#cbd5e1" font-size="11" font-weight="700" text-anchor="middle">POST</text>
+  <text x="655" y="145" fill="#64748b" font-size="9" font-family="monospace" text-anchor="middle">/v1/chat/completions</text>
+  <text x="655" y="190" fill="#fbbf24" font-size="10" font-weight="700" text-anchor="middle">🔑 Auth: Bearer nvapi-...</text>
+
+  <!-- 4. NVIDIA Build -> Server (Streamed chunks) -->
+  <path d="M 700 240 L 616 240" fill="none" stroke="#a78bfa" stroke-width="2" marker-end="url(#arrow-purple)" />
+  <text x="655" y="225" fill="#a78bfa" font-size="11" font-weight="700" text-anchor="middle">SSE Chunks</text>
+  <text x="655" y="255" fill="#64748b" font-size="9" text-anchor="middle">Raw Streamed Text</text>
+</svg>
