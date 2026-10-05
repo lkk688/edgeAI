@@ -1,6 +1,6 @@
 # Jetson Orin Nano SO-ARM101 and Camera Setup
 
-Last updated: 2026-05-28
+Last updated: 2026-08-02
 
 This note records the current Jetson Orin Nano setup for SO-ARM101 / LeRobot data collection, including the CSI cameras, Intel RealSense cameras, encoding behavior, and the dedicated LeRobot Python environment.
 
@@ -232,8 +232,25 @@ Copied to the Jetson for convenience:
 /home/cmpe/so101_unified_teleop.py
 ```
 
+For a step-by-step bring-up walkthrough (connect the arm, find the port,
+calibrate, keyboard test, PS5 test, leader teleop), see:
+
+```text
+jetson/robotics/SO101_TELEOP_TUTORIAL.md
+```
+
+Or run the guided menu, which launches the real LeRobot CLIs for find-port,
+info, calibrate and teleoperate:
+
+```bash
+python ~/so101_unified_teleop.py interactive
+```
+
 This script is designed to work with both LeRobot 0.4.4 and 0.5.x:
 
+- `interactive` is a guided menu over all of the below plus the LeRobot CLIs.
+- `ps5-local` reads a DualSense paired to the Jetson via evdev and sends
+  joint-space goals, with L1 as a deadman and Circle as an E-STOP.
 - `leader` delegates to `lerobot-teleoperate`, which exists in both versions.
 - `keyboard` uses the shared `SOFollower` API directly and does not need X11 or `pynput`.
 - `remote-server` runs a UDP/HTTP bridge on the Jetson and calls `robot.send_action()`.
@@ -316,7 +333,19 @@ Use `--print-events` first to verify the PS5 controller axis/button mapping on t
 
 ### PS5 Controller Directly on Jetson
 
-Direct Bluetooth PS5 control on the Orin Nano appears possible:
+Confirmed working on 2026-08-02. The easiest path is now:
+
+```bash
+python ~/jetson_devices.py bluetooth ps5      # guided scan + pair + trust + connect
+python ~/jetson_devices.py bluetooth gamepad  # live button/axis check
+```
+
+See the `jetson_devices.py` section above for the three pitfalls that break
+manual pairing (readline control bytes in `bluetoothctl` output, the inbound
+HID service authorization timeout, and `br-connection-create-socket` when the
+controller is asleep).
+
+Original observations:
 
 ```text
 Bluetooth controller: present
@@ -355,17 +384,55 @@ python ~/so101_unified_teleop.py gamepad-local \
   --robot-id so101_follower
 ```
 
-One permission caveat: current `/dev/input/event*` nodes are owned by `root:input`, and user `cmpe` was not in the `input` group during setup. If the controller pairs but Python cannot read input events, add the user to the group and reboot/log out:
+A permission caveat was expected here but did not apply. `/dev/input/event*` is
+owned by `root:input` with mode 0660 and user `cmpe` is not in the `input`
+group, yet reading works: systemd-logind attaches a `user:cmpe:rw-` uaccess ACL
+to newly appearing input devices because `cmpe` holds the active local seat
+session. Verified after the DualSense connected:
+
+```text
+$ getfacl /dev/input/event7
+user::rw-
+user:cmpe:rw-
+group::rw-
+other::---
+```
+
+Only add the user to the `input` group if there is no local seat session (for
+example a fully headless boot with no console login), in which case the ACL is
+never applied:
 
 ```bash
-sudo usermod -aG input cmpe
+sudo usermod -aG input cmpe    # then log out and back in
 ```
 
 For first real collection, the remote Mac PS5 path is usually easier because the controller is known to work on the Mac and the Jetson only receives network commands.
 
 ## Connected Cameras
 
-Current USB and V4L2 state while D435i and L515 were plugged in:
+State observed 2026-08-02 (D435i plus a USB UVC camera, L515 not attached):
+
+```text
+/dev/video0  Arducam IMX219 CSI, raw Bayer RG10, Argus sensor-id=0
+/dev/video1  Arducam IMX219 CSI, raw Bayer RG10, Argus sensor-id=1
+
+D435i (8086:0b3a, USB3 5G, serial 850123050151):
+  /dev/video2  depth Z16
+  /dev/video3  metadata
+  /dev/video4  IR: GREY / UYVY / Y8I / Y12I
+  /dev/video5  metadata
+  /dev/video6  RGB color YUYV
+  /dev/video7  metadata
+
+Innomaker U20CAM-1080p (0c45:6366, USB2 480M):
+  /dev/video8  MJPG up to 1920x1080@30, YUYV 1920x1080@5
+  /dev/video9  metadata
+```
+
+Node numbering shifts with what is plugged in, so resolve cameras by serial or
+by `jetson_devices.py camera list` rather than hardcoding `/dev/videoN`.
+
+Earlier USB and V4L2 state while D435i and L515 were both plugged in:
 
 ```text
 Bus 002 Device 006: ID 8086:0b64 Intel RealSense 515
@@ -681,6 +748,264 @@ For cameras:
 - Best CSI image quality: Argus pipeline with `flip-method=2`; bridge to LeRobot through `v4l2loopback` or a custom camera class.
 - Avoid L515 RGB.
 - Use L515 depth only if a custom V4L2 depth reader is acceptable.
+
+## Unified Device Tool: `jetson_devices.py`
+
+Script in this repo:
+synced to jetsonorin:/home/cmpe/jetson_devices.py
+```text
+jetson/robotics/jetson_devices.py
+```
+
+Copied to the Jetson for convenience:
+
+```text
+/home/cmpe/jetson_devices.py
+```
+
+One CLI that detects and tests everything attached to the Orin Nano: CSI, USB
+UVC, RealSense and Orbbec cameras, plus Bluetooth game controllers. Core paths
+are standard library only; optional features (RealSense SDK streams, gamepad
+input) auto re-exec into an interpreter that has the needed module.
+
+Recommended environment:
+
+```bash
+source ~/lerobot-py310-cuda/bin/activate
+export LD_LIBRARY_PATH=/home/cmpe/lerobot-py310-cuda/cudss-lib:$LD_LIBRARY_PATH
+python ~/jetson_devices.py --help
+```
+
+### Camera subcommands
+
+```bash
+python ~/jetson_devices.py camera list --formats   # detect + describe everything
+python ~/jetson_devices.py camera test             # capture smoke test, all cameras
+python ~/jetson_devices.py camera snap   -c csi:0 --out shot.jpg
+python ~/jetson_devices.py camera record -c usb -d 5
+python ~/jetson_devices.py camera show   -c rs:depth --mode stream --port 8090
+python ~/jetson_devices.py camera formats /dev/video8
+python ~/jetson_devices.py camera interactive      # menu-driven
+```
+
+Camera selectors accepted by `--camera`:
+
+```text
+0, 1, 2 ...        index from `camera list`
+csi:0, csi:1       CSI cameras by Argus sensor-id
+/dev/videoN        explicit V4L2 node
+usb, csi, rs       first camera of that kind
+rs:color           RealSense SDK color stream
+rs:depth           RealSense SDK depth, JET colormapped
+rs:ir              RealSense SDK left infrared
+rs:rgbd            RealSense SDK color + depth side by side
+```
+
+`camera list` reports kind, USB vendor/product with a vendor name, serial, link
+speed, bus, Argus sensor-id, which node is color vs depth, which nodes are
+metadata-only, and the full V4L2 format/resolution/fps table with `--formats`.
+When `pyrealsense2` is importable it also prints SDK-level device info and
+stream profiles.
+
+Live view has two modes. `--mode window` uses a GStreamer video sink and needs
+`DISPLAY` (`nveglglessink` locally, `ximagesink` over X11 forwarding).
+`--mode stream` needs no display at all: it serves MJPEG over HTTP so the feed
+opens in a browser on another machine.
+
+```text
+http://<jetson-ip>:8090/           HTML page with the live image
+http://<jetson-ip>:8090/stream     raw multipart MJPEG
+http://<jetson-ip>:8090/snapshot   single JPEG
+```
+
+`--mode auto` (the default) picks `window` when `DISPLAY` is set and `stream`
+otherwise.
+
+### Bluetooth subcommands
+
+```bash
+python ~/jetson_devices.py bluetooth status          # adapter, bonds, input nodes
+python ~/jetson_devices.py bluetooth scan -t 15      # classify nearby controllers
+python ~/jetson_devices.py bluetooth ps5             # PS5 control panel (interactive)
+python ~/jetson_devices.py bluetooth quest           # guided Quest 3 attempt
+python ~/jetson_devices.py bluetooth pair <mac>      # pair + trust + connect
+python ~/jetson_devices.py bluetooth gamepad         # live button/axis dashboard
+python ~/jetson_devices.py bluetooth interactive     # menu-driven
+```
+
+`scan` classifies known controller signatures (DualSense, DualShock 4, Xbox,
+8BitDo, Nintendo, Meta) by advertised name and USB vendor/product id.
+
+`bluetooth ps5` with no flags opens an interactive control panel that shows the
+controller's current state at the top and offers pair, connect, disconnect,
+unpair, live input test, and the button mapping. Every action is also a
+one-shot flag so the command stays scriptable:
+
+```bash
+python ~/jetson_devices.py bluetooth ps5 --status      # state + battery + input node
+python ~/jetson_devices.py bluetooth ps5 --pair        # guided pairing
+python ~/jetson_devices.py bluetooth ps5 --connect     # wake + connect a known pad
+python ~/jetson_devices.py bluetooth ps5 --disconnect
+python ~/jetson_devices.py bluetooth ps5 --unpair
+python ~/jetson_devices.py bluetooth ps5 --test        # mapping table + live panel
+```
+
+The live input test prints the full physical/evdev mapping table and then a
+panel with normalized values and bar graphs:
+
+```text
+  Left stick   LX -0.84 ..#########|
+               LY -0.92 .##########|
+  Right stick  RX +0.80            |#########..
+               RY +0.00 ...........|
+  Triggers     L2  0.00 ......................
+               R2  0.78 #################.....
+  D-pad        < . . .   LEFT
+
+  Held         Square  R1
+  Last press   Square           [BTN_SOUTH]
+```
+
+The panel redraws in place on a tty. Over a plain SSH pipe it falls back to
+rate-limited event lines; use `ssh -t jetsonorin` to get the panel.
+
+### PS5 button and axis mapping on this host
+
+Because `hid_playstation` is missing, the DualSense enumerates as a generic HID
+gamepad: HID buttons 1..15 land on the generic `BTN_SOUTH..BTN_THUMBR` block in
+report order, which does not match those names' usual meanings. Both scripts
+translate back to physical labels using that report order.
+
+```text
+physical          evdev         code      physical    evdev      kind
+Square            BTN_SOUTH     304       LX          ABS 0      stick
+Cross             BTN_EAST      305       LY          ABS 1      stick
+Circle            BTN_C         306       RX          ABS 2      stick
+Triangle          BTN_NORTH     307       L2          ABS 3      trigger
+L1                BTN_WEST      308       R2          ABS 4      trigger
+R1                BTN_Z         309       RY          ABS 5      stick
+L2 button         BTN_TL        310       D-pad X     ABS 16     hat
+R2 button         BTN_TR        311       D-pad Y     ABS 17     hat
+Create            BTN_TL2       312
+Options           BTN_TR2       313
+L3 stick click    BTN_SELECT    314
+R3 stick click    BTN_START     315
+PS                BTN_MODE      316
+Touchpad          BTN_THUMBL    317
+Mute              BTN_THUMBR    318
+```
+
+Confirmed on hardware: Circle, Triangle, L1, R1 report the codes above, and
+pressing the L2/R2 buttons raised `ABS 3` / `ABS 4` in sync. The trigger axes
+were identified from `absinfo`: `ABS_RX`/`ABS_RY` rest at 0 (triggers) while
+`ABS_Z`/`ABS_RZ` rest at mid-scale (right stick).
+
+### Driving the SO-ARM101 from the DualSense
+
+`so101_unified_teleop.py` gained a `ps5-local` mode that reads the controller
+directly on the Jetson through evdev and sends joint-space goals:
+
+```bash
+python ~/so101_unified_teleop.py ps5-local --follower-port /dev/ttyACM0 --dry-run
+python ~/so101_unified_teleop.py ps5-local --follower-port /dev/ttyACM0
+```
+
+L1 is a deadman (the arm only moves while held), Circle is an E-STOP and
+Options clears it. See `SO101_TELEOP_TUTORIAL.md` for the full walkthrough.
+
+Note that LeRobot's own `gamepad` teleoperator (the `gamepad-local` mode) emits
+end-effector deltas and expects a robot with inverse kinematics, so it does not
+pair with a plain `so101_follower`, which consumes joint positions. Use
+`ps5-local` for joint control.
+
+### Whole-system report
+
+```bash
+python ~/jetson_devices.py doctor
+```
+
+Prints host/L4T info, required CLI tools, GStreamer element availability,
+which Python modules each interpreter on the box provides, the camera
+inventory, and Bluetooth state.
+
+### Verified on this Orin Nano
+
+Camera capture smoke test, 2026-08-02, all six sources passed:
+
+```text
+PASS  CSI camera 0 (IMX219)          1280x720, Argus sensor-id=0
+PASS  CSI camera 1 (IMX219)          1280x720, Argus sensor-id=1
+PASS  RealSense D435i via V4L2       /dev/video6 color
+PASS  USB UVC Innomaker U20CAM       /dev/video8, MJPG 1280x720
+PASS  RealSense SDK color            pyrealsense2
+PASS  RealSense SDK depth            pyrealsense2
+```
+
+Camera notes found during that run:
+
+- Both CSI images need `flip-method=2`; the tool applies it by default for
+  `csi:*` and `--flip` overrides it.
+- The Innomaker USB camera exposes `MJPG` and `YUYV`. The tool prefers `MJPG`,
+  which avoids a re-encode and gets 1080p at 30 fps instead of YUYV's 5 fps.
+- MJPEG streaming sustained 30 fps at 1280x720 from a CSI camera.
+- RealSense RGB auto-exposure needs roughly 15 frames to converge, so short
+  captures look black. `camera snap` discards 15 frames for SDK sources.
+- The RealSense depth node enumerates its pixel format as `Z16 ` with a
+  trailing space.
+
+### Bluetooth findings
+
+PS5 DualSense pairing was verified end to end on 2026-08-02:
+
+```text
+name:      DualSense Wireless Controller
+address:   A0:FA:9C:8B:2B:6F
+modalias:  usb:v054Cp0CE6
+result:    Paired: yes, Trusted: yes, Connected: yes
+input:     /dev/input/event7 and /dev/input/js0
+```
+
+Three non-obvious things that break naive DualSense pairing on this host:
+
+1. `bluetoothctl` wraps its ANSI colors in readline's `\x01` / `\x02` markers,
+   so `[CHG]` arrives as `[\x01...\x02CHG\x01...\x02]`. Stripping ANSI alone is
+   not enough; those two control bytes must be removed or all scan output
+   parses as zero devices.
+2. Immediately after bonding, the controller connects back *inbound* and BlueZ
+   asks the agent to authorize the HID service. If that prompt is not answered
+   within about 30 seconds, bluetoothd logs `auth_callback() Access denied` and
+   drops the link. Trust the device early and answer the agent prompt promptly.
+3. A bonded controller that has gone to sleep will not answer an outbound page;
+   `bluetoothctl connect` fails with
+   `org.bluez.Error.Failed br-connection-create-socket`. Press the PS button to
+   wake it and let it connect inbound.
+
+Input device permissions turned out to be a non-issue here. `/dev/input/event*`
+is `root:input 0660` and user `cmpe` is not in the `input` group, but
+systemd-logind grants a `user:cmpe:rw-` uaccess ACL to newly appearing input
+devices because `cmpe` owns the active local seat session. `evdev` therefore
+works over SSH with no group change. `/dev/input/js0` is additionally
+world-readable, and the tool falls back to the classic joydev API when event
+nodes are not readable.
+
+This kernel does not ship `hid_playstation`:
+
+```text
+modinfo hid_playstation: not found
+```
+
+So the DualSense enumerates as a generic HID gamepad and its buttons do not map
+to the printed PS labels. The tool reports the kernel's canonical evdev names
+(`BTN_SOUTH`, `BTN_NORTH`, ...) rather than guessing at physical labels, and
+says so at the start of a gamepad test.
+
+Meta Quest 3 Touch Plus controllers bond to the headset over a proprietary BLE
+link and do not advertise a standard Bluetooth HID gamepad profile, so a Linux
+host generally cannot use them as a joystick. The `bluetooth quest` subcommand
+scans, reports Meta vendor `0x2833` devices, attempts pairing, and checks
+whether any HID input node appeared, so the outcome is visible rather than
+guessed. For Quest input on the Jetson, prefer sending poses from a headset-side
+app over UDP/WebSocket, matching the pattern in `so101_unified_teleop.py`.
 
 ## Useful Test Commands
 
