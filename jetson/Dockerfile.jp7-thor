@@ -1,41 +1,36 @@
 # =============================================================================
-# Unified Jetson AI + Robotics container — JetPack 7 (L4T r38/r39, Ubuntu 24.04, Python 3.12)
+# Unified Jetson AI + Robotics container — Jetson THOR on the NGC 26.05 base
+#   (JetPack 7.x, Ubuntu 24.04, Python 3.12, torch 2.12, CUDA 13.2, TensorRT 10.16)
 #
-# Successor to ./Dockerfile (which targets JetPack 6 via nvcr.io/.../pytorch:24.12-py3-igpu)
-# and the deployed image cmpelkk/jetson-llm:latest.
+# Thor variant of ./Dockerfile.jp7 (which stays the Orin/Thor 25.08 recipe). Same
+# sections and build args; what differs and why:
 #
-# Goals for this image (the "next-gen all-in-one"):
-#   1. Feature-parity with cmpelkk/jetson-llm  (PyTorch · cv2 · ultralytics · transformers ·
-#      huggingface · llama.cpp+CUDA · llama-cpp-python · Ollama · jupyterlab · fastapi · Node 20)
-#   2. + LeRobot · RealSense · PyAV / FFmpeg-Python  for the robotics/vision lessons.
-#   3. + Hardware-accelerated camera & video via GStreamer:
-#        - libgstreamer + tools installed inside the container
-#        - OpenCV REBUILT with WITH_GSTREAMER=ON  (default; off via --build-arg REBUILD_OPENCV=0)
-#        - At runtime, --runtime nvidia auto-mounts the host's NV GStreamer plugins
-#          (libgstnvarguscamerasrc / libgstnvv4l2camerasrc / libgstnvv4l2decoder /
-#           libgstnvvidconv / libgstnvjpeg, plus the libnvargus/libnvbufsurface/libnvv4l2/
-#           libnvjpeg backing libs in /usr/lib/aarch64-linux-gnu/nvidia/).
-#          → after rebuild, `cv2.VideoCapture("nvarguscamerasrc ! ... ! appsink", cv2.CAP_GSTREAMER)`
-#            and `cv2.VideoCapture("rtsp://…")` Just Work from Python, on the dedicated
-#            NVENC/NVDEC hardware blocks (≈0% CPU vs ~30% software).
-#
-# BASE IMAGE — the one decision that matters most.
-#   JetPack-7-native PyTorch bases are NOT published yet (dustynv/pytorch tops out at r36.4;
-#   the jetson-ai-lab pip index has no jp7 channel). But NVIDIA's NGC PyTorch images run
-#   on JetPack 7 via CUDA forward-compat (verified on JetPack 7 / L4T r38 & r39).
-#
-#   Image variants:
-#     - For Jetson Orin (sm_87): nvcr.io/nvidia/pytorch:25.08-py3-igpu (torch 2.8 / CUDA 12.9)
-#     - For Jetson Thor (sm_110/sm_100): nvcr.io/nvidia/pytorch:25.08-py3 (torch 2.8 / CUDA 13.0)
-#       (Note: 25.08-py3-igpu only has sm_87 compiled in, so 25.08-py3 is required on Thor for native sm_110/CUDA 13)
+#   * BASE nvcr.io/nvidia/pytorch:26.05-py3 instead of 25.08-py3.
+#     26.05 ships CUDA 13.2 but runs on the JetPack 7.1 / driver 580 (CUDA 13.0) host
+#     through its bundled forward-compat libs (/usr/local/cuda/compat), verified on Thor.
+#     Its TensorRT 10.16.1 + modelopt 0.43 build OpenPI's FP8+NVFP4 pi0.5 engine; the
+#     25.08 base's TensorRT 10.13 hangs on it (robotics/JETSON_THOR.md §9.5).
+#   * numpy stays at the base's 2.1 (25.08's torch-tensorrt forced numpy<2; 26.05's
+#     does not), so lerobot / rerun get the numpy 2 they ask for.
+#   * LeRobot is installed with `uv pip --override`: lerobot 0.6.x pins torch<2.12 and
+#     torchvision<0.27, and PEP 440 excludes the base's 2.12.0a0 / 0.27.0a0 pre-releases
+#     from those ranges; plain pip would fail or silently fall back to an ancient lerobot.
+#   * OpenCV 4.13 (CUDA 13 support) built for sm_110 (Thor), GStreamer ON.
+#   * llama.cpp built for CUDA arch 110.
+#   * Thor-only extras on by default: Isaac ROS (9b) and the GR00T/OpenPI venvs (9c).
+#   * Also builds the JetPack 7.2 Orin image (Docker Hub cmpelkk/jetson-unified:jp7-orin):
+#       --build-arg OPENCV_CUDA_ARCH_BIN=8.7 --build-arg LLAMA_CUDA_ARCH=87 \
+#       --build-arg INSTALL_THOR_VLA=0 --build-arg INSTALL_ISAAC_ROS=0
+#     The 26.05 torch (sm_80/86/...) runs on Orin (8.7), verified on a JetPack 7.2 Orin Nano.
+#     sjsujetsontool v2 pulls :jp7-thor on Thor and :jp7-orin on Orin (--jp7).
 # =============================================================================
-ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3-igpu
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:26.05-py3
 FROM ${BASE_IMAGE}
 
 LABEL maintainer="kaikai.liu@sjsu.edu"
 LABEL org.opencontainers.image.title="cmpelkk/jetson-unified"
-LABEL org.opencontainers.image.description="Next-gen unified Jetson AI+robotics+LLM container (JP7 / L4T r38/r39 / Orin / Thor)"
-LABEL org.opencontainers.image.source="https://github.com/lkk688/edgeAI/blob/main/jetson/Dockerfile.jp7"
+LABEL org.opencontainers.image.description="Unified Jetson AI+robotics+LLM container for Jetson Thor (JP7, NGC 26.05 base)"
+LABEL org.opencontainers.image.source="https://github.com/lkk688/edgeAI/blob/main/jetson/Dockerfile.jp7-thor"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/root/.local/bin:/usr/local/bin:$PATH"
@@ -90,10 +85,15 @@ RUN pip install --upgrade pip
 # this constraint, so no transitive dep can swap the CUDA torch wheel for a
 # PyPI CPU wheel. If a package later demands newer torch than the base ships,
 # the build FAILS LOUDLY here — bump BASE_IMAGE, do not ship a CPU image.
-RUN python -c "import torch,torchvision; \
-open('/opt/torch-constraints.txt','w').write( \
-'torch==%s\ntorchvision==%s\n' % (torch.__version__.split('+')[0], torchvision.__version__.split('+')[0]))" \
- && echo "== torch constraints ==" && cat /opt/torch-constraints.txt
+# numpy is pinned too: the base's torch / torch-tensorrt / cv2 wheels are built against it,
+# and lerobot accepts anything in [2.0, 2.3). /opt/torch-overrides.txt holds torch and
+# torchvision only, for `uv pip --override` where a package's own torch bound must be ignored.
+RUN python -c "import torch,torchvision,numpy; \
+tv='torch==%s\ntorchvision==%s\n' % (torch.__version__.split('+')[0], torchvision.__version__.split('+')[0]); \
+open('/opt/torch-overrides.txt','w').write(tv); \
+open('/opt/torch-constraints.txt','w').write(tv + 'numpy==%s\n' % numpy.__version__)" \
+ && echo "== torch constraints ==" && cat /opt/torch-constraints.txt \
+ && pip install uv
 ENV PIP_CONSTRAINT=/opt/torch-constraints.txt
 
 # ============================================================================
@@ -116,19 +116,21 @@ RUN pip install ultralytics pycocotools
 # ============================================================================
 # 5. Robotics: LeRobot (+Feetech servos) + Intel RealSense + gamepad
 # ============================================================================
-RUN pip install "lerobot[feetech]" pyrealsense2 pygame
+# lerobot 0.6.x declares torch<2.12, torchvision<0.27; the base ships 2.12.0a0 / 0.27.0a0,
+# which PEP 440 keeps OUT of those ranges. --override replaces lerobot's torch bounds with
+# the base's exact versions, so lerobot 0.6 installs on top of the CUDA torch.
+# pyrealsense2: the first aarch64 cp312 wheel is 2.58.
+RUN uv pip install --system --break-system-packages \
+      --override /opt/torch-overrides.txt --constraint /opt/torch-constraints.txt \
+      "lerobot[feetech]" "pyrealsense2>=2.58" pygame \
+ && python -c "import lerobot, torch; print('lerobot', lerobot.__version__, 'torch', torch.__version__)"
 
 # ============================================================================
-# 6. numpy: an unavoidable tradeoff on this base
+# 6. numpy: keep the base's numpy 2.x
 # ============================================================================
-# The base's torch-tensorrt pins numpy<2 (on tegra), while lerobot 0.5.1 / rerun-sdk
-# want numpy>=2 — mutually unsatisfiable. We choose numpy<2 to keep the prebuilt CUDA
-# wheels (torch / torchvision / torch-tensorrt / opencv) on their native 1.x ABI.
-# VERIFIED: with numpy 1.26.4 the GPU stack + lerobot CLI + ultralytics all work; the
-# only casualty is rerun-sdk visualization. If you NEED rerun viz, replace this with
-#   RUN pip install "numpy<2.3,>=2.0"
-# and re-test torch/opencv imports (torch 2.8 supports numpy 2; torch-tensorrt won't).
-RUN pip install "numpy<2"
+# 25.08's torch-tensorrt pinned numpy<2, which jp7 had to follow. 26.05's does not:
+# the base ships numpy 2.1, pinned in /opt/torch-constraints.txt above, and that
+# satisfies lerobot (>=2.0,<2.3) and rerun-sdk. Nothing to do here.
 
 # ============================================================================
 # 7. OpenCV rebuild — WITH_GSTREAMER=ON, WITH_FFMPEG=ON, WITH_CUDA=ON
@@ -142,10 +144,14 @@ RUN pip install "numpy<2"
 # Toggle off with --build-arg REBUILD_OPENCV=0 if you just need the apt-installed
 # gstreamer tools but not cv2 GStreamer support (saves ~35 min).
 ARG REBUILD_OPENCV=1
-ARG OPENCV_VERSION=4.10.0
-# CUDA arch: 8.7 = Orin; 7.2 = Xavier; Thor = 11.0 under CUDA 13 (10.0/10.1 were the CUDA 12.x names
-# and do not run natively on Thor with these CUDA 13 bases).
-ARG OPENCV_CUDA_ARCH_BIN=8.7;10.0
+ARG OPENCV_VERSION=4.13.0
+# CUDA arch: Thor is sm_110 under CUDA 13 (it was sm_101 under CUDA 12.8/12.9).
+ARG OPENCV_CUDA_ARCH_BIN=11.0
+# CUDA 13.2 (this base) moved libcu++ to the cuda::std namespace macro; opencv_contrib
+# 4.13.0's cudev/ptr2d/zip.hpp still opens _LIBCUDACXX_BEGIN_NAMESPACE_STD and fails with
+# "tuple is not a template". Fixed upstream in opencv_contrib PR #4097 (zip.hpp only, +9
+# lines), merged after 4.13.0; take that one file from the merge commit.
+ARG OPENCV_CONTRIB_CUDA132_FIX=f2854f4f5e7b67d4e073ea002ae0174d437e2962
 RUN if [ "$REBUILD_OPENCV" = "1" ]; then \
       pip uninstall -y opencv-python opencv-python-headless opencv-contrib-python || true && \
       cd /tmp && \
@@ -154,6 +160,8 @@ RUN if [ "$REBUILD_OPENCV" = "1" ]; then \
       curl -fsSL -o opencv_contrib.tar.gz \
         "https://github.com/opencv/opencv_contrib/archive/refs/tags/${OPENCV_VERSION}.tar.gz" && \
       tar xzf opencv.tar.gz && tar xzf opencv_contrib.tar.gz && \
+      curl -fsSL -o opencv_contrib-${OPENCV_VERSION}/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp \
+        "https://raw.githubusercontent.com/opencv/opencv_contrib/${OPENCV_CONTRIB_CUDA132_FIX}/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp" && \
       cd opencv-${OPENCV_VERSION} && mkdir build && cd build && \
       cmake -GNinja \
         -DCMAKE_BUILD_TYPE=Release \
@@ -186,13 +194,15 @@ RUN if [ "$REBUILD_OPENCV" = "1" ]; then \
 # Was --build-arg INSTALL_LLAMACPP=1 in the old jp7 file; now DEFAULT to match
 # the deployed cmpelkk/jetson-llm image. Toggle off with --build-arg INSTALL_LLAMACPP=0.
 ARG INSTALL_LLAMACPP=1
+# 110 = Thor (CUDA 13). For a JetPack 7.2 Orin build pass --build-arg LLAMA_CUDA_ARCH=87.
+ARG LLAMA_CUDA_ARCH=110
 RUN if [ "$INSTALL_LLAMACPP" = "1" ]; then \
       git clone --depth=1 https://github.com/ggerganov/llama.cpp.git /opt/llama.cpp && \
-      cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=ON -DGGML_NATIVE=OFF && \
+      cmake -S /opt/llama.cpp -B /opt/llama.cpp/build -DGGML_CUDA=ON -DGGML_NATIVE=OFF -DCMAKE_CUDA_ARCHITECTURES=${LLAMA_CUDA_ARCH} && \
       cmake --build /opt/llama.cpp/build --config Release -j"$(nproc)" && \
       ln -sf /opt/llama.cpp/build/bin/llama-cli   /usr/local/bin/llama-cli && \
       ln -sf /opt/llama.cpp/build/bin/llama-server /usr/local/bin/llama-server && \
-      CMAKE_ARGS="-DGGML_CUDA=on" pip install --no-cache-dir llama-cpp-python && \
+      CMAKE_ARGS="-DGGML_CUDA=on -DCMAKE_CUDA_ARCHITECTURES=${LLAMA_CUDA_ARCH}" pip install --no-cache-dir llama-cpp-python && \
       curl -fsSL https://ollama.com/install.sh | sh ; \
     fi
 
@@ -200,7 +210,7 @@ RUN if [ "$INSTALL_LLAMACPP" = "1" ]; then \
 # 9. OPTIONAL: ROS 2 Jazzy (Ubuntu 24.04)  — adds ~1.5 GB
 # ============================================================================
 ARG INSTALL_ROS=0
-ARG INSTALL_ISAAC_ROS=0
+ARG INSTALL_ISAAC_ROS=1
 RUN if [ "$INSTALL_ROS" = "1" ] || [ "$INSTALL_ISAAC_ROS" = "1" ]; then \
       curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
            -o /usr/share/keyrings/ros-archive-keyring.gpg && \
@@ -258,17 +268,14 @@ WORKDIR /workspace
 #                     transformers_replace patch inside the venv only
 #   /opt/src/{Isaac-GR00T,openpi}  pinned checkouts with the Jetson AI Lab patches
 #
-# Tested on Thor / JetPack 7.1 as a layer over jp7-thor (robotics/JETSON_THOR.md §9.5):
-# gr00t-venv matches the official gr00t-thor image (torch 2.10, TRT 10.15.1.29).
-# openpi-venv runs pi0.5 in PyTorch, but with the 25.08 base (TensorRT 10.13.2) the
-# FP8+NVFP4 trtexec build hangs; OpenPI's own image (pytorch:26.05-py3, TRT 10.16)
-# builds it in ~24 min. For NVFP4 inside the unified image use ./Dockerfile.jp7-thor (26.05 base).
+# On this 26.05 base, openpi-venv inherits torch 2.12 / TensorRT 10.16.1 / modelopt 0.43,
+# i.e. the same stack as OpenPI's own openpi-pi0.5 image (which builds the FP8+NVFP4
+# engine); gr00t-venv stays self-contained (torch 2.10, TRT 10.15).
 #
-# Thor only (aarch64 + CUDA 13 base). Default off. Use with
-#   --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3 --build-arg INSTALL_THOR_VLA=1
+# Default ON in this Thor file; --build-arg INSTALL_THOR_VLA=0 to skip (~10 GB).
 # Usage inside the container: `source /opt/gr00t-venv/bin/activate` or
 # `source /opt/openpi-venv/bin/activate`, then follow ~/Developer/robotics/JETSON_THOR.md §9.
-ARG INSTALL_THOR_VLA=0
+ARG INSTALL_THOR_VLA=1
 ARG GROOT_COMMIT=9c7e746b2cd37a810070a98ef41d290a07e806c2
 ARG OPENPI_COMMIT=15a9616a00943ada6c20a0f158e3adb39df2ccac
 RUN if [ "$INSTALL_THOR_VLA" = "1" ]; then \
@@ -324,7 +331,7 @@ RUN if [ "$INSTALL_THOR_VLA" = "1" ]; then \
 #   - cv2 has the right backends after the rebuild  (GStreamer YES when REBUILD_OPENCV=1)
 # CI / classroom build will fail loudly here on regressions.
 RUN python - <<'PY'
-import torch, torchvision, numpy, cv2, ultralytics, lerobot, transformers, fastapi
+import torch, torchvision, numpy, cv2, ultralytics, lerobot, transformers, fastapi, tensorrt
 assert torch.version.cuda and '+cpu' not in torch.__version__, \
     'torch is not a CUDA build — bump BASE_IMAGE'
 info = cv2.getBuildInformation()
@@ -337,40 +344,20 @@ print('OK | torch',        torch.__version__,
       '| cv2',             cv2.__version__,
       '| ultralytics',     ultralytics.__version__,
       '| lerobot',         lerobot.__version__,
-      '| transformers',    transformers.__version__)
+      '| transformers',    transformers.__version__,
+      '| tensorrt',        tensorrt.__version__)
 print('cv2 backends:', gst.strip(), '|', ffm.strip())
 PY
 
 # =============================================================================
-# Build / push (run on a JetPack 7 Jetson, from the repo's jetson/ dir):
+# Build (on the Thor, from the repo's jetson/ dir; the Dockerfile COPYs nothing, so any
+# small directory works as the context):
 #
-#   docker build -f Dockerfile.jp7 -t cmpelkk/jetson-unified:jp7 .
+#   docker build -f Dockerfile.jp7-thor -t cmpelkk/jetson-unified:jp7-thor-2605 .
 #
-#   # skip the 30-min OpenCV rebuild (lose cv2 GStreamer support):
-#   docker build -f Dockerfile.jp7 --build-arg REBUILD_OPENCV=0 -t cmpelkk/jetson-unified:jp7-mini .
-#
-#   # skip llama.cpp + Ollama:
-#   docker build -f Dockerfile.jp7 --build-arg INSTALL_LLAMACPP=0 -t cmpelkk/jetson-unified:jp7-noLLM .
-#
-#   # build for Jetson Thor with Isaac ROS + CUDA 13 PyTorch (25.08 base; for the 26.05 base,
-#   # TensorRT 10.16 and OpenPI NVFP4, use ./Dockerfile.jp7-thor instead):
-#   docker build -f Dockerfile.jp7 \
-#     --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3 \
-#     --build-arg OPENCV_CUDA_ARCH_BIN=11.0 \
-#     --build-arg INSTALL_ISAAC_ROS=1 \
-#     -t cmpelkk/jetson-unified:jp7-thor .
-#
-#   # Thor + the GR00T N1.7 / OpenPI pi0.5 TensorRT stacks in their own venvs (section 9c):
-#   docker build -f Dockerfile.jp7 \
-#     --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3 \
-#     --build-arg OPENCV_CUDA_ARCH_BIN=11.0 \
-#     --build-arg INSTALL_THOR_VLA=1 \
-#     -t cmpelkk/jetson-unified:jp7-thor-vla .
-#   # (to add only 9c on top of an existing jp7-thor image, build a two-line Dockerfile:
-#   #  FROM cmpelkk/jetson-unified:jp7-thor + the 9c block; see robotics/JETSON_THOR.md §9.5)
-#
-#   # push to docker hub:
-#   docker push cmpelkk/jetson-unified:jp7
+#   # without the GR00T/OpenPI venvs, or without the OpenCV rebuild:
+#   docker build -f Dockerfile.jp7-thor --build-arg INSTALL_THOR_VLA=0 --build-arg REBUILD_OPENCV=0 \
+#     -t cmpelkk/jetson-unified:jp7-thor-2605-mini .
 #
 # Run — the --runtime nvidia flag is REQUIRED for GStreamer NV plugins / CUDA:
 #

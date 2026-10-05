@@ -137,6 +137,43 @@ sjsujetsontool update-script      # update only this CLI script from GitHub
 sjsujetsontool update-container   # update only the Docker container image
 ```
 
+### ✅ JetPack 7 and Jetson Thor: `sjsujetsontool` v2
+
+`v2` of the tool supports the JetPack 7 images as well as the JetPack 6 one. Install it with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/install_sjsujetsontool.sh | bash -s v2
+```
+
+Each JetPack 7 image is built for one device. Its GPU code (OpenCV CUDA, llama.cpp,
+and the robot-learning environments) is compiled for that board's GPU only, so
+`v2` picks the image from the hardware it runs on:
+
+| device | default container | image pulled by `update` |
+|---|---|---|
+| Jetson Thor (JetPack 7.1 / 7.2) | `jp7` | `cmpelkk/jetson-unified:jp7-thor` |
+| Jetson Orin Nano, JetPack 6 | `jp6` | `cmpelkk/jetson-llm:latest` |
+| Jetson Orin Nano, **JetPack 7.2** (L4T R39) | `jp6` | `cmpelkk/jetson-llm:latest`. Verified to run on 7.2 |
+| Jetson Orin Nano, JetPack 7.2, opted in | `jp7` (`--jp7` or `container set-jp7`) | `cmpelkk/jetson-unified:jp7-orin` |
+
+```bash
+sjsujetsontool container status      # which container/image this board uses
+sjsujetsontool container set-jp7     # switch persistently (stored in ~/.sjsujetsontool_config)
+sjsujetsontool --jp6 shell           # one-off override
+sjsujetsontool update                # script + edgeAI repo (fast-forward only) + image
+```
+
+`update` works as described above. If the pulled image is new, it removes the old
+container (`jetson-dev` or `jetson-dev-jp7`), and the next command recreates it from
+the new image. `git pull` runs with `--ff-only`, so your local changes in
+`/Developer/edgeAI` are never overwritten.
+
+> [!NOTE]
+> **For maintainers:** images are built once on a Jetson Thor and pushed to Docker Hub.
+> Every board then picks them up through `sjsujetsontool update`.
+> `sjsujetsontool publish-jp7` prints the exact build and push commands for both
+> `jp7-thor` and `jp7-orin` (from `jetson/Dockerfile.jp7-thor`).
+
 Verify and check all available commands:
 ```bash
 sjsujetsontool list

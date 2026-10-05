@@ -73,13 +73,21 @@ fi
 CONFIG_FILE="$HOME/.sjsujetsontool_config"
 DOCKERHUB_USER="cmpelkk"
 
-# Images
+# Images (Docker Hub). The JP7 images are per device: their CUDA pieces (OpenCV,
+# llama.cpp, the GR00T/OpenPI venvs) are compiled for one GPU architecture only.
+#   jp7-thor : jetson/Dockerfile.jp7-thor               (NGC 26.05, sm_110)
+#   jp7-orin : jetson/Dockerfile.jp7-thor + Orin args   (NGC 26.05, sm_87)
 JP6_IMAGE_NAME="cmpelkk/jetson-llm:v1"
-JP7_IMAGE_NAME="cmpelkk/jetson-unified:jp7-thor"
+JP6_REMOTE_IMAGE="cmpelkk/jetson-llm:latest"
+JP7_THOR_IMAGE="cmpelkk/jetson-unified:jp7-thor"
+JP7_ORIN_IMAGE="cmpelkk/jetson-unified:jp7-orin"
 
-# Determine default container based on hardware/L4T
+# Determine default container based on hardware/L4T.
+# Thor (L4T R38/R39) -> jp7. Orin stays on jp6 by default, also on JetPack 7.2 (R39):
+# the JP6 image (CUDA 12.6, sm_87) runs fine on the 7.2 driver (verified on an Orin Nano,
+# R39.2.0, driver 595). Use --jp7 / `container set-jp7` for the jp7-orin image.
 _L4T_NUM=$(echo "$L4T_REVISION" | grep -oE '[0-9]+' | head -1)
-if [[ "$JETSON_MODEL" == *"Thor"* ]] || [[ "$_L4T_NUM" -ge 38 ]]; then
+if [[ "$JETSON_MODEL" == *"Thor"* ]]; then
   DEFAULT_CONTAINER="jp7"
 else
   DEFAULT_CONTAINER="jp6"
@@ -110,7 +118,14 @@ fi
 
 if [ "$ACTIVE_CONTAINER" = "jp7" ]; then
   IMAGE_NAME="cmpelkk/jetson-unified"
-  IMAGE_TAG="jp7-thor"
+  if [[ "$JETSON_MODEL" == *"Thor"* ]]; then
+    IMAGE_TAG="jp7-thor"; JP7_IMAGE_NAME="$JP7_THOR_IMAGE"
+  else
+    IMAGE_TAG="jp7-orin"; JP7_IMAGE_NAME="$JP7_ORIN_IMAGE"
+    if [[ -n "$_L4T_NUM" && "$_L4T_NUM" -lt 39 ]]; then
+      echo "⚠️  jp7-orin needs JetPack 7.2+ (L4T R39) on Orin; this board reports $L4T_REVISION."
+    fi
+  fi
   LOCAL_IMAGE="$JP7_IMAGE_NAME"
   REMOTE_IMAGE="$JP7_IMAGE_NAME"
   CONTAINER_NAME="jetson-dev-jp7"
@@ -118,8 +133,8 @@ if [ "$ACTIVE_CONTAINER" = "jp7" ]; then
 else
   IMAGE_NAME="jetson-llm"
   IMAGE_TAG="v1"
-  LOCAL_IMAGE="$DOCKERHUB_USER/$IMAGE_NAME:$IMAGE_TAG"
-  REMOTE_IMAGE="$DOCKERHUB_USER/$IMAGE_NAME:latest"
+  LOCAL_IMAGE="$JP6_IMAGE_NAME"
+  REMOTE_IMAGE="$JP6_REMOTE_IMAGE"
   CONTAINER_NAME="jetson-dev"
   echo "🚀 Active Container: JetPack 6 ($LOCAL_IMAGE)"
 fi
@@ -327,7 +342,7 @@ show_help() {
   echo
   echo "Container Selection Options:"
   echo "  --jp6                     - Force JetPack 6 container (cmpelkk/jetson-llm:v1)"
-  echo "  --jp7                     - Force JetPack 7 container (cmpelkk/jetson-unified:jp7-thor)"
+  echo "  --jp7                     - Force JetPack 7 container (jetson-unified:jp7-thor on Thor, :jp7-orin on Orin)"
   echo "  container status          - Show current active container selection"
   echo "  container set-jp6         - Set persistent preference to JP6 container"
   echo "  container set-jp7         - Set persistent preference to JP7 container"
@@ -348,7 +363,9 @@ show_help() {
   echo
   echo "Standard Commands:"
   echo "  shell                     - Open interactive shell in active container"
-  echo "  update                    - Update edgeAI git repository"
+  echo "  update                    - Full update: script + edgeAI repo (ff-only) + container image"
+  echo "  update-script             - Update only this CLI script from GitHub"
+  echo "  update-container          - Pull the active image; recreate the container if it changed"
   echo "  publish-jp7               - Instructions and commands to push JP7 container to Docker Hub"
   echo "  version                   - Display version and hardware information"
   echo "  help                      - Show this help message"
@@ -469,7 +486,7 @@ case "$SUBCMD" in
       select|*)
         echo "Select default container image:"
         echo "1) JetPack 6 (cmpelkk/jetson-llm:v1 - Orin Nano)"
-        echo "2) JetPack 7 (cmpelkk/jetson-unified:jp7-thor - Jetson Thor / Orin)"
+        echo "2) JetPack 7 (cmpelkk/jetson-unified:jp7-thor on Thor, :jp7-orin on Orin JP7.2+)"
         read -p "Choice [1-2]: " choice
         case "$choice" in
           1) set_container_pref "jp6" ;;
@@ -730,31 +747,89 @@ case "$SUBCMD" in
     ;;
 
   update)
-    echo "🔄 Updating edgeAI repository..."
+    echo "🔄 Full update (script + edgeAI repo + container image)..."
+    echo "  Use 'update-script' or 'update-container' to run them individually."
+    echo
+    echo "📜 Step 1/3: Updating sjsujetsontool script from GitHub..."
+    "$0" update-script
+    echo
+    # Gentle pull: never discard a student's local changes.
+    echo "📥 Step 2/3: Updating edgeAI repository (git pull --ff-only)..."
     setup_check_internal
-    ( cd /Developer/edgeAI && git pull )
-    echo "✅ Updated edgeAI repository."
+    if ( cd /Developer/edgeAI && git pull --ff-only origin main 2>&1 ); then
+      echo "✅ Updated edgeAI repository."
+    else
+      echo "⚠️  Skipped: fast-forward failed (local changes or divergence). Your files are untouched."
+    fi
+    echo
+    echo "🐳 Step 3/3: Updating container image ($REMOTE_IMAGE)..."
+    # Re-exec the (possibly just updated) script with the same container choice.
+    _SEL=""; [ -n "$CLI_CONTAINER_OVERRIDE" ] && _SEL="--$CLI_CONTAINER_OVERRIDE"
+    "$0" update-container $_SEL
+    ;;
+
+  update-script)
+    echo "⬇️ Updating sjsujetsontool (v2) from GitHub..."
+    SCRIPT_PATH=$(realpath "$0")
+    cp "$SCRIPT_PATH" "${SCRIPT_PATH}.bak"
+    if curl -fsSL -H "Cache-Control: no-cache" \
+         https://raw.githubusercontent.com/lkk688/edgeAI/main/jetson/sjsujetsontoolv2.sh -o "${SCRIPT_PATH}.tmp"; then
+      chmod +x "${SCRIPT_PATH}.tmp" && mv "${SCRIPT_PATH}.tmp" "$SCRIPT_PATH"
+      echo "✅ Script updated (backup: ${SCRIPT_PATH}.bak)."
+    else
+      rm -f "${SCRIPT_PATH}.tmp"
+      echo "❌ Download failed; kept the current script."
+    fi
+    ;;
+
+  update-container)
+    if ! docker info &>/dev/null; then
+      echo "❌ Cannot reach Docker (daemon down, or '$(whoami)' not in the docker group)."
+      exit 1
+    fi
+    LOCAL_ID=$(docker image inspect "$LOCAL_IMAGE" --format '{{.Id}}' 2>/dev/null)
+    echo "⬇️ Pulling $REMOTE_IMAGE (large: the first pull can take a long time)..."
+    if docker pull "$REMOTE_IMAGE"; then
+      REMOTE_ID=$(docker image inspect "$REMOTE_IMAGE" --format '{{.Id}}' 2>/dev/null)
+      [ "$REMOTE_IMAGE" != "$LOCAL_IMAGE" ] && docker tag "$REMOTE_IMAGE" "$LOCAL_IMAGE"
+      if [ "$LOCAL_ID" != "$REMOTE_ID" ]; then
+        echo "📦 New image version."
+        if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+          echo "🗑️  Removing container '$CONTAINER_NAME'; it is recreated from the new image on next use."
+          docker rm -f "$CONTAINER_NAME" >/dev/null
+        fi
+        echo "✅ Container image updated."
+      else
+        echo "✅ Container image already up to date."
+      fi
+    else
+      echo "❌ Failed to pull $REMOTE_IMAGE."
+      exit 1
+    fi
     ;;
 
   publish-jp7|publish)
     echo "=================================================="
-    echo "📤 Instructions to Push JetPack 7 Container to Docker Hub"
+    echo "📤 Build & push the JetPack 7 images (run on a Jetson Thor)"
     echo "=================================================="
-    echo "1. Login to Docker Hub:"
-    echo "   docker login -u cmpelkk"
+    echo "Nodes pick them up with 'sjsujetsontool update'. Each image is device-specific."
     echo
-    echo "2. Build local JetPack 7 image on Jetson Thor:"
-    echo "   cd /Developer/edgeAI"
-    echo "   docker build -f jetson/Dockerfile.jp7 \\"
-    echo "     --build-arg BASE_IMAGE=nvcr.io/nvidia/pytorch:25.08-py3 \\"
-    echo "     --build-arg REBUILD_OPENCV=0 \\"
-    echo "     --build-arg INSTALL_ISAAC_ROS=1 \\"
-    echo "     -t cmpelkk/jetson-unified:jp7-thor ."
+    echo "1. Login:   docker login -u cmpelkk"
     echo
-    echo "3. Tag & Push to Docker Hub:"
-    echo "   docker tag cmpelkk/jetson-unified:jp7-thor cmpelkk/jetson-unified:jp7"
+    echo "2. Thor image (NGC 26.05, sm_110, GR00T/OpenPI venvs, Isaac ROS):"
+    echo "   cd /Developer/edgeAI/jetson && mkdir -p /tmp/jp7ctx"
+    echo "   docker build -f Dockerfile.jp7-thor -t cmpelkk/jetson-unified:jp7-thor /tmp/jp7ctx"
+    echo
+    echo "3. Orin image for JetPack 7.2+ (same file, sm_87, no Thor-only extras)."
+    echo "   Buildable on the Thor (same aarch64 base); the CUDA code targets sm_87:"
+    echo "   docker build -f Dockerfile.jp7-thor \\"
+    echo "     --build-arg OPENCV_CUDA_ARCH_BIN=8.7 --build-arg LLAMA_CUDA_ARCH=87 \\"
+    echo "     --build-arg INSTALL_THOR_VLA=0 --build-arg INSTALL_ISAAC_ROS=0 \\"
+    echo "     -t cmpelkk/jetson-unified:jp7-orin /tmp/jp7ctx"
+    echo
+    echo "4. Push:"
     echo "   docker push cmpelkk/jetson-unified:jp7-thor"
-    echo "   docker push cmpelkk/jetson-unified:jp7"
+    echo "   docker push cmpelkk/jetson-unified:jp7-orin"
     echo "=================================================="
     ;;
 
